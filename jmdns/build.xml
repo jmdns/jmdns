@@ -81,6 +81,7 @@
   <fileset dir="classes" includes="**"/>
   <fileset dir="docs" includes="**"/>
   <fileset dir="lib" includes="jmdns.jar"/>
+  <fileset dir="." includes="jmdns-*.zip"/>
  </delete>
 </target>
 

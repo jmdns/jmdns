@@ -323,12 +323,13 @@ public class ServiceInfo extends JmDNS.Listener
 		if (i == len) {
 		    props.put(name, NO_VALUE);
 		} else {
-		    byte value[] = new byte[len - i];
+		    byte value[] = new byte[len - ++i];
 		    System.arraycopy(text, off + i, value, 0, len - i);
 		    props.put(name, value);
 		    off += len;
 		}
 	    }
+	    this.props = props;
 	}
 	return props;
     }

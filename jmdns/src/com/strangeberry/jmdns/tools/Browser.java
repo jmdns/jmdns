@@ -172,10 +172,11 @@ public class Browser extends JFrame implements ServiceListener, ListSelectionLis
 			buf.append(':');
 			buf.append(service.getPort());
 			buf.append('\n');
-			String txt = service.getTextString();
-			if (txt != null) {
-			    buf.append('\n');
-			    buf.append(txt);
+			for (Enumeration names = service.getPropertyNames() ; names.hasMoreElements() ; ) {
+			    String prop = (String)names.nextElement();
+			    buf.append(prop);
+			    buf.append('=');
+			    buf.append(service.getPropertyString(prop));
 			    buf.append('\n');
 			}
 		    
