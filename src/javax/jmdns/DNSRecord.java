@@ -156,19 +156,23 @@ abstract class DNSRecord extends DNSEntry
 	{
 	    return (addr == ((Address)other).addr);
 	}
-	InetAddress getAddress()
+	InetAddress getInetAddress()
 	{
 	    try {
-		return InetAddress.getByName(toString());
+		return InetAddress.getByName(getAddress());
 	    } catch (UnknownHostException e) {
 		// should not happen
 		e.printStackTrace();
 		return null;
 	    }
 	}
-	public String toString()
+	String getAddress()
 	{
 	    return ((addr >> 24) & 0xFF) + "." + ((addr >> 16) & 0xFF) + "." + ((addr >> 8) & 0xFF) + "." + (addr & 0xFF);
+	}
+	public String toString()
+	{
+	    return toString(getAddress());
 	}
     }
 

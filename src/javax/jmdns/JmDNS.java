@@ -42,6 +42,7 @@ public class JmDNS extends DNSConstants
     Hashtable services;
     Thread shutdown;
     boolean done;
+    DNSRecord.Address host;
 
     /**
      * Create an instance of JmDNS.
@@ -49,9 +50,10 @@ public class JmDNS extends DNSConstants
     public JmDNS() throws IOException
     {
 	try {
-	    init(InetAddress.getLocalHost());
+	    InetAddress addr = InetAddress.getLocalHost();
+	    init(addr, addr.getHostName());
 	} catch (IOException e) {
-	    init(null);
+	    init(null, "computer");
 	}
     }
 
@@ -61,14 +63,17 @@ public class JmDNS extends DNSConstants
      */
     public JmDNS(InetAddress addr) throws IOException
     {
-	init(addr);
+	init(addr, addr.getHostName());
     }
 
     /**
      * Initialize everything.
      */
-    void init(InetAddress intf) throws IOException
+    void init(InetAddress intf, String name) throws IOException
     {
+	if (!name.endsWith(".")) {
+	    name += ".local.";
+	}
 	group = InetAddress.getByName(MDNS_GROUP);
 	socket = new MulticastSocket(MDNS_PORT);
 	if (intf != null) {
@@ -86,6 +91,13 @@ public class JmDNS extends DNSConstants
 	new Thread(new RecordReaper(), "JmDNS.RecordReaper").start();
 	shutdown = new Thread(new Shutdown(), "JmDNS.Shutdown");
 	Runtime.getRuntime().addShutdownHook(shutdown);
+
+	// host to IP address binding
+	byte data[] = intf.getAddress();
+	int ip = ((data[0] & 0xFF) << 24) | ((data[1] & 0xFF) << 16) | ((data[2] & 0xFF) << 8) | (data[3] & 0xFF);
+	host = new DNSRecord.Address(name, TYPE_A, CLASS_IN, 30*60, ip);
+
+	// REMIND: deal with conflicts
     }
 
     /**
@@ -150,6 +162,10 @@ public class JmDNS extends DNSConstants
      */
     public synchronized void registerService(ServiceInfo info) throws IOException
     {
+	// bind the service to this address
+	info.server = host.name;
+	info.addr = host.getInetAddress();
+
 	try {
 	    // check for a unqiue name
 	    checkService(info);
@@ -166,11 +182,12 @@ public class JmDNS extends DNSConstants
 		    now = System.currentTimeMillis();
 		    continue;
 		}
+
 		DNSOutgoing out = new DNSOutgoing(FLAGS_QR_RESPONSE | FLAGS_AA);
 		out.addAnswer(new DNSRecord.Pointer(info.type, TYPE_PTR, CLASS_IN, 60, info.name), 0);
-		out.addAnswer(new DNSRecord.Service(info.name, TYPE_SRV, CLASS_IN, 60, info.priority, info.weight, info.port, info.name), 0);
+		out.addAnswer(new DNSRecord.Service(info.name, TYPE_SRV, CLASS_IN, 60, info.priority, info.weight, info.port, host.name), 0);
 		out.addAnswer(new DNSRecord.Text(info.name, TYPE_TXT, CLASS_IN, 60, info.text), 0);
-		out.addAnswer(new DNSRecord.Address(info.name, TYPE_A, CLASS_IN, 60, info.getIPAddress()), 0);
+		out.addAnswer(host, 0);
 		send(out);
 		i++;
 		nextTime += 225;
@@ -369,14 +386,34 @@ public class JmDNS extends DNSConstants
      * Handle an incoming query. See if we can answer any part of it
      * given our registered records.
      */
-    synchronized void handleQuery(DNSIncoming in) throws IOException
+    synchronized void handleQuery(DNSIncoming in, InetAddress addr, int port) throws IOException
     {
 	DNSOutgoing out = null;
+
+	// REMIND: handle meta query for service types
+
+	// for unicast responses the question must be included
+	if (port != MDNS_PORT) {
+	    out = new DNSOutgoing(FLAGS_QR_RESPONSE | FLAGS_AA, false);
+	    for (Enumeration e = in.questions.elements() ; e.hasMoreElements() ;) {
+		out.addQuestion((DNSQuestion)e.nextElement());
+	    }
+	}
 
 	// answer relevant questions
 	for (Enumeration e = in.questions.elements() ; e.hasMoreElements() ;) {
 	    DNSQuestion q = (DNSQuestion)e.nextElement();
 	    switch (q.type) {
+	      case TYPE_A:
+		// address request
+		if (q.name.equals(host.name)) {
+		    if (out == null) {
+			out = new DNSOutgoing(FLAGS_QR_RESPONSE | FLAGS_AA);
+		    }
+		    out.addAnswer(in, host);
+		}
+		break;
+
 	      case TYPE_PTR:
 		// find matching services
 		for (Enumeration s = services.elements() ; s.hasMoreElements() ; ) {
@@ -389,6 +426,7 @@ public class JmDNS extends DNSConstants
 		    }
 		}
 		break;
+
 	      default:
 		// find service
 		ServiceInfo info = (ServiceInfo)services.get(q.name);
@@ -397,19 +435,19 @@ public class JmDNS extends DNSConstants
 			out = new DNSOutgoing(FLAGS_QR_RESPONSE | FLAGS_AA);
 		    }
 		    if ((q.type == TYPE_SRV) || (q.type == TYPE_ANY)) {
-			out.addAnswer(in, new DNSRecord.Service(info.name, TYPE_SRV, CLASS_IN | CLASS_UNIQUE, 60, info.priority, info.weight, info.port, info.name));
+			out.addAnswer(in, new DNSRecord.Service(info.name, TYPE_SRV, CLASS_IN | CLASS_UNIQUE, 60, info.priority, info.weight, info.port, host.name));
 		    }
 		    if ((q.type == TYPE_TXT) || (q.type == TYPE_ANY)) {
 			out.addAnswer(in, new DNSRecord.Text(info.name, TYPE_TXT, CLASS_IN | CLASS_UNIQUE, 60, info.text));
 		    }
-		    if ((q.type == TYPE_A) || (q.type == TYPE_ANY)) {
-			out.addAnswer(in, new DNSRecord.Address(info.name, TYPE_A, CLASS_IN | CLASS_UNIQUE, 60, info.getIPAddress()));
-		    }
 		}
 	    } 
 	}
+	// REMIND: add service info if there is space
 	if ((out != null) && (out.numAnswers > 0)) {
-	    send(out);
+	    out.id = in.id;
+	    out.finish();
+	    socket.send(new DatagramPacket(out.data, out.off, addr, port));
 	}
     }
 
@@ -445,7 +483,10 @@ public class JmDNS extends DNSConstants
 			    System.out.println();
 			}
 			if (msg.isQuery()) {
-			    handleQuery(msg);
+			    if (packet.getPort() != MDNS_PORT) {
+				handleQuery(msg, packet.getAddress(), packet.getPort());
+			    }
+			    handleQuery(msg, group, MDNS_PORT);
 			} else {
 			    handleResponse(msg);
 			}

@@ -23,7 +23,7 @@ import java.util.*;
  * A DNS question.
  *
  * @author	Arthur van Hoff
- * @version 	1.13, 11/29/2002
+ * @version 	%I%, %G%
  */
 final class DNSQuestion extends DNSEntry
 {
