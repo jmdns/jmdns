@@ -30,22 +30,22 @@
 
 <target name="build" depends="init" description="compile the generated source">
 <javac srcdir= "${src}" destdir="${dest}"> 
-<include name="com/**/*.java" /> 
+<include name="javax/**/*.java" /> 
 <classpath refid="jmdns.classpath"/> 
 </javac> 
 </target>
 
 <target name="tools" depends="build" description="Main program" >
 <javac srcdir="${src}" destdir="${dest}">
- <include name="com/**/tools/.java"/>
+ <include name="com/**/tools/*.java"/>
  <classpath refid="jmdns.classpath"/>
 </javac>
 </target>
 
-<target name="dist" depends="build" description="Jar the files">
+<target name="dist" depends="build,tools" description="Jar the files">
 <jar destfile="lib/jmdns.jar"
      basedir="${dest}" 
-     includes="com/**/*.class"/>
+     includes="**/*.class"/>
 </target>
 
 <target name="javadoc" depends="build" description="Create the java doc">
@@ -55,6 +55,7 @@
         version="true"
         windowtitle="JmDNS">
  <fileset dir="${src}" defaultexcludes="yes">
+  <include name="javax/**/*"/>
   <include name="com/**/*"/>
  </fileset>
 
