@@ -142,6 +142,40 @@ public class Browser extends JFrame implements ServiceListener, ListSelectionLis
     }
 
     /**
+     * Resolve a service.
+     */
+    public void resolveService(JmDNS jmdns, String type, String name, ServiceInfo info)
+    {
+	if (name.equals(serviceList.getSelectedValue() + "." + type)) {
+	    if (info == null) {
+		this.info.setText("service not found");
+	    } else {
+			
+		StringBuffer buf = new StringBuffer();
+		buf.append(name);
+		buf.append('\n');
+		buf.append(info.getServer());
+		buf.append(':');
+		buf.append(info.getPort());
+		buf.append('\n');
+		buf.append(info.getAddress());
+		buf.append(':');
+		buf.append(info.getPort());
+		buf.append('\n');
+		for (Enumeration names = info.getPropertyNames() ; names.hasMoreElements() ; ) {
+		    String prop = (String)names.nextElement();
+		    buf.append(prop);
+		    buf.append('=');
+		    buf.append(info.getPropertyString(prop));
+		    buf.append('\n');
+		}
+		    
+		this.info.setText(buf.toString());
+	    }
+	}
+    }
+
+    /**
      * List selection changed.
      */
     public void valueChanged(ListSelectionEvent e)
@@ -165,26 +199,10 @@ public class Browser extends JFrame implements ServiceListener, ListSelectionLis
 		    if (service == null) {
 			info.setText("service not found");
 		    } else {
-			StringBuffer buf = new StringBuffer();
-			buf.append(name);
-			buf.append('\n');
-			buf.append(service.getServer());
-			buf.append(':');
-			buf.append(service.getPort());
-			buf.append('\n');
-			buf.append(service.getAddress());
-			buf.append(':');
-			buf.append(service.getPort());
-			buf.append('\n');
-			for (Enumeration names = service.getPropertyNames() ; names.hasMoreElements() ; ) {
-			    String prop = (String)names.nextElement();
-			    buf.append(prop);
-			    buf.append('=');
-			    buf.append(service.getPropertyString(prop));
-			    buf.append('\n');
+			if (!name.endsWith(".")) {
+			    name = name + "." + type;
 			}
-		    
-			info.setText(buf.toString());
+			jmdns.requestServiceInfo(type, name);
 		    }
 		}
 	    }

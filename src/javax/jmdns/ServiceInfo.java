@@ -44,6 +44,19 @@ public class ServiceInfo extends JmDNS.Listener
      * Construct a service description for registrating with JmDNS.
      * @param type fully qualified service type name
      * @param name fully qualified service name
+     * @param addr the address to which the service is bound
+     * @param port the local port on which the service runs
+     * @param text string describing the service
+     */
+    public ServiceInfo(String type, String name, int port, String text)
+    {
+	this(type, name, port, 0, 0, text);
+    }
+
+    /**
+     * Construct a service description for registrating with JmDNS.
+     * @param type fully qualified service type name
+     * @param name fully qualified service name
      * @param port the local port on which the service runs
      * @param weight weight of the service
      * @param priority priority of the service
@@ -125,6 +138,17 @@ public class ServiceInfo extends JmDNS.Listener
      */
     ServiceInfo(String type, String name)
     {
+	if (!type.endsWith(".")) {
+	    throw new IllegalArgumentException("type must be fully qualified DNS name ending in '.': " + type);
+	}
+	if (name.endsWith(".")) {
+	    if (!name.endsWith("." + type)) {
+		throw new IllegalArgumentException("service name has the wrong type: name=" + name + ", type=" + type);
+	    }
+	} else {
+	    name = name + "." + type;
+	}
+
 	this.type = type;
 	this.name = name;
     }
@@ -207,6 +231,33 @@ public class ServiceInfo extends JmDNS.Listener
 	    return null;
 	}
 	return readUTF(text, 0, text.length);
+    }
+
+    /**
+     * Get the URL for this service. An http URL is created by
+     * combining the addres, port, and path properties.
+     */
+    public String getURL()
+    {
+	return getURL("http");
+    }
+
+    /**
+     * Get the URL for this service. An URL is created by
+     * combining the protocol, addres, port, and path properties.
+     */
+    public String getURL(String protocol)
+    {
+	String url = protocol + "://" + getAddress() + ":" + getPort();
+	String path = getPropertyString("path");
+	if (path != null) {
+	    if (path.indexOf("://") >= 0) {
+		url = path;
+	    } else {
+		url += path.startsWith("/") ? path : "/" + path;
+	    }
+	}
+	return url;
     }
 
     /**
@@ -444,6 +495,25 @@ public class ServiceInfo extends JmDNS.Listener
 	return (obj instanceof ServiceInfo) && name.equals(((ServiceInfo)obj).name);
     }
 
+    public String getNiceTextString()
+    {
+	StringBuffer buf = new StringBuffer();
+	for (int i = 0, len = text.length ; i < len ; i++) {
+	    if (i >= 20) {
+		buf.append("...");
+		break;
+	    }
+	    int ch = text[i] & 0xFF;
+	    if ((ch < ' ') || (ch > 127)) {
+		buf.append("\\0");
+		buf.append(Integer.toString(ch, 8));
+	    } else {
+		buf.append((char)ch);
+	    }
+	}
+	return buf.toString();
+    }
+
     public String toString()
     {
 	StringBuffer buf = new StringBuffer();
@@ -454,7 +524,7 @@ public class ServiceInfo extends JmDNS.Listener
 	buf.append(':');
 	buf.append(port);
 	buf.append(',');
-	buf.append((text.length < 20) ? new String(text) : new String(text, 0, 17) + "...");
+	buf.append(getNiceTextString());
 	buf.append(']');
 	return buf.toString();
     }
