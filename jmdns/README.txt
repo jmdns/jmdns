@@ -18,7 +18,10 @@
 Arthur van Hoff
 avh@strangeberry.com
 
-** JRendezvous
+Rick Blair
+rickblair@mac.com
+
+** JmDNS
 
 This is an implemenation of Rendezvous in Java. It currently
 supports service discovery and service registration.
@@ -27,24 +30,28 @@ supports service discovery and service registration.
 
 ** Requirements
 
-JRendezvous has been tested only on Windows using the JDK 1.3.1
-and JDK 1.4.0. It has also been tried on Mac OS/10 using JDK1.3.1.
+jmdns has been tested using the JDK 1.3.1 and JDK 1.4.0
+on the following platforms:
+
+Windows 9x, XP, 2000
+Linux   RedHat 7.3-9.0, Mandrake
+Mac OSX
 
 
 
-** Running JRendezvous from the Command Line
+** Running jmdns from the Command Line
 
 GUI browser:
 
-  java -jar jrendezvous.jar -browse
+  java -jar jmdns.jar -browse
 
 TTY browser for a particular service type:
 
-  java -jar jrendezvous.jar -bs _http._tcp local.
+  java -jar jmdns.jar -bs _http._tcp local.
 
 Register a service:
 
-  java -jar jrendezvous.jar -rs foobar _http._tcp local. 1234 index.html
+  java -jar jmdns.jar -rs foobar _http._tcp local. 1234 index.html
 
 To print debugging output specify -d as the first argument.  
 
@@ -52,7 +59,7 @@ To print debugging output specify -d as the first argument.
 
 ** Sample Code for Service Registration
 
-    import com.strangeberry.rendezvous.*;
+    import com.strangeberry.jmdns.*;
 
     Rendezvous rendezvous = new Rendezvous();
     rendezvous.registerService(
@@ -62,7 +69,7 @@ To print debugging output specify -d as the first argument.
 
 ** Sample code for Serivice Discovery
 
-    import com.strangeberry.rendezvous.*;
+    import com.strangeberry.jmdns.*;
 
     static class SampleListener implements ServiceListener
     {
@@ -88,5 +95,9 @@ To print debugging output specify -d as the first argument.
 - Main: no arguments lauches the browser. Now you can double click on
   the jar file
 
-- Switch from GPL to LGPL. Now you can use JRendezvous in your
+- Switch from GPL to LGPL. Now you can use JmDNS in your
   products without having to put them in the public domain.
+
+- Change package name from jrendezvous to JmDNS
+
+- Added to SourceForge
