@@ -187,8 +187,16 @@ public class ServiceInfo extends JmDNS.Listener
      */
     public String getAddress()
     {
-	byte data[] = addr.getAddress();
+	byte data[] = getInetAddress().getAddress();
 	return (data[0] & 0xFF) + "." + (data[1] & 0xFF) + "." + (data[2] & 0xFF) + "." + (data[3] & 0xFF);
+    }
+
+    /**
+     * Get the InetAddress of the service.
+     */
+    public InetAddress getInetAddress()
+    {
+	return addr;
     }
 
     /**
@@ -392,15 +400,6 @@ public class ServiceInfo extends JmDNS.Listener
 	    this.props = props;
 	}
 	return props;
-    }
-
-    /**
-     * Get the ip address of the service.
-     */
-    int getIPAddress()
-    {
-	byte data[] = addr.getAddress();
-	return ((data[0] & 0xFF) << 24) | ((data[1] & 0xFF) << 16) | ((data[2] & 0xFF) << 8) | (data[3] & 0xFF);
     }
 
     /**
