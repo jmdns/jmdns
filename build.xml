@@ -7,6 +7,7 @@
 <!-- Configure the context PATH for this application --> 
 <property name="src" value="./src" /> 
 <property name="dest" value="./classes"/>
+<property name="doc" value="./docs"/>
 
 <!-- Configure custom Ant tasks for the Manager application -->
 <path id="jmdns.classpath">
@@ -14,6 +15,16 @@
 <include name="*.jar"/>
 </fileset>
 </path> 
+
+<target name="help" description="Prints brief help message to screen">
+  <echo message="usage:"/>
+  <echo message="  ant TARGET where TARGET is one of the following:"/>
+  <echo message="      build   --- Compiles the JmDNS sources. Including the tools"/>
+  <echo message="      tools   --- Compiles the tools: The browser and main class"/>
+  <echo message="      dist    --- Creates the jmdns.jar file "/>
+  <echo message="      javadoc --- Creates the javadoc docs "/>
+  <echo message="      help    --- This message "/>
+</target>
 
 <!-- Executable Targets -->
 
@@ -26,8 +37,8 @@
 
 <target name="tools" depends="build" description="Main program" >
 <javac srcdir="${src}" destdir="${dest}">
-<include name="com/**/tools/.java"/>
-<classpath refid="jmdns.classpath"/>
+ <include name="com/**/tools/.java"/>
+ <classpath refid="jmdns.classpath"/>
 </javac>
 </target>
 
@@ -35,6 +46,20 @@
 <jar destfile="lib/jmdns.jar"
      basedir="${dest}" 
      includes="com/**/*.class"/>
+</target>
+
+<target name="javadoc" depends="build" description="Create the java doc">
+ <javadoc
+        destdir="${doc}"
+        author="true"
+        version="true"
+        windowtitle="JmDNS">
+ <fileset dir="${src}" defaultexcludes="yes">
+  <include name="com/**/*"/>
+ </fileset>
+
+ <doctitle><![CDATA[<H1>JmDNS</h1>]]></doctitle>
+ </javadoc>
 </target>
 
 </project>
