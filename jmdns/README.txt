@@ -43,16 +43,20 @@ Mac OSX
 
 GUI browser:
 
-  java -jar jmdns.jar -browse
+  java -jar lib/jmdns.jar -browse
 
 TTY browser for a particular service type:
 
-  java -jar jmdns.jar -bs _http._tcp local.
+  java -jar lib/jmdns.jar -bs _http._tcp local.
 
 Register a service:
 
-  java -jar jmdns.jar -rs foobar _http._tcp local. 1234 index.html
+  java -jar lib/jmdns.jar -rs foobar _http._tcp local. 1234 path=index.html
 
+List service types:
+
+  java -jar lib/jmdns.jar -bt
+  
 To print debugging output specify -d as the first argument.  
 
 
@@ -63,7 +67,7 @@ To print debugging output specify -d as the first argument.
 
     JmDNS jmdns = new JmDNS();
     jmdns.registerService(
-    	new ServiceInfo("_http._tcp.local.", "foo._http._tcp.local.", 1234, "index.html")
+    	new ServiceInfo("_http._tcp.local.", "foo._http._tcp.local.", 1234, 0, 0, "path=index.html")
     );
 
 
@@ -80,6 +84,10 @@ To print debugging output specify -d as the first argument.
 	public void removeService(JmDNS jmdns, String type, String name)
 	{
 	    System.out.println("REMOVE: " + name);
+	}
+	public void resolveService(JmDNS jmdns, String type, String name, ServiceInfo info)
+	{
+	    System.out.println("RESOLVED: " + info);
 	}
     }
 

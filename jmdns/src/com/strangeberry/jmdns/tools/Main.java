@@ -18,6 +18,7 @@ package com.strangeberry.jmdns.tools;
 
 import java.io.*;
 import java.net.*;
+import java.util.*;
 import javax.jmdns.*;
 
 /**
@@ -78,10 +79,21 @@ public class Main
 	    jmdns.addServiceTypeListener(new SampleListener());
 	} else if ((argc == 3) && "-bs".equals(argv[0])) {
 	    jmdns.addServiceListener(argv[1] + "." + argv[2], new SampleListener());
-	} else if ((argc == 6) && "-rs".equals(argv[0])) {
+	} else if ((argc > 4) && "-rs".equals(argv[0])) {
 	    String type = argv[2] + "." + argv[3];
 	    String name = argv[1] + "." + type;
-	    jmdns.registerService(new ServiceInfo(type, name, Integer.parseInt(argv[4]), 0, 0, argv[5]));
+	    Hashtable props = null;
+	    for (int i = 5 ; i < argc ; i++) {
+		int j = argv[i].indexOf('=');
+		if (j < 0) {
+		    throw new RuntimeException("not key=val: " + argv[i]);
+		}
+		if (props == null) {
+		    props = new Hashtable();
+		}
+		props.put(argv[i].substring(0, j), argv[i].substring(j+1));
+	    }
+	    jmdns.registerService(new ServiceInfo(type, name, Integer.parseInt(argv[4]), 0, 0, props));
 	} else if ((argc == 2) && "-f".equals(argv[0])) {
 	    new Responder(jmdns, argv[1]);
 	} else if (!debug) {

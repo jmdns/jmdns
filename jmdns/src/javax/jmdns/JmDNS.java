@@ -30,7 +30,7 @@ import java.util.*;
  */
 public class JmDNS extends DNSConstants
 {
-    public static String VERSION = "0.1.2";
+    public static String VERSION = "0.2";
     static int debug = Integer.parseInt(System.getProperty("jmdns.debug", "0"));
 
     InetAddress group;
@@ -102,9 +102,50 @@ public class JmDNS extends DNSConstants
 	// host to IP address binding
 	byte data[] = intf.getAddress();
 	int ip = ((data[0] & 0xFF) << 24) | ((data[1] & 0xFF) << 16) | ((data[2] & 0xFF) << 8) | (data[3] & 0xFF);
-	host = new DNSRecord.Address(name, TYPE_A, CLASS_IN, DNS_TTL, ip);
+	DNSRecord.Address host = new DNSRecord.Address(name, TYPE_A, CLASS_IN, DNS_TTL, ip);
 
-	// REMIND: deal with conflicts
+	// check for conflicts
+	long now = System.currentTimeMillis();
+	long nextTime = now;
+	for (int i = 0 ; i < 3 ;) {
+	    for (Iterator j = cache.find(host.name) ; j.hasNext() ;) {
+		DNSRecord a = (DNSRecord)j.next();
+		if ((a.type == TYPE_A) && !a.isExpired(now) && (((DNSRecord.Address)a).addr != ip)) {
+		    String nm = host.name.substring(0, name.indexOf('.'));
+		    try {
+			int l = nm.lastIndexOf('-');
+			int r = nm.lastIndexOf('.');
+			if ((l >= 0) && (l < r)) {
+			    nm = nm.substring(0, l) + "-" + (Integer.parseInt(nm.substring(l+1)) + 1);
+			} else {
+			    nm += "-1";
+			}
+		    } catch (NumberFormatException e) {
+			nm += "-1";
+		    }
+		    host.name = nm + host.name.substring(name.indexOf('.'));
+		    i = 0;
+		    break;
+		}
+	    }
+	    DNSOutgoing out = new DNSOutgoing(FLAGS_QR_QUERY);
+	    out.addQuestion(new DNSQuestion(host.name, TYPE_A, CLASS_IN));
+	    out.addAuthorativeAnswer(host);
+	    send(out);
+	    i++;
+	    nextTime += 175;
+
+	    if (now < nextTime) {
+		try {
+		    Thread.sleep(nextTime - now);
+		} catch (InterruptedException e) {
+		    throw new IOException("init interrupted");
+		}
+		now = System.currentTimeMillis();
+		continue;
+	    }
+	}
+	this.host = host;
     }
 
     /**
@@ -412,14 +453,9 @@ public class JmDNS extends DNSConstants
 			name += " [1]";
 		    }
 		    info.name = name + "." + info.type;
-		    checkService(info);
-		    return;
+		    i = 0;
+		    break;
 		}
-	    }
-	    if (now < nextTime) {
-		wait(nextTime - now);
-		now = System.currentTimeMillis();
-		continue;
 	    }
 	    DNSOutgoing out = new DNSOutgoing(FLAGS_QR_QUERY | FLAGS_AA);
 	    out.addQuestion(new DNSQuestion(info.type, TYPE_PTR, CLASS_IN));
@@ -427,6 +463,12 @@ public class JmDNS extends DNSConstants
 	    send(out);
 	    i++;
 	    nextTime += 175;
+
+	    if (now < nextTime) {
+		wait(nextTime - now);
+		now = System.currentTimeMillis();
+		continue;
+	    }
 	}
     }
 
@@ -510,14 +552,19 @@ public class JmDNS extends DNSConstants
 	    } else if (!expired) {
 		cache.add(rec);
 	    }
-	    // handle _mdns._udp records
-	    if (rec.name.indexOf("._mdns._udp.") >= 0) {
-		if (!expired && (rec.type == TYPE_PTR) && rec.name.startsWith("_services._mdns._udp.")) {
-		    registerServiceType(((DNSRecord.Pointer)rec).alias);
+	    switch (rec.type) {
+	      case TYPE_PTR:
+		// handle _mdns._udp records
+		if (rec.name.indexOf("._mdns._udp.") >= 0) {
+		    if (!expired && rec.name.startsWith("_services._mdns._udp.")) {
+			registerServiceType(((DNSRecord.Pointer)rec).alias);
+		    }
+		    continue;
 		}
-		continue;
+		registerServiceType(rec.name);
+		break;
 	    }
-
+	    
 	    // notify the listeners
 	    updateRecord(now, rec);
 	}
@@ -546,7 +593,7 @@ public class JmDNS extends DNSConstants
 	    switch (q.type) {
 	      case TYPE_A:
 		// address request
-		if (q.name.equals(host.name)) {
+		if ((host != null) && q.name.equals(host.name)) {
 		    if (out == null) {
 			out = new DNSOutgoing(FLAGS_QR_RESPONSE | FLAGS_AA);
 		    }

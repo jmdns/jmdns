@@ -86,31 +86,33 @@ public class ServiceInfo extends JmDNS.Listener
      */
     public ServiceInfo(String type, String name, int port, int weight, int priority, Hashtable props)
     {
-	this(type, name, port, weight, priority, (byte [])null);
-	try {
-	    ByteArrayOutputStream out = new ByteArrayOutputStream(256);
-	    for (Enumeration e = props.keys() ; e.hasMoreElements() ;) {
-		String key = (String)e.nextElement();
-		Object val = props.get(key);
-		ByteArrayOutputStream out2 = new ByteArrayOutputStream(100);
-		writeUTF(out2, key);
-		if (val instanceof String) {
-		    out2.write('=');
-		    writeUTF(out2, (String)val);
-		} else if (val instanceof byte[]) {
-		    out2.write('=');
-		    byte[] bval = (byte[])val;
-		    out2.write(bval, 0, bval.length);
-		} else if (val != NO_VALUE) {
-		    throw new IllegalArgumentException("invalid property value: " + val);
+	this(type, name, port, weight, priority, new byte[0]);
+	if (props != null) {
+	    try {
+		ByteArrayOutputStream out = new ByteArrayOutputStream(256);
+		for (Enumeration e = props.keys() ; e.hasMoreElements() ;) {
+		    String key = (String)e.nextElement();
+		    Object val = props.get(key);
+		    ByteArrayOutputStream out2 = new ByteArrayOutputStream(100);
+		    writeUTF(out2, key);
+		    if (val instanceof String) {
+			out2.write('=');
+			writeUTF(out2, (String)val);
+		    } else if (val instanceof byte[]) {
+			out2.write('=');
+			byte[] bval = (byte[])val;
+			out2.write(bval, 0, bval.length);
+		    } else if (val != NO_VALUE) {
+			throw new IllegalArgumentException("invalid property value: " + val);
+		    }
+		    byte data[] = out2.toByteArray();
+		    out.write(data.length);
+		    out.write(data, 0, data.length);
 		}
-		byte data[] = out2.toByteArray();
-		out.write(data.length);
-		out.write(data, 0, data.length);
+		this.text = out.toByteArray();
+	    } catch (IOException e) {
+		throw new RuntimeException("unexpected exception: " + e);
 	    }
-	    this.text = out.toByteArray();
-	} catch (IOException e) {
-	    throw new RuntimeException("unexpected exception: " + e);
 	}
     }
 
