@@ -20,7 +20,7 @@ package javax.jmdns;
  * Listener for service updates.
  *
  * @author	Arthur van Hoff
- * @version 	1.3, 11/29/2002
+ * @version 	%I%, %G%
  */
 public interface ServiceListener {
     /**
@@ -28,12 +28,12 @@ public interface ServiceListener {
      * @param type the fully qualified type of the service
      * @param name the fully qualified name of the service
      */
-    void addService(Rendezvous rendezvous, String type, String name);
+    void addService(JmDNS jmdns, String type, String name);
 
     /**
      * A service is removed.
      * @param type the fully qualified type of the service
      * @param name the fully qualified name of the service
      */
-    void removeService(Rendezvous rendezvous, String type, String name);
+    void removeService(JmDNS jmdns, String type, String name);
 }

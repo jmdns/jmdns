@@ -24,7 +24,7 @@ import java.util.*;
  * An outgoing DNS message.
  *
  * @author	Arthur van Hoff
- * @version 	1.13, 11/29/2002
+ * @version 	%I%, %G%
  */
 final class DNSOutgoing extends DNSConstants
 {

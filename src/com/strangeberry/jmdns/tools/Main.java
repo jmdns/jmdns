@@ -21,20 +21,20 @@ import java.net.*;
 import javax.jmdns.*;
 
 /**
- * Main sample program for Rendezvous.
+ * Main sample program for JmDNS.
  *
  * @author	Arthur van Hoff
- * @version 	1.11, 11/29/2002
+ * @version 	%I%, %G%
  */
 public class Main
 {
     static class SampleListener implements ServiceListener
     {
-	public void addService(Rendezvous rendezvous, String type, String name)
+	public void addService(JmDNS jmdns, String type, String name)
 	{
-	    System.out.println("ADD: " + rendezvous.getServiceInfo(type, name, 3*1000));
+	    System.out.println("ADD: " + jmdns.getServiceInfo(type, name, 3*1000));
 	}
-	public void removeService(Rendezvous rendezvous, String type, String name)
+	public void removeService(JmDNS jmdns, String type, String name)
 	{
 	    System.out.println("REMOVE: " + name);
 	}
@@ -47,33 +47,33 @@ public class Main
 
 	if ((argc > 0) && "-d".equals(argv[0])) {
 	    System.arraycopy(argv, 1, argv, 0, --argc);
-	    System.getProperties().put("rendezvous.debug", "1");
+	    System.getProperties().put("jmdns.debug", "1");
 	    debug = true;
 	}
 	
-	Rendezvous rendezvous = new Rendezvous();
+	JmDNS jmdns = new JmDNS();
 
 	if ((argc == 0) || ((argc >= 1) && "-browse".equals(argv[0]))) {
 	    if (argc > 1) {
 		String types[] = new String[argc - 1];
 		System.arraycopy(argv, 1, types, 0, argc - 1);
-		new Browser(rendezvous, types);
+		new Browser(jmdns, types);
 	    } else {
-		new Browser(rendezvous);
+		new Browser(jmdns);
 	    }
 	} else if ((argc == 3) && "-bs".equals(argv[0])) {
-	    rendezvous.addServiceListener(argv[1] + "." + argv[2], new SampleListener());
+	    jmdns.addServiceListener(argv[1] + "." + argv[2], new SampleListener());
 	} else if ((argc == 6) && "-rs".equals(argv[0])) {
 	    String type = argv[2] + "." + argv[3];
 	    String name = argv[1] + "." + type;
-	    rendezvous.registerService(new ServiceInfo(type, name, InetAddress.getLocalHost(), Integer.parseInt(argv[4]), 0, 0, argv[5]));
+	    jmdns.registerService(new ServiceInfo(type, name, InetAddress.getLocalHost(), Integer.parseInt(argv[4]), 0, 0, argv[5]));
 	} else if (!debug) {
 	    System.out.println();
-	    System.out.println("jrendezvous:");
-	    System.out.println("     -d						- output debugging info");
-	    System.out.println("     -browse [<type>...]			         - GUI browser (default)");
-	    System.out.println("     -bs <type> <domain>				- browse service");
-	    System.out.println("     -rs <name> <type> <domain> <port> <txt>		- register service");
+	    System.out.println("jmdns:");
+	    System.out.println("     -d                                       - output debugging info");
+	    System.out.println("     -browse [<type>...]                      - GUI browser (default)");
+	    System.out.println("     -bs <type> <domain>                      - browse service");
+	    System.out.println("     -rs <name> <type> <domain> <port> <txt>  - register service");
 	    System.out.println();
 	    System.exit(1);
 	}

@@ -25,18 +25,17 @@ import javax.swing.*;
 import javax.swing.table.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
-
 import javax.jmdns.*;
 
 /**
- * User Interface for browsing Rendezvous services.
+ * User Interface for browsing JmDNS services.
  *
  * @author	Arthur van Hoff
- * @version 	1.13, 11/29/2002
+ * @version 	%I%, %G%
  */
 public class Browser extends JFrame implements ServiceListener, ListSelectionListener
 {
-    Rendezvous rendezvous;
+    JmDNS jmdns;
     Vector headers;
     DefaultListModel services;
     String type;
@@ -44,9 +43,9 @@ public class Browser extends JFrame implements ServiceListener, ListSelectionLis
     JList serviceList;
     JTextArea info;
     
-    Browser(Rendezvous rendezvous)
+    Browser(JmDNS jmdns)
     {
-	this(rendezvous, new String[] {
+	this(jmdns, new String[] {
 	    "_http._tcp.local.",
 	    "_ftp._tcp.local.",
 	    "_tftp._tcp.local.",
@@ -60,10 +59,10 @@ public class Browser extends JFrame implements ServiceListener, ListSelectionLis
             "_presence._tcp.local."
 	});
     }
-    Browser(Rendezvous rendezvous, String types[])
+    Browser(JmDNS jmdns, String types[])
     { 
-        super("JRendezvous Browser");
-	this.rendezvous = rendezvous;
+        super("JmDNS Browser");
+	this.jmdns = jmdns;
 
 	Color bg = new Color(230, 230, 230);
         EmptyBorder border = new EmptyBorder(5, 5, 5, 5);
@@ -115,13 +114,13 @@ public class Browser extends JFrame implements ServiceListener, ListSelectionLis
         setSize(600, 400);
         show();
 
-	rendezvous.addServiceListener(type, this);
+	jmdns.addServiceListener(type, this);
     }
 
     /**
      * Add a service.
      */
-    public void addService(Rendezvous rendezvous, String type, String name)
+    public void addService(JmDNS jmdns, String type, String name)
     {
 	if (name.endsWith("." + type)) {
 	    name = name.substring(0, name.length() - (type.length() + 1));
@@ -133,7 +132,7 @@ public class Browser extends JFrame implements ServiceListener, ListSelectionLis
     /**
      * Remove a service.
      */
-    public void removeService(Rendezvous rendezvous, String type, String name)
+    public void removeService(JmDNS jmdns, String type, String name)
     {
 	if (name.endsWith("." + type)) {
 	    name = name.substring(0, name.length() - (type.length() + 1));
@@ -150,10 +149,10 @@ public class Browser extends JFrame implements ServiceListener, ListSelectionLis
 	if (!e.getValueIsAdjusting()) {
 	    if (e.getSource() == typeList) {
 		type = (String)typeList.getSelectedValue();
-		rendezvous.removeServiceListener(this);
+		jmdns.removeServiceListener(this);
 		services.setSize(0);
 		info.setText("");
-		rendezvous.addServiceListener(type, this);
+		jmdns.addServiceListener(type, this);
 	    } else if (e.getSource() == serviceList) {
 		String name = (String)serviceList.getSelectedValue();
 		if (name == null) {
@@ -162,7 +161,7 @@ public class Browser extends JFrame implements ServiceListener, ListSelectionLis
 		    if (!name.endsWith(".")) {
 			name = name + "." + type;
 		    }
-		    ServiceInfo service = rendezvous.getServiceInfo(type, name);
+		    ServiceInfo service = jmdns.getServiceInfo(type, name);
 		    if (service == null) {
 			info.setText("service not found");
 		    } else {
@@ -226,6 +225,6 @@ public class Browser extends JFrame implements ServiceListener, ListSelectionLis
      */
     public static void main(String argv[]) throws IOException
     {
-	new Browser(new Rendezvous());
+	new Browser(new JmDNS());
     }
 }

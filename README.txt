@@ -1,5 +1,4 @@
-// Copyright (C) 2002  Strangeberry Inc.
-// @(#)README.txt, 1.3, 11/29/2002
+// %Z%%M%, %I%, %G%
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -23,8 +22,9 @@ rickblair@mac.com
 
 ** JmDNS
 
-This is an implemenation of Rendezvous in Java. It currently
-supports service discovery and service registration.
+This is an implemenation of multi-cast DNS in Java. It currently
+supports service discovery and service registration. It is fully
+interoperable with Apple's Rendezvous.
 
 
 
@@ -59,45 +59,35 @@ To print debugging output specify -d as the first argument.
 
 ** Sample Code for Service Registration
 
-    import com.strangeberry.jmdns.*;
+    import javax.jmdns.*;
 
-    Rendezvous rendezvous = new Rendezvous();
-    rendezvous.registerService(
+    JmDNS jmdns = new JmDNS();
+    jmdns.registerService(
     	new ServiceInfo("_http._tcp.local.", "foo._http._tcp.local.", 1234, "index.html")
     );
 
 
 ** Sample code for Serivice Discovery
 
-    import com.strangeberry.jmdns.*;
+    import javax.jmdns.*;
 
     static class SampleListener implements ServiceListener
     {
-	public void addService(Rendezvous rendezvous, String type, String name)
+	public void addService(JmDNS jmdns, String type, String name)
 	{
-	    System.out.println("ADD: " + rendezvous.getServiceInfo(type, name));
+	    System.out.println("ADD: " + jmdns.getServiceInfo(type, name));
 	}
-	public void removeService(Rendezvous rendezvous, String type, String name)
+	public void removeService(JmDNS jmdns, String type, String name)
 	{
 	    System.out.println("REMOVE: " + name);
 	}
     }
 
-    Rendezvous rendezvous = new Rendezvous();
-    rendezvous.addServiceListener("_http._tcp.local.", new SampleListener());
+    JmDNS jmdns = new JmDNS();
+    jmdns.addServiceListener("_http._tcp.local.", new SampleListener());
 
 
+** Changes since October 2003
 
-** Changes since 9-10-2002
+- Renamed package com.strangeberry.rendezvous to javax.jmdns
 
-- Rendezvous.SocketListener: check done flag to avoid exception on close.
-
-- Main: no arguments lauches the browser. Now you can double click on
-  the jar file
-
-- Switch from GPL to LGPL. Now you can use JmDNS in your
-  products without having to put them in the public domain.
-
-- Change package name from jrendezvous to JmDNS
-
-- Added to SourceForge

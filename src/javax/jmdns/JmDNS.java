@@ -24,15 +24,15 @@ import java.util.*;
 // REMIND: multiple IP addresses
 
 /**
- * Rendezvous implementation in Java.
+ * mDNS implementation in Java.
  *
  * @author	Arthur van Hoff
- * @version 	1.30, 11/29/2002
+ * @version 	%I%, %G%
  */
-public class Rendezvous extends DNSConstants
+public class JmDNS extends DNSConstants
 {
-      static int debug = Integer.parseInt(System.getProperty("rendezvous.debug", "0"));
-  //  static int debug = 1;
+    static int debug = Integer.parseInt(System.getProperty("jmdns.debug", "0"));
+    // static int debug = 1;
 
     InetAddress group;
     MulticastSocket socket;
@@ -44,9 +44,9 @@ public class Rendezvous extends DNSConstants
     boolean done;
 
     /**
-     * Create an instance of Rendezvous.
+     * Create an instance of JmDNS.
      */
-    public Rendezvous() throws IOException
+    public JmDNS() throws IOException
     {
 	try {
 	    init(InetAddress.getLocalHost());
@@ -56,10 +56,10 @@ public class Rendezvous extends DNSConstants
     }
 
     /**
-     * Create an instance of Rendezvous and bind it to a
+     * Create an instance of JmDNS and bind it to a
      * specific network interface given its IP-address.
      */
-    public Rendezvous(InetAddress addr) throws IOException
+    public JmDNS(InetAddress addr) throws IOException
     {
 	init(addr);
     }
@@ -82,9 +82,9 @@ public class Rendezvous extends DNSConstants
 	browsers = new Vector();
 	services = new Hashtable(20);
 
-	new Thread(new SocketListener(), "Rendezvous.SocketListener").start();
-	new Thread(new RecordReaper(), "Rendezvous.RecordReaper").start();
-	shutdown = new Thread(new Shutdown(), "Rendezvous.Shutdown");
+	new Thread(new SocketListener(), "JmDNS.SocketListener").start();
+	new Thread(new RecordReaper(), "JmDNS.RecordReaper").start();
+	shutdown = new Thread(new Shutdown(), "JmDNS.Shutdown");
 	Runtime.getRuntime().addShutdownHook(shutdown);
     }
 
@@ -145,7 +145,7 @@ public class Rendezvous extends DNSConstants
     }
 
     /**
-     * Register a service. The service is registered for access by other rendezvous clients.
+     * Register a service. The service is registered for access by other jmdns clients.
      * The name of the service may be changed to make it unique.
      */
     public synchronized void registerService(ServiceInfo info) throws IOException
@@ -286,7 +286,7 @@ public class Rendezvous extends DNSConstants
 	/**
 	 * Update a DNS record.
 	 */
-	abstract void updateRecord(Rendezvous rendezvous, long now, DNSRecord record);
+	abstract void updateRecord(JmDNS jmdns, long now, DNSRecord record);
     }
 
     /**
@@ -470,9 +470,9 @@ public class Rendezvous extends DNSConstants
 	{
 
 	    try {
-		synchronized (Rendezvous.this) {
+		synchronized (JmDNS.this) {
 		    while (true) {
-			Rendezvous.this.wait(10 * 1000);
+			JmDNS.this.wait(10 * 1000);
 			if (done) {
 			    return;
 			}
@@ -497,7 +497,7 @@ public class Rendezvous extends DNSConstants
     /**
      * Browse for a service of a given type
      */
-    class ServiceBrowser extends Rendezvous.Listener implements Runnable
+    class ServiceBrowser extends JmDNS.Listener implements Runnable
     {
 	String type;
 	ServiceListener listener;
@@ -520,7 +520,7 @@ public class Rendezvous extends DNSConstants
 	    this.list = new LinkedList();
 
 	    addListener(this, new DNSQuestion(type, TYPE_PTR, CLASS_IN));
-	    new Thread(this, "Rendezvous.ServiceBrowser: " + type).start();
+	    new Thread(this, "JmDNS.ServiceBrowser: " + type).start();
 	}
 
 
@@ -541,7 +541,7 @@ public class Rendezvous extends DNSConstants
 	/**
 	 * Update a record.
 	 */
-	void updateRecord(Rendezvous rendezvous, long now, DNSRecord rec)
+	void updateRecord(JmDNS jmdns, long now, DNSRecord rec)
 	{
 	    if ((rec.type == TYPE_PTR) && rec.name.equals(type)) {
 		boolean expired = rec.isExpired(now);
@@ -551,7 +551,7 @@ public class Rendezvous extends DNSConstants
 		    // new record
 		    services.put(name, rec);
 		    list.addLast(new Event(name) {
-			    void send() {listener.addService(Rendezvous.this, type, this.name);}
+			    void send() {listener.addService(JmDNS.this, type, this.name);}
 			});
 		} else if ((old != null) && !expired) {
 		    // update record
@@ -560,7 +560,7 @@ public class Rendezvous extends DNSConstants
 		    // expire record
 		    services.remove(name);
 		    list.addLast(new Event(name) {
-			    void send() {listener.removeService(Rendezvous.this, type, this.name);}
+			    void send() {listener.removeService(JmDNS.this, type, this.name);}
 			});
 		    return;
 		}
@@ -582,10 +582,10 @@ public class Rendezvous extends DNSConstants
 		while (true) {
 		    Event evt = null;
 		    
-		    synchronized (Rendezvous.this) {
+		    synchronized (JmDNS.this) {
 			long now = System.currentTimeMillis();
 			if ((list.size() == 0) && (nextTime > now)) {
-			    Rendezvous.this.wait(nextTime - now);
+			    JmDNS.this.wait(nextTime - now);
 			}
 			if (done) {
 			    return;
@@ -627,7 +627,7 @@ public class Rendezvous extends DNSConstants
 
 	void close()
 	{
-	    synchronized (Rendezvous.this) {
+	    synchronized (JmDNS.this) {
 		if (!done) {
 		    done = true;
 		    removeListener(this);
@@ -649,7 +649,7 @@ public class Rendezvous extends DNSConstants
     }
 
     /**
-     * Close down rendezvous. Release all resources and unregister all services.
+     * Close down jmdns. Release all resources and unregister all services.
      */
     public synchronized void close()
     {
