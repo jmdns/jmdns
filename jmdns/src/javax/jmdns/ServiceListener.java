@@ -36,4 +36,12 @@ public interface ServiceListener {
      * @param name the fully qualified name of the service
      */
     void removeService(JmDNS jmdns, String type, String name);
+
+    /**
+     * A service is resolved. Its details are now available in the ServiceInfo record.
+     * @param type the fully qualified type of the service
+     * @param name the fully qualified name of the service
+     * @param info the service info record, or null if the service could be be resolved
+     */
+    void resolveService(JmDNS jmdns, String type, String name, ServiceInfo info);
 }

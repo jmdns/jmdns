@@ -90,4 +90,7 @@ To print debugging output specify -d as the first argument.
 ** Changes since October 2003
 
 - Renamed package com.strangeberry.rendezvous to javax.jmdns
+- fixed unicast queries
+- fixed property handling
+- use the hostname instead of the service name is address resolution
 

@@ -42,7 +42,7 @@ final class DNSOutgoing extends DNSConstants
     int len;
 
     /**
-     * Create an outgoing query or response.
+     * Create an outgoing multicast query or response.
      */
     DNSOutgoing(int flags)
     {

@@ -27,6 +27,7 @@ abstract class DNSConstants
     final static String MDNS_GROUP	= "224.0.0.251"; 
     final static int MDNS_PORT		= 5353;
     final static int DNS_PORT		= 53;
+    final static int DNS_TTL		= 60 * 60;	// default one hour TTL
 
     final static int MAX_MSG_TYPICAL	= 1460;
     final static int MAX_MSG_ABSOLUTE	= 8972;

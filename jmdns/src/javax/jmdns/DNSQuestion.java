@@ -16,9 +16,6 @@
 
 package javax.jmdns;
 
-import java.io.*;
-import java.util.*;
-
 /**
  * A DNS question.
  *

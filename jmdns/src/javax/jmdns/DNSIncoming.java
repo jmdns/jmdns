@@ -186,6 +186,7 @@ final class DNSIncoming extends DNSConstants
 	StringBuffer buf = new StringBuffer();
 	int off = this.off;
 	int next = -1;
+	int first = off;
 
 	while (true) {
 	    int len = get(off++);
@@ -205,6 +206,10 @@ final class DNSIncoming extends DNSConstants
 		    next = off + 1;
 		}
 		off = ((len & 0x3F) << 8) | get(off++);
+		if (off >= first) {
+		    throw new IOException("bad domain name: possible circular name detected");
+		}
+		first = off;
 		break;
 	      default:
 		throw new IOException("bad domain name: '" + buf + "' at " + off);
@@ -275,7 +280,7 @@ final class DNSIncoming extends DNSConstants
 	buf.append(",len=" + packet.getLength());
 	buf.append(",id=0x" + Integer.toHexString(id));
 	if (flags != 0) {
-	    buf.append(",flags=0x" + Integer.toHexString(id));
+	    buf.append(",flags=0x" + Integer.toHexString(flags));
 	    if ((flags & FLAGS_QR_RESPONSE) != 0) {
 		buf.append(":r");
 	    }
