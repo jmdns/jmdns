@@ -33,33 +33,18 @@ import javax.jmdns.*;
  * @author	Arthur van Hoff
  * @version 	%I%, %G%
  */
-public class Browser extends JFrame implements ServiceListener, ListSelectionListener
+public class Browser extends JFrame implements ServiceListener, ServiceTypeListener, ListSelectionListener
 {
     JmDNS jmdns;
     Vector headers;
-    DefaultListModel services;
     String type;
+    DefaultListModel types;
     JList typeList;
+    DefaultListModel services;
     JList serviceList;
     JTextArea info;
     
     Browser(JmDNS jmdns)
-    {
-	this(jmdns, new String[] {
-	    "_http._tcp.local.",
-	    "_ftp._tcp.local.",
-	    "_tftp._tcp.local.",
-	    "_ssh._tcp.local.",
-	    "_smb._tcp.local.",
-	    "_printer._tcp.local.",
-	    "_airport._tcp.local.",
-	    "_afpovertcp._tcp.local.",
-	    "_ichat._tcp.local.",
-	    "_eppc._tcp.local.",
-            "_presence._tcp.local."
-	});
-    }
-    Browser(JmDNS jmdns, String types[])
     { 
         super("JmDNS Browser");
 	this.jmdns = jmdns;
@@ -68,13 +53,11 @@ public class Browser extends JFrame implements ServiceListener, ListSelectionLis
         EmptyBorder border = new EmptyBorder(5, 5, 5, 5);
 	Container content = getContentPane();
         content.setLayout(new GridLayout(1, 3));
-	Arrays.sort(types);
-	type = types[0];
-	
+
+	types = new DefaultListModel();
 	typeList = new JList(types);
         typeList.setBorder(border);
 	typeList.setBackground(bg);
-	typeList.setSelectedIndex(0);
 	typeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 	typeList.addListSelectionListener(this);
 
@@ -112,9 +95,29 @@ public class Browser extends JFrame implements ServiceListener, ListSelectionLis
 	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocation(100, 100);
         setSize(600, 400);
-        show();
 
-	jmdns.addServiceListener(type, this);
+	jmdns.addServiceTypeListener(this);
+
+	// register some well known types
+	String list[] = new String[] {
+	    "_http._tcp.local.",
+	    "_ftp._tcp.local.",
+	    "_tftp._tcp.local.",
+	    "_ssh._tcp.local.",
+	    "_smb._tcp.local.",
+	    "_printer._tcp.local.",
+	    "_airport._tcp.local.",
+	    "_afpovertcp._tcp.local.",
+	    "_ichat._tcp.local.",
+	    "_eppc._tcp.local.",
+            "_presence._tcp.local."
+	};
+
+	for (int i = 0 ; i < list.length ; i++) {
+	    jmdns.registerServiceType(list[i]);
+	}
+
+	show();
     }
 
     /**
@@ -126,7 +129,7 @@ public class Browser extends JFrame implements ServiceListener, ListSelectionLis
 	    name = name.substring(0, name.length() - (type.length() + 1));
 	}
 	System.out.println("ADD: " + name);
-	services.addElement(name);
+	insertSorted(services, name);
     }
 
     /**
@@ -137,8 +140,29 @@ public class Browser extends JFrame implements ServiceListener, ListSelectionLis
 	if (name.endsWith("." + type)) {
 	    name = name.substring(0, name.length() - (type.length() + 1));
 	}
-	//System.out.println("REMOVE: " + name);
+	System.out.println("REMOVE: " + name);
 	services.removeElement(name);
+    }
+
+    /**
+     * A new service type was <discovered. 
+     */
+    public void addServiceType(JmDNS jmdns, String type)
+    {
+	System.out.println("TYPE: " + type);
+	insertSorted(types, type);
+    }
+
+
+    void insertSorted(DefaultListModel model, String value)
+    {
+	for (int i = 0, n = model.getSize() ; i < n ; i++) {
+	    if (value.compareToIgnoreCase((String)model.elementAt(i)) < 0) {
+		model.insertElementAt(value, i);
+		return;
+	    }
+	}
+	model.addElement(value);
     }
 
     /**

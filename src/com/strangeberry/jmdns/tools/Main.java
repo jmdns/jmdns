@@ -28,7 +28,7 @@ import javax.jmdns.*;
  */
 public class Main
 {
-    static class SampleListener implements ServiceListener
+    static class SampleListener implements ServiceListener, ServiceTypeListener
     {
 	public void addService(JmDNS jmdns, String type, String name)
 	{
@@ -41,6 +41,10 @@ public class Main
 	public void resolveService(JmDNS jmdns, String type, String name, ServiceInfo info)
 	{
 	    System.out.println("RESOLVED: " + info);
+	}
+	public void addServiceType(JmDNS jmdns, String type)
+	{
+	    System.out.println("TYPE: " + type);
 	}
     }
 
@@ -66,13 +70,12 @@ public class Main
 	JmDNS jmdns = new JmDNS(intf);
 
 	if ((argc == 0) || ((argc >= 1) && "-browse".equals(argv[0]))) {
-	    if (argc > 1) {
-		String types[] = new String[argc - 1];
-		System.arraycopy(argv, 1, types, 0, argc - 1);
-		new Browser(jmdns, types);
-	    } else {
-		new Browser(jmdns);
+	    new Browser(jmdns);
+	    for (int i = 2 ; i < argc ; i++) {
+		jmdns.registerServiceType(argv[i]);
 	    }
+	} else if ((argc == 1) && "-bt".equals(argv[0])) {
+	    jmdns.addServiceTypeListener(new SampleListener());
 	} else if ((argc == 3) && "-bs".equals(argv[0])) {
 	    jmdns.addServiceListener(argv[1] + "." + argv[2], new SampleListener());
 	} else if ((argc == 6) && "-rs".equals(argv[0])) {
@@ -87,7 +90,8 @@ public class Main
 	    System.out.println("     -d                                       - output debugging info");
 	    System.out.println("     -i <addr>                                - specify the interface address");
 	    System.out.println("     -browse [<type>...]                      - GUI browser (default)");
-	    System.out.println("     -bs <type> <domain>                      - browse service");
+	    System.out.println("     -bt                                      - browse service types");
+	    System.out.println("     -bs <type> <domain>                      - browse services by type");
 	    System.out.println("     -rs <name> <type> <domain> <port> <txt>  - register service");
 	    System.out.println("     -f <file>                                - rendezvous responder");
 	    System.out.println();

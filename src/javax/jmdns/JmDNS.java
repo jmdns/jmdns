@@ -37,6 +37,7 @@ public class JmDNS extends DNSConstants
     MulticastSocket socket;
     Vector listeners;
     Vector browsers;
+    Vector typeListeners;
     DNSCache cache;
     Hashtable services;
     Thread shutdown;
@@ -44,6 +45,7 @@ public class JmDNS extends DNSConstants
     boolean linklocal;
     boolean loopback;
     DNSRecord.Address host;
+    Hashtable serviceTypes;
 
     /**
      * Create an instance of JmDNS.
@@ -88,7 +90,9 @@ public class JmDNS extends DNSConstants
 	cache = new DNSCache(100);
 	listeners = new Vector();
 	browsers = new Vector();
+	typeListeners = new Vector();
 	services = new Hashtable(20);
+	serviceTypes = new Hashtable(20);
 
 	new Thread(new SocketListener(), "JmDNS.SocketListener").start();
 	new Thread(new RecordReaper(), "JmDNS.RecordReaper").start();
@@ -170,8 +174,59 @@ public class JmDNS extends DNSConstants
      */
     public void requestServiceInfo(String type, String name, int timeout)
     {
+	registerServiceType(type);
+	
 	new Thread(new ServiceResolver(new ServiceInfo(type, name), timeout),
 		   "JmDNS.ServiceResolver").start();
+    }
+
+    /**
+     * Listen for service types. 
+     * @param listener listener for service types
+     */
+    public void addServiceTypeListener(ServiceTypeListener listener) throws IOException
+    {
+	synchronized (this) {
+	    removeServiceTypeListener(listener);
+	    typeListeners.addElement(listener);
+
+	    // report service types
+	    for (Enumeration e = serviceTypes.elements() ; e.hasMoreElements() ;) {
+		listener.addServiceType(this, (String)e.nextElement());
+	    }
+	}
+
+	try {
+	    // query for service types
+	    long now = System.currentTimeMillis();
+	    long nextTime = now;
+	    for (int i = 0 ; i < 3 ;) {
+		if (now < nextTime) {
+		    Thread.sleep(nextTime - now);
+		    now = System.currentTimeMillis();
+		    continue;
+		}
+		DNSOutgoing out = new DNSOutgoing(FLAGS_QR_QUERY);
+		out.addQuestion(new DNSQuestion("_services._mdns._udp.local.", TYPE_PTR, CLASS_IN));
+		for (Enumeration e = serviceTypes.elements() ; e.hasMoreElements(); ) {
+		    out.addAnswer(new DNSRecord.Pointer("_services._mdns._udp.local.", TYPE_PTR, CLASS_IN, DNS_TTL, (String)e.nextElement()), 0);
+		}
+		send(out);
+		i++;
+		nextTime += 225;
+	    }
+	} catch (InterruptedException e) {
+	    throw new IOException("interrupted I/O");
+	}
+    }
+
+    /**
+     * Remove listener for service types.
+     * @param listener listener for service types
+     */
+    public synchronized void removeServiceTypeListener(ServiceTypeListener listener)
+    {
+	typeListeners.removeElement(listener);
     }
 
     /**
@@ -208,6 +263,8 @@ public class JmDNS extends DNSConstants
      */
     public void registerService(ServiceInfo info) throws IOException
     {
+	registerServiceType(info.type);
+
 	// bind the service to this address
 	info.server = host.name;
 	info.addr = host.getInetAddress();
@@ -310,6 +367,24 @@ public class JmDNS extends DNSConstants
 	    // ignore
 	} catch (InterruptedException e) {
 	    // ignore
+	}
+    }
+
+    /**
+     * Register a service type. If this service type was not already known,
+     * all service listeners will be notified of the new service type. Service types
+     * are automatically registered as they are discovered.
+     */
+    public synchronized void registerServiceType(String type)
+    {
+	String name = type.toLowerCase();
+	if (serviceTypes.get(name) == null) {
+	    if (type.indexOf("._mdns._udp.") < 0) {
+		serviceTypes.put(name, type);
+		for (Enumeration e = typeListeners.elements() ; e.hasMoreElements() ;) {
+		    ((ServiceTypeListener)e.nextElement()).addServiceType(this, type);
+		}
+	    }
 	}
     }
 
@@ -435,6 +510,13 @@ public class JmDNS extends DNSConstants
 	    } else if (!expired) {
 		cache.add(rec);
 	    }
+	    // handle _mdns._udp records
+	    if (rec.name.indexOf("._mdns._udp.") >= 0) {
+		if (!expired && (rec.type == TYPE_PTR) && rec.name.startsWith("_services._mdns._udp.")) {
+		    registerServiceType(((DNSRecord.Pointer)rec).alias);
+		}
+		continue;
+	    }
 
 	    // notify the listeners
 	    updateRecord(now, rec);
@@ -475,6 +557,8 @@ public class JmDNS extends DNSConstants
 		break;
 
 	      case TYPE_PTR:
+		registerServiceType(q.name);
+		
 		// find matching services
 		for (Enumeration s = services.elements() ; s.hasMoreElements() ; ) {
 		    ServiceInfo info = (ServiceInfo)s.nextElement();
@@ -491,6 +575,14 @@ public class JmDNS extends DNSConstants
 			}
 			additionals.addElement(new DNSRecord.Service(q.name, TYPE_SRV, CLASS_IN | CLASS_UNIQUE, DNS_TTL, info.priority, info.weight, info.port, host.name));
 			additionals.addElement(new DNSRecord.Text(q.name, TYPE_TXT, CLASS_IN | CLASS_UNIQUE, DNS_TTL, info.text));
+		    }
+		}
+		if (q.name.equals("_services._mdns._udp.local.")) {
+		    for (Enumeration t = serviceTypes.elements() ; t.hasMoreElements() ;) {
+			if (out == null) {
+			    out = new DNSOutgoing(FLAGS_QR_RESPONSE | FLAGS_AA);
+			}
+			out.addAnswer(in, new DNSRecord.Pointer("_services._mdns._udp.local.", TYPE_PTR, CLASS_IN, DNS_TTL, (String)t.nextElement()));
 		    }
 		}
 		break;
