@@ -152,6 +152,16 @@ abstract class DNSRecord extends DNSEntry
 	{
 	    out.writeInt(addr);
 	}
+      boolean same(DNSRecord other)
+      {
+        return ((sameName(other)) && ((sameValue(other))));
+      }   
+
+      boolean sameName(DNSRecord other)
+      {
+        return name.equalsIgnoreCase(((Address)other).name);
+      }
+
 	boolean sameValue(DNSRecord other)
 	{
 	    return (addr == ((Address)other).addr);

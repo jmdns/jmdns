@@ -26,8 +26,7 @@ import java.util.*;
  * @author	Arthur van Hoff
  * @version 	%I%, %G%
  */
-final class DNSOutgoing extends DNSConstants
-{
+final class DNSOutgoing {
     int id;
     int flags;
     boolean multicast;
@@ -57,7 +56,7 @@ final class DNSOutgoing extends DNSConstants
 	this.flags = flags;
 	this.multicast = multicast;
 	names = new Hashtable();
-	data = new byte[MAX_MSG_TYPICAL];
+	data = new byte[DNSConstants.MAX_MSG_TYPICAL];
 	off = 12;
     }
 
@@ -85,7 +84,7 @@ final class DNSOutgoing extends DNSConstants
      */
     void addAdditionalAnswer(DNSIncoming in, DNSRecord rec) throws IOException
     {
-	if ((off < MAX_MSG_TYPICAL - 200) && !rec.suppressedBy(in)) {
+	if ((off < DNSConstants.MAX_MSG_TYPICAL - 200) && !rec.suppressedBy(in)) {
 	    writeRecord(rec, 0);
 	    numAdditionals++;
 	}
@@ -219,7 +218,7 @@ final class DNSOutgoing extends DNSConstants
 	try {
 	    writeName(rec.name);
 	    writeShort(rec.type);
-	    writeShort(rec.clazz | ((rec.unique && multicast) ? CLASS_UNIQUE : 0));
+	    writeShort(rec.clazz | ((rec.unique && multicast) ? DNSConstants.CLASS_UNIQUE : 0));
 	    writeInt((now == 0) ? rec.ttl : rec.getRemainingTTL(now));
 	    writeShort(0);
 	    int start = off;

@@ -23,7 +23,7 @@ import java.util.*;
 /**
  * JmDNS service information.
  *
- * @author	Arthur van Hoff
+ * @author	Arthur van Hoff, Jeff Sonstein
  * @version 	%I%, %G%
  */
 public class ServiceInfo extends JmDNS.Listener
@@ -44,10 +44,11 @@ public class ServiceInfo extends JmDNS.Listener
      * Construct a service description for registrating with JmDNS.
      * @param type fully qualified service type name
      * @param name fully qualified service name
-     * @param addr the address to which the service is bound
      * @param port the local port on which the service runs
      * @param text string describing the service
      */
+     // removed following historical artifact 28 MAR 2004 jeffs
+     // @param addr the address to which the service is bound
     public ServiceInfo(String type, String name, int port, String text)
     {
 	this(type, name, port, 0, 0, text);
@@ -156,7 +157,7 @@ public class ServiceInfo extends JmDNS.Listener
     }
 
     /**
-     * Fully qualified service type name, such as <code>_http._tcp.local.</code>.
+     * Fully qualified service type name, such as <code>_http&#46;_tcp.local&#46;</code>.
      */
     public String getType()
     {
@@ -409,12 +410,12 @@ public class ServiceInfo extends JmDNS.Listener
     {
 	if ((rec != null) && !rec.isExpired(now)) {
 	    switch (rec.type) {
-	      case TYPE_A:
+	      case DNSConstants.TYPE_A:
 		if (rec.name.equals(server)) {
 		    addr = ((DNSRecord.Address)rec).getInetAddress();
 		}
 		break;
-	      case TYPE_SRV:
+	      case DNSConstants.TYPE_SRV:
 		if (rec.name.equals(name)) {
 		    DNSRecord.Service srv = (DNSRecord.Service)rec;
 		    server = srv.server;
@@ -422,10 +423,12 @@ public class ServiceInfo extends JmDNS.Listener
 		    weight = srv.weight;
 		    priority = srv.priority;
 		    addr = null;
-		    updateRecord(jmdns, now, (DNSRecord)jmdns.cache.get(server, TYPE_A, CLASS_IN));
+		    // changed to use getCache() instead - jeffs
+		    // updateRecord(jmdns, now, (DNSRecord)jmdns.cache.get(server, TYPE_A, CLASS_IN));
+		    updateRecord(jmdns, now, (DNSRecord)jmdns.getCache().get(server, DNSConstants.TYPE_A, DNSConstants.CLASS_IN));
 		}
 		break;
-	      case TYPE_TXT:
+	      case DNSConstants.TYPE_TXT:
 		if (rec.name.equals(name)) {
 		    DNSRecord.Text txt = (DNSRecord.Text)rec;
 		    text = txt.text;
@@ -446,7 +449,7 @@ public class ServiceInfo extends JmDNS.Listener
 	long next = now + delay;
 	long last = now + timeout;
 	try {
-	    jmdns.addListener(this, new DNSQuestion(name, TYPE_ANY, CLASS_IN));
+	    jmdns.addListener(this, new DNSQuestion(name, DNSConstants.TYPE_ANY, DNSConstants.CLASS_IN));
 	    while (server == null || addr == null || text == null) {
 		// check if timeout was reached
 		if (last <= now) {
@@ -454,16 +457,20 @@ public class ServiceInfo extends JmDNS.Listener
 		}
 		// check if we need to send out another request
 		if (next <= now) {
-		    DNSOutgoing out = new DNSOutgoing(FLAGS_QR_QUERY);
-		    out.addQuestion(new DNSQuestion(name, TYPE_SRV, CLASS_IN));
-		    out.addQuestion(new DNSQuestion(name, TYPE_TXT, CLASS_IN));
+		    DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
+		    out.addQuestion(new DNSQuestion(name, DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN));
+		    out.addQuestion(new DNSQuestion(name, DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN));
 		    if (server != null) {
-			out.addQuestion(new DNSQuestion(server, TYPE_A, CLASS_IN));
+			out.addQuestion(new DNSQuestion(server, DNSConstants.TYPE_A, DNSConstants.CLASS_IN));
 		    }
-		    out.addAnswer((DNSRecord)jmdns.cache.get(name, TYPE_SRV, CLASS_IN), now);
-		    out.addAnswer((DNSRecord)jmdns.cache.get(name, TYPE_TXT, CLASS_IN), now);
+		    // changed to use getCache() instead - jeffs
+		    // out.addAnswer((DNSRecord)jmdns.cache.get(name, TYPE_SRV, CLASS_IN), now);
+		    out.addAnswer((DNSRecord)jmdns.getCache().get(name, DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN), now);
+		    // out.addAnswer((DNSRecord)jmdns.cache.get(name, TYPE_TXT, CLASS_IN), now);
+		    out.addAnswer((DNSRecord)jmdns.getCache().get(name, DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN), now);
 		    if (server != null) {
-			out.addAnswer((DNSRecord)jmdns.cache.get(server, TYPE_A, CLASS_IN), now);
+			// out.addAnswer((DNSRecord)jmdns.cache.get(server, TYPE_A, CLASS_IN), now);
+			out.addAnswer((DNSRecord)jmdns.getCache().get(server, DNSConstants.TYPE_A, DNSConstants.CLASS_IN), now);
 		    }
 		    jmdns.send(out);
 

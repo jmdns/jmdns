@@ -26,8 +26,8 @@ import java.util.*;
  * @author	Arthur van Hoff
  * @version 	%I%, %G%
  */
-final class DNSIncoming extends DNSConstants
-{
+final class DNSIncoming {
+
     final static Vector EMPTY = new Vector();
     
     DatagramPacket packet;
@@ -88,17 +88,17 @@ final class DNSIncoming extends DNSConstants
 		    DNSRecord rec = null;
 
 		    switch (type) {
-		      case TYPE_A:
+		      case DNSConstants.TYPE_A:
 			rec = new DNSRecord.Address(domain, type, clazz, ttl, readInt());
 			break;
-		      case TYPE_CNAME:
-		      case TYPE_PTR:
+		      case DNSConstants.TYPE_CNAME:
+		      case DNSConstants.TYPE_PTR:
 			rec = new DNSRecord.Pointer(domain, type, clazz, ttl, readName());
 			break;
-		      case TYPE_TXT:
+		      case DNSConstants.TYPE_TXT:
 			rec = new DNSRecord.Text(domain, type, clazz, ttl, readBytes(off, len));
 			break;
-		      case TYPE_SRV:
+		      case DNSConstants.TYPE_SRV:
 			rec = new DNSRecord.Service(domain, type, clazz, ttl,
 				    readUnsignedShort(), readUnsignedShort(), readUnsignedShort(), readName());
 			break;
@@ -120,7 +120,7 @@ final class DNSIncoming extends DNSConstants
      */
     boolean isQuery()
     {
-	return (flags & FLAGS_QR_MASK) == FLAGS_QR_QUERY;
+	return (flags & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_QUERY;
     }
 
     /**
@@ -128,7 +128,7 @@ final class DNSIncoming extends DNSConstants
      */
     boolean isResponse()
     {
-	return (flags & FLAGS_QR_MASK) == FLAGS_QR_RESPONSE;
+	return (flags & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_RESPONSE;
     }
 
     int get(int off) throws IOException
@@ -281,13 +281,13 @@ final class DNSIncoming extends DNSConstants
 	buf.append(",id=0x" + Integer.toHexString(id));
 	if (flags != 0) {
 	    buf.append(",flags=0x" + Integer.toHexString(flags));
-	    if ((flags & FLAGS_QR_RESPONSE) != 0) {
+	    if ((flags & DNSConstants.FLAGS_QR_RESPONSE) != 0) {
 		buf.append(":r");
 	    }
-	    if ((flags & FLAGS_AA) != 0) {
+	    if ((flags & DNSConstants.FLAGS_AA) != 0) {
 		buf.append(":aa");
 	    }
-	    if ((flags & FLAGS_TC) != 0) {
+	    if ((flags & DNSConstants.FLAGS_TC) != 0) {
 		buf.append(":tc");
 	    }
 	}
