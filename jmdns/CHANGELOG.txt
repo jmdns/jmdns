@@ -1,3 +1,23 @@
+CHANGELOG  30 November 2004 rawcoder
+
+1. IPv6 support
+
+   - RFE 890432: IPv6 support implemented
+
+2. Logging
+
+   - Logging is done using the Java Logger API now
+
+3. Bug fixes
+
+   - JmDNS reannounces services after their TTL has timed out.
+
+4. Plattform dependency
+
+   - Due to the changes done for IPv6 support and the logging, 
+     JmDNS requires now a JVM supporting a J2SE 1.4 API.
+
+
 CHANGELOG  6 June 2004 rawcoder
 
 1. General API Changes
