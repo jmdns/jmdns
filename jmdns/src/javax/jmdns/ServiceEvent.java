@@ -17,6 +17,7 @@
 package javax.jmdns;
 
 import java.util.EventObject;
+import java.util.logging.*;
 /**
  * ServiceEvent.
  *
@@ -24,6 +25,7 @@ import java.util.EventObject;
  * @version 	%I%, %G%
  */
 public class ServiceEvent extends EventObject {
+	private static Logger logger = Logger.getLogger(ServiceEvent.class.toString());
     /**
      * The type name of the service.
      */
@@ -84,4 +86,18 @@ public class ServiceEvent extends EventObject {
     public ServiceInfo getInfo() {
         return info;
     }
+
+    public String toString() {
+        StringBuffer buf = new StringBuffer();
+        buf.append("<" + getClass().getName() + "> ");
+        buf.append(super.toString());
+        buf.append(" name ");
+        buf.append(getName());
+        buf.append(" type ");
+        buf.append(getType());
+        buf.append(" info ");
+        buf.append(getInfo());
+        return buf.toString();
+    }
+	
 }

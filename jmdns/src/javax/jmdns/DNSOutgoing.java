@@ -19,14 +19,16 @@ package javax.jmdns;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.logging.*;
 
 /**
- * An outgoing DNS message.
+* An outgoing DNS message.
  *
  * @author	Arthur van Hoff, Rick Blair, Werner Randelshofer
  * @version 	%I%, %G%
  */
 final class DNSOutgoing {
+    private static Logger logger = Logger.getLogger(DNSOutgoing.class.toString());
     int id;
     int flags;
     private boolean multicast;
@@ -41,14 +43,14 @@ final class DNSOutgoing {
     int len;
     
     /**
-     * Create an outgoing multicast query or response.
+		* Create an outgoing multicast query or response.
      */
     DNSOutgoing(int flags) {
         this(flags, true);
     }
     
     /**
-     * Create an outgoing query or response.
+		* Create an outgoing query or response.
      */
     DNSOutgoing(int flags, boolean multicast) {
         this.flags = flags;
@@ -59,7 +61,7 @@ final class DNSOutgoing {
     }
     
     /**
-     * Add a question to the message.
+		* Add a question to the message.
      */
     void addQuestion(DNSQuestion rec) throws IOException {
         if (numAnswers > 0 || numAuthorities > 0 || numAdditionals > 0) {
@@ -70,7 +72,7 @@ final class DNSOutgoing {
     }
     
     /**
-     * Add an answer if it is not suppressed.
+		* Add an answer if it is not suppressed.
      */
     void addAnswer(DNSIncoming in, DNSRecord rec) throws IOException {
         if (numAuthorities > 0 || numAdditionals > 0) {
@@ -82,17 +84,17 @@ final class DNSOutgoing {
     }
     
     /**
-     * Add an additional answer to the record. Omit if there is no room.
+		* Add an additional answer to the record. Omit if there is no room.
      */
     void addAdditionalAnswer(DNSIncoming in, DNSRecord rec) throws IOException {
-       if ((off < DNSConstants.MAX_MSG_TYPICAL - 200) && !rec.suppressedBy(in)) {
+		if ((off < DNSConstants.MAX_MSG_TYPICAL - 200) && !rec.suppressedBy(in)) {
             writeRecord(rec, 0);
             numAdditionals++;
         }
     }
     
     /**
-     * Add an answer to the message.
+		* Add an answer to the message.
      */
     void addAnswer(DNSRecord rec, long now) throws IOException {
         if (numAuthorities > 0 || numAdditionals > 0) {
@@ -107,7 +109,7 @@ final class DNSOutgoing {
     }
     private LinkedList authorativeAnswers = new LinkedList();
     /**
-     * Add an authorative answer to the message.
+		* Add an authorative answer to the message.
      */
     void addAuthorativeAnswer(DNSRecord rec) throws IOException {
         if (numAdditionals > 0) {
@@ -132,6 +134,10 @@ final class DNSOutgoing {
         for (int i = 0 ; i < len ; i++) {
             writeByte(str.charAt(off + i));
         }
+    }
+    
+    void writeBytes(byte data[]) throws IOException {
+		if (data != null) writeBytes(data, 0, data.length);
     }
     
     void writeBytes(byte data[], int off, int len) throws IOException {
@@ -196,7 +202,7 @@ final class DNSOutgoing {
                 int val = offset.intValue();
                 
                 if (val > off) {
-                    System.out.println("DNSOutgoing writeName failed val="+val+" name="+name);
+                    logger.log(Level.WARNING, "DNSOutgoing writeName failed val="+val+" name="+name);
                 }
                 
                 writeByte((val >> 8) | 0xC0);
@@ -238,7 +244,7 @@ final class DNSOutgoing {
     }
     
     /**
-     * Finish the message before sending it off.
+		* Finish the message before sending it off.
      */
     void finish() throws IOException {
         int save = off;
@@ -252,72 +258,62 @@ final class DNSOutgoing {
         writeShort(numAdditionals);
         off = save;
     }
-    boolean isQuery()
-    {
-	return (flags & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_QUERY;
+	
+    boolean isQuery() {
+		return (flags & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_QUERY;
     }
-
+	
     public boolean isEmpty() {
         return numQuestions == 0 && numAuthorities == 0 
         && numAdditionals == 0 && numAnswers == 0;
     }
     
-
+	
     public String toString()
     {
-	StringBuffer buf = new StringBuffer();
-	buf.append(isQuery() ? "dns[query," : "dns[response,");
-	//buf.append(packet.getAddress().getHostAddress());
-	buf.append(':');
-	//buf.append(packet.getPort());
-	//buf.append(",len=");
-        //buf.append(packet.getLength());
-	buf.append(",id=0x");
-        buf.append(Integer.toHexString(id));
-	if (flags != 0) {
-	    buf.append(",flags=0x");
-            buf.append(Integer.toHexString(flags));
-	    if ((flags & DNSConstants.FLAGS_QR_RESPONSE) != 0) {
-		buf.append(":r");
-	    }
-	    if ((flags & DNSConstants.FLAGS_AA) != 0) {
-		buf.append(":aa");
-	    }
-	    if ((flags & DNSConstants.FLAGS_TC) != 0) {
-		buf.append(":tc");
-	    }
-	}
-	if (numQuestions > 0) {
-	    buf.append(",questions=");
-            buf.append(numQuestions);
-	}
-	if (numAnswers > 0) {
-	    buf.append(",answers=");
-            buf.append(numAnswers);
-	}
-	if (numAuthorities > 0) {
-	    buf.append(",authorities=");
-            buf.append(numAuthorities);
-	}
-	if (numAdditionals > 0) {
-	    buf.append(",additionals=");
-            buf.append(numAdditionals);
-	}
-        buf.append(",\nnames="+names);
-        buf.append(",\nauthorativeAnswers="+authorativeAnswers);
-        
-	buf.append("]");
-	return buf.toString();
+		StringBuffer buf = new StringBuffer();
+		buf.append(isQuery() ? "dns[query," : "dns[response,");
+		//buf.append(packet.getAddress().getHostAddress());
+		buf.append(':');
+		//buf.append(packet.getPort());
+		//buf.append(",len=");
+		//buf.append(packet.getLength());
+		buf.append(",id=0x");
+		buf.append(Integer.toHexString(id));
+		if (flags != 0) {
+			buf.append(",flags=0x");
+			buf.append(Integer.toHexString(flags));
+			if ((flags & DNSConstants.FLAGS_QR_RESPONSE) != 0) {
+				buf.append(":r");
+			}
+			if ((flags & DNSConstants.FLAGS_AA) != 0) {
+				buf.append(":aa");
+			}
+			if ((flags & DNSConstants.FLAGS_TC) != 0) {
+				buf.append(":tc");
+			}
+		}
+		if (numQuestions > 0) {
+			buf.append(",questions=");
+			buf.append(numQuestions);
+		}
+		if (numAnswers > 0) {
+			buf.append(",answers=");
+			buf.append(numAnswers);
+		}
+		if (numAuthorities > 0) {
+			buf.append(",authorities=");
+			buf.append(numAuthorities);
+		}
+		if (numAdditionals > 0) {
+			buf.append(",additionals=");
+			buf.append(numAdditionals);
+		}
+		buf.append(",\nnames="+names);
+		buf.append(",\nauthorativeAnswers="+authorativeAnswers);
+		
+		buf.append("]");
+		return buf.toString();
     }
-    /*
-    void print(boolean dump) {
-        try {
-            finish();
-            DatagramPacket packet = new DatagramPacket(data, off);
-                DNSIncoming msg = new DNSIncoming(packet);
-                msg.print(dump);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }*/
+
 }

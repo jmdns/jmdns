@@ -18,12 +18,13 @@ package samples;
 
 import javax.jmdns.*;
 import java.io.IOException;
+import java.util.logging.*;
 
 /**
  * Sample Code for Service Type Discovery using JmDNS and a ServiceTypeListener.
  * <p>
- * Run the main method of this class. It listens for HTTP services and lists
- * all changes on System.out.
+ * Run the main method of this class. It lists all service types known on the
+ * local network on System.out.
  *
  * @author  Werner Randelshofer
  * @version 	%I%, %G%
@@ -40,17 +41,23 @@ public class DiscoverServiceTypes {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        /* Activate these lines to see log messages of JmDNS
+        Logger logger = Logger.getLogger(JmDNS.class.toString());
+        ConsoleHandler handler = new ConsoleHandler();
+        logger.addHandler(handler);
+        logger.setLevel(Level.FINER);
+        handler.setLevel(Level.FINER);
+        */
+        
         try {
-            System.setProperty("jmdns.debug", "0");
-            
-            
             JmDNS jmdns = new JmDNS();
             jmdns.addServiceTypeListener(new SampleListener());
             
             System.out.println("Press q and Enter, to quit");
             int b;
-            while ((b = System.in.read()) != -1 && (char) b != 'q'); 
+            while ((b = System.in.read()) != -1 && (char) b != 'q');
             jmdns.close();
+            System.out.println("Done");
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -18,6 +18,7 @@ package samples;
 
 import javax.jmdns.*;
 import java.io.IOException;
+import java.util.logging.*;
 
 /**
  * Sample Code for Listing Services using JmDNS.
@@ -34,6 +35,14 @@ public class ListServices {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        /* Activate these lines to see log messages of JmDNS
+        Logger logger = Logger.getLogger(JmDNS.class.toString());
+        ConsoleHandler handler = new ConsoleHandler();
+        logger.addHandler(handler);
+        logger.setLevel(Level.FINER);
+        handler.setLevel(Level.FINER);
+        */
+        
         try {
             JmDNS jmdns = new JmDNS();
             while (true) {

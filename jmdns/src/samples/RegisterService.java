@@ -18,6 +18,7 @@ package samples;
 
 import javax.jmdns.*;
 import java.io.IOException;
+import java.util.logging.*;
 
 /**
  * Sample Code for Service Registration using JmDNS.
@@ -49,15 +50,22 @@ public class RegisterService {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        /* Activate these lines to see log messages of JmDNS
+        Logger logger = Logger.getLogger(JmDNS.class.toString());
+        ConsoleHandler handler = new ConsoleHandler();
+        logger.addHandler(handler);
+        logger.setLevel(Level.FINER);
+        handler.setLevel(Level.FINER);
+        */
+        
         try {
-            System.setProperty("jmdns.debug", "0");
             System.out.println("Opening JmDNS");
             JmDNS jmdns = new JmDNS();
             System.out.println("Opened JmDNS");
             System.out.println("\nPress r and Enter, to register HTML service 'foo'");
             int b;
             while ((b = System.in.read()) != -1 && (char) b != 'r');
-            ServiceInfo info = new ServiceInfo("_http._tcp.local.", "foo", 1267, 0, 0, "path=index.html");
+            ServiceInfo info = new ServiceInfo("_http._tcp.local.", "foo", 1268, 0, 0, "path=index.html");
             jmdns.registerService(info);
             
             System.out.println("\nRegistered Service as "+info);
@@ -66,7 +74,7 @@ public class RegisterService {
             while ((b = System.in.read()) != -1 && (char) b != 'q'); 
             System.out.println("Closing JmDNS");
             jmdns.close();
-            System.out.println("Closed JmDNS");
+            System.out.println("Done");
             System.exit(0);
         } catch (IOException e) {
             e.printStackTrace();

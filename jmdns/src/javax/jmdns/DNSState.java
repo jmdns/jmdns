@@ -15,6 +15,7 @@
 package javax.jmdns;
 
 import java.util.*;
+import java.util.logging.*;
 /**
  * DNSState defines the possible states for services registered with JmDNS.
  *
@@ -22,7 +23,8 @@ import java.util.*;
  * @version 1.0  May 23, 2004  Created.
  */
 public class DNSState implements Comparable {
-    
+	private static Logger logger = Logger.getLogger(DNSState.class.toString());
+   
     private final String name;
     
     /** Ordinal of next state to be created. */
@@ -57,9 +59,7 @@ public class DNSState implements Comparable {
      * Does not advance for ANNOUNCED and CANCELED state.
      */
     public final DNSState advance() {
-        return (this.isProbing() || this.isAnnouncing())
-        ? (DNSState) sequence.get(this.ordinal + 1)
-        : this;
+        return (isProbing() || isAnnouncing()) ? (DNSState) sequence.get(ordinal + 1) : this;
     }
     
     /**
@@ -78,12 +78,18 @@ public class DNSState implements Comparable {
         return compareTo(PROBING_1) >= 0 && compareTo(PROBING_3) <= 0;
     }
     /**
-     * Returns true, if this is an announcing state.
+		* Returns true, if this is an announcing state.
      */
     public boolean isAnnouncing() {
         return compareTo(ANNOUNCING_1) >= 0 && compareTo(ANNOUNCING_2) <= 0;
     }
-    
+    /**
+		* Returns true, if this is an announced state.
+     */
+    public boolean isAnnounced() {
+        return compareTo(ANNOUNCED) == 0 ;
+    }
+        
     /**
      * Compares two states.
      * The states compare as follows:
