@@ -1,0 +1,40 @@
+ <!-- Build the Fulfillment stuff -->
+<project name="jmdns" default="build" basedir="."> 
+<target name="init"> 
+<tstamp/> 
+</target>
+
+<!-- Configure the context PATH for this application --> 
+<property name="src" value="./src" /> 
+<property name="dest" value="./classes"/>
+
+<!-- Configure custom Ant tasks for the Manager application -->
+<path id="jmdns.classpath">
+<fileset dir="lib"> 
+<include name="*.jar"/>
+</fileset>
+</path> 
+
+<!-- Executable Targets -->
+
+<target name="build" depends="init" description="compile the generated source">
+<javac srcdir= "${src}" destdir="${dest}"> 
+<include name="com/**/*.java" /> 
+<classpath refid="jmdns.classpath"/> 
+</javac> 
+</target>
+
+<target name="tools" depends="build" description="Main program" >
+<javac srcdir="${src}" destdir="${dest}">
+<include name="com/**/tools/.java"/>
+<classpath refid="jmdns.classpath"/>
+</javac>
+</target>
+
+<target name="dist" depends="build" description="Jar the files">
+<jar destfile="lib/jmdns.jar"
+     basedir="${dest}" 
+     includes="com/**/*.class"/>
+</target>
+
+</project>
