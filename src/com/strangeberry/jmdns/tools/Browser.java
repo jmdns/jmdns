@@ -1,5 +1,4 @@
-// Copyright (C) 2002  Strangeberry Inc.
-// @(#)Browser.java, 1.13, 11/29/2002
+// %Z%%M%, %I%, %G%
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -27,7 +26,7 @@ import javax.swing.table.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 
-import com.strangeberry.jmdns.*;
+import javax.jmdns.*;
 
 /**
  * User Interface for browsing Rendezvous services.

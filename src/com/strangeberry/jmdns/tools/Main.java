@@ -1,5 +1,4 @@
-// Copyright (C) 2002  Strangeberry Inc.
-// @(#)Main.java, 1.11, 11/29/2002
+// %Z%%M%, %I%, %G%
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -19,7 +18,7 @@ package com.strangeberry.jmdns.tools;
 
 import java.io.*;
 import java.net.*;
-import com.strangeberry.jmdns.*;
+import javax.jmdns.*;
 
 /**
  * Main sample program for Rendezvous.
