@@ -44,7 +44,7 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
     JList serviceList;
     JTextArea info;
     
-    Browser(JmDNS jmdns)
+    Browser(JmDNS jmdns) throws IOException
     { 
         super("JmDNS Browser");
 	this.jmdns = jmdns;

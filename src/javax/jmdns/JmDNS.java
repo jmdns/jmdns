@@ -532,8 +532,6 @@ public class JmDNS extends DNSConstants
 	DNSOutgoing out = null;
 	Vector additionals = null;
 
-	// REMIND: handle meta query for service types
-
 	// for unicast responses the question must be included
 	if (port != MDNS_PORT) {
 	    out = new DNSOutgoing(FLAGS_QR_RESPONSE | FLAGS_AA, false);
