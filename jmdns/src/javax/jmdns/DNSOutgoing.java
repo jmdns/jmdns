@@ -30,6 +30,7 @@ final class DNSOutgoing extends DNSConstants
 {
     int id;
     int flags;
+    boolean multicast;
     int numQuestions;
     int numAnswers;
     int numAuthorities;
@@ -45,7 +46,16 @@ final class DNSOutgoing extends DNSConstants
      */
     DNSOutgoing(int flags)
     {
+	this(flags, true);
+    }
+
+    /**
+     * Create an outgoing query or response.
+     */
+    DNSOutgoing(int flags, boolean multicast)
+    {
 	this.flags = flags;
+	this.multicast = multicast;
 	names = new Hashtable();
 	data = new byte[MAX_MSG_TYPICAL];
 	off = 12;
@@ -196,7 +206,7 @@ final class DNSOutgoing extends DNSConstants
     {
 	writeName(rec.name);
 	writeShort(rec.type);
-	writeShort(rec.clazz | (rec.unique ? CLASS_UNIQUE : 0));
+	writeShort(rec.clazz | ((rec.unique && multicast) ? CLASS_UNIQUE : 0));
 	writeInt((now == 0) ? rec.ttl : rec.getRemainingTTL(now));
 	writeShort(0);
 	int start = off;
@@ -214,7 +224,7 @@ final class DNSOutgoing extends DNSConstants
 	int save = off;
 	off = 0;
 
-	writeShort(id);
+	writeShort(multicast ? 0 : id);
 	writeShort(flags);
 	writeShort(numQuestions);
 	writeShort(numAnswers);

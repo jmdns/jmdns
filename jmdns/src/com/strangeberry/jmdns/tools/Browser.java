@@ -168,6 +168,10 @@ public class Browser extends JFrame implements ServiceListener, ListSelectionLis
 			StringBuffer buf = new StringBuffer();
 			buf.append(name);
 			buf.append('\n');
+			buf.append(service.getServer());
+			buf.append(':');
+			buf.append(service.getPort());
+			buf.append('\n');
 			buf.append(service.getAddress());
 			buf.append(':');
 			buf.append(service.getPort());

@@ -66,7 +66,7 @@ public class Main
 	} else if ((argc == 6) && "-rs".equals(argv[0])) {
 	    String type = argv[2] + "." + argv[3];
 	    String name = argv[1] + "." + type;
-	    jmdns.registerService(new ServiceInfo(type, name, InetAddress.getLocalHost(), Integer.parseInt(argv[4]), 0, 0, argv[5]));
+	    jmdns.registerService(new ServiceInfo(type, name, Integer.parseInt(argv[4]), 0, 0, argv[5]));
 	} else if (!debug) {
 	    System.out.println();
 	    System.out.println("jmdns:");

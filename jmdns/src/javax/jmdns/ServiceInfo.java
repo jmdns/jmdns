@@ -44,15 +44,14 @@ public class ServiceInfo extends JmDNS.Listener
      * Construct a service description for registrating with JmDNS.
      * @param type fully qualified service type name
      * @param name fully qualified service name
-     * @param addr the address to which the service is bound
      * @param port the local port on which the service runs
      * @param weight weight of the service
      * @param priority priority of the service
      * @param text string describing the service
      */
-    public ServiceInfo(String type, String name, InetAddress addr, int port, int weight, int priority, String text)
+    public ServiceInfo(String type, String name, int port, int weight, int priority, String text)
     {
-	this(type, name, addr, port, weight, priority, (byte[])null);
+	this(type, name, port, weight, priority, (byte[])null);
 	try {
 	    ByteArrayOutputStream out = new ByteArrayOutputStream(text.length());
 	    writeUTF(out, text);
@@ -67,15 +66,14 @@ public class ServiceInfo extends JmDNS.Listener
      * map property names to either Strings or byte arrays describing the property values.
      * @param type fully qualified service type name
      * @param name fully qualified service name
-     * @param addr the address to which the service is bound
      * @param port the local port on which the service runs
      * @param weight weight of the service
      * @param priority priority of the service
      * @param props properties describing the service
      */
-    public ServiceInfo(String type, String name, InetAddress addr, int port, int weight, int priority, Hashtable props)
+    public ServiceInfo(String type, String name, int port, int weight, int priority, Hashtable props)
     {
-	this(type, name, addr, port, weight, priority, (byte [])null);
+	this(type, name, port, weight, priority, (byte [])null);
 	try {
 	    ByteArrayOutputStream out = new ByteArrayOutputStream(256);
 	    for (Enumeration e = props.keys() ; e.hasMoreElements() ;) {
@@ -107,22 +105,19 @@ public class ServiceInfo extends JmDNS.Listener
      * Construct a service description for registrating with JmDNS.
      * @param type fully qualified service type name
      * @param name fully qualified service name
-     * @param addr the address to which the service is bound
      * @param port the local port on which the service runs
      * @param weight weight of the service
      * @param priority priority of the service
      * @param text bytes describing the service
      */
-    public ServiceInfo(String type, String name, InetAddress addr, int port, int weight, int priority, byte text[])
+    public ServiceInfo(String type, String name, int port, int weight, int priority, byte text[])
     {
 	this.type = type;
 	this.name = name;
 	this.port = port;
 	this.weight = weight;
 	this.priority = priority;
-	this.server = name;
 	this.text = text;
-	this.addr = addr;
     }
 
     /**
@@ -141,6 +136,7 @@ public class ServiceInfo extends JmDNS.Listener
     {
 	return type;
     }
+
     /**
      * Service name, such as <code>foobar</code>.
      */
@@ -151,6 +147,15 @@ public class ServiceInfo extends JmDNS.Listener
 	}
 	return name;
     }
+
+    /**
+     * Get the name of the server.
+     */
+    public String getServer()
+    {
+	return server;
+    }
+
     /**
      * Get the host address of the service (ie X.X.X.X).
      */
@@ -159,6 +164,7 @@ public class ServiceInfo extends JmDNS.Listener
 	byte data[] = addr.getAddress();
 	return (data[0] & 0xFF) + "." + (data[1] & 0xFF) + "." + (data[2] & 0xFF) + "." + (data[3] & 0xFF);
     }
+
     /**
      * Get the port for the service.
      */
@@ -166,6 +172,7 @@ public class ServiceInfo extends JmDNS.Listener
     {
 	return port;
     }
+
     /**
      * Get the priority of the service.
      */
@@ -352,7 +359,7 @@ public class ServiceInfo extends JmDNS.Listener
 	    switch (rec.type) {
 	      case TYPE_A:
 		if (rec.name.equals(server)) {
-		    addr = ((DNSRecord.Address)rec).getAddress();
+		    addr = ((DNSRecord.Address)rec).getInetAddress();
 		}
 		break;
 	      case TYPE_SRV:
