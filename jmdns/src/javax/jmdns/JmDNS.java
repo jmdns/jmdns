@@ -28,7 +28,8 @@ import java.util.*;
  * @author	Arthur van Hoff, Rick Blair, Jeff Sonstein
  * @version 	%I%, %G%
  */
-public class JmDNS {
+public class JmDNS 
+{
 
   public static String VERSION = "0.3";
   // made debug public so apps can check and decide to do their own logging and so on
@@ -139,9 +140,9 @@ public class JmDNS {
   }
   
   /**
-    * Return the DNSCache associated with the cache variable
-    *
-    **/
+   * Return the DNSCache associated with the cache variable
+   *
+   **/
   DNSCache getCache() { 
     return cache;
   }
@@ -716,12 +717,7 @@ public class JmDNS {
                          new DNSRecord.Pointer( info.type, DNSConstants.TYPE_PTR, 
                                                 DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, 
                                                 info.name ) );
-        // additional answers, in case there is room
-        if( additionals == null ) 
-        {
-          additionals = new Vector();
-          additionals.addElement( host );
-        }
+        additionals.addElement( host );
         additionals.addElement( new DNSRecord.Service( info.name, DNSConstants.TYPE_SRV, 
                                                        DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE, 
                                                        DNSConstants.DNS_TTL, info.priority, 
@@ -745,7 +741,7 @@ public class JmDNS {
   }
 
   private DNSOutgoing findService( DNSQuestion q, DNSIncoming in, 
-                            InetAddress addr, int port, DNSOutgoing out ) 
+                                   InetAddress addr, int port, DNSOutgoing out, Vector additionals ) 
     throws IOException 
   {
     ServiceInfo info = (ServiceInfo)services.get( q.name.toLowerCase() );
@@ -766,6 +762,15 @@ public class JmDNS {
                                             DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE,
                                             DNSConstants.DNS_TTL, info.text ) );
       }
+      additionals.addElement( host );
+      
+      additionals.addElement( new DNSRecord.Service( info.name, DNSConstants.TYPE_SRV, 
+                                                     DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE, 
+                                                     DNSConstants.DNS_TTL, info.priority, 
+                                                     info.weight, info.port, host.name ) );
+      additionals.addElement( new DNSRecord.Text( info.name, DNSConstants.TYPE_TXT, 
+                                                  DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE, 
+                                                  DNSConstants.DNS_TTL, info.text ) );
     }
     if( q.type == DNSConstants.TYPE_ANY ) 
     {
@@ -787,7 +792,7 @@ public class JmDNS {
                                                     DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, tname ) );
           }
         }    
-      }
+    }
     return out;
   }
 
@@ -795,12 +800,12 @@ public class JmDNS {
    * Handle an incoming query. See if we can answer any part of it
    * given our registered records.
    */
-   // reduced size of synchronized block to just the Socket.send() call
+  // reduced size of synchronized block to just the Socket.send() call
   // synchronized void handleQuery(DNSIncoming in, InetAddress addr, int port) throws IOException {
-   void handleQuery(DNSIncoming in, InetAddress addr, int port) throws IOException 
+  void handleQuery(DNSIncoming in, InetAddress addr, int port) throws IOException 
   {
     DNSOutgoing out = null;
-    Vector additionals = null;
+    Vector additionals = new Vector(5);  //may not be effiecient I know.
     // for unicast responses the question must be included
     if( port != DNSConstants.MDNS_PORT ) 
     {
@@ -823,18 +828,19 @@ public class JmDNS {
         out = typePTR( q, in, addr, port, out, additionals );
         break;
       default: // find service
-        out = findService( q, in, addr, port, out );
+        out = findService( q, in, addr, port, out, additionals );
       } 
     }
     if( ( out != null ) && ( out.numAnswers > 0 ) )
     {  // add additional answers if there is space
-      if (additionals != null) 
-      {
+      //      if (additionals != null) 
+      if(additionals.size() > 0)
+      
         for( Enumeration e = additionals.elements(); e.hasMoreElements(); ) 
         {
           out.addAdditionalAnswer( in, (DNSRecord)e.nextElement() );
         }
-      }
+      
       out.id = in.id;
       out.finish();
       synchronized( this ) 
@@ -911,7 +917,7 @@ public class JmDNS {
             {
               //We need to check it is a response /announcement to our address!
 
-                handleResponse(msg);    
+              handleResponse(msg);    
             }
             if(conflict(msg))
             {
@@ -1366,43 +1372,43 @@ public class JmDNS {
 
       }   
     
-    host = inHost;
-  }
+      host = inHost;
+    }
 
-  void announce(DNSRecord.Address host)
-  {
-    //As per section 9.3  Send a gratuitous response at least 2 times 1 sec apart.
-    int waitTime = DNSConstants.ANNOUNCE_WAIT_INTERVAL;
-    long now, nextTime;
-    for(int i = 0;i<2;i++)
+    void announce(DNSRecord.Address host)
     {
-      now = System.currentTimeMillis();        
-      nextTime= now + waitTime;
-      try
+      //As per section 9.3  Send a gratuitous response at least 2 times 1 sec apart.
+      int waitTime = DNSConstants.ANNOUNCE_WAIT_INTERVAL;
+      long now, nextTime;
+      for(int i = 0;i<2;i++)
       {
-        DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);    
-        //Initial startup.  All we have is the host record.  Later add support
-        //for starting with a list of services.  But for now......
-        out.addAnswer(host, 0);     
-        send(out);  
-      }
-      catch(java.io.IOException e)
-      {
-        //Should do something smarter here shuch as bomb out completly
-        System.err.println("Announce got an error: " +e);
-      }
-      now = System.currentTimeMillis();      
+        now = System.currentTimeMillis();        
+        nextTime= now + waitTime;
+        try
+        {
+          DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);    
+          //Initial startup.  All we have is the host record.  Later add support
+          //for starting with a list of services.  But for now......
+          out.addAnswer(host, 0);     
+          send(out);  
+        }
+        catch(java.io.IOException e)
+        {
+          //Should do something smarter here shuch as bomb out completly
+          System.err.println("Announce got an error: " +e);
+        }
+        now = System.currentTimeMillis();      
 
-      if (now < nextTime) 
-      {
-        //wait what is left of the probe wait time.
+        if (now < nextTime) 
+        {
+          //wait what is left of the probe wait time.
         
-        waitInterval(nextTime - now);  
-        continue;
+          waitInterval(nextTime - now);  
+          continue;
+        }
       }
     }
   }
-}
 
   
 
@@ -1412,11 +1418,11 @@ public class JmDNS {
    */
   class Shutdown implements Runnable
   {
-	public void run()
-	{
+    public void run()
+    {
       shutdown = null;
       close();
-	}
+    }
   }
 
   /**
@@ -1424,13 +1430,13 @@ public class JmDNS {
    */
   public synchronized void close()
   {
-	if (!done) {
+    if (!done) {
       done = true;
       notifyAll();
 
       // remove the shutdown hook
       if (shutdown != null) {
-		Runtime.getRuntime().removeShutdownHook(shutdown);
+        Runtime.getRuntime().removeShutdownHook(shutdown);
       }
 
       // unregister services
@@ -1438,12 +1444,12 @@ public class JmDNS {
 
       // close socket
       try {
-		socket.leaveGroup(group);
-		socket.close();
+        socket.leaveGroup(group);
+        socket.close();
       } catch (IOException e) {
-		// ignore
+        // ignore
       }
-	}
+    }
   }
 
   /**
@@ -1451,11 +1457,11 @@ public class JmDNS {
    */
   void print()
   {
-	if (cache.count > 0) {
+    if (cache.count > 0) {
       System.out.println("---- cache ----");
       cache.print();
       System.out.println();
-	}
+    }
   }
   /**
    * List Services and serviceTypes.
