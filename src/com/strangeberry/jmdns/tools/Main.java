@@ -4,12 +4,12 @@
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 // Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -24,90 +24,92 @@ import javax.jmdns.*;
 /**
  * Main sample program for JmDNS.
  *
- * @author	Arthur van Hoff
+ * @author	Arthur van Hoff, Werner Randelshofer
  * @version 	%I%, %G%
  */
-public class Main
-{
-    static class SampleListener implements ServiceListener, ServiceTypeListener
-    {
-	public void addService(JmDNS jmdns, String type, String name)
-	{
-	    System.out.println("ADD: " + jmdns.getServiceInfo(type, name, 3*1000));
-	}
-	public void removeService(JmDNS jmdns, String type, String name)
-	{
-	    System.out.println("REMOVE: " + name);
-	}
-	public void resolveService(JmDNS jmdns, String type, String name, ServiceInfo info)
-	{
-	    System.out.println("RESOLVED: " + info);
-	}
-	public void addServiceType(JmDNS jmdns, String type)
-	{
-	    System.out.println("TYPE: " + type);
-	}
+public class Main {
+    static class SampleListener implements ServiceListener, ServiceTypeListener {
+        public void serviceAdded(ServiceEvent event) {
+            System.out.println("ADD: " + event.getDNS().getServiceInfo(event.getType(), event.getName(), 3*1000));
+        }
+        public void serviceRemoved(ServiceEvent event) {
+            System.out.println("REMOVE: " + event.getName());
+        }
+        public void serviceResolved(ServiceEvent event) {
+            System.out.println("RESOLVED: " + event.getInfo());
+        }
+        public void serviceTypeAdded(ServiceEvent event) {
+            System.out.println("TYPE: " + event.getType());
+        }
     }
-
-    public static void main(String argv[]) throws IOException
-    {
-	int argc = argv.length;
-	boolean debug = false;
-	InetAddress intf = null;
-
-	if ((argc > 0) && "-d".equals(argv[0])) {
-	    System.arraycopy(argv, 1, argv, 0, --argc);
-	    System.getProperties().put("jmdns.debug", "1");
-	    debug = true;
-	}
-	if ((argc > 1) && "-i".equals(argv[0])) {
-	    intf = InetAddress.getByName(argv[1]);
-	    System.arraycopy(argv, 2, argv, 0, argc -= 2);
-	}
-	if (intf == null) {
-	    intf = InetAddress.getLocalHost();
-	}
-	
-	JmDNS jmdns = new JmDNS(intf);
-
-	if ((argc == 0) || ((argc >= 1) && "-browse".equals(argv[0]))) {
-	    new Browser(jmdns);
-	    for (int i = 2 ; i < argc ; i++) {
-		jmdns.registerServiceType(argv[i]);
-	    }
-	} else if ((argc == 1) && "-bt".equals(argv[0])) {
-	    jmdns.addServiceTypeListener(new SampleListener());
-	} else if ((argc == 3) && "-bs".equals(argv[0])) {
-	    jmdns.addServiceListener(argv[1] + "." + argv[2], new SampleListener());
-	} else if ((argc > 4) && "-rs".equals(argv[0])) {
-	    String type = argv[2] + "." + argv[3];
-	    String name = argv[1] + "." + type;
-	    Hashtable props = null;
-	    for (int i = 5 ; i < argc ; i++) {
-		int j = argv[i].indexOf('=');
-		if (j < 0) {
-		    throw new RuntimeException("not key=val: " + argv[i]);
-		}
-		if (props == null) {
-		    props = new Hashtable();
-		}
-		props.put(argv[i].substring(0, j), argv[i].substring(j+1));
-	    }
-	    jmdns.registerService(new ServiceInfo(type, name, Integer.parseInt(argv[4]), 0, 0, props));
-	} else if ((argc == 2) && "-f".equals(argv[0])) {
-	    new Responder(jmdns, argv[1]);
-	} else if (!debug) {
-	    System.out.println();
-	    System.out.println("jmdns:");
-	    System.out.println("     -d                                       - output debugging info");
-	    System.out.println("     -i <addr>                                - specify the interface address");
-	    System.out.println("     -browse [<type>...]                      - GUI browser (default)");
-	    System.out.println("     -bt                                      - browse service types");
-	    System.out.println("     -bs <type> <domain>                      - browse services by type");
-	    System.out.println("     -rs <name> <type> <domain> <port> <txt>  - register service");
-	    System.out.println("     -f <file>                                - rendezvous responder");
-	    System.out.println();
-	    System.exit(1);
-	}
+    
+    public static void main(String argv[]) throws IOException {
+        int argc = argv.length;
+        boolean debug = false;
+        InetAddress intf = null;
+        
+        if ((argc > 0) && "-d".equals(argv[0])) {
+            System.arraycopy(argv, 1, argv, 0, --argc);
+            System.getProperties().put("jmdns.debug", "1");
+            debug = true;
+        }
+        if ((argc > 1) && "-i".equals(argv[0])) {
+            intf = InetAddress.getByName(argv[1]);
+            System.arraycopy(argv, 2, argv, 0, argc -= 2);
+        }
+        if (intf == null) {
+            intf = InetAddress.getLocalHost();
+        }
+        
+        JmDNS jmdns = new JmDNS(intf);
+        
+        if ((argc == 0) || ((argc >= 1) && "-browse".equals(argv[0]))) {
+            new Browser(jmdns);
+            for (int i = 2 ; i < argc ; i++) {
+                jmdns.registerServiceType(argv[i]);
+            }
+        } else if ((argc == 1) && "-bt".equals(argv[0])) {
+            jmdns.addServiceTypeListener(new SampleListener());
+        } else if ((argc == 3) && "-bs".equals(argv[0])) {
+            jmdns.addServiceListener(argv[1] + "." + argv[2], new SampleListener());
+        } else if ((argc > 4) && "-rs".equals(argv[0])) {
+            String type = argv[2] + "." + argv[3];
+            String name = argv[1];
+            Hashtable props = null;
+            for (int i = 5 ; i < argc ; i++) {
+                int j = argv[i].indexOf('=');
+                if (j < 0) {
+                    throw new RuntimeException("not key=val: " + argv[i]);
+                }
+                if (props == null) {
+                    props = new Hashtable();
+                }
+                props.put(argv[i].substring(0, j), argv[i].substring(j+1));
+            }
+            jmdns.registerService(new ServiceInfo(type, name, Integer.parseInt(argv[4]), 0, 0, props));
+            
+            // This while loop keeps the main thread alive
+            while (true) {
+                try {
+                    Thread.sleep(Integer.MAX_VALUE);
+                } catch (InterruptedException e) {
+                    break;
+                }
+            }
+        } else if ((argc == 2) && "-f".equals(argv[0])) {
+            new Responder(jmdns, argv[1]);
+        } else if (!debug) {
+            System.out.println();
+            System.out.println("jmdns:");
+            System.out.println("     -d                                       - output debugging info");
+            System.out.println("     -i <addr>                                - specify the interface address");
+            System.out.println("     -browse [<type>...]                      - GUI browser (default)");
+            System.out.println("     -bt                                      - browse service types");
+            System.out.println("     -bs <type> <domain>                      - browse services by type");
+            System.out.println("     -rs <name> <type> <domain> <port> <txt>  - register service");
+            System.out.println("     -f <file>                                - rendezvous responder");
+            System.out.println();
+            System.exit(1);
+        }
     }
 }

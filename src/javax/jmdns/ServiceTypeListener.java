@@ -16,16 +16,18 @@
 
 package javax.jmdns;
 
+import java.util.EventListener;
 /**
  * Listener for service types.
  *
- * @author	Arthur van Hoff
+ * @author	Arthur van Hoff, Werner Randelshofer
  * @version 	%I%, %G%
  */
-public interface ServiceTypeListener {
+public interface ServiceTypeListener extends EventListener {
     /**
      * A new service type was discovered. 
-     * @param type the fully qualified type of the service
+     * @param event The service event providing the fully qualified type of
+     * the service.
      */
-    void addServiceType(JmDNS jmdns, String type);
+    void serviceTypeAdded(ServiceEvent event);
 }

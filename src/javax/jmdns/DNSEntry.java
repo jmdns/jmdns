@@ -23,13 +23,13 @@ package javax.jmdns;
  * @author	Arthur van Hoff
  * @version 	%I%, %G%
  */
-abstract class DNSEntry {
+class DNSEntry {
     String key;
     String name;
     int type;
     int clazz;
     boolean unique;
-
+    
     /**
      * Create an entry.
      */
@@ -54,6 +54,18 @@ abstract class DNSEntry {
 	return false;
     }
 
+    public String getName() {
+        return name;
+    }
+    
+    /**
+     * Overriden, to return a value which is consistent with the value returned
+     * by equals(Object).
+     */
+    public int hashCode()
+    {
+	return name.hashCode() + type + clazz;
+    }
     /**
      * Get a string given a clazz.
      */

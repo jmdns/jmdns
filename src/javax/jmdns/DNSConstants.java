@@ -4,12 +4,12 @@
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 // Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -19,33 +19,33 @@ package javax.jmdns;
 /**
  * DNS constants.
  *
- * @author	Arthur van Hoff, Jeff Sonstein
+ * @author	Arthur van Hoff, Jeff Sonstein, Werner Randelshofer
  * @version 	%I%, %G%
  */
 final class DNSConstants {
-
+    
     // changed to final class - jeffs
-    final static String MDNS_GROUP	= "224.0.0.251"; 
+    final static String MDNS_GROUP	= "224.0.0.251";
     final static int MDNS_PORT		= 5353;
     final static int DNS_PORT		= 53;
     final static int DNS_TTL		= 60 * 60;	// default one hour TTL
-
+    
     final static int MAX_MSG_TYPICAL	= 1460;
     final static int MAX_MSG_ABSOLUTE	= 8972;
     
     final static int FLAGS_QR_MASK	= 0x8000;	// Query response mask
-    final static int FLAGS_QR_QUERY	= 0x0000;	// Query 
+    final static int FLAGS_QR_QUERY	= 0x0000;	// Query
     final static int FLAGS_QR_RESPONSE	= 0x8000;	// Response
-
+    
     final static int FLAGS_AA		= 0x0400;	// Authorative answer
     final static int FLAGS_TC		= 0x0200;	// Truncated
     final static int FLAGS_RD		= 0x0100;	// Recursion desired
     final static int FLAGS_RA		= 0x8000;	// Recursion available
-
+    
     final static int FLAGS_Z		= 0x0040;	// Zero
     final static int FLAGS_AD		= 0x0020;	// Authentic data
     final static int FLAGS_CD		= 0x0010;	// Checking disabled
-
+    
     final static int CLASS_IN		= 1;		// Final Static Internet
     final static int CLASS_CS		= 2;		// CSNET
     final static int CLASS_CH		= 3;		// CHAOS
@@ -54,8 +54,8 @@ final class DNSConstants {
     final static int CLASS_ANY		= 255;		// Not a DNS class, but a DNS query class, meaning "all classes"
     final static int CLASS_MASK		= 0x7FFF;	// Multicast DNS uses the bottom 15 bits to identify the record class...
     final static int CLASS_UNIQUE	= 0x8000;	// ... and the top bit indicates that all other cached records are now invalid
-
-    final static int TYPE_A		    = 1; 		// Address
+    
+    final static int TYPE_A             = 1; 		// Address
     final static int TYPE_NS		= 2;		// Name Server
     final static int TYPE_MD		= 3;		// Mail Destination
     final static int TYPE_MF		= 4;		// Mail Forwarder
@@ -73,12 +73,19 @@ final class DNSConstants {
     final static int TYPE_TXT		= 16;		// Arbitrary text string
     final static int TYPE_SRV		= 33;		// Service record
     final static int TYPE_ANY		= 255;
-
-  //Time Intervals for various functions
-
-  final static int SHARED_QUERY_TIME   = 20;     //milliseconds before send shared query
-  final static int PROBE_WAIT_INTERVAL = 250;     //milliseconds between probe loops.
-  final static int PROBE_CONFLICT_INTERVAL = 1000;    //milliseconds to wait after conflict.
-  final static int PROBE_THROTTLE_COUNT = 5;       //After x tries go 1 time a sec. on probes.
-  final static int ANNOUNCE_WAIT_INTERVAL = 1000;     //milliseconds between Announce loops.
+    
+    //Time Intervals for various functions
+    
+    final static int SHARED_QUERY_TIME   = 20;     //milliseconds before send shared query
+    final static int QUERY_WAIT_INTERVAL = 225;     //milliseconds between query loops.
+    final static int PROBE_WAIT_INTERVAL = 250;     //milliseconds between probe loops.
+    final static int RESPONSE_MIN_WAIT_INTERVAL = 20;     //minimal wait interval for response.
+    final static int RESPONSE_MAX_WAIT_INTERVAL = 115;     //maximal wait interval for response
+    final static int PROBE_CONFLICT_INTERVAL = 1000;    //milliseconds to wait after conflict.
+    final static int PROBE_THROTTLE_COUNT = 10;       //After x tries go 1 time a sec. on probes.
+    final static int PROBE_THROTTLE_COUNT_INTERVAL = 5000; //We only increment the throttle count, if
+                                                      // the previous increment is inside this interval.
+    final static int ANNOUNCE_WAIT_INTERVAL = 1000;     //milliseconds between Announce loops.
+    final static int RECORD_REAPER_INTERVAL = 10000;     //milliseconds between cache cleanups.
+    final static int KNOWN_ANSWER_TTL = 120;
 }
