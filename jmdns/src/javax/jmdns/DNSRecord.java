@@ -24,7 +24,7 @@ import java.util.*;
  * DNS record
  *
  * @author	Arthur van Hoff
- * @version 	1.22, 11/29/2002
+ * @version 	%I%, %G%
  */
 abstract class DNSRecord extends DNSEntry
 {

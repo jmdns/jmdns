@@ -21,12 +21,12 @@ import java.net.*;
 import java.util.*;
 
 /**
- * Rendezvous service information.
+ * JmDNS service information.
  *
  * @author	Arthur van Hoff
- * @version 	1.21, 11/29/2002
+ * @version 	%I%, %G%
  */
-public class ServiceInfo extends Rendezvous.Listener
+public class ServiceInfo extends JmDNS.Listener
 {
     public final static byte[] NO_VALUE = new byte[0];
     
@@ -41,7 +41,7 @@ public class ServiceInfo extends Rendezvous.Listener
     InetAddress addr;
 
     /**
-     * Construct a service description for registrating with Rendezvous.
+     * Construct a service description for registrating with JmDNS.
      * @param type fully qualified service type name
      * @param name fully qualified service name
      * @param addr the address to which the service is bound
@@ -63,7 +63,7 @@ public class ServiceInfo extends Rendezvous.Listener
     }
 
     /**
-     * Construct a service description for registrating with Rendezvous. The properties hashtable must
+     * Construct a service description for registrating with JmDNS. The properties hashtable must
      * map property names to either Strings or byte arrays describing the property values.
      * @param type fully qualified service type name
      * @param name fully qualified service name
@@ -104,7 +104,7 @@ public class ServiceInfo extends Rendezvous.Listener
     }
 
     /**
-     * Construct a service description for registrating with Rendezvous.
+     * Construct a service description for registrating with JmDNS.
      * @param type fully qualified service type name
      * @param name fully qualified service name
      * @param addr the address to which the service is bound
@@ -343,9 +343,9 @@ public class ServiceInfo extends Rendezvous.Listener
     }
 
     /**
-     * Rendezvous callback to update a DNS record.
+     * JmDNS callback to update a DNS record.
      */
-    void updateRecord(Rendezvous rendezvous, long now, DNSRecord rec)
+    void updateRecord(JmDNS jmdns, long now, DNSRecord rec)
     {
 	if ((rec != null) && !rec.isExpired(now)) {
 	    switch (rec.type) {
@@ -362,7 +362,7 @@ public class ServiceInfo extends Rendezvous.Listener
 		    weight = srv.weight;
 		    priority = srv.priority;
 		    addr = null;
-		    updateRecord(rendezvous, now, (DNSRecord)rendezvous.cache.get(server, TYPE_A, CLASS_IN));
+		    updateRecord(jmdns, now, (DNSRecord)jmdns.cache.get(server, TYPE_A, CLASS_IN));
 		}
 		break;
 	      case TYPE_TXT:
@@ -379,14 +379,14 @@ public class ServiceInfo extends Rendezvous.Listener
      * Update the server information from the cache, send out
      * repeated DNS queries for updated information.
      */
-    boolean request(Rendezvous rendezvous, long timeout)
+    boolean request(JmDNS jmdns, long timeout)
     {
 	long now = System.currentTimeMillis();
 	int delay = 200;
 	long next = now + delay;
 	long last = now + timeout;
 	try {
-	    rendezvous.addListener(this, new DNSQuestion(name, TYPE_ANY, CLASS_IN));
+	    jmdns.addListener(this, new DNSQuestion(name, TYPE_ANY, CLASS_IN));
 	    while (server == null || addr == null || text == null) {
 		// check if timeout was reached
 		if (last <= now) {
@@ -400,19 +400,19 @@ public class ServiceInfo extends Rendezvous.Listener
 		    if (server != null) {
 			out.addQuestion(new DNSQuestion(server, TYPE_A, CLASS_IN));
 		    }
-		    out.addAnswer((DNSRecord)rendezvous.cache.get(name, TYPE_SRV, CLASS_IN), now);
-		    out.addAnswer((DNSRecord)rendezvous.cache.get(name, TYPE_TXT, CLASS_IN), now);
+		    out.addAnswer((DNSRecord)jmdns.cache.get(name, TYPE_SRV, CLASS_IN), now);
+		    out.addAnswer((DNSRecord)jmdns.cache.get(name, TYPE_TXT, CLASS_IN), now);
 		    if (server != null) {
-			out.addAnswer((DNSRecord)rendezvous.cache.get(server, TYPE_A, CLASS_IN), now);
+			out.addAnswer((DNSRecord)jmdns.cache.get(server, TYPE_A, CLASS_IN), now);
 		    }
-		    rendezvous.send(out);
+		    jmdns.send(out);
 
 		    next = now + delay;
 		    delay = delay * 2;
 		}
 		// wait for an update or a timeout
-		synchronized (rendezvous) {
-		    rendezvous.wait(Math.min(next, last) - now);
+		synchronized (jmdns) {
+		    jmdns.wait(Math.min(next, last) - now);
 		}
 		now = System.currentTimeMillis();
 	    }
@@ -422,7 +422,7 @@ public class ServiceInfo extends Rendezvous.Listener
 	} catch (InterruptedException e) {
 	    return false;
 	} finally {
-	    rendezvous.removeListener(this);
+	    jmdns.removeListener(this);
 	}
     }
 

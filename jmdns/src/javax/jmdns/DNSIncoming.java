@@ -24,7 +24,7 @@ import java.util.*;
  * Parse an incoming DNS message into its components.
  *
  * @author	Arthur van Hoff
- * @version 	1.18, 10/14/2002
+ * @version 	%I%, %G%
  */
 final class DNSIncoming extends DNSConstants
 {
