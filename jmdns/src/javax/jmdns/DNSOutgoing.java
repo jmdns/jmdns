@@ -86,8 +86,8 @@ final class DNSOutgoing extends DNSConstants
     void addAdditionalAnswer(DNSIncoming in, DNSRecord rec) throws IOException
     {
 	if ((off < MAX_MSG_TYPICAL - 200) && !rec.suppressedBy(in)) {
-	    numAdditionals++;
 	    writeRecord(rec, 0);
+	    numAdditionals++;
 	}
     }
 
@@ -98,8 +98,8 @@ final class DNSOutgoing extends DNSConstants
     {
 	if (rec != null) {
 	    if ((now == 0) || !rec.isExpired(now)) {
-		numAnswers++;
 		writeRecord(rec, now);
+		numAnswers++;
 	    }
 	}
     }
@@ -109,8 +109,8 @@ final class DNSOutgoing extends DNSConstants
      */
     void addAuthorativeAnswer(DNSRecord rec) throws IOException
     {
-	numAuthorities++;
 	writeRecord(rec, 0);
+	numAuthorities++;
     }
 
     void writeByte(int value) throws IOException
@@ -215,16 +215,22 @@ final class DNSOutgoing extends DNSConstants
 
     void writeRecord(DNSRecord rec, long now) throws IOException
     {
-	writeName(rec.name);
-	writeShort(rec.type);
-	writeShort(rec.clazz | ((rec.unique && multicast) ? CLASS_UNIQUE : 0));
-	writeInt((now == 0) ? rec.ttl : rec.getRemainingTTL(now));
-	writeShort(0);
-	int start = off;
-	rec.write(this);
-	int len = off - start;
-	data[start-2] = (byte)(len >> 8);
-	data[start-1] = (byte)(len & 0xFF);
+	int save = off;
+	try {
+	    writeName(rec.name);
+	    writeShort(rec.type);
+	    writeShort(rec.clazz | ((rec.unique && multicast) ? CLASS_UNIQUE : 0));
+	    writeInt((now == 0) ? rec.ttl : rec.getRemainingTTL(now));
+	    writeShort(0);
+	    int start = off;
+	    rec.write(this);
+	    int len = off - start;
+	    data[start-2] = (byte)(len >> 8);
+	    data[start-1] = (byte)(len & 0xFF);
+	} catch (IOException e) {
+	    off = save;
+	    throw e;
+	}
     }
 
     /**

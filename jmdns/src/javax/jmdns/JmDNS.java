@@ -420,7 +420,7 @@ public class JmDNS extends DNSConstants
     {
 	String name = type.toLowerCase();
 	if (serviceTypes.get(name) == null) {
-	    if (type.indexOf("._mdns._udp.") < 0) {
+	    if ((type.indexOf("._mdns._udp.") < 0) && !type.endsWith(".in-addr.arpa.")) {
 		serviceTypes.put(name, type);
 		for (Enumeration e = typeListeners.elements() ; e.hasMoreElements() ;) {
 		    ((ServiceTypeListener)e.nextElement()).addServiceType(this, type);
@@ -571,6 +571,29 @@ public class JmDNS extends DNSConstants
     }
 
     /**
+     * Add an answer to a question. Deal with the case when the
+     * outgoing packet overflows
+     */
+    DNSOutgoing addAnswer(DNSIncoming in, InetAddress addr, int port, DNSOutgoing out, DNSRecord rec) throws IOException
+    {
+	if (out == null) {
+	    out = new DNSOutgoing(FLAGS_QR_RESPONSE | FLAGS_AA);
+	}
+	try {
+	    out.addAnswer(in, rec);
+	} catch (IOException e) {
+	    out.flags |= FLAGS_TC;
+	    out.id = in.id;
+	    out.finish();
+	    socket.send(new DatagramPacket(out.data, out.off, addr, port));
+
+	    out = new DNSOutgoing(FLAGS_QR_RESPONSE | FLAGS_AA);
+	    out.addAnswer(in, rec);
+	}
+	return out;
+    }
+
+    /**
      * Handle an incoming query. See if we can answer any part of it
      * given our registered records.
      */
@@ -594,10 +617,7 @@ public class JmDNS extends DNSConstants
 	      case TYPE_A:
 		// address request
 		if ((host != null) && q.name.equals(host.name)) {
-		    if (out == null) {
-			out = new DNSOutgoing(FLAGS_QR_RESPONSE | FLAGS_AA);
-		    }
-		    out.addAnswer(in, host);
+		    out = addAnswer(in, addr, port, out, host);
 		}
 		break;
 
@@ -608,26 +628,22 @@ public class JmDNS extends DNSConstants
 		for (Enumeration s = services.elements() ; s.hasMoreElements() ; ) {
 		    ServiceInfo info = (ServiceInfo)s.nextElement();
 		    if (q.name.equals(info.type)) {
-			if (out == null) {
-			    out = new DNSOutgoing(FLAGS_QR_RESPONSE | FLAGS_AA);
-			}
-			out.addAnswer(in, new DNSRecord.Pointer(info.type, TYPE_PTR, CLASS_IN, DNS_TTL, info.name));
+			out = addAnswer(in, addr, port, out,
+					new DNSRecord.Pointer(info.type, TYPE_PTR, CLASS_IN, DNS_TTL, info.name));
 
 			// additional answers, in case there is room
 			if (additionals == null) {
 			    additionals = new Vector();
 			    additionals.addElement(host);
 			}
-			additionals.addElement(new DNSRecord.Service(q.name, TYPE_SRV, CLASS_IN | CLASS_UNIQUE, DNS_TTL, info.priority, info.weight, info.port, host.name));
-			additionals.addElement(new DNSRecord.Text(q.name, TYPE_TXT, CLASS_IN | CLASS_UNIQUE, DNS_TTL, info.text));
+			additionals.addElement(new DNSRecord.Service(info.name, TYPE_SRV, CLASS_IN | CLASS_UNIQUE, DNS_TTL, info.priority, info.weight, info.port, host.name));
+			additionals.addElement(new DNSRecord.Text(info.name, TYPE_TXT, CLASS_IN | CLASS_UNIQUE, DNS_TTL, info.text));
 		    }
 		}
 		if (q.name.equals("_services._mdns._udp.local.")) {
 		    for (Enumeration t = serviceTypes.elements() ; t.hasMoreElements() ;) {
-			if (out == null) {
-			    out = new DNSOutgoing(FLAGS_QR_RESPONSE | FLAGS_AA);
-			}
-			out.addAnswer(in, new DNSRecord.Pointer("_services._mdns._udp.local.", TYPE_PTR, CLASS_IN, DNS_TTL, (String)t.nextElement()));
+			out = addAnswer(in, addr, port, out,
+					new DNSRecord.Pointer("_services._mdns._udp.local.", TYPE_PTR, CLASS_IN, DNS_TTL, (String)t.nextElement()));
 		    }
 		}
 		break;
@@ -636,14 +652,13 @@ public class JmDNS extends DNSConstants
 		// find service
 		ServiceInfo info = (ServiceInfo)services.get(q.name.toLowerCase());
 		if (info != null) {
-		    if (out == null) {
-			out = new DNSOutgoing(FLAGS_QR_RESPONSE | FLAGS_AA);
-		    }
 		    if ((q.type == TYPE_SRV) || (q.type == TYPE_ANY)) {
-			out.addAnswer(in, new DNSRecord.Service(q.name, TYPE_SRV, CLASS_IN | CLASS_UNIQUE, DNS_TTL, info.priority, info.weight, info.port, host.name));
+			out = addAnswer(in, addr, port, out,
+					new DNSRecord.Service(q.name, TYPE_SRV, CLASS_IN | CLASS_UNIQUE, DNS_TTL, info.priority, info.weight, info.port, host.name));
 		    }
 		    if ((q.type == TYPE_TXT) || (q.type == TYPE_ANY)) {
-			out.addAnswer(in, new DNSRecord.Text(q.name, TYPE_TXT, CLASS_IN | CLASS_UNIQUE, DNS_TTL, info.text));
+			out = addAnswer(in, addr, port, out,
+					new DNSRecord.Text(q.name, TYPE_TXT, CLASS_IN | CLASS_UNIQUE, DNS_TTL, info.text));
 		    }
 		}
 	    } 
@@ -863,7 +878,11 @@ public class JmDNS extends DNSConstants
 			    for (Enumeration e = services.elements() ; e.hasMoreElements() ;) {
 				DNSRecord rec = (DNSRecord)e.nextElement();
 				if (!rec.isExpired(now)) {
-				    out.addAnswer(rec, now);
+				    try {
+					out.addAnswer(rec, now);
+				    } catch (IOException ee) {
+					break;
+				    }
 				}
 			    }
 			    send(out);

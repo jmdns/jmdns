@@ -288,7 +288,7 @@ final class DNSIncoming extends DNSConstants
 		buf.append(":aa");
 	    }
 	    if ((flags & FLAGS_TC) != 0) {
-		buf.append(":rc");
+		buf.append(":tc");
 	    }
 	}
 	if (numQuestions > 0) {
