@@ -448,6 +448,7 @@ public class JmDNS extends DNSConstants
     synchronized void handleQuery(DNSIncoming in, InetAddress addr, int port) throws IOException
     {
 	DNSOutgoing out = null;
+	Vector additionals = null;
 
 	// REMIND: handle meta query for service types
 
@@ -482,6 +483,14 @@ public class JmDNS extends DNSConstants
 			    out = new DNSOutgoing(FLAGS_QR_RESPONSE | FLAGS_AA);
 			}
 			out.addAnswer(in, new DNSRecord.Pointer(info.type, TYPE_PTR, CLASS_IN, DNS_TTL, info.name));
+
+			// additional answers, in case there is room
+			if (additionals == null) {
+			    additionals = new Vector();
+			    additionals.addElement(host);
+			}
+			additionals.addElement(new DNSRecord.Service(q.name, TYPE_SRV, CLASS_IN | CLASS_UNIQUE, DNS_TTL, info.priority, info.weight, info.port, host.name));
+			additionals.addElement(new DNSRecord.Text(q.name, TYPE_TXT, CLASS_IN | CLASS_UNIQUE, DNS_TTL, info.text));
 		    }
 		}
 		break;
@@ -502,8 +511,13 @@ public class JmDNS extends DNSConstants
 		}
 	    } 
 	}
-	// REMIND: add service info if there is space
 	if ((out != null) && (out.numAnswers > 0)) {
+	    // add additional answers if there is space
+	    if (additionals != null) {
+		for (Enumeration e = additionals.elements() ; e.hasMoreElements() ;) {
+		    out.addAdditionalAnswer(in, (DNSRecord)e.nextElement());
+		}
+	    }
 	    out.id = in.id;
 	    out.finish();
 	    socket.send(new DatagramPacket(out.data, out.off, addr, port));

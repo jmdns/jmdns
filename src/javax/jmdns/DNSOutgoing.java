@@ -81,6 +81,17 @@ final class DNSOutgoing extends DNSConstants
     }
 
     /**
+     * Add an additional answer to the record. Omit if there is no room.
+     */
+    void addAdditionalAnswer(DNSIncoming in, DNSRecord rec) throws IOException
+    {
+	if ((off < MAX_MSG_TYPICAL - 200) && !rec.suppressedBy(in)) {
+	    numAdditionals++;
+	    writeRecord(rec, 0);
+	}
+    }
+
+    /**
      * Add an answer to the message.
      */
     void addAnswer(DNSRecord rec, long now) throws IOException
