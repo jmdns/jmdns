@@ -23,8 +23,7 @@ package javax.jmdns;
  * @author	Arthur van Hoff
  * @version 	%I%, %G%
  */
-abstract class DNSEntry extends DNSConstants
-{
+abstract class DNSEntry {
     String key;
     String name;
     int type;
@@ -39,8 +38,8 @@ abstract class DNSEntry extends DNSConstants
 	this.key = name.toLowerCase();
 	this.name = name;
 	this.type = type;
-	this.clazz = clazz & CLASS_MASK;
-	this.unique = (clazz & CLASS_UNIQUE) != 0;
+	this.clazz = clazz & DNSConstants.CLASS_MASK;
+	this.unique = (clazz & DNSConstants.CLASS_UNIQUE) != 0;
     }
 
     /**
@@ -60,13 +59,13 @@ abstract class DNSEntry extends DNSConstants
      */
     static String getClazz(int clazz)
     {
-	switch (clazz & CLASS_MASK) {
-    	  case CLASS_IN:	return "in";
-    	  case CLASS_CS:	return "cs";
-    	  case CLASS_CH:	return "ch";
-    	  case CLASS_HS:	return "hs";
-    	  case CLASS_NONE:	return "none";
-    	  case CLASS_ANY:	return "any";
+	switch (clazz & DNSConstants.CLASS_MASK) {
+    	  case DNSConstants.CLASS_IN:	return "in";
+    	  case DNSConstants.CLASS_CS:	return "cs";
+    	  case DNSConstants.CLASS_CH:	return "ch";
+    	  case DNSConstants.CLASS_HS:	return "hs";
+    	  case DNSConstants.CLASS_NONE:	return "none";
+    	  case DNSConstants.CLASS_ANY:	return "any";
 	  default:		return "?";
 	}
     }
@@ -77,25 +76,25 @@ abstract class DNSEntry extends DNSConstants
     static String getType(int type)
     {
 	switch (type) {
-    	  case TYPE_A: 		return "a";
-    	  case TYPE_NS:		return "ns";
-    	  case TYPE_MD:		return "md";
-    	  case TYPE_MF:		return "mf";
-    	  case TYPE_CNAME:	return "cname";
-    	  case TYPE_SOA:	return "soa";
-    	  case TYPE_MB:		return "mb";
-    	  case TYPE_MG:		return "mg";
-    	  case TYPE_MR:		return "mr";
-    	  case TYPE_NULL:	return "null";
-    	  case TYPE_WKS:	return "wks";
-    	  case TYPE_PTR:	return "ptr";
-    	  case TYPE_HINFO:	return "hinfo";
-    	  case TYPE_MINFO:	return "minfo";
-    	  case TYPE_MX:		return "mx";
-    	  case TYPE_TXT:	return "txt";
-    	  case TYPE_SRV:	return "srv";
-	  case TYPE_ANY:	return "any";
-	  default:		return "?";
+    	  case DNSConstants.TYPE_A: 		return "a";
+    	  case DNSConstants.TYPE_NS:		return "ns";
+    	  case DNSConstants.TYPE_MD:		return "md";
+    	  case DNSConstants.TYPE_MF:		return "mf";
+    	  case DNSConstants.TYPE_CNAME:	return "cname";
+    	  case DNSConstants.TYPE_SOA:	return "soa";
+    	  case DNSConstants.TYPE_MB:		return "mb";
+    	  case DNSConstants.TYPE_MG:		return "mg";
+    	  case DNSConstants.TYPE_MR:		return "mr";
+    	  case DNSConstants.TYPE_NULL:	return "null";
+    	  case DNSConstants.TYPE_WKS:	return "wks";
+    	  case DNSConstants.TYPE_PTR:	return "ptr";
+    	  case DNSConstants.TYPE_HINFO:	return "hinfo";
+    	  case DNSConstants.TYPE_MINFO:	return "minfo";
+    	  case DNSConstants.TYPE_MX:		return "mx";
+    	  case DNSConstants.TYPE_TXT:	return "txt";
+    	  case DNSConstants.TYPE_SRV:	return "srv";
+    	  case DNSConstants.TYPE_ANY:	return "any";
+	      default:		return "?";
 	}
     }
 

@@ -19,11 +19,12 @@ package javax.jmdns;
 /**
  * DNS constants.
  *
- * @author	Arthur van Hoff
+ * @author	Arthur van Hoff, Jeff Sonstein
  * @version 	%I%, %G%
  */
-abstract class DNSConstants
-{
+final class DNSConstants {
+
+    // changed to final class - jeffs
     final static String MDNS_GROUP	= "224.0.0.251"; 
     final static int MDNS_PORT		= 5353;
     final static int DNS_PORT		= 53;
@@ -45,7 +46,6 @@ abstract class DNSConstants
     final static int FLAGS_AD		= 0x0020;	// Authentic data
     final static int FLAGS_CD		= 0x0010;	// Checking disabled
 
-
     final static int CLASS_IN		= 1;		// Final Static Internet
     final static int CLASS_CS		= 2;		// CSNET
     final static int CLASS_CH		= 3;		// CHAOS
@@ -55,7 +55,7 @@ abstract class DNSConstants
     final static int CLASS_MASK		= 0x7FFF;	// Multicast DNS uses the bottom 15 bits to identify the record class...
     final static int CLASS_UNIQUE	= 0x8000;	// ... and the top bit indicates that all other cached records are now invalid
 
-    final static int TYPE_A		= 1; 		// Address
+    final static int TYPE_A		    = 1; 		// Address
     final static int TYPE_NS		= 2;		// Name Server
     final static int TYPE_MD		= 3;		// Mail Destination
     final static int TYPE_MF		= 4;		// Mail Forwarder
@@ -73,4 +73,12 @@ abstract class DNSConstants
     final static int TYPE_TXT		= 16;		// Arbitrary text string
     final static int TYPE_SRV		= 33;		// Service record
     final static int TYPE_ANY		= 255;
+
+  //Time Intervals for various functions
+
+  final static int SHARED_QUERY_TIME   = 20;     //milliseconds before send shared query
+  final static int PROBE_WAIT_INTERVAL = 250;     //milliseconds between probe loops.
+  final static int PROBE_CONFLICT_INTERVAL = 1000;    //milliseconds to wait after conflict.
+  final static int PROBE_THROTTLE_COUNT = 5;       //After x tries go 1 time a sec. on probes.
+  final static int ANNOUNCE_WAIT_INTERVAL = 1000;     //milliseconds between Announce loops.
 }

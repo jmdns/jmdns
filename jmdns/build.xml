@@ -32,7 +32,7 @@
 <!-- Executable Targets -->
 
 <target name="build" depends="init" description="compile the generated source">
-<javac srcdir= "${src}" destdir="${dest}"> 
+<javac srcdir= "${src}" destdir="${dest}" debug="true"> 
 <include name="javax/**/*.java" /> 
 <classpath refid="jmdns.classpath"/> 
 </javac> 

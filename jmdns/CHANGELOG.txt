@@ -1,0 +1,66 @@
+CHANGELOG  28-29 MAR 2004 jeffs
+
+
+1. JmDNS
+
+  - Added probing thread to handle address record probing and conflicts
+
+  - Fixed wait times to be in line with the draft mDNS spec.
+
+  -  Added query cache so can check if another machine is also 
+     probing for our address.
+
+  - Added support for slowing down the request rate during
+    probing as per the draft mDNS spec.
+
+  - Added conflict checks.
+  
+  - General code clean up.
+
+  - changed visibility of static debug variable to public 
+  so apps can check it and decide to do their own logging and so on
+  
+  - changed visbility of all non-static variables to private
+  
+  - added package protected method getCache() 
+  
+  - broke up handleQuery() into:
+
+        private DNSOutgoing typeA()
+        private DNSOutgoing typePTR()
+        private DNSOutgoing findService()
+  
+  - reduced handleQuery() synchronized block 
+  to just cover Socket.send() call
+
+  [need to figure out what else needs synchronization]
+
+2. ServiceInfo
+
+  - changed all calls to JmDNS cache variable 
+  to use JmDNS getCache() accessor instead
+  
+  - replaced javadoc comment 
+        <code>_http._tcp.local.</code>
+  with 
+        <code>_http&#46;_tcp.local&#46;</code>
+  so the javadoc tool would quit whining
+  
+3. DNSConstants
+
+  - Added constants for wait times and probe times.
+
+  - changed to be a final class
+  
+  - changed all references to it's fields in all other classes
+  to read DNSConstants.whatever
+
+
+Know Problems.
+
+-- The additional section is broken in handleQuery.  This will be fixed in the next go round.
+
+-- Service probing is still not to spec.  No conflict resolution.
+
+-- Still can blow address space on very busy networks.
+

@@ -37,7 +37,7 @@ final class DNSQuestion extends DNSEntry
      */
     boolean answeredBy(DNSRecord rec)
     {
-	return (clazz == rec.clazz) && ((type == rec.type) || (type == TYPE_ANY)) &&
+	return (clazz == rec.clazz) && ((type == rec.type) || (type == DNSConstants.TYPE_ANY)) &&
 	    name.equals(rec.name);
     }
 
