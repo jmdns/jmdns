@@ -18,6 +18,7 @@ package samples;
 
 import javax.jmdns.*;
 import java.io.IOException;
+import java.util.logging.*;
 
 /**
  * Sample Code for Service Discovery using JmDNS and a ServiceListener.
@@ -46,7 +47,13 @@ public class DiscoverServices {
      */
     public static void main(String[] args) {
         try {
-            System.setProperty("jmdns.debug", "1");
+            /* Activate these lines to see log messages of JmDNS
+            Logger logger = Logger.getLogger(JmDNS.class.toString());
+            ConsoleHandler handler = new ConsoleHandler();
+            logger.addHandler(handler);
+            logger.setLevel(Level.FINER);
+            handler.setLevel(Level.FINER);
+            */
             JmDNS jmdns = new JmDNS();
             jmdns.addServiceListener("_http._tcp.local.", new SampleListener());
             
@@ -54,6 +61,7 @@ public class DiscoverServices {
             int b;
             while ((b = System.in.read()) != -1 && (char) b != 'q'); 
             jmdns.close();
+            System.out.println("Done");
         } catch (IOException e) {
             e.printStackTrace();
         }

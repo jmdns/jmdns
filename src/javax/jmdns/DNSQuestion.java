@@ -15,37 +15,35 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package javax.jmdns;
+import java.util.logging.*;
 
 /**
- * A DNS question.
+* A DNS question.
  *
  * @author	Arthur van Hoff
  * @version 	%I%, %G%
  */
-final class DNSQuestion extends DNSEntry
-{
+final class DNSQuestion extends DNSEntry {
+    private static Logger logger = Logger.getLogger(DNSQuestion.class.toString());
     /**
-     * Create a question.
+	* Create a question.
      */
-    DNSQuestion(String name, int type, int clazz)
-    {
-	super(name, type, clazz);
+    DNSQuestion(String name, int type, int clazz) {
+		super(name, type, clazz);
     }
-
+	
     /**
-     * Check if this question is answered by a given DNS record.
+		* Check if this question is answered by a given DNS record.
      */
-    boolean answeredBy(DNSRecord rec)
-    {
-	return (clazz == rec.clazz) && ((type == rec.type) || (type == DNSConstants.TYPE_ANY)) &&
+    boolean answeredBy(DNSRecord rec) {
+		return (clazz == rec.clazz) && ((type == rec.type) || (type == DNSConstants.TYPE_ANY)) &&
 	    name.equals(rec.name);
     }
-
+	
     /**
-     * For debugging only.
+		* For debugging only.
      */
-    public String toString()
-    {
-	return toString("question", null);
+    public String toString() {
+		return toString("question", null);
     }
 }

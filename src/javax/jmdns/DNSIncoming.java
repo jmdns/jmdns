@@ -19,19 +19,21 @@ package javax.jmdns;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.logging.*;
 
 /**
  * Parse an incoming DNS message into its components.
  *
- * @author	Arthur van Hoff, Werner Randelshofer
+ * @author	Arthur van Hoff, Werner Randelshofer, Pierre Frisch
  * @version 	%I%, %G%
  */
 final class DNSIncoming {
+    private static Logger logger = Logger.getLogger(DNSIncoming.class.toString());
     // Implementation note: This vector should be immutable.
     // If a client of DNSIncoming changes the contents of this vector,
     // we get undesired results. To fix this, we have to migrate to
     // the Collections API of Java 1.2. i.e we replace Vector by List.
-    final static Vector EMPTY = new Vector();
+    // final static Vector EMPTY = new Vector();
     
     private DatagramPacket packet;
     private int off;
@@ -44,9 +46,10 @@ final class DNSIncoming {
     int numAnswers;
     private int numAuthorities;
     private int numAdditionals;
+	private long receivedTime ;
     
-    Vector questions;
-    Vector answers;
+    List questions;
+    List answers;
     
     /**
      * Parse a message from a datagram packet.
@@ -56,8 +59,9 @@ final class DNSIncoming {
         this.data = packet.getData();
         this.len = packet.getLength();
         this.off = packet.getOffset();
-        this.questions = EMPTY;
-        this.answers = EMPTY;
+        this.questions = Collections.EMPTY_LIST;
+        this.answers = Collections.EMPTY_LIST;
+		this.receivedTime = System.currentTimeMillis();
         
         try {
             id = readUnsignedShort();
@@ -69,7 +73,7 @@ final class DNSIncoming {
             
             // parse questions
             if (numQuestions > 0) {
-                questions = new Vector(numQuestions);
+                questions = Collections.synchronizedList(new ArrayList(numQuestions));
                 for (int i = 0 ; i < numQuestions ; i++) {
                     DNSQuestion question = new DNSQuestion(readName(), readUnsignedShort(), readUnsignedShort());
                     questions.add(question);
@@ -79,7 +83,7 @@ final class DNSIncoming {
             // parse answers
             int n = numAnswers + numAuthorities + numAdditionals;
             if (n > 0) {
-                answers = new Vector(n);
+                answers = Collections.synchronizedList(new ArrayList(n));
                 for (int i = 0 ; i < n ; i++) {
                     String domain = readName();
                     int type = readUnsignedShort();
@@ -90,8 +94,9 @@ final class DNSIncoming {
                     DNSRecord rec = null;
                     
                     switch (type) {
-                        case DNSConstants.TYPE_A:
-                            rec = new DNSRecord.Address(domain, type, clazz, ttl, readInt());
+                        case DNSConstants.TYPE_A:		// IPv4
+                        case DNSConstants.TYPE_AAAA:	// IPv6 FIXME [PJYF Oct 14 2004] This has not been tested
+                            rec = new DNSRecord.Address(domain, type, clazz, ttl, readBytes(off, len));
                             break;
                         case DNSConstants.TYPE_CNAME:
                         case DNSConstants.TYPE_PTR:
@@ -104,8 +109,11 @@ final class DNSIncoming {
                             rec = new DNSRecord.Service(domain, type, clazz, ttl,
                             readUnsignedShort(), readUnsignedShort(), readUnsignedShort(), readName());
                             break;
+                        case DNSConstants.TYPE_HINFO:
+                            // Maybe we should do something with those
+                            break;
                         default :
-                            //System.out.println("DNSIncoming unknown type:"+type);
+                            logger.finer("DNSIncoming() unknown type:"+type);
                             break;
                     }
                     
@@ -126,7 +134,7 @@ final class DNSIncoming {
                 }
             }
         } catch (IOException e) {
-            print(true);
+            logger.log(Level.WARNING, "DNSIncoming() dump " + print(true) + "\n exception " , e);
             throw e;
         }
     }
@@ -236,59 +244,61 @@ final class DNSIncoming {
     /**
      * Debugging.
      */
-    void print(boolean dump) {
-        System.out.println(toString());
-        for (Enumeration e = questions.elements() ; e.hasMoreElements() ;) {
-            System.out.println("    ques:" + e.nextElement());
+    String print(boolean dump) {
+        StringBuffer buf = new StringBuffer();
+        buf.append(toString() + "\n");
+        for (Iterator iterator = questions.iterator() ; iterator.hasNext() ;) {
+            buf.append("    ques:" + iterator.next() + "\n");
         }
         int count=0;
-        for (Enumeration e = answers.elements() ; e.hasMoreElements() ;count++) {
+        for (Iterator iterator = answers.iterator() ; iterator.hasNext() ;count++) {
             if (count < numAnswers) {
-                System.out.print("    answ:");
+                buf.append("    answ:");
             } else if (count < numAnswers + numAuthorities) {
-                System.out.print("    auth:");
+                buf.append("    auth:");
             } else {
-                System.out.print("    addi:");
+                buf.append("    addi:");
             }
-            System.out.println(e.nextElement());
+            buf.append(iterator.next() + "\n");
         }
         if (dump) {
             for (int off = 0, len = packet.getLength() ; off < len ; off += 32) {
                 int n = Math.min(32, len - off);
                 if (off < 10) {
-                    System.out.print(' ');
+                    buf.append(' ');
                 }
                 if (off < 100) {
-                    System.out.print(' ');
+                    buf.append(' ');
                 }
-                System.out.print(off);
-                System.out.print(':');
+                buf.append(off);
+                buf.append(':');
                 for (int i = 0 ; i < n ; i++) {
                     if ((i % 8) == 0) {
-                        System.out.print(' ');
+                        buf.append(' ');
                     }
-                    System.out.print(Integer.toHexString((data[off + i] & 0xF0) >> 4));
-                    System.out.print(Integer.toHexString((data[off + i] & 0x0F) >> 0));
+                    buf.append(Integer.toHexString((data[off + i] & 0xF0) >> 4));
+                    buf.append(Integer.toHexString((data[off + i] & 0x0F) >> 0));
                 }
-                System.out.println();
-                System.out.print("    ");
+                buf.append("\n");
+                buf.append("    ");
                 for (int i = 0 ; i < n ; i++) {
                     if ((i % 8) == 0) {
-                        System.out.print(' ');
+                        buf.append(' ');
                     }
-                    System.out.print(' ');
+                    buf.append(' ');
                     int ch = data[off + i] & 0xFF;
-                    System.out.print(((ch > ' ') && (ch < 127)) ? (char)ch : '.');
+                    buf.append(((ch > ' ') && (ch < 127)) ? (char)ch : '.');
                 }
-                System.out.println();
+                buf.append("\n");
                 
                 // limit message size
                 if (off+32 >= 256) {
-                    System.out.println("....");
+                    buf.append("....\n");
                     break;
                 }
             }
         }
+        return buf.toString();
     }
     
     public String toString() {
@@ -344,8 +354,9 @@ final class DNSIncoming {
             this.questions.addAll(that.questions);
             this.numQuestions += that.numQuestions;
             
+			if (Collections.EMPTY_LIST.equals(answers)) answers = Collections.synchronizedList(new ArrayList());
+			
             if (that.numAnswers > 0) {
-                
                 this.answers.addAll(this.numAnswers, that.answers.subList(0, that.numAnswers));
                 this.numAnswers += that.numAnswers;
             }
@@ -361,4 +372,8 @@ final class DNSIncoming {
             throw new IllegalArgumentException();
         }
     }
+	
+	int elapseSinceArrival() {
+		return (int)(System.currentTimeMillis() - receivedTime);
+	}
 }

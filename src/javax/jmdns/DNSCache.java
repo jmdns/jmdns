@@ -17,6 +17,7 @@
 package javax.jmdns;
 
 import java.util.*;
+import java.util.logging.*;
 
 /**
  * A table of DNS entries. This is a hash table which
@@ -30,7 +31,7 @@ import java.util.*;
  * when iterating over entries in the cache. Here's how to iterate over
  * all entries in the cache:
  * <pre>
- * for (Iterator i=dnscache.all(); i.hasNext(); ) {
+ * for (Iterator i=dnscache.iterator(); i.hasNext(); ) {
  *    for (DNSCache.CacheNode n = (DNSCache.CacheNode) i.next(); n != null; n.next()) {
  *       DNSEntry entry = n.getValue();
  *       ...do something with entry...
@@ -50,13 +51,16 @@ import java.util.*;
  * @version 	%I%, %G%
  */
 class DNSCache {
+    private static Logger logger = Logger.getLogger(DNSCache.class.toString());
     // Implementation note:
     // We might completely hide the existence of CacheNode's in a future version
     // of DNSCache. But this will require to implement two (inner) classes for
-    // the  iterators that will be returned by method <code>all()</code> and
+    // the  iterators that will be returned by method <code>iterator()</code> and
     // method <code>find(name)</code>.
     // Since DNSCache is not a public class, it does not seem worth the effort
     // to clean its API up that much.
+	
+	// [PJYF Oct 15 2004] This should implements Collections that would be amuch cleaner implementation
     
     /**
      * The number of DNSEntry's in the cache.
@@ -76,6 +80,7 @@ class DNSCache {
      * same name in the cache.
      */
     public static class CacheNode {
+		private static Logger logger = Logger.getLogger(CacheNode.class.toString());
         private DNSEntry value;
         private CacheNode next;
         public CacheNode(DNSEntry value) {
@@ -109,7 +114,7 @@ class DNSCache {
      * Adds an entry to the table.
      */
     public synchronized void add(final DNSEntry entry) {
-        //System.out.println("DNSCache.add("+entry.getName()+")");
+        //logger.log("DNSCache.add("+entry.getName()+")");
         CacheNode newValue = new CacheNode(entry);
         CacheNode node = (CacheNode) hashtable.get(entry.getName());
         if (node == null) {
@@ -185,7 +190,7 @@ class DNSCache {
      * To retrieve all entries, one must iterate over this linked list. See
      * code snippets in the header of the class.
      */
-    public Iterator all() {
+    public Iterator iterator() {
         return Collections.unmodifiableCollection(hashtable.values()).iterator();
     }
     
@@ -203,10 +208,22 @@ class DNSCache {
      * List all entries for debugging.
      */
     public synchronized void print() {
-        for (Iterator i = all() ; i.hasNext() ;) {
+        for (Iterator i = iterator() ; i.hasNext() ;) {
             for (CacheNode n = (CacheNode) i.next(); n != null; n = n.next) {
                 System.out.println(n.value);
             }
         }
     }
+	
+	public synchronized String toString() {
+		StringBuffer aLog = new StringBuffer();
+        aLog.append("\t---- cache ----");
+        for (Iterator i = iterator() ; i.hasNext() ;) {
+            for (CacheNode n = (CacheNode) i.next(); n != null; n = n.next) {
+                aLog.append("\n\t\t" + n.value);
+            }
+        }
+		return aLog.toString();
+    }
+	
 }

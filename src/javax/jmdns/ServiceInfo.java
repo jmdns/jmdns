@@ -19,6 +19,7 @@ package javax.jmdns;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.logging.*;
 
 /**
  * JmDNS service information.
@@ -27,6 +28,7 @@ import java.util.*;
  * @version 	%I%, %G%
  */
 public class ServiceInfo implements DNSListener {
+    private static Logger logger = Logger.getLogger(ServiceInfo.class.toString());
     public final static byte[] NO_VALUE = new byte[0];
     JmDNS dns;
     
@@ -162,6 +164,21 @@ public class ServiceInfo implements DNSListener {
     }
     
     /**
+     * During recovery we need to duplicate service info to reregister them
+     *
+     */
+    ServiceInfo(ServiceInfo info) {
+        if (info != null) {
+            this.type = info.type;
+            this.name = info.name;
+            this.port = info.port;
+            this.weight = info.weight;
+            this.priority = info.priority;
+            this.text = info.text;
+        }
+    }
+    
+    /**
      * Fully qualified service type name, such as <code>_http._tcp.local.</code> .
      */
     public String getType() {
@@ -201,12 +218,12 @@ public class ServiceInfo implements DNSListener {
     /**
      * Get the host address of the service (ie X.X.X.X).
      */
-    public String getAddress() {
-        // Return null if we aren't bound to a host yet.
-        if (addr == null) return null;
-        
-        byte data[] = getInetAddress().getAddress();
-        return (data[0] & 0xFF) + "." + (data[1] & 0xFF) + "." + (data[2] & 0xFF) + "." + (data[3] & 0xFF);
+    public String getHostAddress() {
+        return ( addr != null ? addr.getHostAddress() : "");
+    }
+    
+    public InetAddress getAddress() {
+        return addr;
     }
     
     /**
@@ -406,14 +423,6 @@ public class ServiceInfo implements DNSListener {
         return props;
     }
     
-    /**
-     * Get the ip address of the service.
-     */
-    int getIPAddress() {
-        byte data[] = addr.getAddress();
-        return ((data[0] & 0xFF) << 24) | ((data[1] & 0xFF) << 16) | ((data[2] & 0xFF) << 8) | (data[3] & 0xFF);
-    }
-    
     // REMIND: Oops, this shouldn't be public!
     /**
      * JmDNS callback to update a DNS record.
@@ -421,9 +430,10 @@ public class ServiceInfo implements DNSListener {
     public void updateRecord(JmDNS jmdns, long now, DNSRecord rec) {
         if ((rec != null) && !rec.isExpired(now)) {
             switch (rec.type) {
-                case DNSConstants.TYPE_A:
+                case DNSConstants.TYPE_A:		// IPv4
+                case DNSConstants.TYPE_AAAA:	// IPv6 FIXME [PJYF Oct 14 2004] This has not been tested
                     if (rec.name.equals(server)) {
-                        addr = ((DNSRecord.Address)rec).getInetAddress();
+                        addr = ((DNSRecord.Address)rec).getAddress();
                         
                     }
                     break;
@@ -494,7 +504,7 @@ public class ServiceInfo implements DNSListener {
     DNSState getState() {
         return state;
     }
-
+    
     
     
     public int hashCode() {
