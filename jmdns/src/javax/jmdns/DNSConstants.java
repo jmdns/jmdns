@@ -17,7 +17,7 @@
 package javax.jmdns;
 
 /**
-* DNS constants.
+ * DNS constants.
  *
  * @author	Arthur van Hoff, Jeff Sonstein, Werner Randelshofer, Pierre Frisch
  * @version 	%I%, %G%
@@ -57,7 +57,7 @@ final class DNSConstants {
     final static int CLASS_MASK		= 0x7FFF;	// Multicast DNS uses the bottom 15 bits to identify the record class...
     final static int CLASS_UNIQUE	= 0x8000;	// ... and the top bit indicates that all other cached records are now invalid
     
-	final static int TYPE_IGNORE	= 0;		// This is a hack to stop further processing
+    final static int TYPE_IGNORE	= 0;		// This is a hack to stop further processing
     final static int TYPE_A         = 1; 		// Address
     final static int TYPE_NS		= 2;		// Name Server
     final static int TYPE_MD		= 3;		// Mail Destination
@@ -74,13 +74,13 @@ final class DNSConstants {
     final static int TYPE_MINFO		= 14;		// Mailbox information
     final static int TYPE_MX		= 15;		// Mail exchanger
     final static int TYPE_TXT		= 16;		// Arbitrary text string
-	final static int TYPE_RP		= 17; 		// for Responsible Person                 [RFC1183]
+    final static int TYPE_RP		= 17; 		// for Responsible Person                 [RFC1183]
     final static int TYPE_AFSDB		= 18; 		// for AFS Data Base location             [RFC1183]
     final static int TYPE_X25		= 19; 		// for X.25 PSDN address                  [RFC1183]
     final static int TYPE_ISDN		= 20; 		// for ISDN address                       [RFC1183]
     final static int TYPE_RT		= 21; 		// for Route Through                      [RFC1183]
     final static int TYPE_NSAP		= 22; 		// for NSAP address, NSAP style A record  [RFC1706]
-	final static int TYPE_NSAP_PTR	= 23;		// 
+    final static int TYPE_NSAP_PTR	= 23;		//
     final static int TYPE_SIG		= 24; 		// for security signature                 [RFC2931]
     final static int TYPE_KEY		= 25; 		// for security key                       [RFC2535]
     final static int TYPE_PX		= 26; 		// X.400 mail mapping information         [RFC2163]
@@ -106,15 +106,15 @@ final class DNSConstants {
     final static int TYPE_NSEC		= 47; 		// NSEC                                   [RFC3755]
     final static int TYPE_DNSKEY	= 48;		// DNSKEY                                 [RFC3755]
     final static int TYPE_UINFO		= 100;      //									      [IANA-Reserved]
-	final static int TYPE_UID		= 101;      //                                        [IANA-Reserved]
-	final static int TYPE_GID		= 102;      //                                        [IANA-Reserved]
-	final static int TYPE_UNSPEC	= 103;      //                                        [IANA-Reserved]
-	final static int TYPE_TKEY		= 249; 		// Transaction Key                        [RFC2930]
-	final static int TYPE_TSIG		= 250; 		// Transaction Signature                  [RFC2845]
-	final static int TYPE_IXFR		= 251; 		// Incremental transfer                   [RFC1995]
-	final static int TYPE_AXFR		= 252;		// Transfer of an entire zone             [RFC1035]
-	final static int TYPE_MAILA		= 253;		// Mailbox-related records (MB, MG or MR) [RFC1035]
-	final static int TYPE_MAILB		= 254;		// Mail agent RRs (Obsolete - see MX)     [RFC1035]
+    final static int TYPE_UID		= 101;      //                                        [IANA-Reserved]
+    final static int TYPE_GID		= 102;      //                                        [IANA-Reserved]
+    final static int TYPE_UNSPEC	= 103;      //                                        [IANA-Reserved]
+    final static int TYPE_TKEY		= 249; 		// Transaction Key                        [RFC2930]
+    final static int TYPE_TSIG		= 250; 		// Transaction Signature                  [RFC2845]
+    final static int TYPE_IXFR		= 251; 		// Incremental transfer                   [RFC1995]
+    final static int TYPE_AXFR		= 252;		// Transfer of an entire zone             [RFC1035]
+    final static int TYPE_MAILA		= 253;		// Mailbox-related records (MB, MG or MR) [RFC1035]
+    final static int TYPE_MAILB		= 254;		// Mail agent RRs (Obsolete - see MX)     [RFC1035]
     final static int TYPE_ANY		= 255;		// Request for all records	        	  [RFC1035]
     
     //Time Intervals for various functions
@@ -127,9 +127,9 @@ final class DNSConstants {
     final static int PROBE_CONFLICT_INTERVAL        = 1000;          //milliseconds to wait after conflict.
     final static int PROBE_THROTTLE_COUNT           = 10;            //After x tries go 1 time a sec. on probes.
     final static int PROBE_THROTTLE_COUNT_INTERVAL  = 5000;          //We only increment the throttle count, if
-														             // the previous increment is inside this interval.
+    // the previous increment is inside this interval.
     final static int ANNOUNCE_WAIT_INTERVAL         = 1000;          //milliseconds between Announce loops.
     final static int RECORD_REAPER_INTERVAL         = 10000;         //milliseconds between cache cleanups.
     final static int KNOWN_ANSWER_TTL               = 120;
-    final static int ANNOUNCED_RENEWAL_TTL_INTERVAL = DNS_TTL * 800; // This 80% ot the TTL in millis
+    final static int ANNOUNCED_RENEWAL_TTL_INTERVAL = DNS_TTL * 500; // 50% of the TTL in milliseconds
 }
