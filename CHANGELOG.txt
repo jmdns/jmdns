@@ -1,6 +1,15 @@
+CHANGELOG  21 APRIL 2004 RickBlair
+
+1. JmDNS
+   
+   -Fixed broken additionals in the Query Function.
+   -Added additionals to the SVC query.
+
+
+
+
+
 CHANGELOG  28-29 MAR 2004 jeffs
-
-
 1. JmDNS
 
   - Added probing thread to handle address record probing and conflicts
