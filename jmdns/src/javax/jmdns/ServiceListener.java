@@ -16,32 +16,35 @@
 
 package javax.jmdns;
 
+import java.util.EventListener;
+
 /**
  * Listener for service updates.
  *
- * @author	Arthur van Hoff
+ * @author	Arthur van Hoff, Werner Randelshofer
  * @version 	%I%, %G%
  */
-public interface ServiceListener {
+public interface ServiceListener extends EventListener {
     /**
-     * A service is added.
-     * @param type the fully qualified type of the service
-     * @param name the fully qualified name of the service
+     * A service has been added.
+     * @param event The ServiceEvent providing the name and fully qualified type
+     * of the service.
      */
-    void addService(JmDNS jmdns, String type, String name);
+    void serviceAdded(ServiceEvent event);
 
     /**
-     * A service is removed.
-     * @param type the fully qualified type of the service
-     * @param name the fully qualified name of the service
+     * A service has been removed.
+     * @param event The ServiceEvent providing the name and fully qualified type
+     * of the service.
      */
-    void removeService(JmDNS jmdns, String type, String name);
+    void serviceRemoved(ServiceEvent event);
 
     /**
-     * A service is resolved. Its details are now available in the ServiceInfo record.
-     * @param type the fully qualified type of the service
-     * @param name the fully qualified name of the service
-     * @param info the service info record, or null if the service could be be resolved
+     * A service has been resolved. Its details are now available in the 
+     * ServiceInfo record.
+     * @param event The ServiceEvent providing the name, the fully qualified 
+     * type of the service, and the service info record, or null if the service 
+     * could not be resolved.
      */
-    void resolveService(JmDNS jmdns, String type, String name, ServiceInfo info);
+    void serviceResolved(ServiceEvent event);
 }

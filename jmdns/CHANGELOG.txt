@@ -1,3 +1,104 @@
+CHANGELOG  6 June 2004 rawcoder
+
+1. General API Changes
+
+   - RFE 868432: Changed listener API to comply with the commonly used
+                 EventListener/EventObject idiom 
+   - RFE 868433: Added a list method to class JmDNS which can be used to 
+                 retrieve a list of available  services without having to 
+                implement a ServiceListener.
+   - RFE 892855: All API's use now unqualified service instance names
+
+2. General implementation changes
+
+   - JmDNS now runs through the Rendezvous Conformance Test, when the options
+     "-M hn" are used.
+   - Threads are now handled differently. ServiceListeners and 
+     ServiceTypeListeners can not assume anymore that they are invoked from
+     the AWT event dispatcher thread.
+   - States are now handled explicitly using class DNSState.
+
+3. DNSCache
+
+   - Removed the hash table code and use now a java.util.Hashtable.
+   - This reduces the overall size of the class.
+
+4. DNSConstants
+
+   - Added several new time interval constants.
+
+5. DNSEntry
+
+   - Now overrides method hashCode() to return a value, that is consistent with
+     method equals().
+
+6. DNSIncoming
+
+   - Added a warning to constant EMPTY. Using this constant is dangerous, because a Vector
+     is mutable. Thus it can not be used as a constant this way.
+   - Made many instance variables and methods private.
+   - Added more output to method print(), to help me debug JmDNS.
+   - Optimized StringBuffer handling in method toString().
+   - Added methods isTruncated() and append().
+   - DNSIncoming must adjust variables numAnswers, numAuthorities, numAdditionals when skipping records.
+
+7. DNSOutgoing
+
+   - Made as many instance variables private as I could.
+   - Added assertions (using if-Statements) to all add...() methods to prevent construction of
+     illegal data structures.
+
+8. DNSRecord
+
+   - Made as many instance variables private as I could.
+   - Moved code from class JmDNS into class DNSRecord. The new operations are named: handleQuery()
+     handleResponse() and addAnswer(). This is to get rid of the big switch-statements that were
+     in method handleQuery() and handleResponse() of class JmDNS.
+     This does somehow make the relationship between these two classes a little bit more complex though.
+
+9. JmDNS
+
+   - Added comments to some of the instance variables.
+   - Added an instance variable named 'state' to track the state of the host name published by JmDNS, and of 
+     JmDNS itself.
+   - Replaced instance variable 'Vector browsers' by a hash map named 'serviceListeners'.
+   - Got rid of the query cache. All caching is done now by a single cache.
+   - Added instance variables for counting probe throttles.
+   - Added an instance variable named 'hostNameCount' to create a new host name, when a conflict was detected.
+   - Added a java.util.Timer. All outgoing messages and maintenance of the cache is now coordinated using the
+     timer. This greatly reduces the number of concurrent threads. 
+   - Added an instance variable named 'ioLock'. This lock is used to coordinate the incoming listener thread
+     with the timer tasks.
+   - Added a static variable named 'random'. It is used to generate random delays for responses.
+   - All outgoing tasks such as probing, announcing, responding and canceling are now handled by instances of
+     TimerTask.
+   - Added an instance variable named 'task', to keep track of timer tasks associated with the host name.
+   - Transferred code from JmDNS to DNSRecord to get rid of some ugly switch statements.
+
+
+10. ServiceInfo
+
+   - Added an instance variable named 'state' to track the state of the service. 
+     This is used only, if the service is published by JmDNS.
+   - Added an instance variable named 'task', to keep track of timer tasks associated with the service info.
+
+
+11. Sample code
+
+   - Added a "samples" package to JmDNS. This package contains sample
+     programs for JmDNS.
+
+12. JavaDoc
+   - Added a "package.html" file for each package. This file holds package
+     documentation used by JavaDoc.
+
+13. Build
+   - Added a "samples" task to build.xml.
+   - The "javadoc" task puts now a version number into the header of
+     each generated page.
+
+
+
 CHANGELOG  21 APRIL 2004 RickBlair
 
 1. JmDNS

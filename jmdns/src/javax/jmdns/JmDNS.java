@@ -4,12 +4,12 @@
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 // Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -25,1474 +25,1756 @@ import java.util.*;
 /**
  * mDNS implementation in Java.
  *
- * @author	Arthur van Hoff, Rick Blair, Jeff Sonstein
+ * @author	Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer
  * @version 	%I%, %G%
  */
-public class JmDNS 
-{
+public class JmDNS {
+    /**
+     * The version of JmDNS.
+     */
+    public static String VERSION = "0.4.2";
 
-  public static String VERSION = "0.3";
-  // made debug public so apps can check and decide to do their own logging and so on
-  public static int debug = Integer.parseInt(System.getProperty("jmdns.debug", "0"));
+    /**
+     * Apps can set this to a value between 0 and 3, to switch on debugging.
+     * Debugging messages are currently logged to System.out.
+     */
+    public static int debug = Integer.parseInt(System.getProperty("jmdns.debug", "0"));
+    
+    /**
+     * This is the multicast group, we are listening to for multicast DNS messages.
+     */
+    private InetAddress group;
+    /**
+     * This is our multicast socket.
+     */
+    private MulticastSocket socket;
+    
+    
+    /**
+     * Holds instances of JmDNS.DNSListener.
+     * Must by a synchronized collection, because it is updated from
+     * concurrent threads.
+     */
+    private Vector listeners;
+    /**
+     * Holds instances of ServiceListener's.
+     * Keys are Strings holding a fully qualified service type.
+     * Values are LinkedList's of ServiceListener's.
+     */
+    private HashMap serviceListeners;
+    /**
+     * Holds instances of ServiceTypeListener's.
+     */
+    private Vector typeListeners;
+    
+    
+    /**
+     * Cache for DNSEntry's.
+     */
+    private DNSCache cache;
+    
+    /**
+     * This hashtable holds the services that have been registered.
+     * Keys are instances of String which hold an all lower-case version of the
+     * fully qualified service name.
+     * Values are instances of ServiceInfo.
+     */
+    Hashtable services;
+    
+    /**
+     * This hashtable holds the service types that have been registered or
+     * that have been received in an incoming datagram.
+     * Keys are instances of String which hold an all lower-case version of the
+     * fully qualified service type.
+     * Values hold the fully qualified service type.
+     */
+    Hashtable serviceTypes;
+    /**
+     * This is the shutdown hook, we registered with the java runtime.
+     */
+    private Thread shutdown;
+    
+    private SocketListener incomingListener = null;
+    private boolean linklocal;
+    private boolean loopback;
+    DNSRecord.Address host;
+    
+    /**
+     * Throttle count.
+     * This is used to count the overall number of probes sent by JmDNS.
+     * When the last throttle increment happened .
+     */
+    private int throttle;
+    /**
+     * Last throttle increment.
+     */
+    private long lastThrottleIncrement;
+    /**
+     * This is used to create a unique name for the host name.
+     */
+    private int hostNameCount;
+    
+    /**
+     * The timer is used to dispatch all outgoing messages of JmDNS.
+     * It is also used to dispatch maintenance tasks for the DNS cache.
+     */
+    private Timer timer;
+    
+    /**
+     * The source for random values.
+     * This is used to introduce random delays in responses. This reduces the
+     * potential for collisions on the network.
+     */
+    private final static Random random = new Random();
+    
+    /**
+     * This lock is used to coordinate processing of incoming and outgoing
+     * messages. This is needed, because the Rendezvous Conformance Test
+     * does not forgive race conditions.
+     */
+    private Object ioLock = new Object();
 
-  // made all instance variables below here private - jeffs
-  // added package protected method getCache() and changed calls from ServiceInfo
-  private InetAddress group;
-  private MulticastSocket socket;
-  private Vector listeners;
-  private Vector browsers;
-  private Vector typeListeners;
-  private DNSCache cache, queryCache;  //queryCache For conflict detection.  Trading Space for Speed.
-  
-  private Hashtable services;
-  private Thread shutdown;
-  private Probe prober;
-  private boolean done;
-  private SocketListener incomingListener = null;
-  private boolean linklocal;
-  private boolean loopback;
-  private DNSRecord.Address host;
-  private Hashtable serviceTypes;
-  private int _ip;  //
+    /**
+     * If an incoming package which needs an answer is truncated, we store it 
+     * here. We add more incoming DNSRecords to it, until the JmDNS.Responder 
+     * timer picks it up.
+     * Remind: This does not work well with multiple planned answers for packages
+     * that came in from different clients.
+     */
+    private DNSIncoming plannedAnswer;
+    
+    // State machine
+    /**
+     * The state of JmDNS.
+     *
+     * For proper handling of concurrency, this variable must be
+     * changed only using methods advanceState(), revertState() and cancel().
+     */
+    private DNSState state = DNSState.PROBING_1;
+    
+    /**
+     * Timer task associated to the host name.
+     * This is used to prevent from having multiple tasks associated to the host 
+     * name at the same time.
+     */
+    TimerTask task;
 
-  /**
-   * Create an instance of JmDNS.
-   */
-  public JmDNS() throws IOException
-  {
-    try {
-      InetAddress addr = InetAddress.getLocalHost();
-      init(isLoopback(addr) ? null : addr, addr.getHostName());
-    } catch (IOException e) {
-      init(null, "computer");
-    }
-  }
-
-  /**
-   * Create an instance of JmDNS and bind it to a
-   * specific network interface given its IP-address.
-   */
-  public JmDNS(InetAddress addr) throws IOException
-  {
-    init(addr, addr.getHostName());
-  }
-
-  /**
-   * Initialize everything.
-   */
-  void init(InetAddress intf, String name) throws IOException
-  {
-    //A host name with "." is illegal. so strip off everything and append .local.
-    int idx = name.indexOf(".");
-    if(idx > 0)
-      name = name .substring(0, idx);
-    name += ".local.";
-
-    group = InetAddress.getByName(DNSConstants.MDNS_GROUP);
-    socket = new MulticastSocket(DNSConstants.MDNS_PORT);
-    if (intf != null) {
-      socket.setInterface(intf);
-    }
-    socket.setTimeToLive(255);
-    socket.joinGroup(group);
-    loopback = isLoopback(intf);
-    linklocal = isLinkLocal(intf);
-
-    cache = new DNSCache(100);
-
-    //must check incoming queries for duplicate probes.  Then resolve conflicts.
-    //setup the listener in probe mode which then caches queries.
-    //the probe code then checks the queryCache as well as the normal cache for conflicts.
-    //See section 9.1 and 9.2 of the draft-cheshire-dnsext-multcastdns-04.txt memo.
-    //This could be done with a local hashtable, but we already search the other cache.
-
-    queryCache = new DNSCache(20);
-
-    listeners = new Vector();
-    browsers = new Vector();
-    typeListeners = new Vector();
-    services = new Hashtable(20);
-    serviceTypes = new Hashtable(20);
-
-
-    // host to IP address binding
-    byte data[] = intf.getAddress();
-    _ip = ((data[0] & 0xFF) << 24) | 
-      ((data[1] & 0xFF) << 16) | 
-      ((data[2] & 0xFF) <<  8) | 
-      (data[3] & 0xFF);
-
-    DNSRecord.Address host = new DNSRecord.Address(name, DNSConstants.TYPE_A, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, _ip);
-    prober = new Probe();
-    //As per draft-cheshire-dnsext-multicastdns-04.txt section 9
-    //Probe then announce.
-    //Host is side-effected.
-    prober.probe(host);
-    prober.announce(host);
-    // Already started by the probe method.
-    //new Thread(new SocketListener(), "JmDNS.SocketListener").start();
-    new Thread(new RecordReaper(), "JmDNS.RecordReaper").start();
-    shutdown = new Thread(new Shutdown(), "JmDNS.Shutdown");
-    //new Thread(prober,"JmDNS.Prober").start();
-    Runtime.getRuntime().addShutdownHook(shutdown);
-    //All done with the prober so get rid of it
-    prober = null;
-  }
-  
-  /**
-   * Return the DNSCache associated with the cache variable
-   *
-   **/
-  DNSCache getCache() { 
-    return cache;
-  }
-
-  /** Return the HostName associated with this JmDNS instance.  
-   *  Note: May not be the same as what started.  The host name is subject to 
-   *  negotiation.
-   **/
-  public String getHostName()
-  {
-    return host.name;
-  }
-
-  private void waitInterval(long timeInMillis)
-  {
-    try 
-    {
-      Thread.sleep(timeInMillis);
-    }   
-    catch (InterruptedException e) 
-    {
-      //Report interrupt.  We could resume wait for what ever the remaining interval
-      //but for now just return.
-      System.err.println("waitInterval interrupted");
-    }
-  }
-
-
-  /**
-   * Check if an address is the loopback address
-   */
-  static boolean isLoopback(InetAddress addr)
-  {
-    return (addr != null) && addr.getHostAddress().startsWith("127.0.0.1");
-  }
-
-  /**
-   * Check if an address is linklocal.
-   */
-  static boolean isLinkLocal(InetAddress addr)
-  {
-    return (addr != null) && addr.getHostAddress().startsWith("169.254.");
-  }
-
-  /**
-   * Return the address of the interface to which this instance of JmDNS is bound.
-   */
-  public InetAddress getInterface() throws IOException
-  {
-    return socket.getInterface();
-  }
-
-  /**
-   * Get service information. If the information is not cached, the method
-   * will block until updated informatin is received.
-   *
-   * @param type full qualified service type, such as <code>_http._tcp.local.</code>.
-   * @param name full qualified service name, such as <code>foobar._http._tcp.local.</code>.
-   * @return null if the service information cannot be obtained
-   */
-  public ServiceInfo getServiceInfo(String type, String name)
-  {
-    return getServiceInfo(type, name, 3*1000);
-  }
-
-  /**
-   * Get service information. If the information is not cached, the method
-   * will block for the given timeout until updated informatin is received.
-   *
-   * @param type full qualified service type, such as <code>_http._tcp.local.</code>.
-   * @param name full qualified service name, such as <code>foobar._http._tcp.local.</code>.
-   * @param timeout timeout in milliseconds
-   * @return null if the service information cannot be obtained
-   */
-  public ServiceInfo getServiceInfo(String type, String name, int timeout)
-  {
-    ServiceInfo info = new ServiceInfo(type, name);
-    return info.request(this, timeout) ? info : null;
-  }
-
-  /**
-   * Request service information. The information about the service is requested
-   * and the ServiceListener.resolveService method is called as soon as it is available.
-   */
-  public void requestServiceInfo(String type, String name)
-  {
-    requestServiceInfo(type, name, 3*1000);
-  }
-
-  /**
-   * Request service information. The information about the service is requested
-   * and the ServiceListener.resolveService method is called as soon as it is available.
-   */
-  public void requestServiceInfo(String type, String name, int timeout)
-  {
-    registerServiceType(type);
-	
-    new Thread(new ServiceResolver(new ServiceInfo(type, name), timeout),
-               "JmDNS.ServiceResolver").start();
-  }
-
-  /**
-   * Listen for service types. 
-   * @param listener listener for service types
-   */
-  public void addServiceTypeListener(ServiceTypeListener listener) throws IOException
-  {
-    synchronized (this) {
-      removeServiceTypeListener(listener);
-      typeListeners.addElement(listener);
-
-      // report service types
-      for (Enumeration e = serviceTypes.elements() ; e.hasMoreElements() ;) {
-        listener.addServiceType(this, (String)e.nextElement());
-      }
-    }
-
-    try {
-      // query for service types
-      long now = System.currentTimeMillis();
-      long nextTime = now;
-      for (int i = 0 ; i < 3 ;) {
-        if (now < nextTime) {
-          Thread.sleep(nextTime - now);
-          now = System.currentTimeMillis();
-          continue;
+    /**
+     * This hashtable is used to maintain a list of service types being collected
+     * by this JmDNS instance.
+     * The key of the hashtable is a service type name, the value is an instance
+     * of JmDNS.ServiceCollector.
+     *
+     * @see #list
+     */
+    private HashMap serviceCollectors = new HashMap();
+    
+    /**
+     * Create an instance of JmDNS.
+     */
+    public JmDNS() throws IOException {
+        try {
+            InetAddress addr = InetAddress.getLocalHost();
+            init(isLoopback(addr) ? null : addr, addr.getHostName());
+        } catch (IOException e) {
+            init(null, "computer");
         }
-        DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-        out.addQuestion(new DNSQuestion("_services._mdns._udp.local.", DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN));
-        for (Enumeration e = serviceTypes.elements() ; e.hasMoreElements(); ) {
-          out.addAnswer(new DNSRecord.Pointer("_services._mdns._udp.local.", DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, (String)e.nextElement()), 0);
+    }
+    
+    /**
+     * Create an instance of JmDNS and bind it to a
+     * specific network interface given its IP-address.
+     */
+    public JmDNS(InetAddress addr) throws IOException {
+        init(addr, addr.getHostName());
+    }
+    
+    /**
+     * Initialize everything.
+     *
+     * @param intf The interface to which JmDNS binds to.
+     * @param name The host name of the interface.
+     */
+    private void init(InetAddress intf, String name) throws IOException {
+        // A host name with "." is illegal. so strip off everything and append .local.
+        int idx = name.indexOf(".");
+        if(idx > 0)
+            name = name .substring(0, idx);
+        name += ".local.";
+        
+        // Bind to multicast socket
+        group = InetAddress.getByName(DNSConstants.MDNS_GROUP);
+        socket = new MulticastSocket(DNSConstants.MDNS_PORT);
+        if (intf != null) {
+            socket.setInterface(intf);
         }
-        send(out);
-        i++;
-        nextTime += 225;
-      }
-    } catch (InterruptedException e) {
-      throw new IOException("interrupted I/O");
+        socket.setTimeToLive(255);
+        socket.joinGroup(group);
+        loopback = isLoopback(intf);
+        linklocal = isLinkLocal(intf);
+        
+        
+        cache = new DNSCache(100);
+        
+        listeners = new Vector();
+        serviceListeners = new HashMap();
+        typeListeners = new Vector();
+        
+        services = new Hashtable(20);
+        serviceTypes = new Hashtable(20);
+        
+        // host to IP address binding
+        byte data[] = intf.getAddress();
+        int ip = ((data[0] & 0xFF) << 24) |
+        ((data[1] & 0xFF) << 16) |
+        ((data[2] & 0xFF) <<  8) |
+        (data[3] & 0xFF);
+        
+        // REMIND: If I could pass in a name for the Timer thread,
+        //         I would pass 'JmDNS.Timer'.
+        timer = new Timer();
+        //timer.schedule(new RecordReaper(), DNSConstants.RECORD_REAPER_INTERVAL, DNSConstants.RECORD_REAPER_INTERVAL);
+        new RecordReaper().start();
+        shutdown = new Thread(new Shutdown(), "JmDNS.Shutdown");
+        Runtime.getRuntime().addShutdownHook(shutdown);
+        
+        host = new DNSRecord.Address(name, DNSConstants.TYPE_A, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, ip);
+        incomingListener = new SocketListener();
+        new Thread(incomingListener, "JmDNS.SocketListener").start();
+        
+        new Prober().start();
     }
-  }
-
-  /**
-   * Remove listener for service types.
-   * @param listener listener for service types
-   */
-  public synchronized void removeServiceTypeListener(ServiceTypeListener listener)
-  {
-    typeListeners.removeElement(listener);
-  }
-
-  /**
-   * Listen for services of a given type. The type has to be a fully qualified
-   * type name such as <code>_http._tcp.local.</code>.
-   * @param type full qualified service type, such as <code>_http._tcp.local.</code>.
-   * @param listener listener for service updates
-   */
-  public synchronized void addServiceListener(String type, ServiceListener listener)
-  {
-    removeServiceListener(listener);
-    browsers.addElement(new ServiceBrowser(type, listener));
-  }
-
-  /**
-   * Remove listener for services of a given type.
-   * @param listener listener for service updates
-   */
-  public synchronized void removeServiceListener(ServiceListener listener)
-  {
-    for (int i = browsers.size() ; i-- > 0 ;) {
-      ServiceBrowser browser = (ServiceBrowser)browsers.elementAt(i);
-      if (browser.listener == listener) {
-        browsers.removeElementAt(i);
-        browser.close();
-        return;
-      }
+    
+    // State machine
+    /**
+     * Sets the state and notifies all objects that wait on JmDNS.
+     */
+    synchronized void advanceState() {
+        state = state.advance();
+        notifyAll();
     }
-  }
+    /**
+     * Sets the state and notifies all objects that wait on JmDNS.
+     */
+    synchronized void revertState() {
+        state = state.revert();
+        notifyAll();
+    }
+    /**
+     * Sets the state and notifies all objects that wait on JmDNS.
+     */
+    synchronized void cancel() {
+        state = DNSState.CANCELED;
+        notifyAll();
+    }
+    /**
+     * Returns the current state of this info.
+     */
+    DNSState getState() {
+        return state;
+    }
+    
 
-  /**
-   * Register a service. The service is registered for access by other jmdns clients.
-   * The name of the service may be changed to make it unique.
-   */
-  public void registerService(ServiceInfo info) throws IOException
-  {
-    registerServiceType(info.type);
-
-    // bind the service to this address
-    info.server = host.name;
-    info.addr = host.getInetAddress();
-
-    try {
-      synchronized (this) {
-
-        // check for a unqiue name
-        // This should be merged with the Host address probing.
-        // We also need to put in conflict resolution etc.
-
-        checkService(info);
-        // add the service
-        services.put(info.name.toLowerCase(), info);
-      }
-
-      // announce the service
-      long now = System.currentTimeMillis();
-      long nextTime = now;
-      for (int i = 0 ; i < 3 ;) {
-        if (now < nextTime) {
-          Thread.sleep(nextTime - now);
-          now = System.currentTimeMillis();
-          continue;
+    /**
+     * Return the DNSCache associated with the cache variable
+     */
+    DNSCache getCache() {
+        return cache;
+    }
+    
+    /**
+     * Return the HostName associated with this JmDNS instance.
+     * Note: May not be the same as what started.  The host name is subject to
+     * negotiation.
+     */
+    public String getHostName() {
+        return host.name;
+    }
+    
+    /**
+     * Check if an address is the loopback address
+     */
+    private static boolean isLoopback(InetAddress addr) {
+        return (addr != null) && addr.getHostAddress().startsWith("127.0.0.1");
+    }
+    
+    /**
+     * Check if an address is linklocal.
+     */
+    private static boolean isLinkLocal(InetAddress addr) {
+        return (addr != null) && addr.getHostAddress().startsWith("169.254.");
+    }
+    
+    /**
+     * Return the address of the interface to which this instance of JmDNS is
+     * bound.
+     */
+    public InetAddress getInterface() throws IOException {
+        return socket.getInterface();
+    }
+    
+    /**
+     * Get service information. If the information is not cached, the method
+     * will block until updated information is received.
+     * <p>
+     * Usage note: Do not call this method from the AWT event dispatcher thread.
+     * You will make the user interface unresponsive.
+     *
+     * @param type fully qualified service type, such as <code>_http._tcp.local.</code> .
+     * @param name unqualified service name, such as <code>foobar</code> .
+     * @return null if the service information cannot be obtained
+     */
+    public ServiceInfo getServiceInfo(String type, String name) {
+        return getServiceInfo(type, name, 3*1000);
+    }
+    
+    /**
+     * Get service information. If the information is not cached, the method
+     * will block for the given timeout until updated information is received.
+     * <p>
+     * Usage note: If you call this method from the AWT event dispatcher thread,
+     * use a small timeout, or you will make the user interface unresponsive.
+     *
+     * @param type full qualified service type, such as <code>_http._tcp.local.</code> .
+     * @param name unqualified service name, such as <code>foobar</code> .
+     * @param timeout timeout in milliseconds
+     * @return null if the service information cannot be obtained
+     */
+    public ServiceInfo getServiceInfo(String type, String name, int timeout) {
+        ServiceInfo info = new ServiceInfo(type, name);
+        new ServiceInfoResolver(info).start();
+        
+        try {
+            long end = System.currentTimeMillis() + timeout;
+            long delay;
+            synchronized (info) {
+                while (! info.hasData() && (delay = end - System.currentTimeMillis()) > 0) {
+                    info.wait(delay);
+                }
+            }
+        } catch (InterruptedException e) {
+            // empty
         }
-        DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
-        out.addAnswer(new DNSRecord.Pointer(info.type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.name), 0);
-        out.addAnswer(new DNSRecord.Service(info.name, DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.priority, info.weight, info.port, host.name), 0);
-        out.addAnswer(new DNSRecord.Text(info.name, DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.text), 0);
-        out.addAnswer(host, 0);
-        send(out);
-        i++;
-        nextTime += 225;
-      }
-    } catch (InterruptedException e) {
-      throw new IOException("interrupted I/O");
+        
+        return (info.hasData()) ? info : null;
     }
-  }
-
-  /**
-   * Unregister a service. The service should have been registered.
-   */
-  public void unregisterService(ServiceInfo info)
-  {
-    try {
-      services.remove(info.name.toLowerCase());
-
-      // unregister the service
-      long now = System.currentTimeMillis();
-      long nextTime = now;
-      for (int i = 0 ; i < 2 ; ) {
-        if (now < nextTime) {
-          Thread.sleep(nextTime - now);
-          now = System.currentTimeMillis();
-          continue;
+    
+    /**
+     * Request service information. The information about the service is
+     * requested and the ServiceListener.resolveService method is called as soon
+     * as it is available.
+     * <p>
+     * Usage note: Do not call this method from the AWT event dispatcher thread.
+     * You will make the user interface unresponsive.
+     *
+     * @param type full qualified service type, such as <code>_http._tcp.local.</code> .
+     * @param name unqualified service name, such as <code>foobar</code> .
+     */
+    public void requestServiceInfo(String type, String name) {
+        requestServiceInfo(type, name, 3*1000);
+    }
+    
+    /**
+     * Request service information. The information about the service is requested
+     * and the ServiceListener.resolveService method is called as soon as it is available.
+     *
+     * @param type full qualified service type, such as <code>_http._tcp.local.</code> .
+     * @param name unqualified service name, such as <code>foobar</code> .
+     * @param timeout timeout in milliseconds
+     */
+    public void requestServiceInfo(String type, String name, int timeout) {
+        registerServiceType(type);
+        ServiceInfo info = new ServiceInfo(type, name);
+        new ServiceInfoResolver(info).start();
+        
+        try {
+            long end = System.currentTimeMillis() + timeout;
+            long delay;
+            synchronized (info) {
+                while (! info.hasData() && (delay = end - System.currentTimeMillis()) > 0) {
+                    info.wait(delay);
+                }
+            }
+        } catch (InterruptedException e) {
+            // empty
         }
-        DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
-        out.addAnswer(new DNSRecord.Pointer(info.type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, 0, info.name), 0);
-        out.addAnswer(new DNSRecord.Service(info.name, DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN, 0, info.priority, info.weight, info.port, host.name), 0);
-        out.addAnswer(new DNSRecord.Text(info.name, DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN, 0, info.text), 0);
-        send(out);
-        i++;
-        nextTime += 125;
-      }
-    } catch (IOException e) {
-      // ignore
-    } catch (InterruptedException e) {
-      // ignore
     }
-  }
-
-  /**
-   * Unregister a service.
-   */
-  public synchronized void unregisterAllServices()
-  {
-    if (services.size() == 0) {
-      return;
-    }
-
-    try {
-      // unregister all services
-      long now = System.currentTimeMillis();
-      long nextTime = now;
-      for (int i = 0 ; i < 3 ; ) {
-        if (now < nextTime) {
-          Thread.sleep(nextTime - now);
-          now = System.currentTimeMillis();
-          continue;
+    
+    void handleServiceResolved(ServiceInfo info) {
+        LinkedList list = (LinkedList) serviceListeners.get(info.type.toLowerCase());
+        if (list != null) {
+            ServiceEvent event = new ServiceEvent(this,info.type,info.getName(),info);
+            for (Iterator i=list.iterator(); i.hasNext(); ) {
+                ((ServiceListener) i.next()).serviceResolved(event);
+            }
         }
-        DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
-        for (Enumeration e = services.elements() ; e.hasMoreElements() ;) {
-          ServiceInfo info = (ServiceInfo)e.nextElement();
-          out.addAnswer(new DNSRecord.Pointer(info.type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, 0, info.name), 0);
-          out.addAnswer(new DNSRecord.Service(info.name, DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN, 0, info.priority, info.weight, info.port, host.name), 0);
-          out.addAnswer(new DNSRecord.Text(info.name, DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN, 0, info.text), 0);
-        }
-        send(out);
-        i++;
-        nextTime += 125;
-      }
-    } catch (IOException e) {
-      // ignore
-    } catch (InterruptedException e) {
-      // ignore
     }
-  }
-
-  /**
-   * Register a service type. If this service type was not already known,
-   * all service listeners will be notified of the new service type. Service types
-   * are automatically registered as they are discovered.
-   */
-  public synchronized void registerServiceType(String type)
-  {
-    String name = type.toLowerCase();
-    if (serviceTypes.get(name) == null) {
-      if ((type.indexOf("._mdns._udp.") < 0) && !type.endsWith(".in-addr.arpa.")) {
-        serviceTypes.put(name, type);
-        for (Enumeration e = typeListeners.elements() ; e.hasMoreElements() ;) {
-          ((ServiceTypeListener)e.nextElement()).addServiceType(this, type);
+    
+    /**
+     * Listen for service types.
+     * @param listener listener for service types
+     */
+    public void addServiceTypeListener(ServiceTypeListener listener) throws IOException {
+        removeServiceTypeListener(listener);
+        typeListeners.addElement(listener);
+        
+        // report cached service types
+        for (Enumeration e = serviceTypes.elements() ; e.hasMoreElements() ;) {
+            listener.serviceTypeAdded(new ServiceEvent(this, (String)e.nextElement(), null, null));
         }
-      }
+        
+        new TypeResolver().start();
     }
-  }
-
-  /**
-   * Check that a service name is unique.
-   */
-  //This should be merged with Probe. 
-  void checkService(ServiceInfo info) throws IOException, InterruptedException
-  {
-    long now = System.currentTimeMillis();
-    long nextTime = now;
-    for (int i = 0 ; i < 3 ;) {
-      for (Iterator j = cache.find(info.type) ; j.hasNext() ;) {
-        DNSRecord a = (DNSRecord)j.next();
-        if ((a.type == DNSConstants.TYPE_PTR) && !a.isExpired(now) && info.name.equalsIgnoreCase(((DNSRecord.Pointer)a).alias)) {
-          String name = info.getName();
-          try {
+    
+    /**
+     * Remove listener for service types.
+     * @param listener listener for service types
+     */
+    public void removeServiceTypeListener(ServiceTypeListener listener) {
+        typeListeners.removeElement(listener);
+    }
+    
+    /**
+     * Listen for services of a given type. The type has to be a fully qualified
+     * type name such as <code>_http._tcp.local.</code>.
+     * @param type full qualified service type, such as <code>_http._tcp.local.</code>.
+     * @param listener listener for service updates
+     */
+    public void addServiceListener(String type, ServiceListener listener) {
+        String lotype = type.toLowerCase();
+        removeServiceListener(lotype, listener);
+        LinkedList list = (LinkedList) serviceListeners.get(lotype);
+        if (list == null) {
+            list = new LinkedList();
+            serviceListeners.put(lotype, list);
+        }
+        list.add(listener);
+        
+        // report cached service types
+        for (Iterator i = cache.all() ; i.hasNext() ;) {
+            for (DNSCache.CacheNode n = (DNSCache.CacheNode) i.next(); n != null; n = n.next()) {
+                DNSRecord rec = (DNSRecord) n.getValue();
+                if (rec.type == DNSConstants.TYPE_SRV) {
+                    if (rec.name.endsWith(type)) {
+                        listener.serviceAdded(new ServiceEvent(this, type, toUnqualifiedName(type, rec.name), null));
+                    }
+                }
+            }
+        }
+        new ServiceResolver(type).start();
+    }
+    
+    /**
+     * Remove listener for services of a given type.
+     * @param listener listener for service updates
+     */
+    public void removeServiceListener(String type, ServiceListener listener) {
+        type = type.toLowerCase();
+        LinkedList list = (LinkedList) serviceListeners.get(type);
+        if (list != null) {
+            list.remove(listener);
+            if (list.size() == 0) {
+                serviceListeners.remove(type);
+            }
+        }
+    }
+    
+    /**
+     * Register a service. The service is registered for access by other jmdns clients.
+     * The name of the service may be changed to make it unique.
+     */
+    public void registerService(ServiceInfo info) throws IOException {
+        registerServiceType(info.type);
+        
+        // bind the service to this address
+        info.server = host.name;
+        info.addr = host.getInetAddress();
+        
+        makeServiceNameUnique(info);
+        services.put(info.getQualifiedName().toLowerCase(), info);
+        
+        new /*Service*/Prober().start();
+        try {
+            synchronized (info) {
+                while (info.getState().compareTo(DNSState.ANNOUNCED) < 0) {
+                    info.wait();
+                }
+            }
+        } catch (InterruptedException e) {
+            //empty
+        }
+        if (debug > 0) System.out.println("JmDNS registered service as "+info);
+    }
+    
+    /**
+     * Unregister a service. The service should have been registered.
+     */
+    public synchronized void unregisterService(ServiceInfo info) {
+        services.remove(info.getQualifiedName().toLowerCase());
+        info.cancel();
+        Object lock = new Object();
+        new Canceler(info, lock).start();
+        
+        // Remind: We get a deadlock here, if the Canceler does not run!
+        try {
+            synchronized (lock) {
+                lock.wait();
+            }
+        } catch (InterruptedException e) {
+            // empty
+        }
+    }
+    
+    /**
+     * Unregister all services.
+     */
+    public synchronized void unregisterAllServices() {
+        if (services.size() == 0) {
+            return;
+        }
+        
+        ServiceInfo[] infos = (ServiceInfo[]) services.values().toArray(new ServiceInfo[services.size()]);
+        services.clear();
+        for (int i=0;i < infos.length; i++) {
+            infos[i].cancel();
+        }
+        Object lock = new Object();
+        new Canceler(infos, lock).start();
+        
+        // Remind: We get a livelock here, if the Canceler does not run!
+        try {
+            synchronized (lock) {
+                lock.wait();
+            }
+        } catch (InterruptedException e) {
+            // empty
+        }
+    }
+    
+    /**
+     * Register a service type. If this service type was not already known,
+     * all service listeners will be notified of the new service type. Service types
+     * are automatically registered as they are discovered.
+     */
+    public synchronized void registerServiceType(String type) {
+        String name = type.toLowerCase();
+        if (serviceTypes.get(name) == null) {
+            if ((type.indexOf("._mdns._udp.") < 0) && !type.endsWith(".in-addr.arpa.")) {
+                serviceTypes.put(name, type);
+                for (Enumeration e = typeListeners.elements() ; e.hasMoreElements() ;) {
+                    ((ServiceTypeListener)e.nextElement()).serviceTypeAdded(new ServiceEvent(this, type, null, null));
+                }
+            }
+        }
+    }
+    
+    /**
+     * Generate a possibly unique name for a host using the information we
+     * have in the cache.
+     *
+     * @return returns true, if the name of the host had to be changed.
+     */
+    private boolean makeHostNameUnique(DNSRecord.Address host) {
+        String originalName = host.getName();
+        long now = System.currentTimeMillis();
+        
+        boolean collision;
+        do {
+            collision = false;
+            
+            // Check for collision in cache
+            for (DNSCache.CacheNode j = cache.find(host.getName().toLowerCase()); j != null; j = j.next()) {
+                DNSRecord a = (DNSRecord) j.getValue();
+                if (false) {
+                    host.name = incrementName(host.getName());
+                    collision = true;
+                    break;
+                }
+            }
+        } while (collision);
+        
+        if (originalName.equals(host.getName())) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+    /**
+     * Generate a possibly unique name for a service using the information we
+     * have in the cache.
+     *
+     * @return returns true, if the name of the service info had to be changed.
+     */
+    private boolean makeServiceNameUnique(ServiceInfo info) {
+        String originalQualifiedName = info.getQualifiedName();
+        long now = System.currentTimeMillis();
+        
+        boolean collision;
+        do {
+            collision = false;
+            
+            // Check for collision in cache
+            for (DNSCache.CacheNode j = cache.find(info.getQualifiedName().toLowerCase()); j != null; j = j.next()) {
+                DNSRecord a = (DNSRecord) j.getValue();
+                if ((a.type == DNSConstants.TYPE_SRV) && !a.isExpired(now)) {
+                    DNSRecord.Service s = (DNSRecord.Service) a;
+                    if (s.port != info.port || ! s.server.equals(host.name)) {
+                        if (debug > 1) System.out.println("JmDNS.makeServiceNameUnique srv collision:"+a+" s.server="+s.server+" "+host.name+" equals:"+(s.server.equals(host.name)));
+                        info.setName(incrementName(info.getName()));
+                        collision = true;
+                        break;
+                    }
+                }
+            }
+            
+            // Check for collision with other service infos published by JmDNS
+            Object selfService = services.get(info.getQualifiedName().toLowerCase());
+            if (selfService != null && selfService != info) {
+                info.setName(incrementName(info.getName()));
+                collision = true;
+            }
+        } while (collision);
+        
+        return ! (originalQualifiedName.equals(info.getQualifiedName()));
+    }
+    String incrementName(String name) {
+        try {
             int l = name.lastIndexOf('(');
             int r = name.lastIndexOf(')');
             if ((l >= 0) && (l < r)) {
-              name = name.substring(0, l) + "(" + (Integer.parseInt(name.substring(l+1, r)) + 1) + ")";
+                name = name.substring(0, l) + "(" + (Integer.parseInt(name.substring(l+1, r)) + 1) + ")";
             } else {
-              name += " (2)";
+                name += " (2)";
             }
-          } catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             name += " (2)";
-          }
-          info.name = name + "." + info.type;
-          i = 0;
-          break;
         }
-      }
-      //        DNSOutgoing out = new DNSOutgoing(FLAGS_QR_QUERY | FLAGS_AA);
-      //        out.addQuestion(new DNSQuestion(info.type, TYPE_PTR, CLASS_IN));
-      //        out.addAuthorativeAnswer(new DNSRecord.Pointer(info.type, TYPE_PTR, CLASS_IN, DNS_TTL, info.name));
-
-      DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY | DNSConstants.FLAGS_AA);
-      out.addQuestion(new DNSQuestion(info.name, DNSConstants.TYPE_ANY, DNSConstants.CLASS_IN));
-      out.addAuthorativeAnswer(new DNSRecord.Service(info.name, DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.priority, info.weight, info.port, host.name));
-
-      send(out);
-      i++;
-      nextTime += DNSConstants.PROBE_WAIT_INTERVAL;
-
-      if (now < nextTime) {
-        wait(nextTime - now);
-        now = System.currentTimeMillis();
-        continue;
-      }
+        return name;
     }
-  }
-
-  /**
-   * Listener for record updates.
-   */
-  static abstract class Listener {
-    /**
-     * Update a DNS record.
-     */
-    abstract void updateRecord(JmDNS jmdns, long now, DNSRecord record);
-  }
-
-  /**
-   * Add a listener for a question. The listener will receive updates to
-   * of answers to the question as they arrive, or from the cache if they
-   * are already available.
-   */
-  synchronized void addListener(Listener listener, DNSQuestion question)
-  {
-    long now = System.currentTimeMillis();
-
-    // add the new listener
-    listeners.addElement(listener);
-
-    // report existing matched records
-    if (question != null) {
-      for (Iterator i = cache.find(question.name) ; i.hasNext() ; ) {
-        DNSRecord c = (DNSRecord)i.next();
-        if (question.answeredBy(c) && !c.isExpired(now)) {
-          listener.updateRecord(this, now, c);
-        }
-      }
-    }
-    notifyAll();
-  }
-
-  /**
-   * Remove a listener from all outstanding questions. The listener will no longer
-   * receive any updates.
-   */
-  synchronized void removeListener(Listener listener)
-  {
-    listeners.removeElement(listener);
-    notifyAll();
-  }
-
-  /**
-   * Notify all listeners that a record was updated.
-   */
-  synchronized void updateRecord(long now, DNSRecord rec)
-  {
-    for (Enumeration e = listeners.elements() ; e.hasMoreElements() ;) {
-      Listener listener = (Listener)e.nextElement();
-      listener.updateRecord(this, now, rec);
-    }
-    notifyAll();
-  }
-
-  //return true if conflicts with our own address record.
-  //Really needs to be part of the handleResponse method.
-
-  private boolean conflict(DNSIncoming msg) throws IOException
-  {
-    if(host == null) return false;  // In probe.
-    long now = System.currentTimeMillis();
-    for (Enumeration e = msg.answers.elements() ; e.hasMoreElements() ;) 
-    {
-      DNSRecord a = (DNSRecord)e.nextElement();
-
-      boolean expired = a.isExpired(now);
-      if  ((a.type == DNSConstants.TYPE_A) && !expired && (((DNSRecord.Address)a).addr != _ip)) 
-        //One is enough for a conflict.
-      {
-
-        if((host.sameName(a)) && !(host.sameValue(a)))
-          return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Handle an incoming response. Cache answers, and pass them on to
-   * the appropriate questions.
-   */
-  synchronized void handleResponse(DNSIncoming msg) throws IOException
-  {
-    long now = System.currentTimeMillis();
-
-    for (Enumeration e = msg.answers.elements() ; e.hasMoreElements() ;) 
-    {
-      DNSRecord rec = (DNSRecord)e.nextElement();
-      boolean expired = rec.isExpired(now);
-
-      // update the cache
-      DNSRecord c = (DNSRecord)cache.get(rec);
-      if (c != null) 
-      {
-        if (expired) 
-        {
-          cache.remove(c);
-        } 
-        else 
-        {
-          c.resetTTL(rec);
-          rec = c;
-        }
-      } 
-      else 
-        if (!expired) 
-        {
-          cache.add(rec);
-        }
-      switch (rec.type) 
-      {
-      case DNSConstants.TYPE_PTR:
-        // handle _mdns._udp records
-        if (rec.name.indexOf("._mdns._udp.") >= 0) 
-        {
-          if (!expired && rec.name.startsWith("_services._mdns._udp.")) 
-          {
-            registerServiceType(((DNSRecord.Pointer)rec).alias);
-          }
-          continue;
-        }
-        registerServiceType(rec.name);
-        break;
-        
-      }
-	    
-      // notify the listeners
-      updateRecord(now, rec);
-    }
-    //    print();
-  }
-
-  //For probing we need to save incoming probes that might have a conflict.
-  synchronized void handleProbe(DNSIncoming msg) throws IOException
-  {
-    long now = System.currentTimeMillis();
-    for (Enumeration e = msg.answers.elements() ; e.hasMoreElements() ;) {
-      DNSRecord rec = (DNSRecord)e.nextElement();
-      boolean expired = rec.isExpired(now);
-
-      // update the cache
-      DNSRecord c = (DNSRecord)queryCache.get(rec);
-      if (c != null) {
-        if (expired) {
-          queryCache.remove(c);
+    String incrementHostName(String name) {
+        hostNameCount++;
+        int plocal = name.indexOf(".local.");
+        int punder = name.indexOf("-");
+        if (punder == -1) {
+            return name.substring(0,plocal)+"-"+hostNameCount+".local.";
         } else {
-          c.resetTTL(rec);
-          rec = c;
+            return name.substring(0,punder)+"-"+hostNameCount+".local.";
         }
-      } else if (!expired) {
-        queryCache.add(rec);
-      }
-      // notify the listeners
     }
-  }
-
-  /**
-   * Add an answer to a question. Deal with the case when the
-   * outgoing packet overflows
-   */
-  DNSOutgoing addAnswer(DNSIncoming in, InetAddress addr, int port, DNSOutgoing out, DNSRecord rec) throws IOException
-  {
-    if (out == null) {
-      out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
-    }
-    try {
-      out.addAnswer(in, rec);
-    } catch (IOException e) {
-      out.flags |= DNSConstants.FLAGS_TC;
-      out.id = in.id;
-      out.finish();
-      socket.send(new DatagramPacket(out.data, out.off, addr, port));
-
-      out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
-      out.addAnswer(in, rec);
-    }
-    return out;
-  }
-
-  synchronized private DNSOutgoing  typeA( DNSQuestion q, 
-                                           DNSIncoming in, 
-                                           InetAddress addr, 
-                                           int port, DNSOutgoing out ) 
-    throws IOException
-  {
-    if( ( host != null ) && q.name.equalsIgnoreCase( host.name ) ) 
-    {
-      out = addAnswer( in, addr, port, out, host );
-      return out;
-
-    }
-    return out;
-  }
-
-  private DNSOutgoing typePTR( DNSQuestion q, DNSIncoming in, 
-                               InetAddress addr, int port, 
-                               DNSOutgoing out, Vector additionals ) 
-    throws IOException 
-  {
-    registerServiceType( q.name ); // Wait time needed for shared query response.
-    waitInterval( DNSConstants.SHARED_QUERY_TIME );
-    // find matching services
-    for( Enumeration s = services.elements(); s.hasMoreElements(); ) 
-    {
-      ServiceInfo info = (ServiceInfo)s.nextElement();
-      if( q.name.equalsIgnoreCase( info.type ) ) 
-      {
-        out = addAnswer( in, addr, port, out, 
-                         new DNSRecord.Pointer( info.type, DNSConstants.TYPE_PTR, 
-                                                DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, 
-                                                info.name ) );
-        additionals.addElement( host );
-        additionals.addElement( new DNSRecord.Service( info.name, DNSConstants.TYPE_SRV, 
-                                                       DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE, 
-                                                       DNSConstants.DNS_TTL, info.priority, 
-                                                       info.weight, info.port, host.name ) );
-        additionals.addElement( new DNSRecord.Text( info.name, DNSConstants.TYPE_TXT, 
-                                                    DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE, 
-                                                    DNSConstants.DNS_TTL, info.text ) );
-      }
-    }
-    if( q.name.equalsIgnoreCase( "_services._mdns._udp.local." ) ) 
-    {
-      for( Enumeration t = serviceTypes.elements(); t.hasMoreElements(); ) 
-      {
-        out = addAnswer( in, addr, port, out,
-                         new DNSRecord.Pointer( "_services._mdns._udp.local.", 
-                                                DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, 
-                                                DNSConstants.DNS_TTL, (String)t.nextElement() ) );
-      }
-    }
-    return out;
-  }
-
-  private DNSOutgoing findService( DNSQuestion q, DNSIncoming in, 
-                                   InetAddress addr, int port, DNSOutgoing out, Vector additionals ) 
-    throws IOException 
-  {
-    ServiceInfo info = (ServiceInfo)services.get( q.name.toLowerCase() );
-    if( info != null ) 
-    {
-      if( ( q.type == DNSConstants.TYPE_SRV ) || ( q.type == DNSConstants.TYPE_ANY ) ) 
-      {
-        out = addAnswer( in, addr, port, out, 
-                         new DNSRecord.Service( q.name, DNSConstants.TYPE_SRV,
-                                                DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE, 
-                                                DNSConstants.DNS_TTL, info.priority, 
-                                                info.weight, info.port, host.name ) );
-      }
-      if( ( q.type == DNSConstants.TYPE_TXT ) || ( q.type == DNSConstants.TYPE_ANY ) ) 
-      {
-        out = addAnswer( in, addr, port, out, 
-                         new DNSRecord.Text(q.name, DNSConstants.TYPE_TXT, 
-                                            DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE,
-                                            DNSConstants.DNS_TTL, info.text ) );
-      }
-      additionals.addElement( host );
-      
-      additionals.addElement( new DNSRecord.Service( info.name, DNSConstants.TYPE_SRV, 
-                                                     DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE, 
-                                                     DNSConstants.DNS_TTL, info.priority, 
-                                                     info.weight, info.port, host.name ) );
-      additionals.addElement( new DNSRecord.Text( info.name, DNSConstants.TYPE_TXT, 
-                                                  DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE, 
-                                                  DNSConstants.DNS_TTL, info.text ) );
-    }
-    if( q.type == DNSConstants.TYPE_ANY ) 
-    {
-      
-      //    System.err.println("Any Type: " + q);
-      // Also check for Address Records.
-      if( ( host != null ) && q.name.equalsIgnoreCase( host.name ) ) 
-      {
-        out = addAnswer(in, addr, port, out, host);
-      }
-      else    
-        //lets  look at services
-        for( Enumeration tt = serviceTypes.elements(); tt.hasMoreElements(); ) {
-          String tname = (String) tt.nextElement();
-          if( tname.equalsIgnoreCase( q.name ) ) {
-            waitInterval( DNSConstants.SHARED_QUERY_TIME );    
-            out = addAnswer( in, addr, port, out, 
-                             new DNSRecord.Pointer( q.name, DNSConstants.TYPE_PTR, 
-                                                    DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, tname ) );
-          }
-        }    
-    }
-    return out;
-  }
-
-  /**
-   * Handle an incoming query. See if we can answer any part of it
-   * given our registered records.
-   */
-  // reduced size of synchronized block to just the Socket.send() call
-  // synchronized void handleQuery(DNSIncoming in, InetAddress addr, int port) throws IOException {
-  void handleQuery(DNSIncoming in, InetAddress addr, int port) throws IOException 
-  {
-    DNSOutgoing out = null;
-    Vector additionals = new Vector(5);  //may not be effiecient I know.
-    // for unicast responses the question must be included
-    if( port != DNSConstants.MDNS_PORT ) 
-    {
-      out = new DNSOutgoing( DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, false );
-      for ( Enumeration e = in.questions.elements(); e.hasMoreElements(); ) 
-      {
-        out.addQuestion( (DNSQuestion)e.nextElement() );
-      }
-    }
-    // answer relevant questions
-    for( Enumeration e = in.questions.elements(); e.hasMoreElements(); )
-    {
-      DNSQuestion q = (DNSQuestion)e.nextElement();
-      switch( q.type ) 
-      {
-      case DNSConstants.TYPE_A: // address request
-        out = typeA( q, in, addr, port, out );
-        break;
-      case DNSConstants.TYPE_PTR: // Domain Name request
-        out = typePTR( q, in, addr, port, out, additionals );
-        break;
-      default: // find service
-        out = findService( q, in, addr, port, out, additionals );
-      } 
-    }
-    if( ( out != null ) && ( out.numAnswers > 0 ) )
-    {  // add additional answers if there is space
-      //      if (additionals != null) 
-      if(additionals.size() > 0)
-      
-        for( Enumeration e = additionals.elements(); e.hasMoreElements(); ) 
-        {
-          out.addAdditionalAnswer( in, (DNSRecord)e.nextElement() );
-        }
-      
-      out.id = in.id;
-      out.finish();
-      synchronized( this ) 
-      {  // is it really this we want to synchronize on, or the socket??
-        socket.send(new DatagramPacket( out.data, out.off, addr, port ) );
-      }
-    }
-  }
-
-
-  /**
-   * Send an outgoing multicast DNS message.
-   */
-  synchronized void send(DNSOutgoing out) throws IOException
-  {
-    out.finish();
-    socket.send(new DatagramPacket(out.data, out.off, group, DNSConstants.MDNS_PORT));
-  }
- 
-  /**
-   * Listen for multicast packets.
-   */
-  class SocketListener implements Runnable
-  {
-    private boolean inProbe = false;
-    
-    //Setup state so we can check for duplicate probes. 
-    synchronized public void setProbe(boolean probing)
-    {
-      inProbe = probing;
-    }
-    public void run()
-    {
-      try {
-        byte buf[] = new byte[DNSConstants.MAX_MSG_ABSOLUTE];
-        DatagramPacket packet = new DatagramPacket(buf, buf.length);
-        while (!done) {
-          packet.setLength(buf.length);
-          socket.receive(packet);
-          if (done) {
-            break;
-          }
-          try {
-            InetAddress from = packet.getAddress();
-            if (linklocal != isLinkLocal(from)) {
-              // Ignore linklocal packets on regular interfaces, unless this is
-              // also a linklocal interface. This is to avoid duplicates. This is
-              // a terrible hack caused by the lack of an API to get the address
-              // of the interface on which the packet was received.
-              continue;
-            }
-            if (loopback != isLoopback(from)) {
-              // Ignore loopback packets on a regular interface unless this is
-              // also a loopback interface.
-              continue;
-            }
-            DNSIncoming msg = new DNSIncoming(packet);
-            if (debug > 0) {
-              msg.print(debug > 1);
-              System.out.println();
-            }
-
-
-            if (msg.isQuery()) 
-            {
-              handleProbe(msg);
-              if (packet.getPort() != DNSConstants.MDNS_PORT) 
-              {
-                handleQuery(msg, packet.getAddress(), packet.getPort());
-              }
-              handleQuery(msg, group, DNSConstants.MDNS_PORT);
-            } 
-            else 
-            {
-              //We need to check it is a response /announcement to our address!
-
-              handleResponse(msg);    
-            }
-            if(conflict(msg))
-            {
-              new Probe(true).start();
-            }
-          } 
-          catch (IOException e) 
-          {
-            e.printStackTrace();
-          }
-        }
-      } catch (IOException e) {
-        if (!done) {
-          e.printStackTrace();
-        }
-      }
-    }
-  }
-
-
-  /**
-   * Schedule questions
-   */
-  class RecordReaper implements Runnable
-  {
-    public void run()
-    {
-
-      try {
-        synchronized (JmDNS.this) {
-          while (true) {
-            JmDNS.this.wait(10 * 1000);
-            if (done) {
-              return;
-            }
-
-            // remove expired answers from the cache
-            long now = System.currentTimeMillis();
-            for (Iterator i = cache.all() ; i.hasNext() ; ) 
-            {
-              DNSRecord c = (DNSRecord)i.next();
-              if (c.isExpired(now)) 
-              {
-                updateRecord(now, c);
-                i.remove();
-              }
-            }
-            // remove expired queries
-            now = System.currentTimeMillis();
-            for (Iterator i = queryCache.all() ; i.hasNext() ; ) 
-            {
-              DNSRecord c = (DNSRecord)i.next();
-              if (c.isExpired(now)) 
-              {
-                updateRecord(now, c);
-                i.remove();
-              }
-            }
-          }
-        }
-      }
-      catch (InterruptedException e) 
-      {
-        e.printStackTrace();
-      }
-    }
-  }
-
-  /**
-   * Browse for a service of a given type
-   */
-  class ServiceBrowser extends JmDNS.Listener implements Runnable
-  {
-    String type;
-    ServiceListener listener;
-    Hashtable services;
-    long nextTime;
-    int delay;
-    boolean done;
-    LinkedList list;
     
     /**
-     * Create a browser for a service type.
+     * Add a listener for a question. The listener will receive updates
+     * of answers to the question as they arrive, or from the cache if they
+     * are already available.
      */
-    ServiceBrowser(String type, ServiceListener listener)
-    {
-      this.type = type;
-      this.listener = listener;
-      this.services = new Hashtable();
-      this.nextTime = System.currentTimeMillis();
-      this.delay = 500;
-      this.list = new LinkedList();
-
-      addListener(this, new DNSQuestion(type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN));
-      new Thread(this, "JmDNS.ServiceBrowser: " + type).start();
-    }
-
-
-    /**
-     * Event for notifying a service listener.
-     */
-    abstract class Event
-    {
-      String name;
-
-      Event(String name)
-      {
-        this.name = name;
-      }
-      abstract void send();
-    }
-
-    /**
-     * Update a record.
-     */
-    void updateRecord(JmDNS jmdns, long now, DNSRecord rec)
-    {
-      if ((rec.type == DNSConstants.TYPE_PTR) && rec.name.equals(type)) {
-        boolean expired = rec.isExpired(now);
-        String name = ((DNSRecord.Pointer)rec).alias;
-        DNSRecord old = (DNSRecord)services.get(name.toLowerCase());
-        if ((old == null) && !expired) {
-          // new record
-          services.put(name.toLowerCase(), rec);
-          list.addLast(new Event(name) {
-              void send() {listener.addService(JmDNS.this, type, this.name);}
-            });
-        } else if ((old != null) && !expired) {
-          // update record
-          old.resetTTL(rec);
-        } else if ((old != null) && expired) {
-          // expire record
-          services.remove(name.toLowerCase());
-          list.addLast(new Event(name) {
-              void send() {listener.removeService(JmDNS.this, type, this.name);}
-            });
-          return;
-        }
-
-        // adjust next request time
-        long expires = rec.getExpirationTime(75);
-        if (expires < nextTime) {
-          nextTime = rec.getExpirationTime(75);
-        }
-      }
-    }
-
-    /**
-     * Request.
-     */
-    public void run()
-    {
-      try {
-        while (true) {
-          Event evt = null;
-		    
-          synchronized (JmDNS.this) {
-            long now = System.currentTimeMillis();
-            if ((list.size() == 0) && (nextTime > now)) {
-              JmDNS.this.wait(nextTime - now);
-            }
-            if (done) {
-              return;
-            }
-            now = System.currentTimeMillis();
-
-            // send query
-            if (nextTime <= now) {
-              DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-              out.addQuestion(new DNSQuestion(type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN));
-              for (Enumeration e = services.elements() ; e.hasMoreElements() ;) {
-                DNSRecord rec = (DNSRecord)e.nextElement();
-                if (!rec.isExpired(now)) {
-                  try {
-                    out.addAnswer(rec, now);
-                  } catch (IOException ee) {
-                    break;
-                  }
+    void addListener(DNSListener listener, DNSQuestion question) {
+        long now = System.currentTimeMillis();
+        
+        // add the new listener
+        listeners.addElement(listener);
+        
+        // report existing matched records
+        if (question != null) {
+            for (DNSCache.CacheNode i = cache.find(question.name); i != null; i = i.next()) {
+                DNSRecord c = (DNSRecord) i.getValue();
+                if (question.answeredBy(c) && !c.isExpired(now)) {
+                    listener.updateRecord(this, now, c);
                 }
-              }
-              send(out);
-
-              // schedule the next one
-              nextTime = now + delay;
-              delay = Math.min(20*1000, delay * 2);
             }
-
-            // get the next event
-            if (list.size() > 0) {
-              evt = (Event)list.removeFirst();
-            }
-          }
-          if (evt != null) {
-            evt.send();
-          }
         }
-      } catch (IOException e) {
-        e.printStackTrace();
-      } catch (InterruptedException e) {
-        // oops
-      }
     }
-
-    void close()
-    {
-      synchronized (JmDNS.this) {
-        if (!done) {
-          done = true;
-          removeListener(this);
-        }
-      }
-    }
-  }
-
-  /**
-   * Helper class to resolve services.
-   */
-  class ServiceResolver implements Runnable
-  {
-    ServiceInfo info;
-    int timeout;
-	
-    ServiceResolver(ServiceInfo info, int timeout)
-    {
-      this.info = info;
-      this.timeout = timeout;
-    }
-    public void run()
-    {
-      ServiceInfo result = info;
-      if (!info.request(JmDNS.this, timeout)) {
-        result = null;
-      }
-      // notify the listeners of the appropriate service browsers
-      for (Enumeration e = browsers.elements() ; e.hasMoreElements() ;) {
-        ServiceBrowser browser = (ServiceBrowser)e.nextElement();
-        if (browser.type.equalsIgnoreCase(info.type)) {
-          browser.listener.resolveService(JmDNS.this, info.type, info.name, result);
-        }
-      }
-    }
-  }
-
-  /**
-   * Class to handle probing and initial announcement
-   * This is a thread class since it must be able to be run async from the listeners
-   * When a conflict is detected.  We should also do Service probing and Conflict
-   * resolution here, but for now!!!
-   **/
-
-  class Probe extends Thread
-  {
-    boolean inConflict = false;
-    public Probe()
-    {
-      super("Prober");
-
-    }
-
-    public Probe(boolean conflict)
-    {
-      super("Prober");
-      inConflict = true;  // what a kludge. Needed to defend initial address mapping.
-    }
-
-    //One shot.  Dont want to stick around 
-    public void run()
-    {
-      if(done)
-        return;
-      this.probe(host);
-      this.announce(host);
-    }
-
-    //For tie breaker.  section 9.2  must compare unsigned bytes.  
-    private byte[] getAddress(int addr)
-    {
-      byte[] rval = new byte[4];
-      rval[0] = (byte)((addr >>> 24) & 0xFF);
-      rval[1] = (byte)((addr >>> 16) & 0xFF);
-      rval[2] = (byte)((addr >>> 8) & 0xFF); 
-      rval[3] = (byte)(addr & 0xFF);
-      return rval;
-    }
-
-    //return 1 if in1 > in2
-    //return 0 if in1==in2
-    //return -1 if in1>in2
-
-    private int lexCompare(int in1, int in2)
-    {
     
-      if(in1 == in2)
-        return 0;
-      byte[] in1Bytes = getAddress(in1);
-      byte[] in2Bytes = getAddress(in2);
-      for(int i=0;i<in1Bytes.length;i++)
-      {
-        if (in1Bytes[i] > in2Bytes[i])
-          return 1;
-        else 
-          if (in2Bytes[i] > in1Bytes[i])
-            return -1;
-      }
-      return 0;  //Should never happen.
+    /**
+     * Remove a listener from all outstanding questions. The listener will no longer
+     * receive any updates.
+     */
+    void removeListener(DNSListener listener) {
+        listeners.removeElement(listener);
     }
+    
 
-    void probe(DNSRecord.Address inHost ) 
-    {
-      //Probe spec says initial wait time is a  random interval between 0 and 250 ms.
-      int waitTime = new Random().nextInt(251);  
-
-      boolean denial = false;
-      boolean duplicate = false;
-      DNSRecord  a;
-      int conflictCount = 0;
-
-      //Initial Run.  Set up the listeners. This is done here because we can have a 
-      //local handle on the listener to set the probing state.        
-      if (incomingListener == null)
-      {
-        incomingListener = new SocketListener();
-        new Thread(incomingListener, "JmDNS.SocketListener").start();
-      }
-      incomingListener.setProbe(true);    
-
-      // Wait random time
-      waitInterval(waitTime);
-      //Maybe we should always do send wait search instead of 
-      // search send wait?  Should run the Conformance test again to find out.
-      // initialy this failled when doing send first.
-
-      //Defend initial choice if conflict detected.  Kindof a kludge.
-      //but it makes the conformance test happy.
-      //The host name will be found below and reset.
-      if(inConflict)
-      {
-        try
-        {
-          DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-          //out.addQuestion(new DNSQuestion(inHost.name, TYPE_A, CLASS_IN));
-          out.addQuestion(new DNSQuestion(inHost.name, DNSConstants.TYPE_ANY, DNSConstants.CLASS_IN));  
-          out.addAuthorativeAnswer(inHost);
-          send(out);
+    // Remind: Method updateRecord should receive a better name.
+    /**
+     * Notify all listeners that a record was updated.
+     */
+    void updateRecord(long now, DNSRecord rec) {
+        for (Enumeration e = listeners.elements() ; e.hasMoreElements() ;) {
+            DNSListener listener = (DNSListener)e.nextElement();
+            listener.updateRecord(this, now, rec);
         }
-        catch(java.io.IOException e)
-        {
-          e.printStackTrace();
-        }
-      }
-
-      //Send 3 probes at 250ms interval. Per the spec.
-      waitTime = DNSConstants.PROBE_WAIT_INTERVAL;
-      long now = System.currentTimeMillis();
-      long nextTime = now;
-      for (int i = 0 ; i < 3 ;) 
-      {
-
-        Iterator j;
-        //Set up initial states.
-        denial = false;
-        duplicate = false;
-
-
-        //Look for a response first then look at incoming queries.
-        for (j = cache.find(inHost.name) ; j.hasNext() ;) 
-        {
-          a = (DNSRecord)j.next();
-
-          if   ((a.type == DNSConstants.TYPE_A) && !a.isExpired(now) && (((DNSRecord.Address)a).addr != _ip)) 
-          {
-            denial = true;
-            break;
-          }
-        }
-
-        for (j = queryCache.find(inHost.name) ; j.hasNext() ;) 
-        {
-          a = (DNSRecord)j.next();
-
-          if   ((a.type == DNSConstants.TYPE_A) && !a.isExpired(now) && (((DNSRecord.Address)a).addr != _ip)) 
-          {
-            if(lexCompare(((DNSRecord.Address)a).addr, _ip) > 0)
-            {
-              duplicate = true;
-              break;
+        if (rec.type == DNSConstants.TYPE_PTR || rec.type == DNSConstants.TYPE_SRV) {
+            LinkedList list = (LinkedList) serviceListeners.get(rec.name.toLowerCase());
+            if (list != null) {
+                boolean expired = rec.isExpired(now);
+                String type = rec.name;
+                String name = ((DNSRecord.Pointer)rec).alias;
+                // DNSRecord old = (DNSRecord)services.get(name.toLowerCase());
+                if (! expired) {
+                    // new record
+                    ServiceEvent event = new ServiceEvent(this, type, toUnqualifiedName(type, name), null);
+                    for (Iterator i=list.iterator(); i.hasNext(); ) {
+                        ((ServiceListener) i.next()).serviceAdded(event);
+                    }
+                } else {
+                    // expire record
+                    ServiceEvent event = new ServiceEvent(this, type, toUnqualifiedName(type, name), null);
+                    for (Iterator i=list.iterator(); i.hasNext(); ) {
+                        ((ServiceListener) i.next()).serviceRemoved(event);
+                    }
+                }
             }
-          }
-
         }
-        if(denial || duplicate )
-        {
-          conflictCount++;
-
-          //Throttle on conflict as per section 9.1  
-          if (conflictCount > DNSConstants.PROBE_THROTTLE_COUNT)
-          {
-            conflictCount = 0;
-            waitTime = DNSConstants.PROBE_CONFLICT_INTERVAL;
-          }
+    }
+    
+    /**
+     * Handle an incoming response. Cache answers, and pass them on to
+     * the appropriate questions.
+     */
+    private void handleResponse(DNSIncoming msg) throws IOException {
+        long now = System.currentTimeMillis();
         
-          //this could be in its own method.  But only used here and only during init time.
-          String nm = inHost.name.substring(0, inHost.name.indexOf(".local."));
-          try 
-          {
-            int l = inHost.name.lastIndexOf('-'); 
-            int r = inHost.name.lastIndexOf('.'); 
-
-            if ((l >= 0) && (l < r)) 
-            {
-              nm = nm.substring(0, l) + "-" + (Integer.parseInt(nm.substring(l+1)) + 1);
-            } 
-            else 
-            {
-              nm += "-2";
-            }   
-          } 
-          catch (NumberFormatException e) 
-          {
-            nm += "-2";
-          }
-          //This works because . is an illeagle charactor in local names.
-          inHost.name = nm + inHost.name.substring(inHost.name.indexOf('.'));
-          //Reset Loop count Going to try all over again.
-          i=0;
-        }
-        i++;
-
-        //Send the query.   
-        try
-        {
-
-          DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-          //out.addQuestion(new DNSQuestion(inHost.name, TYPE_A, CLASS_IN));
-          //Use Anytype as per the spec.
-          out.addQuestion(new DNSQuestion(inHost.name, DNSConstants.TYPE_ANY, DNSConstants.CLASS_IN));  
-          out.addAuthorativeAnswer(inHost);
-          send(out);
-        }
-        catch(java.io.IOException e)
-        {
-          e.printStackTrace();
-        }
-        //Wait the amount of time
-        nextTime+= waitTime;
-        if (now < nextTime) 
-        {
-          //wait what is left of the probe wait time.
-          waitInterval(nextTime - now); 
-          now=System.currentTimeMillis();
-        }
-
-      }   
-    
-      host = inHost;
-    }
-
-    void announce(DNSRecord.Address host)
-    {
-      //As per section 9.3  Send a gratuitous response at least 2 times 1 sec apart.
-      int waitTime = DNSConstants.ANNOUNCE_WAIT_INTERVAL;
-      long now, nextTime;
-      for(int i = 0;i<2;i++)
-      {
-        now = System.currentTimeMillis();        
-        nextTime= now + waitTime;
-        try
-        {
-          DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);    
-          //Initial startup.  All we have is the host record.  Later add support
-          //for starting with a list of services.  But for now......
-          out.addAnswer(host, 0);     
-          send(out);  
-        }
-        catch(java.io.IOException e)
-        {
-          //Should do something smarter here shuch as bomb out completly
-          System.err.println("Announce got an error: " +e);
-        }
-        now = System.currentTimeMillis();      
-
-        if (now < nextTime) 
-        {
-          //wait what is left of the probe wait time.
+        boolean hostConflictDetected = false;
+        boolean serviceConflictDetected = false;
         
-          waitInterval(nextTime - now);  
-          continue;
+        for (Enumeration e = msg.answers.elements() ; e.hasMoreElements() ;) {
+            boolean isInformative = false;
+            DNSRecord rec = (DNSRecord)e.nextElement();
+            boolean expired = rec.isExpired(now);
+            
+            // update the cache
+            DNSRecord c = (DNSRecord)cache.get(rec);
+            if (c != null) {
+                if (expired) {
+                    isInformative = true;
+                    cache.remove(c);
+                } else {
+                    c.resetTTL(rec);
+                    rec = c;
+                }
+            } else {
+                if (!expired) {
+                    isInformative = true;
+                    cache.add(rec);
+                }
+            }
+            switch (rec.type) {
+                case DNSConstants.TYPE_PTR:
+                    // handle _mdns._udp records
+                    if (rec.name.indexOf("._mdns._udp.") >= 0) {
+                        if (!expired && rec.name.startsWith("_services._mdns._udp.")) {
+                            isInformative = true;
+                            registerServiceType(((DNSRecord.Pointer)rec).alias);
+                        }
+                        continue;
+                    }
+                    registerServiceType(rec.name);
+                    break;
+            }
+            
+            if (rec.type == DNSConstants.TYPE_A) {
+                hostConflictDetected |= rec.handleResponse(this);
+            } else {
+                serviceConflictDetected |= rec.handleResponse(this);
+            }
+            
+            // notify the listeners
+            if (isInformative) {
+                updateRecord(now, rec);
+            }
         }
-      }
+        
+        if (hostConflictDetected || serviceConflictDetected) {
+            new Prober().start();
+        }
     }
-  }
-
-  
-
     
-  /**
-   * Shutdown operations.
-   */
-  class Shutdown implements Runnable
-  {
-    public void run()
-    {
-      shutdown = null;
-      close();
+    /**
+     * Handle an incoming query. See if we can answer any part of it
+     * given our service infos.
+     */
+    private void handleQuery(DNSIncoming in, InetAddress addr, int port) throws IOException {
+        // Track known answers
+        boolean hostConflictDetected = false;
+        boolean serviceConflictDetected = false;
+        long expirationTime = System.currentTimeMillis() + DNSConstants.KNOWN_ANSWER_TTL;
+        for ( Enumeration e = in.answers.elements(); e.hasMoreElements(); ) {
+            DNSRecord answer = (DNSRecord) e.nextElement();
+            if (answer.type == DNSConstants.TYPE_A) {
+                hostConflictDetected |= answer.handleQuery(this, expirationTime);
+            } else {
+                serviceConflictDetected |= answer.handleQuery(this, expirationTime);
+            }
+        }
+        
+        if (plannedAnswer != null) {
+            plannedAnswer.append(in);
+        } else {
+            if (in.isTruncated()) {
+                plannedAnswer = in;
+            }
+            
+            new Responder(in, addr, port).start();
+        }
+        
+        if (hostConflictDetected || serviceConflictDetected) {
+            new Prober().start();
+        }
     }
-  }
-
-  /**
-   * Close down jmdns. Release all resources and unregister all services.
-   */
-  public synchronized void close()
-  {
-    if (!done) {
-      done = true;
-      notifyAll();
-
-      // remove the shutdown hook
-      if (shutdown != null) {
-        Runtime.getRuntime().removeShutdownHook(shutdown);
-      }
-
-      // unregister services
-      unregisterAllServices();
-
-      // close socket
-      try {
-        socket.leaveGroup(group);
-        socket.close();
-      } catch (IOException e) {
-        // ignore
-      }
+    
+    /**
+     * Add an answer to a question. Deal with the case when the
+     * outgoing packet overflows
+     */
+    DNSOutgoing addAnswer(DNSIncoming in, InetAddress addr, int port, DNSOutgoing out, DNSRecord rec) throws IOException {
+        if (out == null) {
+            out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
+        }
+        try {
+            out.addAnswer(in, rec);
+        } catch (IOException e) {
+            out.flags |= DNSConstants.FLAGS_TC;
+            out.id = in.id;
+            out.finish();
+            send(out);
+            
+            out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
+            out.addAnswer(in, rec);
+        }
+        return out;
     }
-  }
-
-  /**
-   * List cache entries, for debugging only.
-   */
-  void print()
-  {
-    if (cache.count > 0) {
-      System.out.println("---- cache ----");
-      cache.print();
-      System.out.println();
+    
+    
+    /**
+     * Send an outgoing multicast DNS message.
+     */
+    private void send(DNSOutgoing out) throws IOException {
+        out.finish();
+        if (! out.isEmpty()) {
+            DatagramPacket packet = new DatagramPacket(out.data, out.off, group, DNSConstants.MDNS_PORT);
+            
+            if (debug > 2) {
+                try {
+                    DNSIncoming msg = new DNSIncoming(packet);
+                    System.out.print("JmDNS out:");
+                    msg.print(debug > 3);
+                    System.out.println();
+                } catch (IOException e) {
+                    System.out.println("JmDNS can not parse what it sends!!!");
+                    e.printStackTrace();
+                    throw e;
+                }
+            }
+            
+            socket.send(packet);
+        }
     }
-  }
-  /**
-   * List Services and serviceTypes.
-   * Debugging Only
-   **/
-
-  public void printServices()
-  {
-    Enumeration k;
-    System.err.println("---- Services -----");
-    if(services != null)
-    {
-      k = services.keys();
-      while(k.hasMoreElements())
-      {
-        String key = (String)k.nextElement();
-        System.err.println("Service: " + key +": " + services.get(key));
-      }
+    
+    /**
+     * Listen for multicast packets.
+     */
+    class SocketListener implements Runnable {
+        public void run() {
+            try {
+                byte buf[] = new byte[DNSConstants.MAX_MSG_ABSOLUTE];
+                DatagramPacket packet = new DatagramPacket(buf, buf.length);
+                while (state != DNSState.CANCELED) {
+                    packet.setLength(buf.length);
+                    socket.receive(packet);
+                    if (state == DNSState.CANCELED) {
+                        break;
+                    }
+                    try {
+                        InetAddress from = packet.getAddress();
+                        if (linklocal != isLinkLocal(from)) {
+                            // Ignore linklocal packets on regular interfaces, unless this is
+                            // also a linklocal interface. This is to avoid duplicates. This is
+                            // a terrible hack caused by the lack of an API to get the address
+                            // of the interface on which the packet was received.
+                            continue;
+                        }
+                        if (loopback != isLoopback(from)) {
+                            // Ignore loopback packets on a regular interface unless this is
+                            // also a loopback interface.
+                            continue;
+                        }
+                        DNSIncoming msg = new DNSIncoming(packet);
+                        if (debug > 2) {
+                            System.out.print("JmDNS in:");
+                            msg.print(debug > 3);
+                            System.out.println();
+                        }
+                        
+                        synchronized (ioLock) {
+                            if (msg.isQuery()) {
+                                if (packet.getPort() != DNSConstants.MDNS_PORT) {
+                                    handleQuery(msg, packet.getAddress(), packet.getPort());
+                                }
+                                handleQuery(msg, group, DNSConstants.MDNS_PORT);
+                            }
+                            else {
+                                handleResponse(msg);
+                            }
+                        }
+                    }
+                    catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (IOException e) {
+                if (state != DNSState.CANCELED) {
+                    e.printStackTrace();
+                    close();
+                }
+            }
+        }
     }
-    System.err.println("---- Types ----");
-    if(serviceTypes!=null)
-    {
-      k = serviceTypes.keys();
-      while(k.hasMoreElements())
-      {
-        String key = (String)k.nextElement();
-        System.err.println("Type: " + key +": " + serviceTypes.get(key));
-      }
+    
+    
+    /**
+     * Periodicaly removes expired entries from the cache.
+     */
+    private class RecordReaper extends TimerTask {
+        public void start() {
+            timer.schedule(this, DNSConstants.RECORD_REAPER_INTERVAL, DNSConstants.RECORD_REAPER_INTERVAL);
+        }
+        public void run() {
+            synchronized (JmDNS.this) {
+                if (state == DNSState.CANCELED) {
+                    return;
+                }
+                if (debug > 3) {
+                    System.out.println("JmDNS reaping cache");
+                }
+                // Remove expired answers from the cache
+                // -------------------------------------
+                // To prevent race conditions, we defensively copy all cache
+                // entries into a list.
+                LinkedList list = new LinkedList();
+                synchronized (cache) {
+                    for (Iterator i = cache.all() ; i.hasNext() ;) {
+                        for (DNSCache.CacheNode n = (DNSCache.CacheNode) i.next(); n != null; n = n.next()) {
+                            list.add(n.getValue());
+                        }
+                    }
+                }
+                // Now, we remove them.
+                long now = System.currentTimeMillis();
+                for (Iterator i = list.iterator() ; i.hasNext() ; ) {
+                    DNSRecord c = (DNSRecord) i.next();
+                    if (c.isExpired(now)) {
+                        updateRecord(now, c);
+                        cache.remove(c);
+                    }
+                }
+            }
+        }
     }
-    System.err.println("");
-
-  }  
-
+    
+    
+    /**
+     * The Prober sends three consecutive probes for all service infos
+     * that needs probing as well as for the host name.
+     * The state of each service info of the host name is advanced, when a probe has
+     * been sent for it.
+     * When the prober has run three times, it launches an Announcer.
+     *
+     * If a conflict during probes occurs, the affected service infos (and affected
+     * host name) are taken away from the prober. This eventually causes the prober
+     * tho cancel itself.
+     */
+    private class Prober extends TimerTask {
+        /** The state of the prober. */
+        DNSState taskState = DNSState.PROBING_1;
+        
+        public Prober() {
+            // Associate the host name to this, if it needs probing
+            if (state == DNSState.PROBING_1) {
+                task = this;
+            }
+            // Associate services to this, if they need probing
+            for( Enumeration s = services.elements(); s.hasMoreElements(); ) {
+                ServiceInfo info = (ServiceInfo)s.nextElement();
+                if (info.getState() == DNSState.PROBING_1) {
+                    info.task = this;
+                }
+            }
+        }
+        
+        
+        public void start() {
+            long now = System.currentTimeMillis();
+            if (now - lastThrottleIncrement < DNSConstants.PROBE_THROTTLE_COUNT_INTERVAL) {
+                throttle++;
+            } else {
+                throttle = 1;
+            }
+            lastThrottleIncrement = now;
+            
+            if (state == DNSState.ANNOUNCED && throttle < DNSConstants.PROBE_THROTTLE_COUNT) {
+                timer.schedule(this, random.nextInt(1 + DNSConstants.PROBE_WAIT_INTERVAL), DNSConstants.PROBE_WAIT_INTERVAL);
+            } else {
+                timer.schedule(this, DNSConstants.PROBE_CONFLICT_INTERVAL, DNSConstants.PROBE_CONFLICT_INTERVAL);
+            }
+        }
+        
+        public boolean cancel() {
+            // Remove association from host name to this
+            if (task == this) task = null;
+            
+            // Remove associations from services to this
+            for (Iterator i=services.values().iterator(); i.hasNext(); ) {
+                ServiceInfo info = (ServiceInfo) i.next();
+                if (info.task == this) {
+                    info.task = null;
+                }
+            }
+            
+            return super.cancel();
+        }
+        
+        public void run() {
+            synchronized (ioLock) {
+                DNSOutgoing out = null;
+                try {
+                    // send probes for JmDNS itself
+                    if (state == taskState && task == this) {
+                        if (out == null) {
+                            out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
+                        }
+                        out.addQuestion(new DNSQuestion(host.name, DNSConstants.TYPE_ANY, DNSConstants.CLASS_IN));
+                        out.addAuthorativeAnswer(host);
+                        advanceState();
+                    }
+                    // send probes for services
+                    // Defensively copy the services into a local list,
+                    // to prevent race conditions with methods registerService
+                    // and unregisterService.
+                    for (Iterator i=services.values().iterator(); i.hasNext(); ) {
+                        ServiceInfo info = (ServiceInfo) i.next();
+                        
+                        if (info.getState() == taskState && info.task == this) {
+                            info.advanceState();
+                            if (out == null) {
+                                out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
+                                out.addQuestion(new DNSQuestion(info.getQualifiedName(), DNSConstants.TYPE_ANY, DNSConstants.CLASS_IN));
+                            }
+                            out.addAuthorativeAnswer(new DNSRecord.Service(info.getQualifiedName(), DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.priority, info.weight, info.port, host.name));
+                            
+                        }
+                    }
+                    if (out != null) {
+                        if (debug > 1) {
+                            System.out.println("JmDNS probing #"+taskState);
+                        }
+                        send(out);
+                    } else {
+                        // If we have nothing to send, another timer taskState ahead
+                        // of us has done the job for us. We can cancel.
+                        cancel();
+                        return;
+                    }
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    close();
+                }
+                
+                taskState = taskState.advance();
+                if (! taskState.isProbing()) {
+                    cancel();
+                    
+                    new Announcer().start();
+                }
+            }
+        }
+        
+    }
+    /**
+     * The Announcer sends an accumulated query of all announces, and advances
+     * the state of all serviceInfos, for which it has sent an announce.
+     * The Announcer also sends announcements and advances the state of JmDNS itself.
+     *
+     * When the announcer has run two times, it finishes.
+     */
+    private class Announcer extends TimerTask {
+        /** The state of the announcer. */
+        DNSState taskState = DNSState.ANNOUNCING_1;
+        
+        public Announcer() {
+            // Associate host to this, if it needs announcing
+            if (state == DNSState.ANNOUNCING_1) {
+                task = this;
+            }
+            // Associate services to this, if they need announcing
+            for( Enumeration s = services.elements(); s.hasMoreElements(); ) {
+                ServiceInfo info = (ServiceInfo)s.nextElement();
+                if (info.getState() == DNSState.ANNOUNCING_1) {
+                    info.task = this;
+                }
+            }
+        }
+        
+        public void start() {
+            timer.schedule(this, DNSConstants.ANNOUNCE_WAIT_INTERVAL, DNSConstants.ANNOUNCE_WAIT_INTERVAL);
+        }
+        public boolean cancel() {
+            // Remove association from host to this
+            if (task == this) task = null;
+            
+            // Remove associations from services to this
+            for (Iterator i=services.values().iterator(); i.hasNext(); ) {
+                ServiceInfo info = (ServiceInfo) i.next();
+                if (info.task == this) {
+                    info.task = null;
+                }
+            }
+            
+            return super.cancel();
+        }
+        
+        public void run() {
+            DNSOutgoing out = null;
+            try {
+                // send probes for JmDNS itself
+                if (state == taskState) {
+                    if (out == null) {
+                        out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
+                    }
+                    out.addAnswer(host, 0);
+                    advanceState();
+                }
+                // send announces for services
+                // Defensively copy the services into a local list,
+                // to prevent race conditions with methods registerService
+                // and unregisterService.
+                LinkedList list;
+                synchronized (JmDNS.this) {
+                    list = new LinkedList(services.values());
+                }
+                for (Iterator i=list.iterator(); i.hasNext(); ) {
+                    ServiceInfo info = (ServiceInfo) i.next();
+                    synchronized (info) {
+                        if (info.getState() == taskState && info.task == this) {
+                            info.advanceState();
+                            if (out == null) {
+                                out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
+                            }
+                            out.addAnswer(new DNSRecord.Pointer(info.type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.getQualifiedName()), 0);
+                            out.addAnswer(new DNSRecord.Service(info.getQualifiedName(), DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.priority, info.weight, info.port, host.name), 0);
+                            out.addAnswer(new DNSRecord.Text(info.getQualifiedName(), DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.text), 0);
+                        }
+                    }
+                }
+                if (out != null) {
+                    if (debug > 1) {
+                        System.out.println("JmDNS announcing #"+taskState);
+                    }
+                    send(out);
+                } else {
+                    // If we have nothing to send, another timer taskState ahead
+                    // of us has done the job for us. We can cancel.
+                    cancel();
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+                close();
+            }
+            
+            taskState = taskState.advance();
+            if (! taskState.isAnnouncing()) {
+                cancel();
+            }
+        }
+    }
+    /**
+     * The Responder sends a single answer for the specified service infos
+     * and for the host name.
+     */
+    private class Responder extends TimerTask {
+        private DNSIncoming in;
+        private InetAddress addr;
+        private int port;
+        public Responder(DNSIncoming in,  InetAddress addr, int port) {
+            this.in = in;
+            this.addr = addr;
+            this.port = port;
+        }
+        public void start() {
+            // According to draft-cheshire-dnsext-multicastdns.txt
+            // chapter "8 Responding":
+            // We respond immediately if we know for sure, that we are
+            // the only one who can respond to the query.
+            // In all other cases, we respond within 20-120 ms.
+            //
+            // According to draft-cheshire-dnsext-multicastdns.txt
+            // chapter "7.2 Multi-Packet Known Answer Suppression":
+            // We respond after 20-120 ms if the query is truncated.
+            
+            boolean iAmTheOnlyOne = true;
+            for (Enumeration e = in.questions.elements(); e.hasMoreElements(); ) {
+                DNSEntry entry = (DNSEntry) e.nextElement();
+                if (entry instanceof DNSQuestion) {
+                    DNSQuestion q = (DNSQuestion) entry;
+                    iAmTheOnlyOne &= (q.type == DNSConstants.TYPE_SRV
+                    || q.type == DNSConstants.TYPE_TXT
+                    || q.type == DNSConstants.TYPE_A
+                    || host.name.equalsIgnoreCase(q.name)
+                    || services.containsKey(q.name.toLowerCase()));
+                    if (! iAmTheOnlyOne) {
+                        break;
+                    }
+                }
+            }
+            int delay = (iAmTheOnlyOne && ! in.isTruncated())
+            ? 0 : DNSConstants.RESPONSE_MIN_WAIT_INTERVAL + random.nextInt(DNSConstants.RESPONSE_MAX_WAIT_INTERVAL - DNSConstants.RESPONSE_MIN_WAIT_INTERVAL + 1);
+            if (debug > 2) System.out.println("JmDNS.Responder chosen delay="+delay);
+            timer.schedule(this, delay);
+        }
+        public void run() {
+            synchronized (ioLock) {
+                if (plannedAnswer == in) {
+                    plannedAnswer = null;
+                }
+                
+                // We use these sets to prevent duplicate records
+                // FIXME - This should be moved into DNSOutgoing
+                HashSet questions = new HashSet();
+                HashSet answers = new HashSet();
+                
+                
+                if (state == DNSState.ANNOUNCED) {
+                    try {
+                        long now = System.currentTimeMillis();
+                        long expirationTime = now + 1; //=now+DNSConstants.KNOWN_ANSWER_TTL;
+                        boolean isUnicast = (port != DNSConstants.MDNS_PORT);
+                        
+                        
+                        // Answer questions
+                        for (Enumeration e = in.questions.elements(); e.hasMoreElements(); ) {
+                            DNSEntry entry = (DNSEntry) e.nextElement();
+                            if (entry instanceof DNSQuestion) {
+                                DNSQuestion q = (DNSQuestion) entry;
+                                
+                                // for unicast responses the question must be included
+                                if (isUnicast) {
+                                    //out.addQuestion(q);
+                                    questions.add(q);
+                                }
+                                
+                                int type = q.type;
+                                if (type == DNSConstants.TYPE_ANY || type == DNSConstants.TYPE_SRV) {
+                                    if (host.name.equalsIgnoreCase(q.name)) {
+                                        type = DNSConstants.TYPE_A;
+                                    } else if (serviceTypes.containsKey(q.name.toLowerCase())) {
+                                        type = DNSConstants.TYPE_PTR;
+                                    }
+                                }
+                                
+                                switch( type ) {
+                                    case DNSConstants.TYPE_A: {
+                                        // Answer a query for a domain name
+                                        //out = addAnswer( in, addr, port, out, host );
+                                        answers.add(host);
+                                        break;
+                                    }
+                                    case DNSConstants.TYPE_PTR: {
+                                        // Answer a query for services of a given type
+                                        
+                                        // find matching services
+                                        for( Enumeration s = services.elements(); s.hasMoreElements(); ) {
+                                            ServiceInfo info = (ServiceInfo)s.nextElement();
+                                            if (info.getState() == DNSState.ANNOUNCED) {
+                                                if( q.name.equalsIgnoreCase(info.type) ) {
+                                                    answers.add(host);
+                                                    answers.add(new DNSRecord.Pointer( info.type, DNSConstants.TYPE_PTR,
+                                                    DNSConstants.CLASS_IN, DNSConstants.DNS_TTL,
+                                                    info.getQualifiedName())
+                                                    );
+                                                    answers.add(
+                                                    new DNSRecord.Service( info.getQualifiedName(), DNSConstants.TYPE_SRV,
+                                                    DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE,
+                                                    DNSConstants.DNS_TTL, info.priority,
+                                                    info.weight, info.port, host.name )
+                                                    );
+                                                    answers.add(
+                                                    new DNSRecord.Text( info.getQualifiedName(), DNSConstants.TYPE_TXT,
+                                                    DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE,
+                                                    DNSConstants.DNS_TTL, info.text )
+                                                    );
+                                                }
+                                            }
+                                        }
+                                        if( q.name.equalsIgnoreCase( "_services._mdns._udp.local." ) ) {
+                                            for( Enumeration t = serviceTypes.elements(); t.hasMoreElements(); ) {
+                                                answers.add(
+                                                new DNSRecord.Pointer( "_services._mdns._udp.local.",
+                                                DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN,
+                                                DNSConstants.DNS_TTL, (String)t.nextElement() )
+                                                );
+                                            }
+                                        }
+                                        break;
+                                    }
+                                    case DNSConstants.TYPE_SRV :
+                                    case DNSConstants.TYPE_ANY :
+                                    case DNSConstants.TYPE_TXT : {
+                                        ServiceInfo info = (ServiceInfo) services.get(q.name.toLowerCase());
+                                        if (info != null && info.getState() == DNSState.ANNOUNCED) {
+                                            answers.add(host);
+                                            answers.add(
+                                            new DNSRecord.Pointer( info.type, DNSConstants.TYPE_PTR,
+                                            DNSConstants.CLASS_IN, DNSConstants.DNS_TTL,
+                                            info.getQualifiedName())
+                                            );
+                                            
+                                            answers.add(
+                                            new DNSRecord.Service( info.getQualifiedName(), DNSConstants.TYPE_SRV,
+                                            DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE,
+                                            DNSConstants.DNS_TTL, info.priority,
+                                            info.weight, info.port, host.name )
+                                            );
+                                            answers.add(
+                                            new DNSRecord.Text( info.getQualifiedName(), DNSConstants.TYPE_TXT,
+                                            DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE,
+                                            DNSConstants.DNS_TTL, info.text )
+                                            );
+                                        }
+                                        break;
+                                    }
+                                    default : {
+                                        //System.out.println("JmDNSResponder.unhandled query:"+q);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        
+                        if (answers.size() !=0) {
+                            if (debug > 1) System.out.println("JmDNS responding");
+                            DNSOutgoing out = null;
+                            if (isUnicast) {
+                                out = new DNSOutgoing( DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, false );
+                            }
+                            
+                            for (Iterator i=questions.iterator(); i.hasNext(); ) {
+                                out.addQuestion((DNSQuestion) i.next());
+                            }
+                            for (Iterator i=answers.iterator(); i.hasNext(); ) {
+                                out = addAnswer(in, addr, port, out, (DNSRecord) i.next());
+                            }
+                            send(out);
+                        }
+                        cancel();
+                    } catch (Throwable e) {
+                        e.printStackTrace();
+                        close();
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * Helper class to resolve service types.
+     *
+     * The TypeResolver queries three times consecutively for service types, and then
+     * removes itself from the timer.
+     *
+     * The TypeResolver will run only if JmDNS is in state ANNOUNCED.
+     */
+    private class TypeResolver extends TimerTask {
+        public void start() {
+            timer.schedule(this, DNSConstants.QUERY_WAIT_INTERVAL, DNSConstants.QUERY_WAIT_INTERVAL);
+        }
+        /** Counts the number of queries that were sent. */
+        int count = 0;
+        
+        public void run() {
+            try {
+                if (state == DNSState.ANNOUNCED) {
+                    if (++count < 3) {
+                        if (debug > 1) System.out.println("JmDNS querying type");
+                        DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
+                        out.addQuestion(new DNSQuestion("_services._mdns._udp.local.", DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN));
+                        for (Enumeration e = serviceTypes.elements() ; e.hasMoreElements(); ) {
+                            String type = (String) e.nextElement();
+                            out.addAnswer(new DNSRecord.Pointer("_services._mdns._udp.local.", DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, type), 0);
+                        }
+                        send(out);
+                    } else {
+                        // After three queries, we can quit.
+                        cancel();
+                    };
+                } else if (state == DNSState.CANCELED) {
+                    cancel();
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+                close();
+            }
+        }
+    }
+    /**
+     * The ServiceResolver queries three times consecutively for services of
+     * a given type, and then removes itself from the timer.
+     *
+     * The ServiceResolver will run only if JmDNS is in state ANNOUNCED.
+     * REMIND: Prevent having multiple service resolvers for the same type in the
+     *         timer queue.
+     */
+    private class ServiceResolver extends TimerTask {
+        /**
+         * Counts the number of queries being sent.
+         */
+        int count = 0;
+        private String type;
+        public ServiceResolver(String type) {
+            this.type = type;
+        }
+        public void start() {
+            timer.schedule(this, DNSConstants.QUERY_WAIT_INTERVAL, DNSConstants.QUERY_WAIT_INTERVAL);
+        }
+        
+        public void run() {
+            try {
+                if (state == DNSState.ANNOUNCED) {
+                    if (count++ < 3) {
+                        long now = System.currentTimeMillis();
+                        DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
+                        out.addQuestion(new DNSQuestion(type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN));
+                        for (Enumeration e = services.elements() ; e.hasMoreElements() ;) {
+                            DNSRecord rec = (DNSRecord)e.nextElement();
+                            if (!rec.isExpired(now)) {
+                                try {
+                                    out.addAnswer(rec, now);
+                                } catch (IOException ee) {
+                                    break;
+                                }
+                            }
+                        }
+                        send(out);
+                    } else {
+                        // After three queries, we can quit.
+                        cancel();
+                    };
+                } else if (state == DNSState.CANCELED) {
+                    cancel();
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+                close();
+            }
+        }
+    }
+    /**
+     * The ServiceInfoResolver queries up to three times consecutively for
+     * a service info, and then removes itself from the timer.
+     *
+     * The ServiceInfoResolver will run only if JmDNS is in state ANNOUNCED.
+     * REMIND: Prevent having multiple service resolvers for the same info in the
+     *         timer queue.
+     */
+    private class ServiceInfoResolver extends TimerTask {
+        /**
+         * Counts the number of queries being sent.
+         */
+        int count = 0;
+        private ServiceInfo info;
+        public ServiceInfoResolver(ServiceInfo info) {
+            this.info = info;
+            info.dns = JmDNS.this;
+            addListener(info, new DNSQuestion(info.getQualifiedName(), DNSConstants.TYPE_ANY, DNSConstants.CLASS_IN));
+        }
+        public void start() {
+            timer.schedule(this, DNSConstants.QUERY_WAIT_INTERVAL, DNSConstants.QUERY_WAIT_INTERVAL);
+        }
+        
+        public void run() {
+            try {
+                if (state == DNSState.ANNOUNCED) {
+                    if (count++ < 3 && ! info.hasData()) {
+                        long now = System.currentTimeMillis();
+                        DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
+                        out.addQuestion(new DNSQuestion(info.getQualifiedName(), DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN));
+                        out.addQuestion(new DNSQuestion(info.getQualifiedName(), DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN));
+                        if (info.server != null) {
+                            out.addQuestion(new DNSQuestion(info.server, DNSConstants.TYPE_A, DNSConstants.CLASS_IN));
+                        }
+                        out.addAnswer((DNSRecord) cache.get(info.getQualifiedName(), DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN), now);
+                        out.addAnswer((DNSRecord) cache.get(info.getQualifiedName(), DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN), now);
+                        if (info.server != null) {
+                            out.addAnswer((DNSRecord) cache.get(info.server, DNSConstants.TYPE_A, DNSConstants.CLASS_IN), now);
+                        }
+                        send(out);
+                    } else {
+                        // After three queries, we can quit.
+                        cancel();
+                        removeListener(info);
+                    };
+                } else if (state == DNSState.CANCELED) {
+                    cancel();
+                    removeListener(info);
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+                close();
+            }
+        }
+    }
+    /**
+     * The Canceler sends two announces with TTL=0 for the specified services.
+     */
+    private class Canceler extends TimerTask {
+        /**
+         * Counts the number of announces being sent.
+         */
+        int count = 0;
+        /**
+         * The services that need cancelling.
+         * Note: We have to use a local variable here, because the services
+         * that are canceled, are removed immediately from variable JmDNS.services.
+         */
+        private ServiceInfo[] infos;
+        /**
+         * We call notifyAll() on the lock object, when we have canceled the
+         * service infos.
+         * This is used by method JmDNS.unregisterService() and 
+         * JmDNS.unregisterAllServices, to ensure that the JmDNS 
+         * socket stays open until the Canceler has canceled all services.
+         *
+         * Note: We need this lock, because ServiceInfos do the transition from
+         * state ANNOUNCED to state CANCELED before we get here. We could get 
+         * rid of this lock, if we added a state named CANCELLING to DNSState.
+         */
+        Object lock;
+        int ttl = 0;
+        public Canceler(ServiceInfo info, Object lock) {
+            this.infos = new ServiceInfo[] {info};
+            this.lock = lock;
+            addListener(info, new DNSQuestion(info.getQualifiedName(), DNSConstants.TYPE_ANY, DNSConstants.CLASS_IN));
+        }
+        public Canceler(ServiceInfo[] infos, Object lock) {
+            this.infos = infos;
+            this.lock = lock;
+        }
+        public void start() {
+            timer.schedule(this, 0, DNSConstants.ANNOUNCE_WAIT_INTERVAL);
+        }
+        
+        public void run() {
+            try {
+                if (++count < 3) {
+                    if (debug > 1) System.out.println("JmDNS canceling service");
+                    // announce the service
+                    //long now = System.currentTimeMillis();
+                    DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
+                    for (int i=0; i < infos.length; i++) {
+                        ServiceInfo info = infos[i];
+                        out.addAnswer(new DNSRecord.Pointer(info.type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, ttl, info.getQualifiedName()), 0);
+                        out.addAnswer(new DNSRecord.Service(info.getQualifiedName(), DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN, ttl, info.priority, info.weight, info.port, host.name), 0);
+                        out.addAnswer(new DNSRecord.Text(info.getQualifiedName(), DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN, ttl, info.text), 0);
+                        out.addAnswer(host, 0);
+                    }
+                    send(out);
+                } else {
+                    // After three successful announcements, we are finished.
+                    synchronized (lock) {
+                        lock.notifyAll();
+                    }
+                    cancel();
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+                close();
+            }
+        }
+    }
+    
+    // REMIND: Why is this not an anonymous inner class?
+    /**
+     * Shutdown operations.
+     */
+    private class Shutdown implements Runnable {
+        public void run() {
+            shutdown = null;
+            close();
+        }
+    }
+    
+    
+    
+    
+    /**
+     * Close down jmdns. Release all resources and unregister all services.
+     */
+    public synchronized void close() {
+        if (state != DNSState.CANCELED) {
+            
+            // remove the shutdown hook
+            if (shutdown != null) {
+                Runtime.getRuntime().removeShutdownHook(shutdown);
+            }
+            
+            unregisterAllServices();
+            disposeServiceCollectors();
+            
+            // Stop JmDNS
+            state = DNSState.CANCELED;
+            
+            // Stop the timer
+            timer.cancel();
+            
+            // close socket
+            try {
+                socket.leaveGroup(group);
+                socket.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
+    }
+    
+    /**
+     * List cache entries, for debugging only.
+     */
+    void print() {
+        System.out.println("---- cache ----");
+        cache.print();
+        System.out.println();
+    }
+    /**
+     * List Services and serviceTypes.
+     * Debugging Only
+     **/
+    
+    public void printServices() {
+        Enumeration k;
+        System.err.println("---- Services -----");
+        if(services != null) {
+            k = services.keys();
+            while(k.hasMoreElements()) {
+                String key = (String)k.nextElement();
+                System.err.println("Service: " + key +": " + services.get(key));
+            }
+        }
+        System.err.println("---- Types ----");
+        if(serviceTypes!=null) {
+            k = serviceTypes.keys();
+            while(k.hasMoreElements()) {
+                String key = (String)k.nextElement();
+                System.err.println("Type: " + key +": " + serviceTypes.get(key));
+            }
+        }
+        System.err.println("");
+        
+    }
+    
+    /**
+     * Returns a list of service infos of the specified type.
+     *
+     * @param type Service type name, such as <code>_http._tcp.local.</code>.
+     * @return An array of service instance names.
+     */
+    public ServiceInfo[] list(String type) {
+        // Implementation note: The first time a list for a given type is
+        // requested, a ServiceCollector is created which collects service
+        // infos. This greatly speeds up the performance of subsequent calls
+        // to this method. The caveats are, that 1) the first call to this method
+        // for a given type is slow, and 2) we spawn a ServiceCollector
+        // instance for each service type which increases network traffic a
+        // little.
+        
+        ServiceCollector collector;
+        
+        boolean newCollectorCreated;
+        synchronized (serviceCollectors) {
+            collector = (ServiceCollector) serviceCollectors.get(type);
+            if (collector == null) {
+                collector = new ServiceCollector(type);
+                serviceCollectors.put(type, collector);
+                addServiceListener(type, collector);
+                newCollectorCreated = true;
+            } else {
+                newCollectorCreated = false;
+            }
+        }
+        
+        // After creating a new ServiceCollector, we collect service infos for
+        // 200 milliseconds. This should be enough time, to get some service
+        // infos from the network.
+        if (newCollectorCreated) {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {}
+        }
+        
+        return collector.list();
+    }
+    
+    /**
+     * This method disposes all ServiceCollector instances which have been
+     * created by calls to method <code>list(type)</code>.
+     *
+     * @see #list
+     */
+    private void disposeServiceCollectors() {
+        synchronized (serviceCollectors) {
+            for (Iterator i=serviceCollectors.values().iterator(); i.hasNext(); ) {
+                ServiceCollector collector = (ServiceCollector) i.next();
+                removeServiceListener(collector.type, collector);
+            }
+            serviceCollectors.clear();
+        }
+    }
+    
+    /**
+     * Instances of ServiceCollector are used internally to speed up the
+     * performance of method <code>list(type)</code>.
+     *
+     * @see #list
+     */
+    private static class ServiceCollector implements ServiceListener {
+        /**
+         * A set of collected service instance names.
+         */
+        private Hashtable infos = new Hashtable();
+        
+        public String type;
+        public ServiceCollector(String type) {
+            this.type = type;
+        }
+        
+        /** A service has been added. */
+        public void serviceAdded(ServiceEvent event) {
+            event.getDNS().requestServiceInfo(event.getType(), event.getName(), 0);
+            
+        }
+        /** A service has been removed. */
+        public void serviceRemoved(ServiceEvent event) {
+            infos.remove(event.getName());
+        }
+        
+        /**
+         * A service hase been resolved. Its details are now available in the
+         * ServiceInfo record.
+         */
+        public void serviceResolved(ServiceEvent event) {
+            infos.put(event.getName(), event.getInfo());
+        }
+        
+        /**
+         * Returns an array of all service infos which have been collected by this
+         * ServiceCollector.
+         */
+        public ServiceInfo[] list() {
+            return (ServiceInfo[]) infos.values().toArray(new ServiceInfo[infos.size()]);
+        }
+    };
+    
+    private static String toUnqualifiedName(String type, String qualifiedName) {
+        if (qualifiedName.endsWith(type)) {
+            return qualifiedName.substring(0, qualifiedName.length() - type.length() - 1);
+        } else {
+            return qualifiedName;
+        }
+    }
 }

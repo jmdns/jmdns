@@ -8,7 +8,7 @@
 <property name="src" value="./src" /> 
 <property name="dest" value="./classes"/>
 <property name="doc" value="./docs"/>
-<property name="version" value="0.2"/>
+<property name="version" value="0.4.2"/>
 
 <!-- Configure custom Ant tasks for the Manager application -->
 <path id="jmdns.classpath">
@@ -22,6 +22,7 @@
   <echo message="  ant TARGET where TARGET is one of the following:"/>
   <echo message="      build   --- Compiles the JmDNS sources. Including the tools"/>
   <echo message="      tools   --- Compiles the tools: The browser and main class"/>
+  <echo message="      samples --- Compiles the samples in the samples package"/>
   <echo message="      jar     --- Creates the jmdns.jar file "/>
   <echo message="      javadoc --- Creates the javadoc docs "/>
   <echo message="      release --- Creates a release "/>
@@ -45,6 +46,13 @@
 </javac>
 </target>
 
+<target name="samples" depends="build" description="Sample programs" >
+<javac srcdir="${src}" destdir="${dest}">
+ <include name="samples/*.java"/>
+ <classpath refid="jmdns.classpath"/>
+</javac>
+</target>
+
 <target name="jar" depends="build,tools" description="Jar the files">
 <jar destfile="lib/jmdns.jar"
      manifest="lib/jmdns.manifest"
@@ -57,10 +65,11 @@
         destdir="${doc}"
         author="true"
         version="true"
+        header="JmDNS ${version}"
         windowtitle="JmDNS">
  <fileset dir="${src}" defaultexcludes="yes">
-  <include name="javax/**/*"/>
-  <include name="com/**/*"/>
+  <include name="javax/**/*.java"/>
+  <include name="com/**/*.java"/>
  </fileset>
 
  <doctitle><![CDATA[<H1>JmDNS</h1>]]></doctitle>
@@ -91,6 +100,12 @@
   <fileset dir="docs" includes="**"/>
   <fileset dir="lib" includes="jmdns.jar"/>
   <fileset dir="." includes="jmdns-**"/>
+ </delete>
+ <delete>
+  <fileset defaultexcludes="false" dir=".">
+  <include name="**/.*"/>
+  <include name="**/*~"/>
+  </fileset>
  </delete>
 </target>
 
