@@ -165,7 +165,7 @@ public class JmDNS extends DNSConstants
     }
 
     /**
-     * Return the address of the interface to which this instance of Rendezvous is bound.
+     * Return the address of the interface to which this instance of JmDNS is bound.
      */
     public InetAddress getInterface() throws IOException
     {
