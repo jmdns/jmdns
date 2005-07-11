@@ -16,18 +16,23 @@
 
 package javax.jmdns;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import java.util.logging.*;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Parse an incoming DNS message into its components.
  *
+ * @version %I%, %G%
  * @author	Arthur van Hoff, Werner Randelshofer, Pierre Frisch
- * @version 	%I%, %G%
  */
-final class DNSIncoming {
+final class DNSIncoming
+{
     private static Logger logger = Logger.getLogger(DNSIncoming.class.toString());
     // Implementation note: This vector should be immutable.
     // If a client of DNSIncoming changes the contents of this vector,
@@ -39,52 +44,58 @@ final class DNSIncoming {
     private int off;
     private int len;
     private byte data[];
-    
+
     int id;
     private int flags;
     private int numQuestions;
     int numAnswers;
     private int numAuthorities;
     private int numAdditionals;
-	private long receivedTime ;
-    
+    private long receivedTime;
+
     List questions;
     List answers;
-    
+
     /**
      * Parse a message from a datagram packet.
      */
-    DNSIncoming(DatagramPacket packet) throws IOException {
+    DNSIncoming(DatagramPacket packet) throws IOException
+    {
         this.packet = packet;
         this.data = packet.getData();
         this.len = packet.getLength();
         this.off = packet.getOffset();
         this.questions = Collections.EMPTY_LIST;
         this.answers = Collections.EMPTY_LIST;
-		this.receivedTime = System.currentTimeMillis();
-        
-        try {
+        this.receivedTime = System.currentTimeMillis();
+
+        try
+        {
             id = readUnsignedShort();
             flags = readUnsignedShort();
             numQuestions = readUnsignedShort();
             numAnswers = readUnsignedShort();
             numAuthorities = readUnsignedShort();
             numAdditionals = readUnsignedShort();
-            
+
             // parse questions
-            if (numQuestions > 0) {
+            if (numQuestions > 0)
+            {
                 questions = Collections.synchronizedList(new ArrayList(numQuestions));
-                for (int i = 0 ; i < numQuestions ; i++) {
+                for (int i = 0; i < numQuestions; i++)
+                {
                     DNSQuestion question = new DNSQuestion(readName(), readUnsignedShort(), readUnsignedShort());
                     questions.add(question);
                 }
             }
-            
+
             // parse answers
             int n = numAnswers + numAuthorities + numAdditionals;
-            if (n > 0) {
+            if (n > 0)
+            {
                 answers = Collections.synchronizedList(new ArrayList(n));
-                for (int i = 0 ; i < n ; i++) {
+                for (int i = 0; i < n; i++)
+                {
                     String domain = readName();
                     int type = readUnsignedShort();
                     int clazz = readUnsignedShort();
@@ -92,8 +103,9 @@ final class DNSIncoming {
                     int len = readUnsignedShort();
                     int end = off + len;
                     DNSRecord rec = null;
-                    
-                    switch (type) {
+
+                    switch (type)
+                    {
                         case DNSConstants.TYPE_A:		// IPv4
                         case DNSConstants.TYPE_AAAA:	// IPv6 FIXME [PJYF Oct 14 2004] This has not been tested
                             rec = new DNSRecord.Address(domain, type, clazz, ttl, readBytes(off, len));
@@ -107,87 +119,123 @@ final class DNSIncoming {
                             break;
                         case DNSConstants.TYPE_SRV:
                             rec = new DNSRecord.Service(domain, type, clazz, ttl,
-                            readUnsignedShort(), readUnsignedShort(), readUnsignedShort(), readName());
+                                readUnsignedShort(), readUnsignedShort(), readUnsignedShort(), readName());
                             break;
                         case DNSConstants.TYPE_HINFO:
                             // Maybe we should do something with those
                             break;
                         default :
-                            logger.finer("DNSIncoming() unknown type:"+type);
+                            logger.finer("DNSIncoming() unknown type:" + type);
                             break;
                     }
-                    
-                    if (rec != null) {
+
+                    if (rec != null)
+                    {
                         // Add a record, if we were able to create one.
                         answers.add(rec);
-                    } else {
+                    }
+                    else
+                    {
                         // Addjust the numbers for the skipped record
-                        if (answers.size() < numAnswers) {
+                        if (answers.size() < numAnswers)
+                        {
                             numAnswers--;
-                        } else if (answers.size() < numAnswers + numAuthorities) {
-                            numAuthorities--;
-                        } else if (answers.size() < numAnswers + numAuthorities + numAdditionals) {
-                            numAdditionals--;
+                        }
+                        else
+                        {
+                            if (answers.size() < numAnswers + numAuthorities)
+                            {
+                                numAuthorities--;
+                            }
+                            else
+                            {
+                                if (answers.size() < numAnswers + numAuthorities + numAdditionals)
+                                {
+                                    numAdditionals--;
+                                }
+                            }
                         }
                     }
                     off = end;
                 }
             }
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "DNSIncoming() dump " + print(true) + "\n exception " , e);
+        }
+        catch (IOException e)
+        {
+            logger.log(Level.WARNING, "DNSIncoming() dump " + print(true) + "\n exception ", e);
             throw e;
         }
     }
-    
+
     /**
      * Check if the message is a query.
      */
-    boolean isQuery() {
+    boolean isQuery()
+    {
         return (flags & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_QUERY;
     }
+
     /**
      * Check if the message is truncated.
      */
-    boolean isTruncated() {
+    boolean isTruncated()
+    {
         return (flags & DNSConstants.FLAGS_TC) != 0;
     }
-    
+
     /**
      * Check if the message is a response.
      */
-    boolean isResponse() {
+    boolean isResponse()
+    {
         return (flags & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_RESPONSE;
     }
-    
-    private int get(int off) throws IOException {
-        if ((off < 0) || (off >= len)) {
+
+    private int get(int off) throws IOException
+    {
+        if ((off < 0) || (off >= len))
+        {
             throw new IOException("parser error: offset=" + off);
         }
         return data[off] & 0xFF;
     }
-    
-    private int readUnsignedShort() throws IOException {
+
+    private int readUnsignedShort() throws IOException
+    {
         return (get(off++) << 8) + get(off++);
     }
-    
-    private int readInt() throws IOException {
+
+    private int readInt() throws IOException
+    {
         return (readUnsignedShort() << 16) + readUnsignedShort();
     }
-    
-    private byte[] readBytes(int off, int len) throws IOException {
+
+    private byte[] readBytes(int off, int len) throws IOException
+    {
         byte bytes[] = new byte[len];
         System.arraycopy(data, off, bytes, 0, len);
         return bytes;
     }
-    
-    private void readUTF(StringBuffer buf, int off, int len) throws IOException {
-        for (int end = off + len ; off < end ; ) {
+
+    private void readUTF(StringBuffer buf, int off, int len) throws IOException
+    {
+        for (int end = off + len; off < end;)
+        {
             int ch = get(off++);
-            switch (ch >> 4) {
-                case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+            switch (ch >> 4)
+            {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
                     // 0xxxxxxx
                     break;
-                case 12: case 13:
+                case 12:
+                case 13:
                     // 110x xxxx   10xx xxxx
                     ch = ((ch & 0x1F) << 6) | (get(off++) & 0x3F);
                     break;
@@ -200,22 +248,26 @@ final class DNSIncoming {
                     ch = ((ch & 0x3F) << 4) | (get(off++) & 0x0f);
                     break;
             }
-            buf.append((char)ch);
+            buf.append((char) ch);
         }
     }
-    
-    private String readName() throws IOException {
+
+    private String readName() throws IOException
+    {
         StringBuffer buf = new StringBuffer();
         int off = this.off;
         int next = -1;
         int first = off;
-        
-        while (true) {
+
+        while (true)
+        {
             int len = get(off++);
-            if (len == 0) {
+            if (len == 0)
+            {
                 break;
             }
-            switch (len & 0xC0) {
+            switch (len & 0xC0)
+            {
                 case 0x00:
                     //buf.append("[" + off + "]");
                     readUTF(buf, off, len);
@@ -224,11 +276,13 @@ final class DNSIncoming {
                     break;
                 case 0xC0:
                     //buf.append("<" + (off - 1) + ">");
-                    if (next < 0) {
+                    if (next < 0)
+                    {
                         next = off + 1;
                     }
                     off = ((len & 0x3F) << 8) | get(off++);
-                    if (off >= first) {
+                    if (off >= first)
+                    {
                         throw new IOException("bad domain name: possible circular name detected");
                     }
                     first = off;
@@ -240,40 +294,57 @@ final class DNSIncoming {
         this.off = (next >= 0) ? next : off;
         return buf.toString();
     }
-    
+
     /**
      * Debugging.
      */
-    String print(boolean dump) {
+    String print(boolean dump)
+    {
         StringBuffer buf = new StringBuffer();
         buf.append(toString() + "\n");
-        for (Iterator iterator = questions.iterator() ; iterator.hasNext() ;) {
+        for (Iterator iterator = questions.iterator(); iterator.hasNext();)
+        {
             buf.append("    ques:" + iterator.next() + "\n");
         }
-        int count=0;
-        for (Iterator iterator = answers.iterator() ; iterator.hasNext() ;count++) {
-            if (count < numAnswers) {
+        int count = 0;
+        for (Iterator iterator = answers.iterator(); iterator.hasNext(); count++)
+        {
+            if (count < numAnswers)
+            {
                 buf.append("    answ:");
-            } else if (count < numAnswers + numAuthorities) {
-                buf.append("    auth:");
-            } else {
-                buf.append("    addi:");
+            }
+            else
+            {
+                if (count < numAnswers + numAuthorities)
+                {
+                    buf.append("    auth:");
+                }
+                else
+                {
+                    buf.append("    addi:");
+                }
             }
             buf.append(iterator.next() + "\n");
         }
-        if (dump) {
-            for (int off = 0, len = packet.getLength() ; off < len ; off += 32) {
+        if (dump)
+        {
+            for (int off = 0, len = packet.getLength(); off < len; off += 32)
+            {
                 int n = Math.min(32, len - off);
-                if (off < 10) {
+                if (off < 10)
+                {
                     buf.append(' ');
                 }
-                if (off < 100) {
+                if (off < 100)
+                {
                     buf.append(' ');
                 }
                 buf.append(off);
                 buf.append(':');
-                for (int i = 0 ; i < n ; i++) {
-                    if ((i % 8) == 0) {
+                for (int i = 0; i < n; i++)
+                {
+                    if ((i % 8) == 0)
+                    {
                         buf.append(' ');
                     }
                     buf.append(Integer.toHexString((data[off + i] & 0xF0) >> 4));
@@ -281,18 +352,21 @@ final class DNSIncoming {
                 }
                 buf.append("\n");
                 buf.append("    ");
-                for (int i = 0 ; i < n ; i++) {
-                    if ((i % 8) == 0) {
+                for (int i = 0; i < n; i++)
+                {
+                    if ((i % 8) == 0)
+                    {
                         buf.append(' ');
                     }
                     buf.append(' ');
                     int ch = data[off + i] & 0xFF;
-                    buf.append(((ch > ' ') && (ch < 127)) ? (char)ch : '.');
+                    buf.append(((ch > ' ') && (ch < 127)) ? (char) ch : '.');
                 }
                 buf.append("\n");
-                
+
                 // limit message size
-                if (off+32 >= 256) {
+                if (off + 32 >= 256)
+                {
                     buf.append("....\n");
                     break;
                 }
@@ -300,80 +374,104 @@ final class DNSIncoming {
         }
         return buf.toString();
     }
-    
-    public String toString() {
+
+    public String toString()
+    {
         StringBuffer buf = new StringBuffer();
         buf.append(isQuery() ? "dns[query," : "dns[response,");
-        if (packet.getAddress() != null) buf.append(packet.getAddress().getHostAddress());
+        if (packet.getAddress() != null)
+        {
+            buf.append(packet.getAddress().getHostAddress());
+        }
         buf.append(':');
         buf.append(packet.getPort());
         buf.append(",len=");
         buf.append(packet.getLength());
         buf.append(",id=0x");
         buf.append(Integer.toHexString(id));
-        if (flags != 0) {
+        if (flags != 0)
+        {
             buf.append(",flags=0x");
             buf.append(Integer.toHexString(flags));
-            if ((flags & DNSConstants.FLAGS_QR_RESPONSE) != 0) {
+            if ((flags & DNSConstants.FLAGS_QR_RESPONSE) != 0)
+            {
                 buf.append(":r");
             }
-            if ((flags & DNSConstants.FLAGS_AA) != 0) {
+            if ((flags & DNSConstants.FLAGS_AA) != 0)
+            {
                 buf.append(":aa");
             }
-            if ((flags & DNSConstants.FLAGS_TC) != 0) {
+            if ((flags & DNSConstants.FLAGS_TC) != 0)
+            {
                 buf.append(":tc");
             }
         }
-        if (numQuestions > 0) {
+        if (numQuestions > 0)
+        {
             buf.append(",questions=");
             buf.append(numQuestions);
         }
-        if (numAnswers > 0) {
+        if (numAnswers > 0)
+        {
             buf.append(",answers=");
             buf.append(numAnswers);
         }
-        if (numAuthorities > 0) {
+        if (numAuthorities > 0)
+        {
             buf.append(",authorities=");
             buf.append(numAuthorities);
         }
-        if (numAdditionals > 0) {
+        if (numAdditionals > 0)
+        {
             buf.append(",additionals=");
             buf.append(numAdditionals);
         }
         buf.append("]");
         return buf.toString();
     }
-    
+
     /**
      * Appends answers to this Incoming.
-     * @exception InvalidArgumentException if this is not truncated, and
-     * that or this is not a query.
+     *
+     * @throws InvalidArgumentException if this is not truncated, and
+     *                                  that or this is not a query.
      */
-    void append(DNSIncoming that) {
-        if (this.isQuery() && this.isTruncated() && that.isQuery()) {
+    void append(DNSIncoming that)
+    {
+        if (this.isQuery() && this.isTruncated() && that.isQuery())
+        {
             this.questions.addAll(that.questions);
             this.numQuestions += that.numQuestions;
-            
-			if (Collections.EMPTY_LIST.equals(answers)) answers = Collections.synchronizedList(new ArrayList());
-			
-            if (that.numAnswers > 0) {
+
+            if (Collections.EMPTY_LIST.equals(answers))
+            {
+                answers = Collections.synchronizedList(new ArrayList());
+            }
+
+            if (that.numAnswers > 0)
+            {
                 this.answers.addAll(this.numAnswers, that.answers.subList(0, that.numAnswers));
                 this.numAnswers += that.numAnswers;
             }
-            if (that.numAuthorities > 0) {
+            if (that.numAuthorities > 0)
+            {
                 this.answers.addAll(this.numAnswers + this.numAuthorities, that.answers.subList(that.numAnswers, that.numAnswers + that.numAuthorities));
                 this.numAuthorities += that.numAuthorities;
             }
-            if (that.numAdditionals > 0) {
+            if (that.numAdditionals > 0)
+            {
                 this.answers.addAll(that.answers.subList(that.numAnswers + that.numAuthorities, that.numAnswers + that.numAuthorities + that.numAdditionals));
                 this.numAdditionals += that.numAdditionals;
             }
-        } else {
+        }
+        else
+        {
             throw new IllegalArgumentException();
         }
     }
-	
-	int elapseSinceArrival() {
-		return (int)(System.currentTimeMillis() - receivedTime);
-	}
+
+    int elapseSinceArrival()
+    {
+        return (int) (System.currentTimeMillis() - receivedTime);
+    }
 }

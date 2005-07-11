@@ -17,15 +17,17 @@
 package javax.jmdns;
 
 import java.util.EventObject;
-import java.util.logging.*;
+import java.util.logging.Logger;
+
 /**
  * ServiceEvent.
  *
- * @author  Werner Randelshofer
- * @version 	%I%, %G%
+ * @author Werner Randelshofer
+ * @version %I%, %G%
  */
-public class ServiceEvent extends EventObject {
-	private static Logger logger = Logger.getLogger(ServiceEvent.class.toString());
+public class ServiceEvent extends EventObject
+{
+    private static Logger logger = Logger.getLogger(ServiceEvent.class.toString());
     /**
      * The type name of the service.
      */
@@ -40,54 +42,60 @@ public class ServiceEvent extends EventObject {
      * This is also null, if the event was fired to a service type listener.
      */
     private ServiceInfo info;
-    
+
     /**
      * Creates a new instance.
      *
      * @param source the JmDNS instance which originated the event.
-     * @param type the type name of the service.
-     * @param name the instance name of the service.
-     * @param info the service info record, or null if the service could be be resolved.
+     * @param type   the type name of the service.
+     * @param name   the instance name of the service.
+     * @param info   the service info record, or null if the service could be be resolved.
      */
-    public ServiceEvent(JmDNS source, String type, String name, ServiceInfo info) {
+    public ServiceEvent(JmDNS source, String type, String name, ServiceInfo info)
+    {
         super(source);
         this.type = type;
         this.name = name;
         this.info = info;
     }
-    
+
     /**
      * Returns the JmDNS instance which originated the event.
      */
-    public JmDNS getDNS() {
+    public JmDNS getDNS()
+    {
         return (JmDNS) getSource();
     }
-    
+
     /**
      * Returns the fully qualified type of the service.
      */
-    public String getType() {
+    public String getType()
+    {
         return type;
     }
-    
+
     /**
      * Returns the instance name of the service.
      * Always returns null, if the event is sent to a service type listener.
      */
-    public String getName() {
+    public String getName()
+    {
         return name;
     }
-    
+
     /**
      * Returns the service info record, or null if the service could not be
      * resolved.
      * Always returns null, if the event is sent to a service type listener.
      */
-    public ServiceInfo getInfo() {
+    public ServiceInfo getInfo()
+    {
         return info;
     }
 
-    public String toString() {
+    public String toString()
+    {
         StringBuffer buf = new StringBuffer();
         buf.append("<" + getClass().getName() + "> ");
         buf.append(super.toString());
@@ -99,5 +107,5 @@ public class ServiceEvent extends EventObject {
         buf.append(getInfo());
         return buf.toString();
     }
-	
+
 }

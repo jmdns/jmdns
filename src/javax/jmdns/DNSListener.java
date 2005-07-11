@@ -16,15 +16,16 @@ package javax.jmdns;
 
 // REMIND: Listener should follow Java idiom for listener or have a different
 //         name.
+
 /**
  * DNSListener.
  * Listener for record updates.
  *
- *
- * @author  Werner Randelshofer
+ * @author Werner Randelshofer
  * @version 1.0  May 22, 2004  Created.
  */
-interface DNSListener {
+interface DNSListener
+{
     /**
      * Update a DNS record.
      */

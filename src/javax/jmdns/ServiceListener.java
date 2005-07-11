@@ -21,30 +21,34 @@ import java.util.EventListener;
 /**
  * Listener for service updates.
  *
+ * @version %I%, %G%
  * @author	Arthur van Hoff, Werner Randelshofer
- * @version 	%I%, %G%
  */
-public interface ServiceListener extends EventListener {
+public interface ServiceListener extends EventListener
+{
     /**
      * A service has been added.
+     *
      * @param event The ServiceEvent providing the name and fully qualified type
-     * of the service.
+     *              of the service.
      */
     void serviceAdded(ServiceEvent event);
 
     /**
      * A service has been removed.
+     *
      * @param event The ServiceEvent providing the name and fully qualified type
-     * of the service.
+     *              of the service.
      */
     void serviceRemoved(ServiceEvent event);
 
     /**
-     * A service has been resolved. Its details are now available in the 
+     * A service has been resolved. Its details are now available in the
      * ServiceInfo record.
-     * @param event The ServiceEvent providing the name, the fully qualified 
-     * type of the service, and the service info record, or null if the service 
-     * could not be resolved.
+     *
+     * @param event The ServiceEvent providing the name, the fully qualified
+     *              type of the service, and the service info record, or null if the service
+     *              could not be resolved.
      */
     void serviceResolved(ServiceEvent event);
 }
