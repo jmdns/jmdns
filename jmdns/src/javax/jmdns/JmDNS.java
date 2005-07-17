@@ -30,7 +30,8 @@ import java.util.logging.Logger;
  * mDNS implementation in Java.
  *
  * @version %I%, %G%
- * @author	Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch
+ * @author	Arthur van Hoff, Rick Blair, Jeff Sonstein,
+ * Werner Randelshofer, Pierre Frisch, Scott Lewis
  */
 public class JmDNS
 {
@@ -49,6 +50,11 @@ public class JmDNS
      */
     private MulticastSocket socket;
 
+    /**
+     * Used to fix live lock problem on unregester.
+     */
+
+     protected boolean closed = false;
 
     /**
      * Holds instances of JmDNS.DNSListener.
@@ -676,21 +682,22 @@ public class JmDNS
         {
             ((ServiceInfo) iterator.next()).cancel();
         }
+
+
         Object lock = new Object();
         new Canceler(list, lock).start();
-
-        // Remind: We get a livelock here, if the Canceler does not run!
-        try
-        {
-            synchronized (lock)
-            {
-                lock.wait();
+              // Remind: We get a livelock here, if the Canceler does not run!
+        try {
+            synchronized (lock) {
+                if (!closed) {
+                    lock.wait();
+                }
             }
-        }
-        catch (InterruptedException e)
-        {
+        } catch (InterruptedException e) {
             // empty
         }
+
+
     }
 
     /**
@@ -2229,6 +2236,7 @@ public class JmDNS
                     // After three successful announcements, we are finished.
                     synchronized (lock)
                     {
+                        closed=true;
                         lock.notifyAll();
                     }
                     cancel();
