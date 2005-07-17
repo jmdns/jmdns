@@ -39,7 +39,7 @@ public class JmDNS
     /**
      * The version of JmDNS.
      */
-    public static String VERSION = "0.4.2";
+    public static String VERSION = "2.0";
 
     /**
      * This is the multicast group, we are listening to for multicast DNS messages.

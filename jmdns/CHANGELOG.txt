@@ -1,3 +1,14 @@
+CHANGELOG 16 July 2005  Rick Blair
+
+1. Added Apache License Version 2.0
+
+2. Added shutdown fix as identifed by Scott Lewis
+
+3. Added copyright notice.
+
+4. General code cleanup.
+
+
 CHANGELOG  30 November 2004 rawcoder
 
 1. IPv6 support
