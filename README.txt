@@ -14,6 +14,11 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+
+//This library is now licensed under the Apache License Version 2.0  Please 
+//see the file NOTICE.  
+
+
 Arthur van Hoff
 avh@strangeberry.com
 
@@ -24,7 +29,7 @@ rickblair@mac.com
 
 This is an implemenation of multi-cast DNS in Java. It currently
 supports service discovery and service registration. It is fully
-interoperable with Apple's Rendezvous.
+interoperable with Apple's Rendezvous. 
 
 
 
@@ -101,4 +106,4 @@ To print debugging output specify -d as the first argument.
 - fixed unicast queries
 - fixed property handling
 - use the hostname instead of the service name is address resolution
-
+- Added Apache License.
