@@ -12,6 +12,10 @@
  * with Werner Randelshofer.
  */
 
+//Copyright 2003-2005 Arthur van Hoff, Rick Blair
+//Licensed under Apache License version 2.0
+//Original license LGPL
+
 package javax.jmdns;
 
 import java.util.ArrayList;
@@ -20,7 +24,7 @@ import java.util.logging.Logger;
 /**
  * DNSState defines the possible states for services registered with JmDNS.
  *
- * @author Werner Randelshofer
+ * @author Werner Randelshofer, Rick Blair
  * @version 1.0  May 23, 2004  Created.
  */
 public class DNSState implements Comparable
