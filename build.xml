@@ -1,5 +1,5 @@
  <!-- Build the Fulfillment stuff -->
-<project name="jmdns" default="build" basedir="."> 
+<project name="jmdns" default="help" basedir="."> 
 <target name="init"> 
 <tstamp/> 
 </target>
