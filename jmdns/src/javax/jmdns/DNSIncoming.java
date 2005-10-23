@@ -423,8 +423,7 @@ final class DNSIncoming
     /**
      * Appends answers to this Incoming.
      *
-     * @throws InvalidArgumentException if this is not truncated, and
-     *                                  that or this is not a query.
+     * @throws IllegalArgumentException If not a query or if Truncated.
      */
     void append(DNSIncoming that)
     {
