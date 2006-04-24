@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  * Parse an incoming DNS message into its components.
  *
  * @version %I%, %G%
- * @author	Arthur van Hoff, Werner Randelshofer, Pierre Frisch
+ * @author	Arthur van Hoff, Werner Randelshofer, Pierre Frisch, Daniel Bobbert
  */
 final class DNSIncoming
 {
@@ -429,9 +429,14 @@ final class DNSIncoming
     {
         if (this.isQuery() && this.isTruncated() && that.isQuery())
         {
-            this.questions.addAll(that.questions);
-            this.numQuestions += that.numQuestions;
+            if (that.numQuestions > 0) {
+                if (Collections.EMPTY_LIST.equals(this.questions))
+                    this.questions = Collections.synchronizedList(new ArrayList(that.numQuestions));
 
+                this.questions.addAll(that.questions);
+                this.numQuestions += that.numQuestions;
+            }
+            
             if (Collections.EMPTY_LIST.equals(answers))
             {
                 answers = Collections.synchronizedList(new ArrayList());
