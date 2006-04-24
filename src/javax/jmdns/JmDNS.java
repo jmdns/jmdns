@@ -1914,7 +1914,7 @@ public class JmDNS
                             }
                             send(out);
                         }
-                        cancel();
+                        this.cancel();
                     }
                     catch (Throwable e)
                     {
@@ -1952,7 +1952,7 @@ public class JmDNS
             {
                 if (state == DNSState.ANNOUNCED)
                 {
-                    if (++count < 3)
+                    if (count++ < 3)
                     {
                         logger.finer("run() JmDNS querying type");
                         DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
@@ -1966,15 +1966,14 @@ public class JmDNS
                     else
                     {
                         // After three queries, we can quit.
-                        cancel();
+                        this.cancel();
                     }
-                    ;
                 }
                 else
                 {
                     if (state == DNSState.CANCELED)
                     {
-                        cancel();
+                        this.cancel();
                     }
                 }
             }
@@ -2041,15 +2040,14 @@ public class JmDNS
                     else
                     {
                         // After three queries, we can quit.
-                        cancel();
+                        this.cancel();
                     }
-                    ;
                 }
                 else
                 {
                     if (state == DNSState.CANCELED)
                     {
-                        cancel();
+                        this.cancel();
                     }
                 }
             }
@@ -2116,16 +2114,15 @@ public class JmDNS
                     else
                     {
                         // After three queries, we can quit.
-                        cancel();
+                        this.cancel();
                         removeListener(info);
                     }
-                    ;
                 }
                 else
                 {
                     if (state == DNSState.CANCELED)
                     {
-                        cancel();
+                        this.cancel();
                         removeListener(info);
                     }
                 }
@@ -2141,6 +2138,10 @@ public class JmDNS
     /**
      * The Canceler sends two announces with TTL=0 for the specified services.
      */
+    /* TODO: Clarify whether 2 or 3 announces should be sent. The header says 2,
+    *  run() uses the (misleading) ++count < 3 (while all other tasks use count++ < 3)
+    *  and the comment in the else block in run() says: "After three successful..."
+    */
     private class Canceler extends TimerTask
     {
         /**
@@ -2228,7 +2229,7 @@ public class JmDNS
                         closed=true;
                         lock.notifyAll();
                     }
-                    cancel();
+                    this.cancel();
                 }
             }
             catch (Throwable e)
