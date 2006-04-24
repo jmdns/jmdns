@@ -325,7 +325,7 @@ public class ServiceInfo implements DNSListener
      */
     public String getURL(String protocol)
     {
-        String url = protocol + "://" + getAddress() + ":" + getPort();
+        String url = protocol + "://" + getHostAddress() + ":" + getPort();
         String path = getPropertyString("path");
         if (path != null)
         {
