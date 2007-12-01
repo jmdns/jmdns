@@ -16,7 +16,7 @@
 
 
 //This library is now licensed under the Apache License Version 2.0  Please 
-//see the file NOTICE.  
+//see the file NOTICE.txt.  
 
 
 Arthur van Hoff
