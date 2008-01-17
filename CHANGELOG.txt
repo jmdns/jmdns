@@ -1,6 +1,9 @@
 CHANGELOG 17 January 2008 Scott Cytacki
 1. Added eclipse project files.  Forced the eclipse project to use java 1.4
 
+2. Changed the eclipse project to store built files in eclipse-lib because lib was already
+   being used.
+
 CHANGELOG 16 July 2005  Rick Blair
 
 1. Added Apache License Version 2.0
