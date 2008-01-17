@@ -4,6 +4,11 @@ CHANGELOG 17 January 2008 Scott Cytacki
 2. Changed the eclipse project to store built files in eclipse-lib because lib was already
    being used.
 
+3. Added eclipse code formating configuration files. They should match follow the turbine 
+coding standards which have been used in this project: http://turbine.apache.org/common/code-standards.html
+Also this includes a minor formating clean up of JmDNS class.
+
+ 
 CHANGELOG 16 July 2005  Rick Blair
 
 1. Added Apache License Version 2.0
