@@ -22,7 +22,7 @@ import java.util.logging.Logger;
  */
 public class ServiceInfo implements DNSListener
 {
-    private static Logger logger = Logger.getLogger(ServiceInfo.class.toString());
+    private static Logger logger = Logger.getLogger(ServiceInfo.class.getName());
     public final static byte[] NO_VALUE = new byte[0];
     JmDNS dns;
     

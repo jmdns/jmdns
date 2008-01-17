@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  */
 abstract class DNSRecord extends DNSEntry
 {
-    private static Logger logger = Logger.getLogger(DNSRecord.class.toString());
+    private static Logger logger = Logger.getLogger(DNSRecord.class.getName());
     int ttl;
     private long created;
 
@@ -178,7 +178,7 @@ abstract class DNSRecord extends DNSEntry
      */
     static class Address extends DNSRecord
     {
-        private static Logger logger = Logger.getLogger(Address.class.toString());
+        private static Logger logger = Logger.getLogger(Address.class.getName());
         InetAddress addr;
 
         Address(String name, int type, int clazz, int ttl, InetAddress addr)
@@ -397,7 +397,7 @@ abstract class DNSRecord extends DNSEntry
      */
     static class Pointer extends DNSRecord
     {
-        private static Logger logger = Logger.getLogger(Pointer.class.toString());
+        private static Logger logger = Logger.getLogger(Pointer.class.getName());
         String alias;
 
         Pointer(String name, int type, int clazz, int ttl, String alias)
@@ -448,7 +448,7 @@ abstract class DNSRecord extends DNSEntry
 
     static class Text extends DNSRecord
     {
-        private static Logger logger = Logger.getLogger(Text.class.toString());
+        private static Logger logger = Logger.getLogger(Text.class.getName());
         byte text[];
 
         Text(String name, int type, int clazz, int ttl, byte text[])
@@ -517,7 +517,7 @@ abstract class DNSRecord extends DNSEntry
      */
     static class Service extends DNSRecord
     {
-        private static Logger logger = Logger.getLogger(Service.class.toString());
+        private static Logger logger = Logger.getLogger(Service.class.getName());
         int priority;
         int weight;
         int port;

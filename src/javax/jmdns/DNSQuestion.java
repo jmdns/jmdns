@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  */
 final class DNSQuestion extends DNSEntry
 {
-    private static Logger logger = Logger.getLogger(DNSQuestion.class.toString());
+    private static Logger logger = Logger.getLogger(DNSQuestion.class.getName());
 
     /**
      * Create a question.

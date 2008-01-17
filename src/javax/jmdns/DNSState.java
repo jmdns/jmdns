@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  */
 public class DNSState implements Comparable
 {
-    private static Logger logger = Logger.getLogger(DNSState.class.toString());
+    private static Logger logger = Logger.getLogger(DNSState.class.getName());
 
     private final String name;
 
