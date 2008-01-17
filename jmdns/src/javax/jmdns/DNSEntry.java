@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  */
 class DNSEntry
 {
-    private static Logger logger = Logger.getLogger(DNSEntry.class.toString());
+    private static Logger logger = Logger.getLogger(DNSEntry.class.getName());
     String key;
     String name;
     int type;

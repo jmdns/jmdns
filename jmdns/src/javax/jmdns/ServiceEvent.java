@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  */
 public class ServiceEvent extends EventObject
 {
-    private static Logger logger = Logger.getLogger(ServiceEvent.class.toString());
+    private static Logger logger = Logger.getLogger(ServiceEvent.class.getName());
     /**
      * The type name of the service.
      */

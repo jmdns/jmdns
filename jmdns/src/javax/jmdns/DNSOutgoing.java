@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  */
 final class DNSOutgoing
 {
-    private static Logger logger = Logger.getLogger(DNSOutgoing.class.toString());
+    private static Logger logger = Logger.getLogger(DNSOutgoing.class.getName());
     int id;
     int flags;
     private boolean multicast;

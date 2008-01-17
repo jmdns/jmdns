@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  */
 final class DNSIncoming
 {
-    private static Logger logger = Logger.getLogger(DNSIncoming.class.toString());
+    private static Logger logger = Logger.getLogger(DNSIncoming.class.getName());
     // Implementation note: This vector should be immutable.
     // If a client of DNSIncoming changes the contents of this vector,
     // we get undesired results. To fix this, we have to migrate to

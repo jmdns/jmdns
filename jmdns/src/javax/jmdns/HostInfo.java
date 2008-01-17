@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  */
 class HostInfo
 {
-    private static Logger logger = Logger.getLogger(HostInfo.class.toString());
+    private static Logger logger = Logger.getLogger(HostInfo.class.getName());
     protected String name;
     protected InetAddress address;
     protected NetworkInterface interfaze;

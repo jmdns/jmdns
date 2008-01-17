@@ -36,7 +36,7 @@ import java.util.logging.Logger;
  */
 public class JmDNS
 {
-    private static Logger logger = Logger.getLogger(JmDNS.class.toString());
+    private static Logger logger = Logger.getLogger(JmDNS.class.getName());
     /**
      * The version of JmDNS.
      */
@@ -2485,7 +2485,7 @@ public class JmDNS
      */
     private static class ServiceCollector implements ServiceListener
     {
-        private static Logger logger = Logger.getLogger(ServiceCollector.class.toString());
+        private static Logger logger = Logger.getLogger(ServiceCollector.class.getName());
         /**
          * A set of collected service instance names.
          */

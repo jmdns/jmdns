@@ -8,6 +8,15 @@ CHANGELOG 17 January 2008 Scott Cytacki
 coding standards which have been used in this project: http://turbine.apache.org/common/code-standards.html
 Also this includes a minor formating clean up of JmDNS class.
 
+4. Changed Logger.getLogger parameter to use class.getName instead of class.toString. This is because
+ class.toString returns for example "class javax.jmdns.JmDNS" while class.getName returns "javax.jmdns.JmDNS".
+ The "class " messes up the logging hierarchical structure.  This javadoc specifices the string should be 
+ dot separated: http://java.sun.com/j2se/1.5.0/docs/api/java/util/logging/Logger.html#getLogger(java.lang.String).
+ Also this post to the mailing list talks about this issue:
+ http://sourceforge.net/mailarchive/forum.php?thread_name=1196195175.2703.4.camel%40moya.kivasystems.com&forum_name=jmdns-discuss
+ In that case getCanonicalName was used but that is only in Java 1.5 and basically does the same thing
+ for normal classes. 
+
  
 CHANGELOG 16 July 2005  Rick Blair
 

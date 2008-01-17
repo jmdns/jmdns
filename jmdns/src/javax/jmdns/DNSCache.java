@@ -43,7 +43,7 @@ import java.util.logging.Logger;
  */
 class DNSCache
 {
-    private static Logger logger = Logger.getLogger(DNSCache.class.toString());
+    private static Logger logger = Logger.getLogger(DNSCache.class.getName());
     // Implementation note:
     // We might completely hide the existence of CacheNode's in a future version
     // of DNSCache. But this will require to implement two (inner) classes for
@@ -73,7 +73,7 @@ class DNSCache
      */
     public static class CacheNode
     {
-        private static Logger logger = Logger.getLogger(CacheNode.class.toString());
+        private static Logger logger = Logger.getLogger(CacheNode.class.getName());
         private DNSEntry value;
         private CacheNode next;
 
