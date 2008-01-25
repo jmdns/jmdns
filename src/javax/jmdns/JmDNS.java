@@ -1325,16 +1325,8 @@ public class JmDNS
                             out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
                         }
                         out.addQuestion(new DNSQuestion(localHost.getName(), DNSConstants.TYPE_ANY, DNSConstants.CLASS_IN));
-                        DNSRecord answer = localHost.getDNS4AddressRecord();
-                        if (answer != null)
-                        {
-                            out.addAuthorativeAnswer(answer);
-                        }
-                        answer = localHost.getDNS6AddressRecord();
-                        if (answer != null)
-                        {
-                            out.addAuthorativeAnswer(answer);
-                        }
+
+                        localHost.addAddressRecords(out, true);
                         advanceState();
                     }
                     // send probes for services
@@ -1472,16 +1464,7 @@ public class JmDNS
                     {
                         out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
                     }
-                    DNSRecord answer = localHost.getDNS4AddressRecord();
-                    if (answer != null)
-                    {
-                        out.addAnswer(answer, 0);
-                    }
-                    answer = localHost.getDNS6AddressRecord();
-                    if (answer != null)
-                    {
-                        out.addAnswer(answer, 0);
-                    }
+                    localHost.addAddressRecords(out, false);
                     advanceState();
                 }
                 // send announces for services
@@ -1506,9 +1489,7 @@ public class JmDNS
                             {
                                 out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
                             }
-                            out.addAnswer(new DNSRecord.Pointer(info.type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.getQualifiedName()), 0);
-                            out.addAnswer(new DNSRecord.Service(info.getQualifiedName(), DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.priority, info.weight, info.port, localHost.getName()), 0);
-                            out.addAnswer(new DNSRecord.Text(info.getQualifiedName(), DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.text), 0);
+                            info.addAnswers(out, DNSConstants.DNS_TTL, localHost);
                         }
                     }
                 }
@@ -1612,16 +1593,7 @@ public class JmDNS
                     {
                         out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
                     }
-                    DNSRecord answer = localHost.getDNS4AddressRecord();
-                    if (answer != null)
-                    {
-                        out.addAnswer(answer, 0);
-                    }
-                    answer = localHost.getDNS6AddressRecord();
-                    if (answer != null)
-                    {
-                        out.addAnswer(answer, 0);
-                    }
+                    localHost.addAddressRecords(out, false);
                     advanceState();
                 }
                 // send announces for services
@@ -1646,9 +1618,7 @@ public class JmDNS
                             {
                                 out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
                             }
-                            out.addAnswer(new DNSRecord.Pointer(info.type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.getQualifiedName()), 0);
-                            out.addAnswer(new DNSRecord.Service(info.getQualifiedName(), DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.priority, info.weight, info.port, localHost.getName()), 0);
-                            out.addAnswer(new DNSRecord.Text(info.getQualifiedName(), DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.text), 0);
+                            info.addAnswers(out, DNSConstants.DNS_TTL, localHost);
                         }
                     }
                 }
@@ -2219,19 +2189,9 @@ public class JmDNS
                     for (int i = 0; i < infos.length; i++)
                     {
                         ServiceInfo info = infos[i];
-                        out.addAnswer(new DNSRecord.Pointer(info.type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, ttl, info.getQualifiedName()), 0);
-                        out.addAnswer(new DNSRecord.Service(info.getQualifiedName(), DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN, ttl, info.priority, info.weight, info.port, localHost.getName()), 0);
-                        out.addAnswer(new DNSRecord.Text(info.getQualifiedName(), DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN, ttl, info.text), 0);
-                        DNSRecord answer = localHost.getDNS4AddressRecord();
-                        if (answer != null)
-                        {
-                            out.addAnswer(answer, 0);
-                        }
-                        answer = localHost.getDNS6AddressRecord();
-                        if (answer != null)
-                        {
-                            out.addAnswer(answer, 0);
-                        }
+                        info.addAnswers(out, ttl, localHost);
+
+                        localHost.addAddressRecords(out, false);
                     }
                     send(out);
                 }
