@@ -6,7 +6,12 @@
 
 package javax.jmdns;
 
-import java.net.*;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -133,6 +138,35 @@ class HostInfo
         buf.append(getAddress() != null ? getAddress().getHostAddress() : "no address");
         buf.append("]");
         return buf.toString();
+    }
+
+    void addAddressRecords(DNSOutgoing out, boolean authoritative) throws IOException
+    {
+        DNSRecord answer = getDNS4AddressRecord();
+        if (answer != null)
+        {
+            if (authoritative)
+            {
+                out.addAuthorativeAnswer(answer);
+            }
+            else
+            {
+                out.addAnswer(answer, 0);
+            }
+        }
+        
+        answer = getDNS6AddressRecord();
+        if (answer != null)
+        {
+            if (authoritative)
+            {
+                out.addAuthorativeAnswer(answer);
+            }
+            else
+            {
+                out.addAnswer(answer, 0);
+            }
+        }
     }
 
 }

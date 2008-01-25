@@ -1,3 +1,9 @@
+CHANGELOG 25 January 2008 Scott Cytacki
+1. Consolidated most places where the ServiceInfo object was turned into a set of dns records.  
+  And most places where the localHost (HostInfo) object was turned into dns records.
+  There is still one place that is duplicated (JmDNS.Responder) because it adds the dns records 
+  to a list first, removes known answers, and finally adds them to DNSOutgoing.  
+
 CHANGELOG 17 January 2008 Scott Cytacki
 1. Added eclipse project files.  Forced the eclipse project to use java 1.4
 

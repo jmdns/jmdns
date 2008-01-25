@@ -14,6 +14,10 @@ import java.util.TimerTask;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.jmdns.DNSRecord.Pointer;
+import javax.jmdns.DNSRecord.Service;
+import javax.jmdns.DNSRecord.Text;
+
 /**
  * JmDNS service information.
  *
@@ -655,5 +659,15 @@ public class ServiceInfo implements DNSListener
         buf.append(getNiceTextString());
         buf.append(']');
         return buf.toString();
+    }
+
+	void addAnswers(DNSOutgoing out, int ttl, HostInfo localHost) throws IOException
+    {
+        out.addAnswer(new Pointer(type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, ttl,
+                getQualifiedName()), 0);
+        out.addAnswer(new Service(getQualifiedName(), DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN,
+                ttl, priority, weight, port, localHost.getName()), 0);
+        out.addAnswer(new Text(getQualifiedName(), DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN,
+                ttl, text), 0);
     }
 }
