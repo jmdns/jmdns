@@ -102,14 +102,34 @@ final class DNSIncoming
                             break;
                         case DNSConstants.TYPE_CNAME:
                         case DNSConstants.TYPE_PTR:
-                            rec = new DNSRecord.Pointer(domain, type, clazz, ttl, readName());
+                            String service = "";
+                            try {
+                                service = readName();                                
+                            } catch (IOException e){
+                                // there was a problem reading the service name
+                                System.err.println(e.getMessage());
+                            }
+                            rec = new DNSRecord.Pointer(domain, type, clazz, ttl, service);
                             break;
                         case DNSConstants.TYPE_TXT:
                             rec = new DNSRecord.Text(domain, type, clazz, ttl, readBytes(off, len));
                             break;
                         case DNSConstants.TYPE_SRV:
+                            int priority = readUnsignedShort();
+                            int weight = readUnsignedShort();
+                            int port = readUnsignedShort();
+                            String target = "";
+                            try {
+                                target = readName();
+                            } catch (IOException e) {
+                                // this can happen if the type of the label 
+                                // cannot be handled.  
+                                // down below the offset gets advanced to the end
+                                // of the record 
+                                System.err.println(e.getMessage());
+                            }
                             rec = new DNSRecord.Service(domain, type, clazz, ttl,
-                                readUnsignedShort(), readUnsignedShort(), readUnsignedShort(), readName());
+                                priority, weight, port, target);
                             break;
                         case DNSConstants.TYPE_HINFO:
                             // Maybe we should do something with those
@@ -278,7 +298,7 @@ final class DNSIncoming
                     first = off;
                     break;
                 default:
-                    throw new IOException("bad domain name: '" + buf + "' at " + off);
+                    throw new IOException("unsupported dns label type: '" + Integer.toHexString(len & 0xC0) +"' at " + (off-1));
             }
         }
         this.off = (next >= 0) ? next : off;
