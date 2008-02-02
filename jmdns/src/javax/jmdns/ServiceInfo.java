@@ -88,7 +88,10 @@ public class ServiceInfo implements DNSListener
         {
             ByteArrayOutputStream out = new ByteArrayOutputStream(text.length());
             writeUTF(out, text);
-            this.text = out.toByteArray();
+            byte [] data = out.toByteArray();
+            this.text = new byte[data.length + 1];
+            this.text[0] = (byte) data.length;
+            System.arraycopy(data, 0, this.text, 1, data.length);
         }
         catch (IOException e)
         {

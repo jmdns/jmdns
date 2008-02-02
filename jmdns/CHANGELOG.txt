@@ -1,3 +1,10 @@
+CHANGELOG 01 February 2008 Scott Ctyacki
+1. Fixed an error in the way ServiceInfo was constructing the text array for the TXT
+  record.  The length byte was being omitted if the ServiceInfo constructor was called
+  with the last argument of a String.  Added better handling of unsupported dns label
+  types.  The Apple Bonjour conformance test sends SRV records with target strings that 
+  have lengths longer than 63, so the top 2 bits get used.
+
 CHANGELOG 25 January 2008 Scott Cytacki
 1. Consolidated most places where the ServiceInfo object was turned into a set of dns records.  
   And most places where the localHost (HostInfo) object was turned into dns records.
