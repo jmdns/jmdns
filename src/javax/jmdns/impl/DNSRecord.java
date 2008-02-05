@@ -3,7 +3,7 @@
 //Original license LGPL
 
 
-package javax.jmdns;
+package javax.jmdns.impl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -72,7 +72,7 @@ abstract class DNSRecord extends DNSEntry
      * @return Returns true if a conflict with one of the services registered
      *         with JmDNS or with the hostname occured.
      */
-    abstract boolean handleQuery(JmDNS dns, long expirationTime);
+    abstract boolean handleQuery(JmDNSImpl dns, long expirationTime);
 
     /**
      * Handles a responserepresented by this record.
@@ -80,12 +80,12 @@ abstract class DNSRecord extends DNSEntry
      * @return Returns true if a conflict with one of the services registered
      *         with JmDNS or with the hostname occured.
      */
-    abstract boolean handleResponse(JmDNS dns);
+    abstract boolean handleResponse(JmDNSImpl dns);
 
     /**
      * Adds this as an answer to the provided outgoing datagram.
      */
-    abstract DNSOutgoing addAnswer(JmDNS dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException;
+    abstract DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException;
 
     /**
      * True if this record is suppressed by the answers in a message.
@@ -324,7 +324,7 @@ abstract class DNSRecord extends DNSEntry
         /**
          * Does the necessary actions, when this as a query.
          */
-        boolean handleQuery(JmDNS dns, long expirationTime)
+        boolean handleQuery(JmDNSImpl dns, long expirationTime)
         {
             DNSRecord.Address dnsAddress = dns.getLocalHost().getDNSAddressRecord(this);
             if (dnsAddress != null)
@@ -340,7 +340,7 @@ abstract class DNSRecord extends DNSEntry
                         dns.getCache().clear();
                         for (Iterator i = dns.services.values().iterator(); i.hasNext();)
                         {
-                            ServiceInfo info = (ServiceInfo) i.next();
+                            ServiceInfoImpl info = (ServiceInfoImpl) i.next();
                             info.revertState();
                         }
                     }
@@ -354,7 +354,7 @@ abstract class DNSRecord extends DNSEntry
         /**
          * Does the necessary actions, when this as a response.
          */
-        boolean handleResponse(JmDNS dns)
+        boolean handleResponse(JmDNSImpl dns)
         {
             DNSRecord.Address dnsAddress = dns.getLocalHost().getDNSAddressRecord(this);
             if (dnsAddress != null)
@@ -369,7 +369,7 @@ abstract class DNSRecord extends DNSEntry
                         dns.getCache().clear();
                         for (Iterator i = dns.services.values().iterator(); i.hasNext();)
                         {
-                            ServiceInfo info = (ServiceInfo) i.next();
+                            ServiceInfoImpl info = (ServiceInfoImpl) i.next();
                             info.revertState();
                         }
                     }
@@ -380,7 +380,7 @@ abstract class DNSRecord extends DNSEntry
             return false;
         }
 
-        DNSOutgoing addAnswer(JmDNS dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException
+        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException
         {
             return out;
         }
@@ -416,14 +416,14 @@ abstract class DNSRecord extends DNSEntry
             return alias.equals(((Pointer) other).alias);
         }
 
-        boolean handleQuery(JmDNS dns, long expirationTime)
+        boolean handleQuery(JmDNSImpl dns, long expirationTime)
         {
             // Nothing to do (?)
             // I think there is no possibility for conflicts for this record type?
             return false;
         }
 
-        boolean handleResponse(JmDNS dns)
+        boolean handleResponse(JmDNSImpl dns)
         {
             // Nothing to do (?)
             // I think there is no possibility for conflicts for this record type?
@@ -435,7 +435,7 @@ abstract class DNSRecord extends DNSEntry
             return alias;
         }
 
-        DNSOutgoing addAnswer(JmDNS dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException
+        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException
         {
             return out;
         }
@@ -479,14 +479,14 @@ abstract class DNSRecord extends DNSEntry
             return true;
         }
 
-        boolean handleQuery(JmDNS dns, long expirationTime)
+        boolean handleQuery(JmDNSImpl dns, long expirationTime)
         {
             // Nothing to do (?)
             // I think there is no possibility for conflicts for this record type?
             return false;
         }
 
-        boolean handleResponse(JmDNS dns)
+        boolean handleResponse(JmDNSImpl dns)
         {
             // Nothing to do (?)
             // Shouldn't we care if we get a conflict at this level?
@@ -501,7 +501,7 @@ abstract class DNSRecord extends DNSEntry
             return false;
         }
 
-        DNSOutgoing addAnswer(JmDNS dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException
+        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException
         {
             return out;
         }
@@ -590,9 +590,9 @@ abstract class DNSRecord extends DNSEntry
             return (priority == s.priority) && (weight == s.weight) && (port == s.port) && server.equals(s.server);
         }
 
-        boolean handleQuery(JmDNS dns, long expirationTime)
+        boolean handleQuery(JmDNSImpl dns, long expirationTime)
         {
-            ServiceInfo info = (ServiceInfo) dns.services.get(name.toLowerCase());
+            ServiceInfoImpl info = (ServiceInfoImpl) dns.services.get(name.toLowerCase());
             if (info != null
                 && (port != info.port || !server.equalsIgnoreCase(dns.getLocalHost().getName())))
             {
@@ -619,9 +619,9 @@ abstract class DNSRecord extends DNSEntry
             return false;
         }
 
-        boolean handleResponse(JmDNS dns)
+        boolean handleResponse(JmDNSImpl dns)
         {
-            ServiceInfo info = (ServiceInfo) dns.services.get(name.toLowerCase());
+            ServiceInfoImpl info = (ServiceInfoImpl) dns.services.get(name.toLowerCase());
             if (info != null
                 && (port != info.port || !server.equalsIgnoreCase(dns.getLocalHost().getName())))
             {
@@ -642,9 +642,9 @@ abstract class DNSRecord extends DNSEntry
             return false;
         }
 
-        DNSOutgoing addAnswer(JmDNS dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException
+        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException
         {
-            ServiceInfo info = (ServiceInfo) dns.services.get(name.toLowerCase());
+            ServiceInfoImpl info = (ServiceInfoImpl) dns.services.get(name.toLowerCase());
             if (info != null)
             {
                 if (this.port == info.port != server.equals(dns.getLocalHost().getName()))

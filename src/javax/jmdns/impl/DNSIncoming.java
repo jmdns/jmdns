@@ -4,7 +4,7 @@
 
 
 
-package javax.jmdns;
+package javax.jmdns.impl;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

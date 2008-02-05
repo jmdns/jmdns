@@ -3,7 +3,7 @@
 //Original license LGPL
 
 
-package javax.jmdns;
+package javax.jmdns.impl;
 
 /**
  * DNS constants.
