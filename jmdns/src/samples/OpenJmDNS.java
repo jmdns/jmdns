@@ -16,8 +16,9 @@
 
 package samples;
 
-import javax.jmdns.*;
 import java.io.IOException;
+
+import javax.jmdns.JmDNS;
 
 /**
  * Sample Code that opens JmDNS in debug mode.
@@ -34,7 +35,7 @@ public class OpenJmDNS {
     public static void main(String[] args) {
         try {
             System.setProperty("jmdns.debug", "2");
-            JmDNS jmdns = new JmDNS();
+            JmDNS jmdns = JmDNS.create();
             
             System.out.println("Press q and Enter, to quit");
             int b;

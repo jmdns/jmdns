@@ -16,9 +16,11 @@
 
 package samples;
 
-import javax.jmdns.*;
 import java.io.IOException;
-import java.util.logging.*;
+
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceEvent;
+import javax.jmdns.ServiceTypeListener;
 
 /**
  * Sample Code for Service Type Discovery using JmDNS and a ServiceTypeListener.
@@ -50,7 +52,7 @@ public class DiscoverServiceTypes {
         */
         
         try {
-            JmDNS jmdns = new JmDNS();
+            JmDNS jmdns = JmDNS.create();
             jmdns.addServiceTypeListener(new SampleListener());
             
             System.out.println("Press q and Enter, to quit");

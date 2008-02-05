@@ -16,9 +16,10 @@
 
 package samples;
 
-import javax.jmdns.*;
 import java.io.IOException;
-import java.util.logging.*;
+
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceInfo;
 
 /**
  * Sample Code for Listing Services using JmDNS.
@@ -44,7 +45,7 @@ public class ListServices {
         */
         
         try {
-            JmDNS jmdns = new JmDNS();
+            JmDNS jmdns = JmDNS.create();
             while (true) {
                 ServiceInfo[] infos = jmdns.list("_http._tcp.local.");
                 for (int i=0; i < infos.length; i++) {

@@ -16,8 +16,12 @@
 
 package com.strangeberry.jmdns.tools;
 
-import java.io.*;
-import javax.jmdns.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceInfo;
 
 /**
  * A sample JmDNS responder that reads a set of rendezvous service
@@ -60,7 +64,7 @@ public class Responder
 		}
 
 		jmdns.registerService(
-		    new ServiceInfo(type, name, port, text));
+		    ServiceInfo.create(type, name, port, text));
 	    }
 	} finally {
 	    in.close();
@@ -72,7 +76,7 @@ public class Responder
      */
     public static void main(String argv[]) throws IOException
     {
-	new Responder(new JmDNS(), (argv.length > 0) ? argv[0] : "services.txt");
+	new Responder(JmDNS.create(), (argv.length > 0) ? argv[0] : "services.txt");
     }
 }
 

@@ -1,4 +1,11 @@
-CHANGELOG 01 February 2008 Scott Ctyacki
+CHANGELOG 05 February 2008 Scott Cytacki
+1. Moved implementation classes into a impl package.  This paves the way for further
+  refactoring. By putting all the jmdns api classes and interfaces in one package, the impl 
+  classes can be split up more without exposing public classes and methods that aren't 
+  part of the jmdns api.   This change breaks the old api, because the JmDNS and ServiceInfo
+  classes cannot be instanciated directly.  Instead there are factory methods to create them.
+
+CHANGELOG 01 February 2008 Scott Cytacki
 1. Fixed an error in the way ServiceInfo was constructing the text array for the TXT
   record.  The length byte was being omitted if the ServiceInfo constructor was called
   with the last argument of a String.  Added better handling of unsupported dns label

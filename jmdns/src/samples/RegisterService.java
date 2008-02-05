@@ -16,9 +16,10 @@
 
 package samples;
 
-import javax.jmdns.*;
 import java.io.IOException;
-import java.util.logging.*;
+
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceInfo;
 
 /**
  * Sample Code for Service Registration using JmDNS.
@@ -60,12 +61,12 @@ public class RegisterService {
         
         try {
             System.out.println("Opening JmDNS");
-            JmDNS jmdns = new JmDNS();
+            JmDNS jmdns = JmDNS.create();
             System.out.println("Opened JmDNS");
             System.out.println("\nPress r and Enter, to register HTML service 'foo'");
             int b;
             while ((b = System.in.read()) != -1 && (char) b != 'r');
-            ServiceInfo info = new ServiceInfo("_http._tcp.local.", "foo", 1268, 0, 0, "path=index.html");
+            ServiceInfo info = ServiceInfo.create("_http._tcp.local.", "foo", 1268, 0, 0, "path=index.html");
             jmdns.registerService(info);
             
             System.out.println("\nRegistered Service as "+info);

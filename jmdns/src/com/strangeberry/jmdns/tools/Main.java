@@ -16,10 +16,15 @@
 
 package com.strangeberry.jmdns.tools;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import javax.jmdns.*;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.Hashtable;
+
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceEvent;
+import javax.jmdns.ServiceInfo;
+import javax.jmdns.ServiceListener;
+import javax.jmdns.ServiceTypeListener;
 
 /**
  * Main sample program for JmDNS.
@@ -61,7 +66,7 @@ public class Main {
             intf = InetAddress.getLocalHost();
         }
         
-        JmDNS jmdns = new JmDNS(intf);
+        JmDNS jmdns = JmDNS.create(intf);
         
         if ((argc == 0) || ((argc >= 1) && "-browse".equals(argv[0]))) {
             new Browser(jmdns);
@@ -86,7 +91,7 @@ public class Main {
                 }
                 props.put(argv[i].substring(0, j), argv[i].substring(j+1));
             }
-            jmdns.registerService(new ServiceInfo(type, name, Integer.parseInt(argv[4]), 0, 0, props));
+            jmdns.registerService(ServiceInfo.create(type, name, Integer.parseInt(argv[4]), 0, 0, props));
             
             // This while loop keeps the main thread alive
             while (true) {

@@ -2,7 +2,7 @@
 //Licensed under Apache License version 2.0
 //Original license LGPL
 
-package javax.jmdns;
+package javax.jmdns.impl;
 
 import java.util.ArrayList;
 import java.util.logging.Logger;

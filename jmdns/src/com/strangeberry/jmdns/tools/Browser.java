@@ -16,16 +16,32 @@
 
 package com.strangeberry.jmdns.tools;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.border.*;
-import javax.swing.event.*;
-import javax.jmdns.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.GridLayout;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Vector;
+
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceEvent;
+import javax.jmdns.ServiceInfo;
+import javax.jmdns.ServiceListener;
+import javax.jmdns.ServiceTypeListener;
+import javax.swing.DefaultListModel;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.AbstractTableModel;
 
 /**
  * User Interface for browsing JmDNS services.
@@ -267,6 +283,6 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
      * Main program.
      */
     public static void main(String argv[]) throws IOException {
-        new Browser(new JmDNS());
+        new Browser(JmDNS.create());
     }
 }
