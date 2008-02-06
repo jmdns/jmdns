@@ -630,9 +630,9 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     {
         out.addAnswer(new Pointer(type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, ttl,
                 getQualifiedName()), 0);
-        out.addAnswer(new Service(getQualifiedName(), DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN,
+        out.addAnswer(new Service(getQualifiedName(), DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN|DNSConstants.CLASS_UNIQUE,
                 ttl, priority, weight, port, localHost.getName()), 0);
-        out.addAnswer(new Text(getQualifiedName(), DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN,
+        out.addAnswer(new Text(getQualifiedName(), DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN|DNSConstants.CLASS_UNIQUE,
                 ttl, text), 0);
     }
 }

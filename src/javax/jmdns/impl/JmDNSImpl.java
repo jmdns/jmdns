@@ -1312,6 +1312,8 @@ public class JmDNSImpl extends JmDNS
                                     out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
                                     out.addQuestion(new DNSQuestion(info.getQualifiedName(), DNSConstants.TYPE_ANY, DNSConstants.CLASS_IN));
                                 }
+                                // the "unique" flag should be not set here because these answers haven't been proven unique yet
+                                // this means the record will not exactly match the announcement record
                                 out.addAuthorativeAnswer(new DNSRecord.Service(info.getQualifiedName(), DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.priority, info.weight, info.port, localHost.getName()));
                             }
                         }
