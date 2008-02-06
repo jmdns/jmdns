@@ -28,7 +28,7 @@ import javax.jmdns.impl.DNSRecord.Text;
 public class ServiceInfoImpl extends ServiceInfo implements DNSListener
 {
     private static Logger logger = Logger.getLogger(ServiceInfoImpl.class.getName());
-    JmDNSImpl dns;
+    private JmDNSImpl dns;
     
     // State machine
     /**
@@ -45,7 +45,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
      * Possible tasks are JmDNS.Prober, JmDNS.Announcer, JmDNS.Responder,
      * JmDNS.Canceler.
      */
-    TimerTask task;
+    private TimerTask task;
 
     String type;
     private String name;
@@ -53,7 +53,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     int port;
     int weight;
     int priority;
-    byte text[];
+    private byte text[];
     Hashtable props;
     InetAddress addr;
 
@@ -76,9 +76,9 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
             ByteArrayOutputStream out = new ByteArrayOutputStream(text.length());
             writeUTF(out, text);
             byte [] data = out.toByteArray();
-            this.text = new byte[data.length + 1];
-            this.text[0] = (byte) data.length;
-            System.arraycopy(data, 0, this.text, 1, data.length);
+            this.setText(new byte[data.length + 1]);
+            this.getText()[0] = (byte) data.length;
+            System.arraycopy(data, 0, this.getText(), 1, data.length);
         }
         catch (IOException e)
         {
@@ -128,7 +128,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
                     out.write(data.length);
                     out.write(data, 0, data.length);
                 }
-                this.text = out.toByteArray();
+                this.setText(out.toByteArray());
             }
             catch (IOException e)
             {
@@ -147,7 +147,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
         this.port = port;
         this.weight = weight;
         this.priority = priority;
-        this.text = text;
+        this.setText(text);
     }
 
     /**
@@ -176,7 +176,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
             this.port = info.port;
             this.weight = info.weight;
             this.priority = info.priority;
-            this.text = info.text;
+            this.setText(info.getText());
         }
     }
 
@@ -272,7 +272,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
      */
     public byte[] getTextBytes()
     {
-        return text;
+        return getText();
     }
 
     /**
@@ -280,11 +280,11 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
      */
     public String getTextString()
     {
-        if ((text == null) || (text.length == 0) || ((text.length == 1) && (text[0] == 0)))
+        if ((getText() == null) || (getText().length == 0) || ((getText().length == 1) && (getText()[0] == 0)))
         {
             return null;
         }
-        return readUTF(text, 0, text.length);
+        return readUTF(getText(), 0, getText().length);
     }
 
     /**
@@ -433,28 +433,28 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
 
     synchronized Hashtable getProperties()
     {
-        if ((props == null) && (text != null))
+        if ((props == null) && (getText() != null))
         {
             Hashtable props = new Hashtable();
             int off = 0;
-            while (off < text.length)
+            while (off < getText().length)
             {
                 // length of the next key value pair
-                int len = text[off++] & 0xFF;
-                if ((len == 0) || (off + len > text.length))
+                int len = getText()[off++] & 0xFF;
+                if ((len == 0) || (off + len > getText().length))
                 {
                     props.clear();
                     break;
                 }
                 // look for the '='
                 int i = 0;
-                for (; (i < len) && (text[off + i] != '='); i++)
+                for (; (i < len) && (getText()[off + i] != '='); i++)
                 {
                     ;
                 }
 
                 // get the property name
-                String name = readUTF(text, off, i);
+                String name = readUTF(getText(), off, i);
                 if (name == null)
                 {
                     props.clear();
@@ -467,7 +467,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
                 else
                 {
                     byte value[] = new byte[len - ++i];
-                    System.arraycopy(text, off + i, value, 0, len - i);
+                    System.arraycopy(getText(), off + i, value, 0, len - i);
                     props.put(name, value);
                     off += len;
                 }
@@ -512,17 +512,17 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
                     if (rec.name.equals(getQualifiedName()))
                     {
                         DNSRecord.Text txt = (DNSRecord.Text) rec;
-                        text = txt.text;
+                        setText(txt.text);
                     }
                     break;
             }
             // Future Design Pattern
             // This is done, to notify the wait loop in method
             // JmDNS.getServiceInfo(type, name, timeout);
-            if (hasData() && dns != null)
+            if (hasData() && getDns() != null)
             {
-                dns.handleServiceResolved(this);
-                dns = null;
+                getDns().handleServiceResolved(this);
+                setDns(null);
             }
             synchronized (this)
             {
@@ -534,9 +534,9 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     /**
      * Returns true if the service info is filled with data.
      */
-    boolean hasData()
+    public boolean hasData()
     {
-        return server != null && addr != null && text != null;
+        return server != null && addr != null && getText() != null;
     }
     
     
@@ -544,7 +544,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     /**
      * Sets the state and notifies all objects that wait on the ServiceInfo.
      */
-    synchronized void advanceState()
+    public synchronized void advanceState()
     {
         state = state.advance();
         notifyAll();
@@ -571,7 +571,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     /**
      * Returns the current state of this info.
      */
-    DNSState getState()
+    public DNSState getState()
     {
         return state;
     }
@@ -590,14 +590,14 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     public String getNiceTextString()
     {
         StringBuffer buf = new StringBuffer();
-        for (int i = 0, len = text.length; i < len; i++)
+        for (int i = 0, len = getText().length; i < len; i++)
         {
             if (i >= 20)
             {
                 buf.append("...");
                 break;
             }
-            int ch = text[i] & 0xFF;
+            int ch = getText()[i] & 0xFF;
             if ((ch < ' ') || (ch > 127))
             {
                 buf.append("\\0");
@@ -626,13 +626,43 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
         return buf.toString();
     }
 
-	void addAnswers(DNSOutgoing out, int ttl, HostInfo localHost) throws IOException
+	public void addAnswers(DNSOutgoing out, int ttl, HostInfo localHost) throws IOException
     {
         out.addAnswer(new Pointer(type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, ttl,
                 getQualifiedName()), 0);
         out.addAnswer(new Service(getQualifiedName(), DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN|DNSConstants.CLASS_UNIQUE,
                 ttl, priority, weight, port, localHost.getName()), 0);
         out.addAnswer(new Text(getQualifiedName(), DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN|DNSConstants.CLASS_UNIQUE,
-                ttl, text), 0);
+                ttl, getText()), 0);
+    }
+
+    public void setTask(TimerTask task)
+    {
+        this.task = task;
+    }
+
+    public TimerTask getTask()
+    {
+        return task;
+    }
+
+    public void setText(byte [] text)
+    {
+        this.text = text;
+    }
+
+    public byte [] getText()
+    {
+        return text;
+    }
+
+    public void setDns(JmDNSImpl dns)
+    {
+        this.dns = dns;
+    }
+
+    public JmDNSImpl getDns()
+    {
+        return dns;
     }
 }

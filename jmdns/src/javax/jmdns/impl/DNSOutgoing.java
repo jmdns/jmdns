@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  * @version %I%, %G%
  * @author	Arthur van Hoff, Rick Blair, Werner Randelshofer
  */
-final class DNSOutgoing
+public final class DNSOutgoing
 {
     /**
      * This can be used to turn off domain name compression.  This was helpful for 
@@ -42,7 +42,7 @@ final class DNSOutgoing
     /**
      * Create an outgoing multicast query or response.
      */
-    DNSOutgoing(int flags)
+    public DNSOutgoing(int flags)
     {
         this(flags, true);
     }
@@ -50,7 +50,7 @@ final class DNSOutgoing
     /**
      * Create an outgoing query or response.
      */
-    DNSOutgoing(int flags, boolean multicast)
+    public DNSOutgoing(int flags, boolean multicast)
     {
         this.flags = flags;
         this.multicast = multicast;
@@ -62,7 +62,7 @@ final class DNSOutgoing
     /**
      * Add a question to the message.
      */
-    void addQuestion(DNSQuestion rec) throws IOException
+    public void addQuestion(DNSQuestion rec) throws IOException
     {
         if (numAnswers > 0 || numAuthorities > 0 || numAdditionals > 0)
         {
@@ -102,7 +102,7 @@ final class DNSOutgoing
     /**
      * Add an answer to the message.
      */
-    void addAnswer(DNSRecord rec, long now) throws IOException
+    public void addAnswer(DNSRecord rec, long now) throws IOException
     {
         if (numAuthorities > 0 || numAdditionals > 0)
         {
@@ -123,7 +123,7 @@ final class DNSOutgoing
     /**
      * Add an authorative answer to the message.
      */
-    void addAuthorativeAnswer(DNSRecord rec) throws IOException
+    public void addAuthorativeAnswer(DNSRecord rec) throws IOException
     {
         if (numAdditionals > 0)
         {
@@ -292,7 +292,7 @@ final class DNSOutgoing
             writeName(rec.name);
             writeShort(rec.type);
             writeShort(rec.clazz | ((rec.unique && multicast) ? DNSConstants.CLASS_UNIQUE : 0));
-            writeInt((now == 0) ? rec.ttl : rec.getRemainingTTL(now));
+            writeInt((now == 0) ? rec.getTtl() : rec.getRemainingTTL(now));
             writeShort(0);
             int start = off;
             rec.write(this);

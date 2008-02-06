@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  * @version %I%, %G%
  * @author	Pierre Frisch, Werner Randelshofer
  */
-class HostInfo
+public class HostInfo
 {
     private static Logger logger = Logger.getLogger(HostInfo.class.getName());
     protected String name;
@@ -107,7 +107,7 @@ class HostInfo
         return (DNSConstants.TYPE_AAAA == address.type ? getDNS6AddressRecord() : getDNS4AddressRecord());
     }
 
-    DNSRecord.Address getDNS4AddressRecord()
+    public DNSRecord.Address getDNS4AddressRecord()
     {
         if ((getAddress() != null) &&
             ((getAddress() instanceof Inet4Address) ||
@@ -118,7 +118,7 @@ class HostInfo
         return null;
     }
 
-    DNSRecord.Address getDNS6AddressRecord()
+    public DNSRecord.Address getDNS6AddressRecord()
     {
         if ((getAddress() != null) && (getAddress() instanceof Inet6Address))
         {
@@ -140,7 +140,7 @@ class HostInfo
         return buf.toString();
     }
 
-    void addAddressRecords(DNSOutgoing out, boolean authoritative) throws IOException
+    public void addAddressRecords(DNSOutgoing out, boolean authoritative) throws IOException
     {
         DNSRecord answer = getDNS4AddressRecord();
         if (answer != null)

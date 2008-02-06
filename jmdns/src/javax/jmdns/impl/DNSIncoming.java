@@ -22,7 +22,7 @@ import java.util.logging.Logger;
  * @version %I%, %G%
  * @author	Arthur van Hoff, Werner Randelshofer, Pierre Frisch, Daniel Bobbert
  */
-final class DNSIncoming
+public final class DNSIncoming
 {
     private static Logger logger = Logger.getLogger(DNSIncoming.class.getName());
     
@@ -50,7 +50,7 @@ final class DNSIncoming
     private int numAdditionals;
     private long receivedTime;
 
-    List questions;
+    private List questions;
     List answers;
 
     /**
@@ -205,7 +205,7 @@ final class DNSIncoming
     /**
      * Check if the message is truncated.
      */
-    boolean isTruncated()
+    public boolean isTruncated()
     {
         return (flags & DNSConstants.FLAGS_TC) != 0;
     }
@@ -513,8 +513,18 @@ final class DNSIncoming
         }
     }
 
-    int elapseSinceArrival()
+    public int elapseSinceArrival()
     {
         return (int) (System.currentTimeMillis() - receivedTime);
+    }
+
+    public List getQuestions()
+    {
+        return questions;
+    }
+
+    public List getAnswers()
+    {
+        return answers;
     }
 }
