@@ -41,7 +41,7 @@ import java.util.logging.Logger;
  * @version %I%, %G%
  * @author	Arthur van Hoff, Werner Randelshofer, Rick Blair
  */
-class DNSCache
+public class DNSCache
 {
     private static Logger logger = Logger.getLogger(DNSCache.class.getName());
     // Implementation note:

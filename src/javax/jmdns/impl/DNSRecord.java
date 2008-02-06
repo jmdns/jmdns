@@ -21,10 +21,10 @@ import java.util.logging.Logger;
  * @version %I%, %G%
  * @author	Arthur van Hoff, Rick Blair, Werner Randelshofer, Pierre Frisch
  */
-abstract class DNSRecord extends DNSEntry
+public abstract class DNSRecord extends DNSEntry
 {
     private static Logger logger = Logger.getLogger(DNSRecord.class.getName());
-    int ttl;
+    private int ttl;
     private long created;
     
     /**
@@ -150,7 +150,7 @@ abstract class DNSRecord extends DNSEntry
     /**
      * Check if the record is expired.
      */
-    boolean isExpired(long now)
+    public boolean isExpired(long now)
     {
         return getExpirationTime(100) <= now;
     }
@@ -344,7 +344,7 @@ abstract class DNSRecord extends DNSEntry
                         // We lost the tie-break. We have to choose a different name.
                         dns.getLocalHost().incrementHostName();
                         dns.getCache().clear();
-                        for (Iterator i = dns.services.values().iterator(); i.hasNext();)
+                        for (Iterator i = dns.getServices().values().iterator(); i.hasNext();)
                         {
                             ServiceInfoImpl info = (ServiceInfoImpl) i.next();
                             info.revertState();
@@ -373,7 +373,7 @@ abstract class DNSRecord extends DNSEntry
                     {
                         dns.getLocalHost().incrementHostName();
                         dns.getCache().clear();
-                        for (Iterator i = dns.services.values().iterator(); i.hasNext();)
+                        for (Iterator i = dns.getServices().values().iterator(); i.hasNext();)
                         {
                             ServiceInfoImpl info = (ServiceInfoImpl) i.next();
                             info.revertState();
@@ -401,12 +401,12 @@ abstract class DNSRecord extends DNSEntry
     /**
      * Pointer record.
      */
-    static class Pointer extends DNSRecord
+    public static class Pointer extends DNSRecord
     {
         private static Logger logger = Logger.getLogger(Pointer.class.getName());
         String alias;
 
-        Pointer(String name, int type, int clazz, int ttl, String alias)
+        public Pointer(String name, int type, int clazz, int ttl, String alias)
         {
             super(name, type, clazz, ttl);
             this.alias = alias;
@@ -452,12 +452,12 @@ abstract class DNSRecord extends DNSEntry
         }
     }
 
-    static class Text extends DNSRecord
+    public static class Text extends DNSRecord
     {
         private static Logger logger = Logger.getLogger(Text.class.getName());
         byte text[];
 
-        Text(String name, int type, int clazz, int ttl, byte text[])
+        public Text(String name, int type, int clazz, int ttl, byte text[])
         {
             super(name, type, clazz, ttl);
             this.text = text;
@@ -521,7 +521,7 @@ abstract class DNSRecord extends DNSEntry
     /**
      * Service record.
      */
-    static class Service extends DNSRecord
+    public static class Service extends DNSRecord
     {
         private static Logger logger = Logger.getLogger(Service.class.getName());
         int priority;
@@ -529,7 +529,7 @@ abstract class DNSRecord extends DNSEntry
         int port;
         String server;
 
-        Service(String name, int type, int clazz, int ttl, int priority, int weight, int port, String server)
+        public Service(String name, int type, int clazz, int ttl, int priority, int weight, int port, String server)
         {
             super(name, type, clazz, ttl);
             this.priority = priority;
@@ -606,7 +606,7 @@ abstract class DNSRecord extends DNSEntry
 
         boolean handleQuery(JmDNSImpl dns, long expirationTime)
         {
-            ServiceInfoImpl info = (ServiceInfoImpl) dns.services.get(name.toLowerCase());
+            ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(name.toLowerCase());
             if (info != null
                 && (port != info.port || !server.equalsIgnoreCase(dns.getLocalHost().getName())))
             {
@@ -648,8 +648,8 @@ abstract class DNSRecord extends DNSEntry
                     // We lost the tie break
                     String oldName = info.getQualifiedName().toLowerCase();
                     info.setName(dns.incrementName(info.getName()));
-                    dns.services.remove(oldName);
-                    dns.services.put(info.getQualifiedName().toLowerCase(), info);
+                    dns.getServices().remove(oldName);
+                    dns.getServices().put(info.getQualifiedName().toLowerCase(), info);
                     logger.finer("handleQuery() Lost tie break: new unique name chosen:" + info.getName());
 
                     // We revert the state to start probing again with the new name
@@ -670,7 +670,7 @@ abstract class DNSRecord extends DNSEntry
 
         boolean handleResponse(JmDNSImpl dns)
         {
-            ServiceInfoImpl info = (ServiceInfoImpl) dns.services.get(name.toLowerCase());
+            ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(name.toLowerCase());
             if (info != null
                 && (port != info.port || !server.equalsIgnoreCase(dns.getLocalHost().getName())))
             {
@@ -680,8 +680,8 @@ abstract class DNSRecord extends DNSEntry
                 {
                     String oldName = info.getQualifiedName().toLowerCase();
                     info.setName(dns.incrementName(info.getName()));
-                    dns.services.remove(oldName);
-                    dns.services.put(info.getQualifiedName().toLowerCase(), info);
+                    dns.getServices().remove(oldName);
+                    dns.getServices().put(info.getQualifiedName().toLowerCase(), info);
                     logger.finer("handleResponse() New unique name chose:" + info.getName());
 
                 }
@@ -693,7 +693,7 @@ abstract class DNSRecord extends DNSEntry
 
         DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException
         {
-            ServiceInfoImpl info = (ServiceInfoImpl) dns.services.get(name.toLowerCase());
+            ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(name.toLowerCase());
             if (info != null)
             {
                 if (this.port == info.port != server.equals(dns.getLocalHost().getName()))
@@ -727,6 +727,16 @@ abstract class DNSRecord extends DNSEntry
     public String toString(String other)
     {
         return toString("record", ttl + "/" + getRemainingTTL(System.currentTimeMillis()) + "," + other);
+    }
+
+    public void setTtl(int ttl)
+    {
+        this.ttl = ttl;
+    }
+
+    public int getTtl()
+    {
+        return ttl;
     }
 }
 

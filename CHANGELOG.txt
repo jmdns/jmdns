@@ -8,6 +8,12 @@ CHANGELOG 06 February 2008 Scott Cytacki
   Added the UNIQUE flag which is referred to the "cache flush bit" by the spec, on SRV
   and TXT records sent to announce a Service.  
 
+2. Made TimerTasks inside of JmDNSImpl into toplevel classes in a new package:
+  javax.jmdns.impl.tasks  This required making several method publics and encapsulating 
+  several fields with public getters and setters.  All these changes were done using Eclipse
+  refactoring so there is a log chance of error.  I will be testing it with the Conformance
+  Test to make sure it hasn't regressed.
+
 CHANGELOG 05 February 2008 Scott Cytacki
 1. Moved implementation classes into a impl package.  This paves the way for further
   refactoring. By putting all the jmdns api classes and interfaces in one package, the impl 

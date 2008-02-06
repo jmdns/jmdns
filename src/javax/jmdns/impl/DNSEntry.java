@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  * @version %I%, %G%
  * @author	Arthur van Hoff, Pierre Frisch, Rick Blair
  */
-class DNSEntry
+public class DNSEntry
 {
     private static Logger logger = Logger.getLogger(DNSEntry.class.getName());
     String key;
