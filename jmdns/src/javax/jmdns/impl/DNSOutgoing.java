@@ -19,6 +19,12 @@ import java.util.logging.Logger;
  */
 final class DNSOutgoing
 {
+    /**
+     * This can be used to turn off domain name compression.  This was helpful for 
+     * tracking problems interacting with other mdns implementations.
+     */
+    public static boolean USE_DOMAIN_NAME_COMPRESSION = true;
+    
     private static Logger logger = Logger.getLogger(DNSOutgoing.class.getName());
     int id;
     int flags;
@@ -228,6 +234,11 @@ final class DNSOutgoing
 
     void writeName(String name) throws IOException
     {
+        writeName(name, true);
+    }
+    
+    void writeName(String name, boolean useCompression) throws IOException
+    {
         while (true)
         {
             int n = name.indexOf('.');
@@ -240,21 +251,23 @@ final class DNSOutgoing
                 writeByte(0);
                 return;
             }
-            Integer offset = (Integer) names.get(name);
-            if (offset != null)
-            {
-                int val = offset.intValue();
-
-                if (val > off)
+            if(useCompression && USE_DOMAIN_NAME_COMPRESSION){
+                Integer offset = (Integer) names.get(name);
+                if (offset != null)
                 {
-                    logger.log(Level.WARNING, "DNSOutgoing writeName failed val=" + val + " name=" + name);
-                }
+                    int val = offset.intValue();
 
-                writeByte((val >> 8) | 0xC0);
-                writeByte(val);
-                return;
+                    if (val > off)
+                    {
+                        logger.log(Level.WARNING, "DNSOutgoing writeName failed val=" + val + " name=" + name);
+                    }
+
+                    writeByte((val >> 8) | 0xC0);
+                    writeByte(val & 0xFF);
+                    return;
+                }
+                names.put(name, new Integer(off));
             }
-            names.put(name, new Integer(off));
             writeUTF(name, 0, n);
             name = name.substring(n);
             if (name.startsWith("."))

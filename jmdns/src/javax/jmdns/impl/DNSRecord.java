@@ -26,6 +26,12 @@ abstract class DNSRecord extends DNSEntry
     private static Logger logger = Logger.getLogger(DNSRecord.class.getName());
     int ttl;
     private long created;
+    
+    /**
+     * This source is mainly for debugging purposes, should be the address that
+     * sent this record.
+     */
+    private InetAddress source;
 
     /**
      * Create a DNSRecord with a name, type, clazz, and ttl.
@@ -537,7 +543,15 @@ abstract class DNSRecord extends DNSEntry
             out.writeShort(priority);
             out.writeShort(weight);
             out.writeShort(port);
-            out.writeName(server);
+            if(DNSIncoming.USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET){
+                out.writeName(server, false);
+            } else {
+                out.writeUTF(server, 0, server.length());
+
+                // add a zero byte to the end just to be safe, this is the strange form 
+                // used by the BonjourConformanceTest
+                out.writeByte(0);
+            }
         }
 
         private byte[] toByteArray()
@@ -596,13 +610,40 @@ abstract class DNSRecord extends DNSEntry
             if (info != null
                 && (port != info.port || !server.equalsIgnoreCase(dns.getLocalHost().getName())))
             {
-                logger.finer("handleQuery() Conflicting probe detected");
+                logger.finer("handleQuery() Conflicting probe detected from: " + getRecordSource());
+                DNSRecord.Service localService = new DNSRecord.Service(info.getQualifiedName(), DNSConstants.TYPE_SRV,
+                        DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE,
+                        DNSConstants.DNS_TTL, info.priority,
+                        info.weight, info.port, dns.getLocalHost().getName());
 
+                // This block is useful for debugging race conditions when jmdns is respoding to
+                // itself.
+                try
+                {
+                    if(dns.getInterface().equals(getRecordSource())){
+                        logger.warning("Got conflicting probe from ourselves\n" + 
+                                "incoming: " +this.toString() + "\n" +
+                                "local   : " + localService.toString());
+                    }
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+                
+                int comparison = lexCompare(localService);
+                
+                if(comparison == 0){
+                    // the 2 records are identical this probably means we are seeing our own record.
+                    // With mutliple interfaces on a single computer it is possible to see our
+                    // own records come in on different interfaces than the ones they were sent on.  
+                    // see section "10. Conflict Resolution" of mdns draft spec.
+                    logger.finer("handleQuery() Ignoring a identical service query");
+                    return false;
+                }
+                
                 // Tie breaker test
-                if (info.getState().isProbing() && lexCompare(new DNSRecord.Service(info.getQualifiedName(), DNSConstants.TYPE_SRV,
-                    DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE,
-                    DNSConstants.DNS_TTL, info.priority,
-                    info.weight, info.port, dns.getLocalHost().getName())) >= 0)
+                if (info.getState().isProbing() && comparison > 0)
                 {
                     // We lost the tie break
                     String oldName = info.getQualifiedName().toLowerCase();
@@ -611,8 +652,16 @@ abstract class DNSRecord extends DNSEntry
                     dns.services.put(info.getQualifiedName().toLowerCase(), info);
                     logger.finer("handleQuery() Lost tie break: new unique name chosen:" + info.getName());
 
+                    // We revert the state to start probing again with the new name
+                    info.revertState();
+                } 
+                else 
+                {
+                    // We won the tie break, so this conflicting probe should be ignored
+                    // See paragraph 3 of section 9.2 in mdns draft spec
+                    return false;
                 }
-                info.revertState();
+                
                 return true;
 
             }
@@ -665,6 +714,16 @@ abstract class DNSRecord extends DNSEntry
         }
     }
 
+    public void setRecordSource(InetAddress source)
+    {
+        this.source = source;
+    }
+    
+    public InetAddress getRecordSource()
+    {
+        return source;
+    }
+    
     public String toString(String other)
     {
         return toString("record", ttl + "/" + getRemainingTTL(System.currentTimeMillis()) + "," + other);

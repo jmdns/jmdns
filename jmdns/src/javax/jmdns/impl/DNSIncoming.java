@@ -8,6 +8,7 @@ package javax.jmdns.impl;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -24,6 +25,12 @@ import java.util.logging.Logger;
 final class DNSIncoming
 {
     private static Logger logger = Logger.getLogger(DNSIncoming.class.getName());
+    
+    // This is a hack to handle a bug in the BonjourConformanceTest
+    // It is sending out target strings that don't follow the "domain name"
+    // format. 
+    public static boolean USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET = true;
+    
     // Implementation note: This vector should be immutable.
     // If a client of DNSIncoming changes the contents of this vector,
     // we get undesired results. To fix this, we have to migrate to
@@ -52,6 +59,7 @@ final class DNSIncoming
     DNSIncoming(DatagramPacket packet) throws IOException
     {
         this.packet = packet;
+        InetAddress source = packet.getAddress();
         this.data = packet.getData();
         this.len = packet.getLength();
         this.off = packet.getOffset();
@@ -107,7 +115,7 @@ final class DNSIncoming
                                 service = readName();                                
                             } catch (IOException e){
                                 // there was a problem reading the service name
-                                System.err.println(e.getMessage());
+                                e.printStackTrace();
                             }
                             rec = new DNSRecord.Pointer(domain, type, clazz, ttl, service);
                             break;
@@ -120,13 +128,21 @@ final class DNSIncoming
                             int port = readUnsignedShort();
                             String target = "";
                             try {
-                                target = readName();
+                                // This is a hack to handle a bug in the BonjourConformanceTest
+                                // It is sending out target strings that don't follow the "domain name"
+                                // format. 
+                                
+                                if(USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET){
+                                    target = readName();                                    
+                                } else {
+                                    target = readNonNameString();
+                                }
                             } catch (IOException e) {
                                 // this can happen if the type of the label 
                                 // cannot be handled.  
                                 // down below the offset gets advanced to the end
                                 // of the record 
-                                System.err.println(e.getMessage());
+                                e.printStackTrace();
                             }
                             rec = new DNSRecord.Service(domain, type, clazz, ttl,
                                 priority, weight, port, target);
@@ -141,6 +157,7 @@ final class DNSIncoming
 
                     if (rec != null)
                     {
+                        rec.setRecordSource(source);
                         // Add a record, if we were able to create one.
                         answers.add(rec);
                     }
@@ -262,6 +279,16 @@ final class DNSIncoming
         }
     }
 
+    private String readNonNameString() throws IOException
+    {
+        StringBuffer buf = new StringBuffer();
+        int off = this.off;
+        int len = get(off++);
+        readUTF(buf, off, len);
+
+        return buf.toString();
+    }
+    
     private String readName() throws IOException
     {
         StringBuffer buf = new StringBuffer();
@@ -293,7 +320,9 @@ final class DNSIncoming
                     off = ((len & 0x3F) << 8) | get(off++);
                     if (off >= first)
                     {
-                        throw new IOException("bad domain name: possible circular name detected");
+                        throw new IOException("bad domain name: possible circular name detected." +
+                                " name start: " + first +
+                                " bad offset: 0x" + Integer.toHexString(off));
                     }
                     first = off;
                     break;
