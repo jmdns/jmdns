@@ -1,3 +1,6 @@
+//Licensed under Apache License version 2.0
+//Original license LGPL
+
 package samples;
 
 import java.io.*;

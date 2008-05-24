@@ -1,3 +1,6 @@
+//Licensed under Apache License version 2.0
+//Original license LGPL
+
 // %Z%%M%, %I%, %G%
 //
 // This library is free software; you can redistribute it and/or
