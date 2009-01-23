@@ -23,7 +23,7 @@ public final class DNSOutgoing
      * This can be used to turn off domain name compression.  This was helpful for 
      * tracking problems interacting with other mdns implementations.
      */
-    public static boolean USE_DOMAIN_NAME_COMPRESSION = true;
+    public static  boolean USE_DOMAIN_NAME_COMPRESSION = true;
     
     private static Logger logger = Logger.getLogger(DNSOutgoing.class.getName());
     int id;
@@ -266,7 +266,7 @@ public final class DNSOutgoing
                     writeByte(val & 0xFF);
                     return;
                 }
-                names.put(name, new Integer(off));
+                names.put(name, Integer.valueOf(off));
             }
             writeUTF(name, 0, n);
             name = name.substring(n);
