@@ -8,7 +8,7 @@
 <property name="src" value="./src" /> 
 <property name="dest" value="./classes"/>
 <property name="doc" value="./docs"/>
-<property name="version" value="2.0"/>
+<property name="version" value="2.1"/>
 
 <!-- Configure custom Ant tasks for the Manager application -->
 <path id="jmdns.classpath">
