@@ -716,7 +716,7 @@ public class JmDNSImpl extends JmDNS
         final String name = type.toLowerCase();
         if (serviceTypes.get(name) == null)
         {
-            if ((type.indexOf("._mdns._udp.") < 0) && !type.endsWith(".in-addr.arpa."))
+            if ((type.indexOf("._dns-sd._udp.") < 0) && !type.endsWith(".in-addr.arpa."))
             {
                 Collection list;
                 synchronized (this)
@@ -997,7 +997,7 @@ public class JmDNSImpl extends JmDNS
             {
                 case DNSConstants.TYPE_PTR:
                     // handle _mdns._udp records
-                    if (rec.getName().indexOf("._mdns._udp.") >= 0)
+                    if (rec.getName().indexOf("._dns-sd._udp.") >= 0)
                     {
                         if (!expired && rec.name.startsWith("_services._mdns._udp."))
                         {
