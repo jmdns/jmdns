@@ -1,7 +1,8 @@
  <!-- Build the Fulfillment stuff -->
 <project name="jmdns" default="help" basedir="."> 
 <target name="init"> 
-<tstamp/> 
+	<mkdir dir="${dest}" />
+	<tstamp/> 
 </target>
 
 <!-- Configure the context PATH for this application --> 
@@ -102,12 +103,6 @@
   <fileset dir="docs" includes="**"/>
   <fileset dir="lib" includes="jmdns.jar"/>
   <fileset dir="." includes="jmdns-**"/>
- </delete>
- <delete>
-  <fileset defaultexcludes="false" dir=".">
-  <include name="**/.*"/>
-  <include name="**/*~"/>
-  </fileset>
  </delete>
 </target>
 
