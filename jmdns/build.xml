@@ -86,6 +86,8 @@
   <fileset dir="." includes="lib/jmdns.jar"/>
   <fileset dir="." includes="src/**/*.java"/>
   <fileset dir="." includes="docs/**"/>
+  <fileset dir="." includes="build.xml"/>
+  <fileset dir="." includes="fulllogging.properties"/>
  </copy>
  <zip destfile="jmdns-${version}.zip">
   <fileset dir="." includes="jmdns-${version}/**"/>
@@ -93,7 +95,7 @@
  <tar destfile="jmdns-${version}.tar">
   <tarfileset dir="." includes="jmdns-${version}/**"/>
  </tar>
- <gzip destfile="jmdns-${version}.tar.gz" src="jmdns-${version}.tar"/>
+ <gzip destfile="jmdns-${version}.tgz" src="jmdns-${version}.tar"/>
 </target>
 
 <target name="clean">
