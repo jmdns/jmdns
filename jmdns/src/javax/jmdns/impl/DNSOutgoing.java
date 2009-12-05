@@ -266,7 +266,7 @@ public final class DNSOutgoing
                     writeByte(val & 0xFF);
                     return;
                 }
-                names.put(name, Integer.valueOf(off+""));
+                names.put(name, Integer.valueOf(off));
             }
             writeUTF(name, 0, n);
             name = name.substring(n);
