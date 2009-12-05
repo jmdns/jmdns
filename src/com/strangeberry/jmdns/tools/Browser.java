@@ -129,7 +129,8 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
             "_eppc._tcp.local.",
             "_presence._tcp.local.",
             "_rfb._tcp.local.",
-            "_daap._tcp.local."
+            "_daap._tcp.local.",
+            "_touchcs._tcp.local."
         };
         
         for (int i = 0 ; i < list.length ; i++) {

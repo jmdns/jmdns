@@ -22,10 +22,11 @@ public abstract class JmDNS
     /**
      * The version of JmDNS.
      */
-    public static String VERSION = "2.0";
+    public static String VERSION = "3.0";
 
     /**
      * Create an instance of JmDNS.
+   
      */
     public static JmDNS create() throws IOException
     {
