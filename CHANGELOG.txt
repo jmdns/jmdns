@@ -1,3 +1,7 @@
+CHANGELOG 06 December 2009 Rick Blair
+1. Merged in all outstanding patches.
+
+
 CHANGELOG 06 February 2008 Scott Cytacki
 1. Added code to make it easier to debug communication with other mdns implementations.
   Including: 
