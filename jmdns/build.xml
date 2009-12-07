@@ -84,6 +84,7 @@
      <fileset dir="." includes="NOTICE"/>
      <fileset dir="." includes="LICENSE"/>
   <fileset dir="." includes="lib/jmdns.jar"/>
+  <fileset dir="." includes="lib/jmdns.manifest"/>
   <fileset dir="." includes="src/**/*.java"/>
   <fileset dir="." includes="docs/**"/>
   <fileset dir="." includes="build.xml"/>
