@@ -18,29 +18,36 @@ import javax.jmdns.ServiceInfo;
  */
 public class ServiceEventImpl extends ServiceEvent
 {
-    private static Logger logger = Logger.getLogger(ServiceEvent.class.getName());
+    /**
+     *
+     */
+    private static final long serialVersionUID = 7107973622016897488L;
+    // private static Logger logger = Logger.getLogger(ServiceEvent.class.getName());
     /**
      * The type name of the service.
      */
     private String type;
     /**
-     * The instance name of the service. Or null, if the event was
-     * fired to a service type listener.
+     * The instance name of the service. Or null, if the event was fired to a service type listener.
      */
     private String name;
     /**
-     * The service info record, or null if the service could be be resolved.
-     * This is also null, if the event was fired to a service type listener.
+     * The service info record, or null if the service could be be resolved. This is also null, if the event was fired
+     * to a service type listener.
      */
     private ServiceInfoImpl info;
 
     /**
      * Creates a new instance.
      *
-     * @param source the JmDNS instance which originated the event.
-     * @param type   the type name of the service.
-     * @param name   the instance name of the service.
-     * @param info   the service info record, or null if the service could be be resolved.
+     * @param source
+     *            the JmDNS instance which originated the event.
+     * @param type
+     *            the type name of the service.
+     * @param name
+     *            the instance name of the service.
+     * @param info
+     *            the service info record, or null if the service could be be resolved.
      */
     public ServiceEventImpl(JmDNSImpl source, String type, String name, ServiceInfoImpl info)
     {
@@ -53,6 +60,7 @@ public class ServiceEventImpl extends ServiceEvent
     /**
      * @see javax.jmdns.ServiceEvent#getDNS()
      */
+    @Override
     public JmDNS getDNS()
     {
         return (JmDNS) getSource();
@@ -61,6 +69,7 @@ public class ServiceEventImpl extends ServiceEvent
     /**
      * @see javax.jmdns.ServiceEvent#getType()
      */
+    @Override
     public String getType()
     {
         return type;
@@ -69,6 +78,7 @@ public class ServiceEventImpl extends ServiceEvent
     /**
      * @see javax.jmdns.ServiceEvent#getName()
      */
+    @Override
     public String getName()
     {
         return name;
@@ -77,6 +87,7 @@ public class ServiceEventImpl extends ServiceEvent
     /**
      * @see javax.jmdns.ServiceEvent#toString()
      */
+    @Override
     public String toString()
     {
         StringBuffer buf = new StringBuffer();
@@ -91,6 +102,7 @@ public class ServiceEventImpl extends ServiceEvent
         return buf.toString();
     }
 
+    @Override
     public ServiceInfo getInfo()
     {
         return info;

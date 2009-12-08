@@ -5,17 +5,17 @@
 package javax.jmdns.impl;
 
 import java.util.ArrayList;
-import java.util.logging.Logger;
+import java.util.List;
 
 /**
  * DNSState defines the possible states for services registered with JmDNS.
  *
  * @author Werner Randelshofer, Rick Blair
- * @version 1.0  May 23, 2004  Created.
+ * @version 1.0 May 23, 2004 Created.
  */
-public class DNSState implements Comparable
+public class DNSState implements Comparable<DNSState>
 {
-    private static Logger logger = Logger.getLogger(DNSState.class.getName());
+    // private static Logger logger = Logger.getLogger(DNSState.class.getName());
 
     private final String name;
 
@@ -28,11 +28,10 @@ public class DNSState implements Comparable
      */
     private final int ordinal = nextOrdinal++;
     /**
-     * Logical sequence of states.
-     * The sequence is consistent with the ordinal of a state.
-     * This is used for advancing through states.
+     * Logical sequence of states. The sequence is consistent with the ordinal of a state. This is used for advancing
+     * through states.
      */
-    private final static ArrayList sequence = new ArrayList();
+    private final static List<DNSState> sequence = new ArrayList<DNSState>();
 
     private DNSState(String name)
     {
@@ -40,6 +39,7 @@ public class DNSState implements Comparable
         sequence.add(this);
     }
 
+    @Override
     public final String toString()
     {
         return name;
@@ -54,10 +54,10 @@ public class DNSState implements Comparable
     public static final DNSState CANCELED = new DNSState("canceled");
 
     /**
-     * Returns the next advanced state.
-     * In general, this advances one step in the following sequence: PROBING_1,
-     * PROBING_2, PROBING_3, ANNOUNCING_1, ANNOUNCING_2, ANNOUNCED.
-     * Does not advance for ANNOUNCED and CANCELED state.
+     * Returns the next advanced state. In general, this advances one step in the following sequence: PROBING_1,
+     * PROBING_2, PROBING_3, ANNOUNCING_1, ANNOUNCING_2, ANNOUNCED. Does not advance for ANNOUNCED and CANCELED state.
+     *
+     * @return next state
      */
     public final DNSState advance()
     {
@@ -65,9 +65,10 @@ public class DNSState implements Comparable
     }
 
     /**
-     * Returns to the next reverted state.
-     * All states except CANCELED revert to PROBING_1.
-     * Status CANCELED does not revert.
+     * Returns to the next reverted state. All states except CANCELED revert to PROBING_1. Status CANCELED does not
+     * revert.
+     *
+     * @return reverted state
      */
     public final DNSState revert()
     {
@@ -76,6 +77,8 @@ public class DNSState implements Comparable
 
     /**
      * Returns true, if this is a probing state.
+     *
+     * @return <code>true</code> if probing state, <code>false</code> otherwise
      */
     public boolean isProbing()
     {
@@ -84,6 +87,8 @@ public class DNSState implements Comparable
 
     /**
      * Returns true, if this is an announcing state.
+     *
+     * @return <code>true</code> if announcing state, <code>false</code> otherwise
      */
     public boolean isAnnouncing()
     {
@@ -92,6 +97,8 @@ public class DNSState implements Comparable
 
     /**
      * Returns true, if this is an announced state.
+     *
+     * @return <code>true</code> if announced state, <code>false</code> otherwise
      */
     public boolean isAnnounced()
     {
@@ -99,13 +106,16 @@ public class DNSState implements Comparable
     }
 
     /**
-     * Compares two states.
-     * The states compare as follows:
-     * PROBING_1 &lt; PROBING_2 &lt; PROBING_3 &lt; ANNOUNCING_1 &lt;
-     * ANNOUNCING_2 &lt; RESPONDING &lt; ANNOUNCED &lt; CANCELED.
+     * Compares two states. The states compare as follows: PROBING_1 &lt; PROBING_2 &lt; PROBING_3 &lt; ANNOUNCING_1
+     * &lt; ANNOUNCING_2 &lt; RESPONDING &lt; ANNOUNCED &lt; CANCELED.
+     *
+     * @param o
+     *            the DNSState to be compared.
+     * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than
+     *         the specified object.
      */
-    public int compareTo(Object o)
+    public int compareTo(DNSState o)
     {
-        return ordinal - ((DNSState) o).ordinal;
+        return ordinal - o.ordinal;
     }
 }

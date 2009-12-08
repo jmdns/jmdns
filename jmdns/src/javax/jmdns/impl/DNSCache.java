@@ -10,13 +10,13 @@ import java.util.Iterator;
 import java.util.logging.Logger;
 
 /**
- * A table of DNS entries. This is a hash table which can handle multiple
- * entries with the same name. <p/> Storing multiple entries with the same name
- * is implemented using a linked list of <code>CacheNode</code>'s. <p/> The
- * current implementation of the API of DNSCache does expose the cache nodes to
- * clients. Clients must explicitly deal with the nodes when iterating over
- * entries in the cache. Here's how to iterate over all entries in the cache:
- * 
+ * A table of DNS entries. This is a hash table which can handle multiple entries with the same name.
+ * <p/>
+ * Storing multiple entries with the same name is implemented using a linked list of <code>CacheNode</code>'s.
+ * <p/>
+ * The current implementation of the API of DNSCache does expose the cache nodes to clients. Clients must explicitly
+ * deal with the nodes when iterating over entries in the cache. Here's how to iterate over all entries in the cache:
+ *
  * <pre>
  * for (Iterator i=dnscache.iterator(); i.hasNext(); ) {
  *    for (DNSCache.CacheNode n = (DNSCache.CacheNode) i.next(); n != null; n.next()) {
@@ -25,22 +25,24 @@ import java.util.logging.Logger;
  *    }
  * }
  * </pre>
- * 
- * <p/> And here's how to iterate over all entries having a given name:
- * 
+ *
+ * <p/>
+ * And here's how to iterate over all entries having a given name:
+ *
  * <pre>
  * for (DNSCache.CacheNode n = (DNSCache.CacheNode) dnscache.find(name); n != null; n.next()) {
  *     DNSEntry entry = n.getValue();
  *     ...do something with entry...
  * }
  * </pre>
- * 
+ *
  * @version %I%, %G%
  * @author Arthur van Hoff, Werner Randelshofer, Rick Blair
  */
 public class DNSCache
 {
-    private static Logger logger = Logger.getLogger(DNSCache.class.getName());
+    // private static Logger logger = Logger.getLogger(DNSCache.class.getName());
+
     // Implementation note:
     // We might completely hide the existence of CacheNode's in a future version
     // of DNSCache. But this will require to implement two (inner) classes for
@@ -49,8 +51,7 @@ public class DNSCache
     // Since DNSCache is not a public class, it does not seem worth the effort
     // to clean its API up that much.
 
-    // [PJYF Oct 15 2004] This should implements Collections that would be amuch
-    // cleaner implementation
+    // [PJYF Oct 15 2004] This should implements Collections that would be a much cleaner implementation
 
     /**
      * The number of DNSEntry's in the cache.
@@ -58,15 +59,13 @@ public class DNSCache
     private int size;
 
     /**
-     * The hashtable used internally to store the entries of the cache. Keys are
-     * instances of String. The String contains an unqualified service name.
-     * Values are linked lists of CacheNode instances.
+     * The hashtable used internally to store the entries of the cache. Keys are instances of String. The String
+     * contains an unqualified service name. Values are linked lists of CacheNode instances.
      */
     private final HashMap hashtable;
 
     /**
-     * Cache nodes are used to implement storage of multiple DNSEntry's of the
-     * same name in the cache.
+     * Cache nodes are used to implement storage of multiple DNSEntry's of the same name in the cache.
      */
     public static class CacheNode
     {
@@ -92,6 +91,9 @@ public class DNSCache
 
     /**
      * Create a table with a given initial size.
+     *
+     * @param size
+     *            Initial cache size
      */
     public DNSCache(final int size)
     {
@@ -109,6 +111,9 @@ public class DNSCache
 
     /**
      * Adds an entry to the table.
+     *
+     * @param entry
+     *            entry to add
      */
     public synchronized void add(final DNSEntry entry)
     {
@@ -128,8 +133,11 @@ public class DNSCache
     }
 
     /**
-     * Remove a specific entry from the table. Returns true if the entry was
-     * found.
+     * Remove a specific entry from the table. Returns true if the entry was found.
+     *
+     * @param entry
+     *            entry to remove
+     * @return <code>true</code> if the entry was removed, <code>false</code> otherwise.
      */
     public synchronized boolean remove(DNSEntry entry)
     {
@@ -163,14 +171,16 @@ public class DNSCache
                 previous = node;
                 node = node.next;
             }
-            ;
         }
         return false;
     }
 
     /**
-     * Get a matching DNS entry from the table (using equals). Returns the entry
-     * that was found.
+     * Get a matching DNS entry from the table (using equals). Returns the entry that was found.
+     *
+     * @param entry
+     *            entry to match
+     * @return cached DNS entry.
      */
     public synchronized DNSEntry get(DNSEntry entry)
     {
@@ -186,6 +196,14 @@ public class DNSCache
 
     /**
      * Get a matching DNS entry from the table.
+     *
+     * @param name
+     *            service name
+     * @param type
+     *            service type
+     * @param clazz
+     *            service class
+     * @return cached DNS entry.
      */
     public synchronized DNSEntry get(String name, int type, int clazz)
     {
@@ -200,10 +218,11 @@ public class DNSCache
     }
 
     /**
-     * Iterates over all cache nodes. The iterator returns instances of
-     * DNSCache.CacheNode. Each instance returned is the first node of a linked
-     * list. To retrieve all entries, one must iterate over this linked list.
-     * See code snippets in the header of the class.
+     * Iterates over all cache nodes. The iterator returns instances of DNSCache.CacheNode. Each instance returned is
+     * the first node of a linked list. To retrieve all entries, one must iterate over this linked list. See code
+     * snippets in the header of the class.
+     *
+     * @return node iterator
      */
     public synchronized Iterator iterator()
     {
@@ -211,10 +230,12 @@ public class DNSCache
     }
 
     /**
-     * Iterate only over items with matching name. Returns an instance of
-     * DNSCache.CacheNode or null. If an instance is returned, it is the first
-     * node of a linked list. To retrieve all entries, one must iterate over
-     * this linked list.
+     * Iterate only over items with matching name. Returns an instance of DNSCache.CacheNode or null. If an instance is
+     * returned, it is the first node of a linked list. To retrieve all entries, one must iterate over this linked list.
+     *
+     * @param name
+     *            Entry to find
+     * @return cached node
      */
     public synchronized CacheNode find(String name)
     {
@@ -235,6 +256,7 @@ public class DNSCache
         }
     }
 
+    @Override
     public synchronized String toString()
     {
         final StringBuffer aLog = new StringBuffer();

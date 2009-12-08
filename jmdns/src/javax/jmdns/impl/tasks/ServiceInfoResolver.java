@@ -52,6 +52,7 @@ public class ServiceInfoResolver extends TimerTask
         timer.schedule(this, DNSConstants.QUERY_WAIT_INTERVAL, DNSConstants.QUERY_WAIT_INTERVAL);
     }
 
+    @Override
     public void run()
     {
         try

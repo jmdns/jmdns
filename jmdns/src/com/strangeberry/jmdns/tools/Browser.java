@@ -25,7 +25,6 @@ import java.awt.Container;
 import java.awt.GridLayout;
 import java.io.IOException;
 import java.util.Enumeration;
-import java.util.Vector;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -49,246 +48,315 @@ import javax.swing.table.AbstractTableModel;
 /**
  * User Interface for browsing JmDNS services.
  *
- * @author	Arthur van Hoff, Werner Randelshofer
- * @version 	%I%, %G%
+ * @author Arthur van Hoff, Werner Randelshofer
+ * @version %I%, %G%
  */
-public class Browser extends JFrame implements ServiceListener, ServiceTypeListener, ListSelectionListener {
+public class Browser extends JFrame implements ServiceListener, ServiceTypeListener, ListSelectionListener
+{
+    /**
+     *
+     */
+    private static final long serialVersionUID = 5750114542524415107L;
     JmDNS jmdns;
-    Vector headers;
+    // Vector headers;
     String type;
     DefaultListModel types;
     JList typeList;
     DefaultListModel services;
     JList serviceList;
     JTextArea info;
-    
-    Browser(JmDNS jmdns) throws IOException {
+
+    /**
+     * @param mDNS
+     * @throws IOException
+     */
+    Browser(JmDNS mDNS) throws IOException
+    {
         super("JmDNS Browser");
-        this.jmdns = jmdns;
-        
+        this.jmdns = mDNS;
+
         Color bg = new Color(230, 230, 230);
         EmptyBorder border = new EmptyBorder(5, 5, 5, 5);
         Container content = getContentPane();
         content.setLayout(new GridLayout(1, 3));
-        
+
         types = new DefaultListModel();
         typeList = new JList(types);
         typeList.setBorder(border);
         typeList.setBackground(bg);
         typeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         typeList.addListSelectionListener(this);
-        
+
         JPanel typePanel = new JPanel();
         typePanel.setLayout(new BorderLayout());
         typePanel.add("North", new JLabel("Types"));
-        typePanel.add("Center", new JScrollPane(typeList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+        typePanel.add("Center", new JScrollPane(typeList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
         content.add(typePanel);
-        
+
         services = new DefaultListModel();
         serviceList = new JList(services);
         serviceList.setBorder(border);
         serviceList.setBackground(bg);
         serviceList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         serviceList.addListSelectionListener(this);
-        
+
         JPanel servicePanel = new JPanel();
         servicePanel.setLayout(new BorderLayout());
         servicePanel.add("North", new JLabel("Services"));
-        servicePanel.add("Center", new JScrollPane(serviceList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+        servicePanel.add("Center", new JScrollPane(serviceList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
         content.add(servicePanel);
-        
+
         info = new JTextArea();
         info.setBorder(border);
         info.setBackground(bg);
         info.setEditable(false);
         info.setLineWrap(true);
-        
+
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BorderLayout());
         infoPanel.add("North", new JLabel("Details"));
-        infoPanel.add("Center", new JScrollPane(info, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+        infoPanel.add("Center", new JScrollPane(info, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
         content.add(infoPanel);
-        
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocation(100, 100);
         setSize(600, 400);
-        
-        jmdns.addServiceTypeListener(this);
-        
+
+        mDNS.addServiceTypeListener(this);
+
         // register some well known types
-        String list[] = new String[] {
-            "_http._tcp.local.",
-            "_ftp._tcp.local.",
-            "_tftp._tcp.local.",
-            "_ssh._tcp.local.",
-            "_smb._tcp.local.",
-            "_printer._tcp.local.",
-            "_airport._tcp.local.",
-            "_afpovertcp._tcp.local.",
-            "_ichat._tcp.local.",
-            "_eppc._tcp.local.",
-            "_presence._tcp.local.",
-            "_rfb._tcp.local.",
-            "_daap._tcp.local.",
-            "_touchcs._tcp.local."
-        };
-        
-        for (int i = 0 ; i < list.length ; i++) {
-            jmdns.registerServiceType(list[i]);
+        String list[] = new String[] { "_http._tcp.local.", "_ftp._tcp.local.", "_tftp._tcp.local.",
+                "_ssh._tcp.local.", "_smb._tcp.local.", "_printer._tcp.local.", "_airport._tcp.local.",
+                "_afpovertcp._tcp.local.", "_ichat._tcp.local.", "_eppc._tcp.local.", "_presence._tcp.local.",
+                "_rfb._tcp.local.", "_daap._tcp.local.", "_touchcs._tcp.local." };
+
+        for (int i = 0; i < list.length; i++)
+        {
+            mDNS.registerServiceType(list[i]);
         }
-        
-        show();
+
+        this.setVisible(true);
     }
-    
+
     /**
      * Add a service.
+     *
+     * @param event
      */
-    public void serviceAdded(ServiceEvent event) {
+    public void serviceAdded(ServiceEvent event)
+    {
         final String name = event.getName();
-        
+
         System.out.println("ADD: " + name);
         SwingUtilities.invokeLater(new Runnable() {
-        public void run() { insertSorted(services, name); }
+            public void run()
+            {
+                insertSorted(services, name);
+            }
         });
     }
-    
+
     /**
      * Remove a service.
+     *
+     * @param event
      */
-    public void serviceRemoved(ServiceEvent event) {
+    public void serviceRemoved(ServiceEvent event)
+    {
         final String name = event.getName();
 
         System.out.println("REMOVE: " + name);
         SwingUtilities.invokeLater(new Runnable() {
-        public void run() { services.removeElement(name); }
+            public void run()
+            {
+                services.removeElement(name);
+            }
         });
     }
-    
+
     /**
      * A new service type was <discovered.
+     *
+     * @param event
      */
-    public void serviceTypeAdded(ServiceEvent event) {
-        final String type = event.getType();
+    public void serviceTypeAdded(ServiceEvent event)
+    {
+        final String aType = event.getType();
 
-        System.out.println("TYPE: " + type);
+        System.out.println("TYPE: " + aType);
         SwingUtilities.invokeLater(new Runnable() {
-        public void run() { insertSorted(types, type); }
+            public void run()
+            {
+                insertSorted(types, aType);
+            }
         });
     }
-    
-    
-    void insertSorted(DefaultListModel model, String value) {
-        for (int i = 0, n = model.getSize() ; i < n ; i++) {
-            if (value.compareToIgnoreCase((String)model.elementAt(i)) < 0) {
+
+    void insertSorted(DefaultListModel model, String value)
+    {
+        for (int i = 0, n = model.getSize(); i < n; i++)
+        {
+            if (value.compareToIgnoreCase((String) model.elementAt(i)) < 0)
+            {
                 model.insertElementAt(value, i);
                 return;
             }
         }
         model.addElement(value);
     }
-    
+
     /**
      * Resolve a service.
+     *
+     * @param event
      */
-    public void serviceResolved(ServiceEvent event) {
-        String name = event.getName();
-        String type = event.getType();
-        ServiceInfo info = event.getInfo();
+    public void serviceResolved(ServiceEvent event)
+    {
+        String aName = event.getName();
+        String aType = event.getType();
+        ServiceInfo anInfo = event.getInfo();
 
-        if (name.equals(serviceList.getSelectedValue())) {
-            if (info == null) {
+        if (aName.equals(serviceList.getSelectedValue()))
+        {
+            if (anInfo == null)
+            {
                 this.info.setText("service not found");
-            } else {
-                
+            }
+            else
+            {
+
                 StringBuffer buf = new StringBuffer();
-                buf.append(name);
+                buf.append(aName);
                 buf.append('.');
-                buf.append(type);
+                buf.append(aType);
                 buf.append('\n');
-                buf.append(info.getServer());
+                buf.append(anInfo.getServer());
                 buf.append(':');
-                buf.append(info.getPort());
+                buf.append(anInfo.getPort());
                 buf.append('\n');
-                buf.append(info.getAddress());
+                buf.append(anInfo.getAddress());
                 buf.append(':');
-                buf.append(info.getPort());
+                buf.append(anInfo.getPort());
                 buf.append('\n');
-                for (Enumeration names = info.getPropertyNames() ; names.hasMoreElements() ; ) {
-                    String prop = (String)names.nextElement();
+                for (Enumeration<String> names = anInfo.getPropertyNames(); names.hasMoreElements();)
+                {
+                    String prop = names.nextElement();
                     buf.append(prop);
                     buf.append('=');
-                    buf.append(info.getPropertyString(prop));
+                    buf.append(anInfo.getPropertyString(prop));
                     buf.append('\n');
                 }
-                
+
                 this.info.setText(buf.toString());
             }
         }
     }
-    
+
     /**
      * List selection changed.
+     *
+     * @param e
      */
-    public void valueChanged(ListSelectionEvent e) {
-        if (!e.getValueIsAdjusting()) {
-            if (e.getSource() == typeList) {
-                type = (String)typeList.getSelectedValue();
+    public void valueChanged(ListSelectionEvent e)
+    {
+        if (!e.getValueIsAdjusting())
+        {
+            if (e.getSource() == typeList)
+            {
+                type = (String) typeList.getSelectedValue();
                 jmdns.removeServiceListener(type, this);
                 services.setSize(0);
                 info.setText("");
-                if (type != null) {
-                jmdns.addServiceListener(type, this);
+                if (type != null)
+                {
+                    jmdns.addServiceListener(type, this);
                 }
-            } else if (e.getSource() == serviceList) {
-                String name = (String)serviceList.getSelectedValue();
-                if (name == null) {
+            }
+            else if (e.getSource() == serviceList)
+            {
+                String name = (String) serviceList.getSelectedValue();
+                if (name == null)
+                {
                     info.setText("");
-                } else {
-                    System.out.println(this+" valueChanged() type:"+type+" name:"+name);
+                }
+                else
+                {
+                    System.out.println(this + " valueChanged() type:" + type + " name:" + name);
                     System.out.flush();
                     ServiceInfo service = jmdns.getServiceInfo(type, name);
-                    if (service == null) {
+                    if (service == null)
+                    {
                         info.setText("service not found");
-                    } else {
+                    }
+                    else
+                    {
                         jmdns.requestServiceInfo(type, name);
                     }
                 }
             }
         }
     }
-    
+
     /**
      * Table data.
      */
-    class ServiceTableModel extends AbstractTableModel {
-        public String getColumnName(int column) {
-            switch (column) {
-                case 0: return "service";
-                case 1: return "address";
-                case 2: return "port";
-                case 3: return "text";
+    class ServiceTableModel extends AbstractTableModel
+    {
+        /**
+         *
+         */
+        private static final long serialVersionUID = 5607994569609827570L;
+
+        @Override
+        public String getColumnName(int column)
+        {
+            switch (column)
+            {
+                case 0:
+                    return "service";
+                case 1:
+                    return "address";
+                case 2:
+                    return "port";
+                case 3:
+                    return "text";
             }
             return null;
         }
-        public int getColumnCount() {
+
+        public int getColumnCount()
+        {
             return 1;
         }
-        public int getRowCount() {
+
+        public int getRowCount()
+        {
             return services.size();
         }
-        public Object getValueAt(int row, int col) {
+
+        public Object getValueAt(int row, int col)
+        {
             return services.elementAt(row);
         }
     }
-    
-    public String toString() {
+
+    @Override
+    public String toString()
+    {
         return "RVBROWSER";
     }
-    
+
     /**
      * Main program.
+     *
+     * @param argv
+     * @throws IOException
      */
-    public static void main(String argv[]) throws IOException {
+    public static void main(String argv[]) throws IOException
+    {
         new Browser(JmDNS.create());
     }
 }

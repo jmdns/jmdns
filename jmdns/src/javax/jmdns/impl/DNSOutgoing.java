@@ -2,12 +2,12 @@
 //Licensed under Apache License version 2.0
 //Original license LGPL
 
-
 package javax.jmdns.impl;
 
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,16 +15,16 @@ import java.util.logging.Logger;
  * An outgoing DNS message.
  *
  * @version %I%, %G%
- * @author	Arthur van Hoff, Rick Blair, Werner Randelshofer
+ * @author Arthur van Hoff, Rick Blair, Werner Randelshofer
  */
 public final class DNSOutgoing
 {
     /**
-     * This can be used to turn off domain name compression.  This was helpful for 
-     * tracking problems interacting with other mdns implementations.
+     * This can be used to turn off domain name compression. This was helpful for tracking problems interacting with
+     * other mdns implementations.
      */
-    public static  boolean USE_DOMAIN_NAME_COMPRESSION = true;
-    
+    public static boolean USE_DOMAIN_NAME_COMPRESSION = true;
+
     private static Logger logger = Logger.getLogger(DNSOutgoing.class.getName());
     int id;
     int flags;
@@ -33,7 +33,7 @@ public final class DNSOutgoing
     private int numAnswers;
     private int numAuthorities;
     private int numAdditionals;
-    private Hashtable names;
+    private Map<String, Integer> names;
 
     byte data[];
     int off;
@@ -41,6 +41,8 @@ public final class DNSOutgoing
 
     /**
      * Create an outgoing multicast query or response.
+     *
+     * @param flags
      */
     public DNSOutgoing(int flags)
     {
@@ -49,18 +51,24 @@ public final class DNSOutgoing
 
     /**
      * Create an outgoing query or response.
+     *
+     * @param flags
+     * @param multicast
      */
     public DNSOutgoing(int flags, boolean multicast)
     {
         this.flags = flags;
         this.multicast = multicast;
-        names = new Hashtable();
+        names = new Hashtable<String, Integer>();
         data = new byte[DNSConstants.MAX_MSG_TYPICAL];
         off = 12;
     }
 
     /**
      * Add a question to the message.
+     *
+     * @param rec
+     * @throws IOException
      */
     public void addQuestion(DNSQuestion rec) throws IOException
     {
@@ -101,6 +109,10 @@ public final class DNSOutgoing
 
     /**
      * Add an answer to the message.
+     *
+     * @param rec
+     * @param now
+     * @throws IOException
      */
     public void addAnswer(DNSRecord rec, long now) throws IOException
     {
@@ -122,6 +134,9 @@ public final class DNSOutgoing
 
     /**
      * Add an authorative answer to the message.
+     *
+     * @param rec
+     * @throws IOException
      */
     public void addAuthorativeAnswer(DNSRecord rec) throws IOException
     {
@@ -236,7 +251,7 @@ public final class DNSOutgoing
     {
         writeName(name, true);
     }
-    
+
     void writeName(String name, boolean useCompression) throws IOException
     {
         while (true)
@@ -251,8 +266,9 @@ public final class DNSOutgoing
                 writeByte(0);
                 return;
             }
-            if(useCompression && USE_DOMAIN_NAME_COMPRESSION){
-                Integer offset = (Integer) names.get(name);
+            if (useCompression && USE_DOMAIN_NAME_COMPRESSION)
+            {
+                Integer offset = names.get(name);
                 if (offset != null)
                 {
                     int val = offset.intValue();
@@ -331,20 +347,19 @@ public final class DNSOutgoing
 
     public boolean isEmpty()
     {
-        return numQuestions == 0 && numAuthorities == 0
-            && numAdditionals == 0 && numAnswers == 0;
+        return numQuestions == 0 && numAuthorities == 0 && numAdditionals == 0 && numAnswers == 0;
     }
 
-
+    @Override
     public String toString()
     {
         StringBuffer buf = new StringBuffer();
         buf.append(isQuery() ? "dns[query," : "dns[response,");
-        //buf.append(packet.getAddress().getHostAddress());
+        // buf.append(packet.getAddress().getHostAddress());
         buf.append(':');
-        //buf.append(packet.getPort());
-        //buf.append(",len=");
-        //buf.append(packet.getLength());
+        // buf.append(packet.getPort());
+        // buf.append(",len=");
+        // buf.append(packet.getLength());
         buf.append(",id=0x");
         buf.append(Integer.toHexString(id));
         if (flags != 0)

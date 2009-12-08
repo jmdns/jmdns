@@ -12,6 +12,7 @@ import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSConstants;
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSState;
@@ -19,9 +20,8 @@ import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.ServiceInfoImpl;
 
 /**
- * The Announcer sends an accumulated query of all announces, and advances
- * the state of all serviceInfos, for which it has sent an announce.
- * The Announcer also sends announcements and advances the state of JmDNS itself.
+ * The Announcer sends an accumulated query of all announces, and advances the state of all serviceInfos, for which it
+ * has sent an announce. The Announcer also sends announcements and advances the state of JmDNS itself.
  * <p/>
  * When the announcer has run two times, it finishes.
  */
@@ -30,7 +30,7 @@ public class Announcer extends TimerTask
     static Logger logger = Logger.getLogger(Announcer.class.getName());
 
     /**
-     * 
+     *
      */
     private final JmDNSImpl jmDNSImpl;
     /**
@@ -65,6 +65,7 @@ public class Announcer extends TimerTask
         timer.schedule(this, DNSConstants.ANNOUNCE_WAIT_INTERVAL, DNSConstants.ANNOUNCE_WAIT_INTERVAL);
     }
 
+    @Override
     public boolean cancel()
     {
         // Remove association from host to this
@@ -89,6 +90,7 @@ public class Announcer extends TimerTask
         return super.cancel();
     }
 
+    @Override
     public void run()
     {
         DNSOutgoing out = null;
@@ -108,12 +110,12 @@ public class Announcer extends TimerTask
             // Defensively copy the services into a local list,
             // to prevent race conditions with methods registerService
             // and unregisterService.
-            List list;
+            List<? extends ServiceInfo> list;
             synchronized (this.jmDNSImpl)
             {
-                list = new ArrayList(this.jmDNSImpl.getServices().values());
+                list = new ArrayList<ServiceInfo>(this.jmDNSImpl.getServices().values());
             }
-            for (Iterator i = list.iterator(); i.hasNext();)
+            for (Iterator<? extends ServiceInfo> i = list.iterator(); i.hasNext();)
             {
                 ServiceInfoImpl info = (ServiceInfoImpl) i.next();
                 synchronized (info)

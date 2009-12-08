@@ -19,6 +19,9 @@ public final class DNSQuestion extends DNSEntry
 
     /**
      * Create a question.
+     * @param name
+     * @param type
+     * @param clazz
      */
     public DNSQuestion(String name, int type, int clazz)
     {
@@ -37,6 +40,7 @@ public final class DNSQuestion extends DNSEntry
     /**
      * For debugging only.
      */
+    @Override
     public String toString()
     {
         return toString("question", null);

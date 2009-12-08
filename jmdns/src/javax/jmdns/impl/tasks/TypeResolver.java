@@ -52,6 +52,7 @@ public class TypeResolver extends TimerTask
      */
     int count = 0;
 
+    @Override
     public void run()
     {
         try

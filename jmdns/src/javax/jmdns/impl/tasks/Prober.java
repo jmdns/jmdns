@@ -90,6 +90,7 @@ public class Prober extends TimerTask
         }
     }
 
+    @Override
     public boolean cancel()
     {
         // Remove association from host name to this
@@ -114,6 +115,7 @@ public class Prober extends TimerTask
         return super.cancel();
     }
 
+    @Override
     public void run()
     {
         synchronized (this.jmDNSImpl.getIoLock())
