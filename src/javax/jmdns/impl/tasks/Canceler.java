@@ -24,7 +24,7 @@ public class Canceler extends TimerTask
     static Logger logger = Logger.getLogger(Canceler.class.getName());
 
     /**
-     * 
+     *
      */
     private final JmDNSImpl jmDNSImpl;
     /**
@@ -78,6 +78,7 @@ public class Canceler extends TimerTask
         timer.schedule(this, 0, DNSConstants.ANNOUNCE_WAIT_INTERVAL);
     }
 
+    @Override
     public void run()
     {
         try

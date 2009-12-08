@@ -50,12 +50,12 @@ public class Main {
             System.out.println("TYPE: " + event.getType());
         }
     }
-    
+
     public static void main(String argv[]) throws IOException {
         int argc = argv.length;
         boolean debug = false;
         InetAddress intf = null;
-        
+
         if ((argc > 0) && "-d".equals(argv[0])) {
             System.arraycopy(argv, 1, argv, 0, --argc);
             System.getProperties().put("jmdns.debug", "1");
@@ -68,9 +68,9 @@ public class Main {
         if (intf == null) {
             intf = InetAddress.getLocalHost();
         }
-        
+
         JmDNS jmdns = JmDNS.create(intf);
-        
+
         if ((argc == 0) || ((argc >= 1) && "-browse".equals(argv[0]))) {
             new Browser(jmdns);
             for (int i = 2 ; i < argc ; i++) {
@@ -83,19 +83,19 @@ public class Main {
         } else if ((argc > 4) && "-rs".equals(argv[0])) {
             String type = argv[2] + "." + argv[3];
             String name = argv[1];
-            Hashtable props = null;
+            Hashtable<String, Object> props = null;
             for (int i = 5 ; i < argc ; i++) {
                 int j = argv[i].indexOf('=');
                 if (j < 0) {
                     throw new RuntimeException("not key=val: " + argv[i]);
                 }
                 if (props == null) {
-                    props = new Hashtable();
+                    props = new Hashtable<String, Object>();
                 }
                 props.put(argv[i].substring(0, j), argv[i].substring(j+1));
             }
             jmdns.registerService(ServiceInfo.create(type, name, Integer.parseInt(argv[4]), 0, 0, props));
-            
+
             // This while loop keeps the main thread alive
             while (true) {
                 try {

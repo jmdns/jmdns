@@ -61,6 +61,7 @@ public class Renewer extends TimerTask
         timer.schedule(this, DNSConstants.ANNOUNCED_RENEWAL_TTL_INTERVAL, DNSConstants.ANNOUNCED_RENEWAL_TTL_INTERVAL);
     }
 
+    @Override
     public boolean cancel()
     {
         // Remove association from host to this
@@ -85,6 +86,7 @@ public class Renewer extends TimerTask
         return super.cancel();
     }
 
+    @Override
     public void run()
     {
         DNSOutgoing out = null;

@@ -2,8 +2,6 @@
 //Licensed under Apache License version 2.0
 //Original license LGPL
 
-
-
 package javax.jmdns.impl;
 
 import java.io.IOException;
@@ -20,23 +18,23 @@ import java.util.logging.Logger;
  * Parse an incoming DNS message into its components.
  *
  * @version %I%, %G%
- * @author	Arthur van Hoff, Werner Randelshofer, Pierre Frisch, Daniel Bobbert
+ * @author Arthur van Hoff, Werner Randelshofer, Pierre Frisch, Daniel Bobbert
  */
 public final class DNSIncoming
 {
     private static Logger logger = Logger.getLogger(DNSIncoming.class.getName());
-    
+
     // This is a hack to handle a bug in the BonjourConformanceTest
     // It is sending out target strings that don't follow the "domain name"
-    // format. 
+    // format.
     public static boolean USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET = true;
-    
+
     // Implementation note: This vector should be immutable.
     // If a client of DNSIncoming changes the contents of this vector,
     // we get undesired results. To fix this, we have to migrate to
     // the Collections API of Java 1.2. i.e we replace Vector by List.
     // final static Vector EMPTY = new Vector();
-    
+
     private DatagramPacket packet;
     private int off;
     private int len;
@@ -104,16 +102,19 @@ public final class DNSIncoming
 
                     switch (type)
                     {
-                        case DNSConstants.TYPE_A:		// IPv4
-                        case DNSConstants.TYPE_AAAA:	// IPv6 FIXME [PJYF Oct 14 2004] This has not been tested
+                        case DNSConstants.TYPE_A: // IPv4
+                        case DNSConstants.TYPE_AAAA: // IPv6 FIXME [PJYF Oct 14 2004] This has not been tested
                             rec = new DNSRecord.Address(domain, type, clazz, ttl, readBytes(off, len));
                             break;
                         case DNSConstants.TYPE_CNAME:
                         case DNSConstants.TYPE_PTR:
                             String service = "";
-                            try {
-                                service = readName();                                
-                            } catch (IOException e){
+                            try
+                            {
+                                service = readName();
+                            }
+                            catch (IOException e)
+                            {
                                 // there was a problem reading the service name
                                 e.printStackTrace();
                             }
@@ -127,30 +128,35 @@ public final class DNSIncoming
                             int weight = readUnsignedShort();
                             int port = readUnsignedShort();
                             String target = "";
-                            try {
+                            try
+                            {
                                 // This is a hack to handle a bug in the BonjourConformanceTest
                                 // It is sending out target strings that don't follow the "domain name"
-                                // format. 
-                                
-                                if(USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET){
-                                    target = readName();                                    
-                                } else {
+                                // format.
+
+                                if (USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET)
+                                {
+                                    target = readName();
+                                }
+                                else
+                                {
                                     target = readNonNameString();
                                 }
-                            } catch (IOException e) {
-                                // this can happen if the type of the label 
-                                // cannot be handled.  
+                            }
+                            catch (IOException e)
+                            {
+                                // this can happen if the type of the label
+                                // cannot be handled.
                                 // down below the offset gets advanced to the end
-                                // of the record 
+                                // of the record
                                 e.printStackTrace();
                             }
-                            rec = new DNSRecord.Service(domain, type, clazz, ttl,
-                                priority, weight, port, target);
+                            rec = new DNSRecord.Service(domain, type, clazz, ttl, priority, weight, port, target);
                             break;
                         case DNSConstants.TYPE_HINFO:
                             // Maybe we should do something with those
                             break;
-                        default :
+                        default:
                             logger.finer("DNSIncoming() unknown type:" + type);
                             break;
                     }
@@ -196,6 +202,8 @@ public final class DNSIncoming
 
     /**
      * Check if the message is a query.
+     *
+     * @return <code>true</code> if the message is a query, <code>false</code> otherwise.
      */
     boolean isQuery()
     {
@@ -204,6 +212,8 @@ public final class DNSIncoming
 
     /**
      * Check if the message is truncated.
+     *
+     * @return <code>true</code> if the message is truncated, <code>false</code> otherwise.
      */
     public boolean isTruncated()
     {
@@ -212,6 +222,8 @@ public final class DNSIncoming
 
     /**
      * Check if the message is a response.
+     *
+     * @return <code>true</code> if the message is a response, <code>false</code> otherwise.
      */
     boolean isResponse()
     {
@@ -263,15 +275,15 @@ public final class DNSIncoming
                     break;
                 case 12:
                 case 13:
-                    // 110x xxxx   10xx xxxx
+                    // 110x xxxx 10xx xxxx
                     ch = ((ch & 0x1F) << 6) | (get(off++) & 0x3F);
                     break;
                 case 14:
-                    // 1110 xxxx  10xx xxxx  10xx xxxx
+                    // 1110 xxxx 10xx xxxx 10xx xxxx
                     ch = ((ch & 0x0f) << 12) | ((get(off++) & 0x3F) << 6) | (get(off++) & 0x3F);
                     break;
                 default:
-                    // 10xx xxxx,  1111 xxxx
+                    // 10xx xxxx, 1111 xxxx
                     ch = ((ch & 0x3F) << 4) | (get(off++) & 0x0f);
                     break;
             }
@@ -288,7 +300,7 @@ public final class DNSIncoming
 
         return buf.toString();
     }
-    
+
     private String readName() throws IOException
     {
         StringBuffer buf = new StringBuffer();
@@ -306,13 +318,13 @@ public final class DNSIncoming
             switch (len & 0xC0)
             {
                 case 0x00:
-                    //buf.append("[" + off + "]");
+                    // buf.append("[" + off + "]");
                     readUTF(buf, off, len);
                     off += len;
                     buf.append('.');
                     break;
                 case 0xC0:
-                    //buf.append("<" + (off - 1) + ">");
+                    // buf.append("<" + (off - 1) + ">");
                     if (next < 0)
                     {
                         next = off + 1;
@@ -320,14 +332,14 @@ public final class DNSIncoming
                     off = ((len & 0x3F) << 8) | get(off++);
                     if (off >= first)
                     {
-                        throw new IOException("bad domain name: possible circular name detected." +
-                                " name start: " + first +
-                                " bad offset: 0x" + Integer.toHexString(off));
+                        throw new IOException("bad domain name: possible circular name detected." + " name start: "
+                                + first + " bad offset: 0x" + Integer.toHexString(off));
                     }
                     first = off;
                     break;
                 default:
-                    throw new IOException("unsupported dns label type: '" + Integer.toHexString(len & 0xC0) +"' at " + (off-1));
+                    throw new IOException("unsupported dns label type: '" + Integer.toHexString(len & 0xC0) + "' at "
+                            + (off - 1));
             }
         }
         this.off = (next >= 0) ? next : off;
@@ -414,6 +426,7 @@ public final class DNSIncoming
         return buf.toString();
     }
 
+    @Override
     public String toString()
     {
         StringBuffer buf = new StringBuffer();
@@ -472,20 +485,22 @@ public final class DNSIncoming
     /**
      * Appends answers to this Incoming.
      *
-     * @throws IllegalArgumentException If not a query or if Truncated.
+     * @throws IllegalArgumentException
+     *             If not a query or if Truncated.
      */
     void append(DNSIncoming that)
     {
         if (this.isQuery() && this.isTruncated() && that.isQuery())
         {
-            if (that.numQuestions > 0) {
+            if (that.numQuestions > 0)
+            {
                 if (Collections.EMPTY_LIST.equals(this.questions))
                     this.questions = Collections.synchronizedList(new ArrayList(that.numQuestions));
 
                 this.questions.addAll(that.questions);
                 this.numQuestions += that.numQuestions;
             }
-            
+
             if (Collections.EMPTY_LIST.equals(answers))
             {
                 answers = Collections.synchronizedList(new ArrayList());
@@ -498,12 +513,14 @@ public final class DNSIncoming
             }
             if (that.numAuthorities > 0)
             {
-                this.answers.addAll(this.numAnswers + this.numAuthorities, that.answers.subList(that.numAnswers, that.numAnswers + that.numAuthorities));
+                this.answers.addAll(this.numAnswers + this.numAuthorities, that.answers.subList(that.numAnswers,
+                        that.numAnswers + that.numAuthorities));
                 this.numAuthorities += that.numAuthorities;
             }
             if (that.numAdditionals > 0)
             {
-                this.answers.addAll(that.answers.subList(that.numAnswers + that.numAuthorities, that.numAnswers + that.numAuthorities + that.numAdditionals));
+                this.answers.addAll(that.answers.subList(that.numAnswers + that.numAuthorities, that.numAnswers
+                        + that.numAuthorities + that.numAdditionals));
                 this.numAdditionals += that.numAdditionals;
             }
         }

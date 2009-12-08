@@ -28,42 +28,51 @@ import javax.jmdns.ServiceTypeListener;
 /**
  * Sample Code for Service Type Discovery using JmDNS and a ServiceTypeListener.
  * <p>
- * Run the main method of this class. It lists all service types known on the
- * local network on System.out.
+ * Run the main method of this class. It lists all service types known on the local network on System.out.
  *
- * @author  Werner Randelshofer
- * @version 	%I%, %G%
+ * @author Werner Randelshofer
+ * @version %I%, %G%
  */
-public class DiscoverServiceTypes {
-    
-    static class SampleListener implements ServiceTypeListener {
-        
-        public void serviceTypeAdded(ServiceEvent event) {
-            System.out.println("Service type added: " +event.getType());
+public class DiscoverServiceTypes
+{
+
+    static class SampleListener implements ServiceTypeListener
+    {
+
+        public void serviceTypeAdded(ServiceEvent event)
+        {
+            System.out.println("Service type added: " + event.getType());
         }
     }
+
     /**
-     * @param args the command line arguments
+     * @param args
+     *            the command line arguments
      */
-    public static void main(String[] args) {
-        /* Activate these lines to see log messages of JmDNS
-        Logger logger = Logger.getLogger(JmDNS.class.getName());
-        ConsoleHandler handler = new ConsoleHandler();
-        logger.addHandler(handler);
-        logger.setLevel(Level.FINER);
-        handler.setLevel(Level.FINER);
-        */
-        
-        try {
+    public static void main(String[] args)
+    {
+        /*
+         * Activate these lines to see log messages of JmDNS Logger logger = Logger.getLogger(JmDNS.class.getName());
+         * ConsoleHandler handler = new ConsoleHandler(); logger.addHandler(handler); logger.setLevel(Level.FINER);
+         * handler.setLevel(Level.FINER);
+         */
+
+        try
+        {
             JmDNS jmdns = JmDNS.create();
             jmdns.addServiceTypeListener(new SampleListener());
-            
+
             System.out.println("Press q and Enter, to quit");
             int b;
-            while ((b = System.in.read()) != -1 && (char) b != 'q');
+            while ((b = System.in.read()) != -1 && (char) b != 'q')
+            {
+                /* Stub */
+            }
             jmdns.close();
             System.out.println("Done");
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
     }

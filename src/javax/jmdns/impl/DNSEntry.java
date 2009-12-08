@@ -38,6 +38,7 @@ public class DNSEntry
     /**
      * Check if two entries have exactly the same name, type, and class.
      */
+    @Override
     public boolean equals(Object obj)
     {
         if (obj instanceof DNSEntry)
@@ -62,6 +63,7 @@ public class DNSEntry
      * Overriden, to return a value which is consistent with the value returned
      * by equals(Object).
      */
+    @Override
     public int hashCode()
     {
         return name.hashCode() + type + clazz;

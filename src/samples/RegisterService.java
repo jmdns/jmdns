@@ -27,60 +27,73 @@ import javax.jmdns.ServiceInfo;
 /**
  * Sample Code for Service Registration using JmDNS.
  * <p>
- * To see what happens, launch the TTY browser of JmDNS using the following
- * command:
+ * To see what happens, launch the TTY browser of JmDNS using the following command:
+ *
  * <pre>
  * java -jar lib/jmdns.jar -bs _http._tcp local.
  * </pre>
- * Then run the main method of this class. When you press 'r' and enter, 
- * you should see the following output on the TTY browser:
+ *
+ * Then run the main method of this class. When you press 'r' and enter, you should see the following output on the TTY
+ * browser:
+ *
  * <pre>
  * ADD: service[foo._http._tcp.local.,192.168.2.5:1234,path=index.html]
  * </pre>
  *
- * Press 'r' and enter, 
- * you should see the following output on the TTY browser:
+ * Press 'r' and enter, you should see the following output on the TTY browser:
+ *
  * <pre>
  * ADD: service[foo._http._tcp.local.,192.168.2.5:1234,path=index.html]
  * </pre>
+ *
  * REMOVE: foo
  *
- * @author  Werner Randelshofer
- * @version 	%I%, %G%
+ * @author Werner Randelshofer
+ * @version %I%, %G%
  */
-public class RegisterService {
-    
+public class RegisterService
+{
+
     /**
-     * @param args the command line arguments
+     * @param args
+     *            the command line arguments
      */
-    public static void main(String[] args) {
-        /* Activate these lines to see log messages of JmDNS
-        Logger logger = Logger.getLogger(JmDNS.class.getName());
-        ConsoleHandler handler = new ConsoleHandler();
-        logger.addHandler(handler);
-        logger.setLevel(Level.FINER);
-        handler.setLevel(Level.FINER);
-        */
-        
-        try {
+    public static void main(String[] args)
+    {
+        /*
+         * Activate these lines to see log messages of JmDNS Logger logger = Logger.getLogger(JmDNS.class.getName());
+         * ConsoleHandler handler = new ConsoleHandler(); logger.addHandler(handler); logger.setLevel(Level.FINER);
+         * handler.setLevel(Level.FINER);
+         */
+
+        try
+        {
             System.out.println("Opening JmDNS");
             JmDNS jmdns = JmDNS.create();
             System.out.println("Opened JmDNS");
             System.out.println("\nPress r and Enter, to register HTML service 'foo'");
             int b;
-            while ((b = System.in.read()) != -1 && (char) b != 'r');
+            while ((b = System.in.read()) != -1 && (char) b != 'r')
+            {
+                /* Stub */
+            }
             ServiceInfo info = ServiceInfo.create("_http._tcp.local.", "foo", 1268, 0, 0, "path=index.html");
             jmdns.registerService(info);
-            
-            System.out.println("\nRegistered Service as "+info);
+
+            System.out.println("\nRegistered Service as " + info);
             System.out.println("Press q and Enter, to quit");
-            //int b;
-            while ((b = System.in.read()) != -1 && (char) b != 'q'); 
+            // int b;
+            while ((b = System.in.read()) != -1 && (char) b != 'q')
+            {
+                /* Stub */
+            }
             System.out.println("Closing JmDNS");
             jmdns.close();
             System.out.println("Done");
             System.exit(0);
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
     }
