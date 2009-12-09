@@ -213,9 +213,9 @@ public class DNSCache
      *
      * @return node iterator
      */
-    public synchronized Iterator iterator()
+    public synchronized Iterator<DNSEntry> iterator()
     {
-        return new ArrayList(hashtable.values()).iterator();
+        return new ArrayList<DNSEntry>(hashtable.values()).iterator();
     }
 
     /**

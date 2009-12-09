@@ -318,12 +318,9 @@ public abstract class DNSRecord extends DNSEntry
                 {
                     return 1;
                 }
-                else
+                if (thisBytes[i] < thatBytes[i])
                 {
-                    if (thisBytes[i] < thatBytes[i])
-                    {
-                        return -1;
-                    }
+                    return -1;
                 }
             }
             return thisBytes.length - thatBytes.length;
