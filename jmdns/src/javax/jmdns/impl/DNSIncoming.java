@@ -20,7 +20,7 @@ import java.util.logging.Logger;
  * @version %I%, %G%
  * @author Arthur van Hoff, Werner Randelshofer, Pierre Frisch, Daniel Bobbert
  */
-public final class DNSIncoming
+public final class DNSIncoming extends DNSMessage
 {
     private static Logger logger = Logger.getLogger(DNSIncoming.class.getName());
 
@@ -49,7 +49,7 @@ public final class DNSIncoming
     private long _receivedTime;
 
     private List _questions;
-    List _answers;
+    List<DNSRecord> _answers;
 
     /**
      * Parse a message from a datagram packet.
@@ -89,7 +89,7 @@ public final class DNSIncoming
             int n = _numAnswers + _numAuthorities + _numAdditionals;
             if (n > 0)
             {
-                _answers = Collections.synchronizedList(new ArrayList(n));
+                _answers = Collections.synchronizedList(new ArrayList<DNSRecord>(n));
                 for (int i = 0; i < n; i++)
                 {
                     String domain = readName();

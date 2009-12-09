@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  * @version %I%, %G%
  * @author Arthur van Hoff, Rick Blair, Werner Randelshofer
  */
-public final class DNSOutgoing
+public final class DNSOutgoing extends DNSMessage
 {
     /**
      * This can be used to turn off domain name compression. This was helpful for tracking problems interacting with
