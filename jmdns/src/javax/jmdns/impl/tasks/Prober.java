@@ -11,6 +11,7 @@ import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSConstants;
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSQuestion;
@@ -47,7 +48,8 @@ public class Prober extends DNSTask
         // Associate services to this, if they need probing
         synchronized (this._jmDNSImpl)
         {
-            for (Iterator iterator = this._jmDNSImpl.getServices().values().iterator(); iterator.hasNext();)
+            for (Iterator<? extends ServiceInfo> iterator = this._jmDNSImpl.getServices().values().iterator(); iterator
+                    .hasNext();)
             {
                 ServiceInfoImpl info = (ServiceInfoImpl) iterator.next();
                 if (info.getState() == DNSState.PROBING_1)
@@ -95,7 +97,7 @@ public class Prober extends DNSTask
         // Remove associations from services to this
         synchronized (this._jmDNSImpl)
         {
-            for (Iterator i = this._jmDNSImpl.getServices().values().iterator(); i.hasNext();)
+            for (Iterator<? extends ServiceInfo> i = this._jmDNSImpl.getServices().values().iterator(); i.hasNext();)
             {
                 ServiceInfoImpl info = (ServiceInfoImpl) i.next();
                 if (info.getTask() == this)
@@ -133,12 +135,12 @@ public class Prober extends DNSTask
                 // Defensively copy the services into a local list,
                 // to prevent race conditions with methods registerService
                 // and unregisterService.
-                List list;
+                List<? extends ServiceInfo> list;
                 synchronized (this._jmDNSImpl)
                 {
-                    list = new LinkedList(this._jmDNSImpl.getServices().values());
+                    list = new LinkedList<ServiceInfo>(this._jmDNSImpl.getServices().values());
                 }
-                for (Iterator i = list.iterator(); i.hasNext();)
+                for (Iterator<? extends ServiceInfo> i = list.iterator(); i.hasNext();)
                 {
                     ServiceInfoImpl info = (ServiceInfoImpl) i.next();
 

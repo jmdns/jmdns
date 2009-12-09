@@ -21,7 +21,7 @@ public abstract class DNSTask extends TimerTask
     /**
      * @param jmDNSImpl
      */
-    public DNSTask(JmDNSImpl jmDNSImpl)
+    protected DNSTask(JmDNSImpl jmDNSImpl)
     {
         super();
         this._jmDNSImpl = jmDNSImpl;

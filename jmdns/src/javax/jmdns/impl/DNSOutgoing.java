@@ -27,8 +27,6 @@ public final class DNSOutgoing extends DNSMessage
     public static boolean USE_DOMAIN_NAME_COMPRESSION = true;
 
     private static Logger logger = Logger.getLogger(DNSOutgoing.class.getName());
-    int _id;
-    int _flags;
     private boolean _multicast;
     private int _numQuestions;
     private int _numAnswers;
@@ -36,9 +34,6 @@ public final class DNSOutgoing extends DNSMessage
     private int _numAdditionals;
     private Map<String, Integer> _names;
 
-    byte _data[];
-    int _off;
-    int _len;
 
     /**
      * Create an outgoing multicast query or response.

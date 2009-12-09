@@ -10,6 +10,7 @@ import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSConstants;
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSQuestion;
@@ -59,7 +60,8 @@ public class ServiceResolver extends DNSTask
                     long now = System.currentTimeMillis();
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
                     out.addQuestion(new DNSQuestion(_type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN));
-                    for (Iterator s = this._jmDNSImpl.getServices().values().iterator(); s.hasNext();)
+                    for (Iterator<? extends ServiceInfo> s = this._jmDNSImpl.getServices().values().iterator(); s
+                            .hasNext();)
                     {
                         final ServiceInfoImpl info = (ServiceInfoImpl) s.next();
                         try

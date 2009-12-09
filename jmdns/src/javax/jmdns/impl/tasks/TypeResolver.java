@@ -4,7 +4,6 @@
 
 package javax.jmdns.impl.tasks;
 
-import java.util.Iterator;
 import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,15 +18,13 @@ import javax.jmdns.impl.JmDNSImpl;
 /**
  * Helper class to resolve service types.
  * <p/>
- * The TypeResolver queries three times consecutively for service types, and then
- * removes itself from the timer.
+ * The TypeResolver queries three times consecutively for service types, and then removes itself from the timer.
  * <p/>
  * The TypeResolver will run only if JmDNS is in state ANNOUNCED.
  */
 public class TypeResolver extends DNSTask
 {
     static Logger logger = Logger.getLogger(TypeResolver.class.getName());
-
 
     /**
      * @param jmDNSImpl
@@ -58,10 +55,12 @@ public class TypeResolver extends DNSTask
                 {
                     logger.finer("run() JmDNS querying type");
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                    out.addQuestion(new DNSQuestion("_services._mdns._udp.local.", DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN));
-                    for (Iterator iterator = this._jmDNSImpl.getServiceTypes().values().iterator(); iterator.hasNext();)
+                    out.addQuestion(new DNSQuestion("_services._mdns._udp.local.", DNSConstants.TYPE_PTR,
+                            DNSConstants.CLASS_IN));
+                    for (String type : this._jmDNSImpl.getServiceTypes().values())
                     {
-                        out.addAnswer(new DNSRecord.Pointer("_services._mdns._udp.local.", DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, (String) iterator.next()), 0);
+                        out.addAnswer(new DNSRecord.Pointer("_services._mdns._udp.local.", DNSConstants.TYPE_PTR,
+                                DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, type), 0);
                     }
                     this._jmDNSImpl.send(out);
                 }
