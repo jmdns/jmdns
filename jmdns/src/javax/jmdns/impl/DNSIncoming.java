@@ -35,61 +35,61 @@ public final class DNSIncoming
     // the Collections API of Java 1.2. i.e we replace Vector by List.
     // final static Vector EMPTY = new Vector();
 
-    private DatagramPacket packet;
-    private int off;
-    private int len;
-    private byte data[];
+    private DatagramPacket _packet;
+    private int _off;
+    private int _len;
+    private byte _data[];
 
-    int id;
-    private int flags;
-    private int numQuestions;
-    int numAnswers;
-    private int numAuthorities;
-    private int numAdditionals;
-    private long receivedTime;
+    int _id;
+    private int _flags;
+    private int _numQuestions;
+    int _numAnswers;
+    private int _numAuthorities;
+    private int _numAdditionals;
+    private long _receivedTime;
 
-    private List questions;
-    List answers;
+    private List _questions;
+    List _answers;
 
     /**
      * Parse a message from a datagram packet.
      */
     DNSIncoming(DatagramPacket packet) throws IOException
     {
-        this.packet = packet;
+        this._packet = packet;
         InetAddress source = packet.getAddress();
-        this.data = packet.getData();
-        this.len = packet.getLength();
-        this.off = packet.getOffset();
-        this.questions = Collections.EMPTY_LIST;
-        this.answers = Collections.EMPTY_LIST;
-        this.receivedTime = System.currentTimeMillis();
+        this._data = packet.getData();
+        this._len = packet.getLength();
+        this._off = packet.getOffset();
+        this._questions = Collections.emptyList();
+        this._answers = Collections.emptyList();
+        this._receivedTime = System.currentTimeMillis();
 
         try
         {
-            id = readUnsignedShort();
-            flags = readUnsignedShort();
-            numQuestions = readUnsignedShort();
-            numAnswers = readUnsignedShort();
-            numAuthorities = readUnsignedShort();
-            numAdditionals = readUnsignedShort();
+            _id = readUnsignedShort();
+            _flags = readUnsignedShort();
+            _numQuestions = readUnsignedShort();
+            _numAnswers = readUnsignedShort();
+            _numAuthorities = readUnsignedShort();
+            _numAdditionals = readUnsignedShort();
 
             // parse questions
-            if (numQuestions > 0)
+            if (_numQuestions > 0)
             {
-                questions = Collections.synchronizedList(new ArrayList(numQuestions));
-                for (int i = 0; i < numQuestions; i++)
+                _questions = Collections.synchronizedList(new ArrayList(_numQuestions));
+                for (int i = 0; i < _numQuestions; i++)
                 {
                     DNSQuestion question = new DNSQuestion(readName(), readUnsignedShort(), readUnsignedShort());
-                    questions.add(question);
+                    _questions.add(question);
                 }
             }
 
             // parse answers
-            int n = numAnswers + numAuthorities + numAdditionals;
+            int n = _numAnswers + _numAuthorities + _numAdditionals;
             if (n > 0)
             {
-                answers = Collections.synchronizedList(new ArrayList(n));
+                _answers = Collections.synchronizedList(new ArrayList(n));
                 for (int i = 0; i < n; i++)
                 {
                     String domain = readName();
@@ -97,14 +97,14 @@ public final class DNSIncoming
                     int clazz = readUnsignedShort();
                     int ttl = readInt();
                     int len = readUnsignedShort();
-                    int end = off + len;
+                    int end = _off + len;
                     DNSRecord rec = null;
 
                     switch (type)
                     {
                         case DNSConstants.TYPE_A: // IPv4
                         case DNSConstants.TYPE_AAAA: // IPv6 FIXME [PJYF Oct 14 2004] This has not been tested
-                            rec = new DNSRecord.Address(domain, type, clazz, ttl, readBytes(off, len));
+                            rec = new DNSRecord.Address(domain, type, clazz, ttl, readBytes(_off, len));
                             break;
                         case DNSConstants.TYPE_CNAME:
                         case DNSConstants.TYPE_PTR:
@@ -121,7 +121,7 @@ public final class DNSIncoming
                             rec = new DNSRecord.Pointer(domain, type, clazz, ttl, service);
                             break;
                         case DNSConstants.TYPE_TXT:
-                            rec = new DNSRecord.Text(domain, type, clazz, ttl, readBytes(off, len));
+                            rec = new DNSRecord.Text(domain, type, clazz, ttl, readBytes(_off, len));
                             break;
                         case DNSConstants.TYPE_SRV:
                             int priority = readUnsignedShort();
@@ -165,31 +165,31 @@ public final class DNSIncoming
                     {
                         rec.setRecordSource(source);
                         // Add a record, if we were able to create one.
-                        answers.add(rec);
+                        _answers.add(rec);
                     }
                     else
                     {
                         // Addjust the numbers for the skipped record
-                        if (answers.size() < numAnswers)
+                        if (_answers.size() < _numAnswers)
                         {
-                            numAnswers--;
+                            _numAnswers--;
                         }
                         else
                         {
-                            if (answers.size() < numAnswers + numAuthorities)
+                            if (_answers.size() < _numAnswers + _numAuthorities)
                             {
-                                numAuthorities--;
+                                _numAuthorities--;
                             }
                             else
                             {
-                                if (answers.size() < numAnswers + numAuthorities + numAdditionals)
+                                if (_answers.size() < _numAnswers + _numAuthorities + _numAdditionals)
                                 {
-                                    numAdditionals--;
+                                    _numAdditionals--;
                                 }
                             }
                         }
                     }
-                    off = end;
+                    _off = end;
                 }
             }
         }
@@ -207,7 +207,7 @@ public final class DNSIncoming
      */
     boolean isQuery()
     {
-        return (flags & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_QUERY;
+        return (_flags & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_QUERY;
     }
 
     /**
@@ -217,7 +217,7 @@ public final class DNSIncoming
      */
     public boolean isTruncated()
     {
-        return (flags & DNSConstants.FLAGS_TC) != 0;
+        return (_flags & DNSConstants.FLAGS_TC) != 0;
     }
 
     /**
@@ -227,21 +227,21 @@ public final class DNSIncoming
      */
     boolean isResponse()
     {
-        return (flags & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_RESPONSE;
+        return (_flags & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_RESPONSE;
     }
 
     private int get(int off) throws IOException
     {
-        if ((off < 0) || (off >= len))
+        if ((off < 0) || (off >= _len))
         {
             throw new IOException("parser error: offset=" + off);
         }
-        return data[off] & 0xFF;
+        return _data[off] & 0xFF;
     }
 
     private int readUnsignedShort() throws IOException
     {
-        return (get(off++) << 8) + get(off++);
+        return (get(_off++) << 8) + get(_off++);
     }
 
     private int readInt() throws IOException
@@ -252,15 +252,16 @@ public final class DNSIncoming
     private byte[] readBytes(int off, int len) throws IOException
     {
         byte bytes[] = new byte[len];
-        System.arraycopy(data, off, bytes, 0, len);
+        System.arraycopy(_data, off, bytes, 0, len);
         return bytes;
     }
 
     private void readUTF(StringBuffer buf, int off, int len) throws IOException
     {
-        for (int end = off + len; off < end;)
+        int offset = off;
+        for (int end = offset + len; offset < end;)
         {
-            int ch = get(off++);
+            int ch = get(offset++);
             switch (ch >> 4)
             {
                 case 0:
@@ -276,15 +277,15 @@ public final class DNSIncoming
                 case 12:
                 case 13:
                     // 110x xxxx 10xx xxxx
-                    ch = ((ch & 0x1F) << 6) | (get(off++) & 0x3F);
+                    ch = ((ch & 0x1F) << 6) | (get(offset++) & 0x3F);
                     break;
                 case 14:
                     // 1110 xxxx 10xx xxxx 10xx xxxx
-                    ch = ((ch & 0x0f) << 12) | ((get(off++) & 0x3F) << 6) | (get(off++) & 0x3F);
+                    ch = ((ch & 0x0f) << 12) | ((get(offset++) & 0x3F) << 6) | (get(offset++) & 0x3F);
                     break;
                 default:
                     // 10xx xxxx, 1111 xxxx
-                    ch = ((ch & 0x3F) << 4) | (get(off++) & 0x0f);
+                    ch = ((ch & 0x3F) << 4) | (get(offset++) & 0x0f);
                     break;
             }
             buf.append((char) ch);
@@ -294,7 +295,7 @@ public final class DNSIncoming
     private String readNonNameString() throws IOException
     {
         StringBuffer buf = new StringBuffer();
-        int off = this.off;
+        int off = this._off;
         int len = get(off++);
         readUTF(buf, off, len);
 
@@ -304,7 +305,7 @@ public final class DNSIncoming
     private String readName() throws IOException
     {
         StringBuffer buf = new StringBuffer();
-        int off = this.off;
+        int off = this._off;
         int next = -1;
         int first = off;
 
@@ -342,7 +343,7 @@ public final class DNSIncoming
                             + (off - 1));
             }
         }
-        this.off = (next >= 0) ? next : off;
+        this._off = (next >= 0) ? next : off;
         return buf.toString();
     }
 
@@ -353,20 +354,20 @@ public final class DNSIncoming
     {
         StringBuffer buf = new StringBuffer();
         buf.append(toString() + "\n");
-        for (Iterator iterator = questions.iterator(); iterator.hasNext();)
+        for (Iterator iterator = _questions.iterator(); iterator.hasNext();)
         {
             buf.append("    ques:" + iterator.next() + "\n");
         }
         int count = 0;
-        for (Iterator iterator = answers.iterator(); iterator.hasNext(); count++)
+        for (Iterator iterator = _answers.iterator(); iterator.hasNext(); count++)
         {
-            if (count < numAnswers)
+            if (count < _numAnswers)
             {
                 buf.append("    answ:");
             }
             else
             {
-                if (count < numAnswers + numAuthorities)
+                if (count < _numAnswers + _numAuthorities)
                 {
                     buf.append("    auth:");
                 }
@@ -379,7 +380,7 @@ public final class DNSIncoming
         }
         if (dump)
         {
-            for (int off = 0, len = packet.getLength(); off < len; off += 32)
+            for (int off = 0, len = _packet.getLength(); off < len; off += 32)
             {
                 int n = Math.min(32, len - off);
                 if (off < 10)
@@ -398,8 +399,8 @@ public final class DNSIncoming
                     {
                         buf.append(' ');
                     }
-                    buf.append(Integer.toHexString((data[off + i] & 0xF0) >> 4));
-                    buf.append(Integer.toHexString((data[off + i] & 0x0F) >> 0));
+                    buf.append(Integer.toHexString((_data[off + i] & 0xF0) >> 4));
+                    buf.append(Integer.toHexString((_data[off + i] & 0x0F) >> 0));
                 }
                 buf.append("\n");
                 buf.append("    ");
@@ -410,7 +411,7 @@ public final class DNSIncoming
                         buf.append(' ');
                     }
                     buf.append(' ');
-                    int ch = data[off + i] & 0xFF;
+                    int ch = _data[off + i] & 0xFF;
                     buf.append(((ch > ' ') && (ch < 127)) ? (char) ch : '.');
                 }
                 buf.append("\n");
@@ -431,52 +432,52 @@ public final class DNSIncoming
     {
         StringBuffer buf = new StringBuffer();
         buf.append(isQuery() ? "dns[query," : "dns[response,");
-        if (packet.getAddress() != null)
+        if (_packet.getAddress() != null)
         {
-            buf.append(packet.getAddress().getHostAddress());
+            buf.append(_packet.getAddress().getHostAddress());
         }
         buf.append(':');
-        buf.append(packet.getPort());
+        buf.append(_packet.getPort());
         buf.append(",len=");
-        buf.append(packet.getLength());
+        buf.append(_packet.getLength());
         buf.append(",id=0x");
-        buf.append(Integer.toHexString(id));
-        if (flags != 0)
+        buf.append(Integer.toHexString(_id));
+        if (_flags != 0)
         {
             buf.append(",flags=0x");
-            buf.append(Integer.toHexString(flags));
-            if ((flags & DNSConstants.FLAGS_QR_RESPONSE) != 0)
+            buf.append(Integer.toHexString(_flags));
+            if ((_flags & DNSConstants.FLAGS_QR_RESPONSE) != 0)
             {
                 buf.append(":r");
             }
-            if ((flags & DNSConstants.FLAGS_AA) != 0)
+            if ((_flags & DNSConstants.FLAGS_AA) != 0)
             {
                 buf.append(":aa");
             }
-            if ((flags & DNSConstants.FLAGS_TC) != 0)
+            if ((_flags & DNSConstants.FLAGS_TC) != 0)
             {
                 buf.append(":tc");
             }
         }
-        if (numQuestions > 0)
+        if (_numQuestions > 0)
         {
             buf.append(",questions=");
-            buf.append(numQuestions);
+            buf.append(_numQuestions);
         }
-        if (numAnswers > 0)
+        if (_numAnswers > 0)
         {
             buf.append(",answers=");
-            buf.append(numAnswers);
+            buf.append(_numAnswers);
         }
-        if (numAuthorities > 0)
+        if (_numAuthorities > 0)
         {
             buf.append(",authorities=");
-            buf.append(numAuthorities);
+            buf.append(_numAuthorities);
         }
-        if (numAdditionals > 0)
+        if (_numAdditionals > 0)
         {
             buf.append(",additionals=");
-            buf.append(numAdditionals);
+            buf.append(_numAdditionals);
         }
         buf.append("]");
         return buf.toString();
@@ -492,36 +493,36 @@ public final class DNSIncoming
     {
         if (this.isQuery() && this.isTruncated() && that.isQuery())
         {
-            if (that.numQuestions > 0)
+            if (that._numQuestions > 0)
             {
-                if (Collections.EMPTY_LIST.equals(this.questions))
-                    this.questions = Collections.synchronizedList(new ArrayList(that.numQuestions));
+                if (Collections.EMPTY_LIST.equals(this._questions))
+                    this._questions = Collections.synchronizedList(new ArrayList(that._numQuestions));
 
-                this.questions.addAll(that.questions);
-                this.numQuestions += that.numQuestions;
-            }
-
-            if (Collections.EMPTY_LIST.equals(answers))
-            {
-                answers = Collections.synchronizedList(new ArrayList());
+                this._questions.addAll(that._questions);
+                this._numQuestions += that._numQuestions;
             }
 
-            if (that.numAnswers > 0)
+            if (Collections.EMPTY_LIST.equals(_answers))
             {
-                this.answers.addAll(this.numAnswers, that.answers.subList(0, that.numAnswers));
-                this.numAnswers += that.numAnswers;
+                _answers = Collections.synchronizedList(new ArrayList());
             }
-            if (that.numAuthorities > 0)
+
+            if (that._numAnswers > 0)
             {
-                this.answers.addAll(this.numAnswers + this.numAuthorities, that.answers.subList(that.numAnswers,
-                        that.numAnswers + that.numAuthorities));
-                this.numAuthorities += that.numAuthorities;
+                this._answers.addAll(this._numAnswers, that._answers.subList(0, that._numAnswers));
+                this._numAnswers += that._numAnswers;
             }
-            if (that.numAdditionals > 0)
+            if (that._numAuthorities > 0)
             {
-                this.answers.addAll(that.answers.subList(that.numAnswers + that.numAuthorities, that.numAnswers
-                        + that.numAuthorities + that.numAdditionals));
-                this.numAdditionals += that.numAdditionals;
+                this._answers.addAll(this._numAnswers + this._numAuthorities, that._answers.subList(that._numAnswers,
+                        that._numAnswers + that._numAuthorities));
+                this._numAuthorities += that._numAuthorities;
+            }
+            if (that._numAdditionals > 0)
+            {
+                this._answers.addAll(that._answers.subList(that._numAnswers + that._numAuthorities, that._numAnswers
+                        + that._numAuthorities + that._numAdditionals));
+                this._numAdditionals += that._numAdditionals;
             }
         }
         else
@@ -532,16 +533,16 @@ public final class DNSIncoming
 
     public int elapseSinceArrival()
     {
-        return (int) (System.currentTimeMillis() - receivedTime);
+        return (int) (System.currentTimeMillis() - _receivedTime);
     }
 
     public List getQuestions()
     {
-        return questions;
+        return _questions;
     }
 
     public List getAnswers()
     {
-        return answers;
+        return _answers;
     }
 }

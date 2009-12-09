@@ -5,7 +5,6 @@
 package javax.jmdns.impl.tasks;
 
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,33 +17,29 @@ import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.ServiceInfoImpl;
 
 /**
- * The ServiceInfoResolver queries up to three times consecutively for
- * a service info, and then removes itself from the timer.
+ * The ServiceInfoResolver queries up to three times consecutively for a service info, and then removes itself from the
+ * timer.
  * <p/>
- * The ServiceInfoResolver will run only if JmDNS is in state ANNOUNCED.
- * REMIND: Prevent having multiple service resolvers for the same info in the
- * timer queue.
+ * The ServiceInfoResolver will run only if JmDNS is in state ANNOUNCED. REMIND: Prevent having multiple service
+ * resolvers for the same info in the timer queue.
  */
-public class ServiceInfoResolver extends TimerTask
+public class ServiceInfoResolver extends DNSTask
 {
     static Logger logger = Logger.getLogger(ServiceInfoResolver.class.getName());
 
     /**
-     * 
-     */
-    private final JmDNSImpl jmDNSImpl;
-    /**
      * Counts the number of queries being sent.
      */
-    int count = 0;
-    private ServiceInfoImpl info;
+    int _count = 0;
+    private ServiceInfoImpl _info;
 
     public ServiceInfoResolver(JmDNSImpl jmDNSImpl, ServiceInfoImpl info)
     {
-        this.jmDNSImpl = jmDNSImpl;
-        this.info = info;
-        info.setDns(this.jmDNSImpl);
-        this.jmDNSImpl.addListener(info, new DNSQuestion(info.getQualifiedName(), DNSConstants.TYPE_ANY, DNSConstants.CLASS_IN));
+        super(jmDNSImpl);
+        this._info = info;
+        info.setDns(this._jmDNSImpl);
+        this._jmDNSImpl.addListener(info, new DNSQuestion(info.getQualifiedName(), DNSConstants.TYPE_ANY,
+                DNSConstants.CLASS_IN));
     }
 
     public void start(Timer timer)
@@ -57,46 +52,51 @@ public class ServiceInfoResolver extends TimerTask
     {
         try
         {
-            if (this.jmDNSImpl.getState() == DNSState.ANNOUNCED)
+            if (this._jmDNSImpl.getState() == DNSState.ANNOUNCED)
             {
-                if (count++ < 3 && !info.hasData())
+                if (_count++ < 3 && !_info.hasData())
                 {
                     long now = System.currentTimeMillis();
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                    out.addQuestion(new DNSQuestion(info.getQualifiedName(), DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN));
-                    out.addQuestion(new DNSQuestion(info.getQualifiedName(), DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN));
-                    if (info.getServer() != null)
+                    out.addQuestion(new DNSQuestion(_info.getQualifiedName(), DNSConstants.TYPE_SRV,
+                            DNSConstants.CLASS_IN));
+                    out.addQuestion(new DNSQuestion(_info.getQualifiedName(), DNSConstants.TYPE_TXT,
+                            DNSConstants.CLASS_IN));
+                    if (_info.getServer() != null)
                     {
-                        out.addQuestion(new DNSQuestion(info.getServer(), DNSConstants.TYPE_A, DNSConstants.CLASS_IN));
+                        out.addQuestion(new DNSQuestion(_info.getServer(), DNSConstants.TYPE_A, DNSConstants.CLASS_IN));
                     }
-                    out.addAnswer((DNSRecord) this.jmDNSImpl.getCache().get(info.getQualifiedName(), DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN), now);
-                    out.addAnswer((DNSRecord) this.jmDNSImpl.getCache().get(info.getQualifiedName(), DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN), now);
-                    if (info.getServer() != null)
+                    out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().get(_info.getQualifiedName(),
+                            DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN), now);
+                    out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().get(_info.getQualifiedName(),
+                            DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN), now);
+                    if (_info.getServer() != null)
                     {
-                        out.addAnswer((DNSRecord) this.jmDNSImpl.getCache().get(info.getServer(), DNSConstants.TYPE_A, DNSConstants.CLASS_IN), now);
+                        out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().get(_info.getServer(),
+                                DNSConstants.TYPE_A, DNSConstants.CLASS_IN), now);
                     }
-                    this.jmDNSImpl.send(out);
+                    this._jmDNSImpl.send(out);
                 }
                 else
                 {
                     // After three queries, we can quit.
                     this.cancel();
-                    this.jmDNSImpl.removeListener(info);
+                    this._jmDNSImpl.removeListener(_info);
                 }
             }
             else
             {
-                if (this.jmDNSImpl.getState() == DNSState.CANCELED)
+                if (this._jmDNSImpl.getState() == DNSState.CANCELED)
                 {
                     this.cancel();
-                    this.jmDNSImpl.removeListener(info);
+                    this._jmDNSImpl.removeListener(_info);
                 }
             }
         }
         catch (Throwable e)
         {
             logger.log(Level.WARNING, "run() exception ", e);
-            this.jmDNSImpl.recover();
+            this._jmDNSImpl.recover();
         }
     }
 }

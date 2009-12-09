@@ -7,7 +7,6 @@ package javax.jmdns.impl;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.logging.Logger;
 
 /**
  * A table of DNS entries. This is a hash table which can handle multiple entries with the same name.
@@ -54,11 +53,6 @@ public class DNSCache
     // [PJYF Oct 15 2004] This should implements Collections that would be a much cleaner implementation
 
     /**
-     * The number of DNSEntry's in the cache.
-     */
-    private int size;
-
-    /**
      * The hashtable used internally to store the entries of the cache. Keys are instances of String. The String
      * contains an unqualified service name. Values are linked lists of CacheNode instances.
      */
@@ -69,23 +63,22 @@ public class DNSCache
      */
     public static class CacheNode
     {
-        private static Logger logger = Logger.getLogger(CacheNode.class.getName());
-        private final DNSEntry value;
-        private CacheNode next;
+        private final DNSEntry _value;
+        private CacheNode _next;
 
         public CacheNode(DNSEntry value)
         {
-            this.value = value;
+            this._value = value;
         }
 
         public CacheNode next()
         {
-            return next;
+            return _next;
         }
 
         public DNSEntry getValue()
         {
-            return value;
+            return _value;
         }
     }
 
@@ -106,7 +99,6 @@ public class DNSCache
     public synchronized void clear()
     {
         hashtable.clear();
-        size = 0;
     }
 
     /**
@@ -126,10 +118,9 @@ public class DNSCache
         }
         else
         {
-            newValue.next = node.next;
-            node.next = newValue;
+            newValue._next = node._next;
+            node._next = newValue;
         }
-        size++;
     }
 
     /**
@@ -144,32 +135,30 @@ public class DNSCache
         CacheNode node = (CacheNode) hashtable.get(entry.getName());
         if (node != null)
         {
-            if (node.value == entry)
+            if (node._value == entry)
             {
-                if (node.next == null)
+                if (node._next == null)
                 {
                     hashtable.remove(entry.getName());
                 }
                 else
                 {
-                    hashtable.put(entry.getName(), node.next);
+                    hashtable.put(entry.getName(), node._next);
                 }
-                size--;
                 return true;
             }
 
             CacheNode previous = node;
-            node = node.next;
+            node = node._next;
             while (node != null)
             {
-                if (node.value == entry)
+                if (node._value == entry)
                 {
-                    previous.next = node.next;
-                    size--;
+                    previous._next = node._next;
                     return true;
                 }
                 previous = node;
-                node = node.next;
+                node = node._next;
             }
         }
         return false;
@@ -184,11 +173,11 @@ public class DNSCache
      */
     public synchronized DNSEntry get(DNSEntry entry)
     {
-        for (CacheNode node = find(entry.getName()); node != null; node = node.next)
+        for (CacheNode node = find(entry.getName()); node != null; node = node._next)
         {
-            if (node.value.equals(entry))
+            if (node._value.equals(entry))
             {
-                return node.value;
+                return node._value;
             }
         }
         return null;
@@ -207,11 +196,11 @@ public class DNSCache
      */
     public synchronized DNSEntry get(String name, int type, int clazz)
     {
-        for (CacheNode node = find(name); node != null; node = node.next)
+        for (CacheNode node = find(name); node != null; node = node._next)
         {
-            if (node.value.type == type && node.value.clazz == clazz)
+            if (node._value._type == type && node._value._clazz == clazz)
             {
-                return node.value;
+                return node._value;
             }
         }
         return null;
@@ -249,9 +238,9 @@ public class DNSCache
     {
         for (final Iterator i = iterator(); i.hasNext();)
         {
-            for (CacheNode n = (CacheNode) i.next(); n != null; n = n.next)
+            for (CacheNode n = (CacheNode) i.next(); n != null; n = n._next)
             {
-                System.out.println(n.value);
+                System.out.println(n._value);
             }
         }
     }
@@ -263,9 +252,9 @@ public class DNSCache
         aLog.append("\t---- cache ----");
         for (final Iterator i = iterator(); i.hasNext();)
         {
-            for (CacheNode n = (CacheNode) i.next(); n != null; n = n.next)
+            for (CacheNode n = (CacheNode) i.next(); n != null; n = n._next)
             {
-                aLog.append("\n\t\t" + n.value);
+                aLog.append("\n\t\t" + n._value);
             }
         }
         return aLog.toString();

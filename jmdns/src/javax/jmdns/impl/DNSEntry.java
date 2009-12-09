@@ -17,22 +17,22 @@ import java.util.logging.Logger;
 public class DNSEntry
 {
     private static Logger logger = Logger.getLogger(DNSEntry.class.getName());
-    String key;
-    String name;
-    int type;
-    int clazz;
-    boolean unique;
+    String _key;
+    String _name;
+    int _type;
+    int _clazz;
+    boolean _unique;
 
     /**
      * Create an entry.
      */
     DNSEntry(String name, int type, int clazz)
     {
-        this.key = name.toLowerCase();
-        this.name = name;
-        this.type = type;
-        this.clazz = clazz & DNSConstants.CLASS_MASK;
-        this.unique = (clazz & DNSConstants.CLASS_UNIQUE) != 0;
+        this._key = name.toLowerCase();
+        this._name = name;
+        this._type = type;
+        this._clazz = clazz & DNSConstants.CLASS_MASK;
+        this._unique = (clazz & DNSConstants.CLASS_UNIQUE) != 0;
     }
 
     /**
@@ -44,19 +44,19 @@ public class DNSEntry
         if (obj instanceof DNSEntry)
         {
             DNSEntry other = (DNSEntry) obj;
-            return name.equals(other.name) && type == other.type && clazz == other.clazz;
+            return _name.equals(other._name) && _type == other._type && _clazz == other._clazz;
         }
         return false;
     }
 
     public String getName()
     {
-        return name;
+        return _name;
     }
 
     public int getType()
     {
-        return type;
+        return _type;
     }
 
     /**
@@ -66,7 +66,7 @@ public class DNSEntry
     @Override
     public int hashCode()
     {
-        return name.hashCode() + type + clazz;
+        return _name.hashCode() + _type + _clazz;
     }
 
     /**
@@ -145,6 +145,6 @@ public class DNSEntry
 
     public String toString(String hdr, String other)
     {
-        return hdr + "[" + getType(type) + "," + getClazz(clazz) + (unique ? "-unique," : ",") + name + ((other != null) ? "," + other + "]" : "]");
+        return hdr + "[" + getType(_type) + "," + getClazz(_clazz) + (_unique ? "-unique," : ",") + _name + ((other != null) ? "," + other + "]" : "]");
     }
 }

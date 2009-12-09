@@ -7,7 +7,6 @@ package javax.jmdns.impl.tasks;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,31 +19,26 @@ import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.ServiceInfoImpl;
 
 /**
- * The ServiceResolver queries three times consecutively for services of
- * a given type, and then removes itself from the timer.
+ * The ServiceResolver queries three times consecutively for services of a given type, and then removes itself from the
+ * timer.
  * <p/>
- * The ServiceResolver will run only if JmDNS is in state ANNOUNCED.
- * REMIND: Prevent having multiple service resolvers for the same type in the
- * timer queue.
+ * The ServiceResolver will run only if JmDNS is in state ANNOUNCED. REMIND: Prevent having multiple service resolvers
+ * for the same type in the timer queue.
  */
-public class ServiceResolver extends TimerTask
+public class ServiceResolver extends DNSTask
 {
     static Logger logger = Logger.getLogger(ServiceResolver.class.getName());
 
     /**
-     * 
-     */
-    private final JmDNSImpl jmDNSImpl;
-    /**
      * Counts the number of queries being sent.
      */
-    int count = 0;
-    private String type;
+    int _count = 0;
+    private String _type;
 
     public ServiceResolver(JmDNSImpl jmDNSImpl, String type)
     {
-        this.jmDNSImpl = jmDNSImpl;
-        this.type = type;
+        super(jmDNSImpl);
+        this._type = type;
     }
 
     public void start(Timer timer)
@@ -57,27 +51,28 @@ public class ServiceResolver extends TimerTask
     {
         try
         {
-            if (this.jmDNSImpl.getState() == DNSState.ANNOUNCED)
+            if (this._jmDNSImpl.getState() == DNSState.ANNOUNCED)
             {
-                if (count++ < 3)
+                if (_count++ < 3)
                 {
                     logger.finer("run() JmDNS querying service");
                     long now = System.currentTimeMillis();
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                    out.addQuestion(new DNSQuestion(type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN));
-                    for (Iterator s = this.jmDNSImpl.getServices().values().iterator(); s.hasNext();)
+                    out.addQuestion(new DNSQuestion(_type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN));
+                    for (Iterator s = this._jmDNSImpl.getServices().values().iterator(); s.hasNext();)
                     {
                         final ServiceInfoImpl info = (ServiceInfoImpl) s.next();
                         try
                         {
-                            out.addAnswer(new DNSRecord.Pointer(info.getType(), DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.getQualifiedName()), now);
+                            out.addAnswer(new DNSRecord.Pointer(info.getType(), DNSConstants.TYPE_PTR,
+                                    DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.getQualifiedName()), now);
                         }
                         catch (IOException ee)
                         {
                             break;
                         }
                     }
-                    this.jmDNSImpl.send(out);
+                    this._jmDNSImpl.send(out);
                 }
                 else
                 {
@@ -87,7 +82,7 @@ public class ServiceResolver extends TimerTask
             }
             else
             {
-                if (this.jmDNSImpl.getState() == DNSState.CANCELED)
+                if (this._jmDNSImpl.getState() == DNSState.CANCELED)
                 {
                     this.cancel();
                 }
@@ -96,7 +91,7 @@ public class ServiceResolver extends TimerTask
         catch (Throwable e)
         {
             logger.log(Level.WARNING, "run() exception ", e);
-            this.jmDNSImpl.recover();
+            this._jmDNSImpl.recover();
         }
     }
 }

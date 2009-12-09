@@ -4,8 +4,6 @@
 
 package javax.jmdns.impl;
 
-import java.util.logging.Logger;
-
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
@@ -26,21 +24,21 @@ public class ServiceEventImpl extends ServiceEvent
     /**
      * The type name of the service.
      */
-    private String type;
+    private String _type;
     /**
      * The instance name of the service. Or null, if the event was fired to a service type listener.
      */
-    private String name;
+    private String _name;
     /**
      * The service info record, or null if the service could be be resolved. This is also null, if the event was fired
      * to a service type listener.
      */
-    private ServiceInfoImpl info;
+    private ServiceInfoImpl _info;
 
     /**
      * Creates a new instance.
      *
-     * @param source
+     * @param jmDNS
      *            the JmDNS instance which originated the event.
      * @param type
      *            the type name of the service.
@@ -49,12 +47,12 @@ public class ServiceEventImpl extends ServiceEvent
      * @param info
      *            the service info record, or null if the service could be be resolved.
      */
-    public ServiceEventImpl(JmDNSImpl source, String type, String name, ServiceInfoImpl info)
+    public ServiceEventImpl(JmDNSImpl jmDNS, String type, String name, ServiceInfoImpl info)
     {
-        super(source);
-        this.type = type;
-        this.name = name;
-        this.info = info;
+        super(jmDNS);
+        this._type = type;
+        this._name = name;
+        this._info = info;
     }
 
     /**
@@ -72,7 +70,7 @@ public class ServiceEventImpl extends ServiceEvent
     @Override
     public String getType()
     {
-        return type;
+        return _type;
     }
 
     /**
@@ -81,7 +79,7 @@ public class ServiceEventImpl extends ServiceEvent
     @Override
     public String getName()
     {
-        return name;
+        return _name;
     }
 
     /**
@@ -105,7 +103,7 @@ public class ServiceEventImpl extends ServiceEvent
     @Override
     public ServiceInfo getInfo()
     {
-        return info;
+        return _info;
     }
 
 }

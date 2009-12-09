@@ -24,9 +24,9 @@ import java.util.logging.Logger;
 public class HostInfo
 {
     private static Logger logger = Logger.getLogger(HostInfo.class.getName());
-    protected String name;
-    protected InetAddress address;
-    protected NetworkInterface interfaze;
+    protected String _name;
+    protected InetAddress _address;
+    protected NetworkInterface _interfaze;
     /**
      * This is used to create a unique name for the host name.
      */
@@ -35,13 +35,13 @@ public class HostInfo
     public HostInfo(InetAddress address, String name)
     {
         super();
-        this.address = address;
-        this.name = name;
+        this._address = address;
+        this._name = name;
         if (address != null)
         {
             try
             {
-                interfaze = NetworkInterface.getByInetAddress(address);
+                _interfaze = NetworkInterface.getByInetAddress(address);
             }
             catch (Exception exception)
             {
@@ -53,26 +53,26 @@ public class HostInfo
 
     public String getName()
     {
-        return name;
+        return _name;
     }
 
     public InetAddress getAddress()
     {
-        return address;
+        return _address;
     }
 
     public NetworkInterface getInterface()
     {
-        return interfaze;
+        return _interfaze;
     }
 
     synchronized String incrementHostName()
     {
         hostNameCount++;
-        int plocal = name.indexOf(".local.");
-        int punder = name.lastIndexOf("-");
-        name = name.substring(0, (punder == -1 ? plocal : punder)) + "-" + hostNameCount + ".local.";
-        return name;
+        int plocal = _name.indexOf(".local.");
+        int punder = _name.lastIndexOf("-");
+        _name = _name.substring(0, (punder == -1 ? plocal : punder)) + "-" + hostNameCount + ".local.";
+        return _name;
     }
 
     boolean shouldIgnorePacket(DatagramPacket packet)
@@ -104,7 +104,7 @@ public class HostInfo
 
     DNSRecord.Address getDNSAddressRecord(DNSRecord.Address address)
     {
-        return (DNSConstants.TYPE_AAAA == address.type ? getDNS6AddressRecord() : getDNS4AddressRecord());
+        return (DNSConstants.TYPE_AAAA == address._type ? getDNS6AddressRecord() : getDNS4AddressRecord());
     }
 
     public DNSRecord.Address getDNS4AddressRecord()

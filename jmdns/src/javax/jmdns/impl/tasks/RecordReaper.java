@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.logging.Logger;
 
 import javax.jmdns.impl.DNSCache;
@@ -20,21 +19,16 @@ import javax.jmdns.impl.JmDNSImpl;
 /**
  * Periodicaly removes expired entries from the cache.
  */
-public class RecordReaper extends TimerTask
+public class RecordReaper extends DNSTask
 {
     static Logger logger = Logger.getLogger(RecordReaper.class.getName());
-
-    /**
-     * 
-     */
-    private final JmDNSImpl jmDNSImpl;
 
     /**
      * @param jmDNSImpl
      */
     public RecordReaper(JmDNSImpl jmDNSImpl)
     {
-        this.jmDNSImpl = jmDNSImpl;
+        super(jmDNSImpl);
     }
 
     public void start(Timer timer)
@@ -45,9 +39,9 @@ public class RecordReaper extends TimerTask
     @Override
     public void run()
     {
-        synchronized (this.jmDNSImpl)
+        synchronized (this._jmDNSImpl)
         {
-            if (this.jmDNSImpl.getState() == DNSState.CANCELED)
+            if (this._jmDNSImpl.getState() == DNSState.CANCELED)
             {
                 return;
             }
@@ -58,9 +52,9 @@ public class RecordReaper extends TimerTask
             // To prevent race conditions, we defensively copy all cache
             // entries into a list.
             List list = new ArrayList();
-            synchronized (this.jmDNSImpl.getCache())
+            synchronized (this._jmDNSImpl.getCache())
             {
-                for (Iterator i = this.jmDNSImpl.getCache().iterator(); i.hasNext();)
+                for (Iterator i = this._jmDNSImpl.getCache().iterator(); i.hasNext();)
                 {
                     for (DNSCache.CacheNode n = (DNSCache.CacheNode) i.next(); n != null; n = n.next())
                     {
@@ -75,8 +69,8 @@ public class RecordReaper extends TimerTask
                 DNSRecord c = (DNSRecord) i.next();
                 if (c.isExpired(now))
                 {
-                    this.jmDNSImpl.updateRecord(now, c);
-                    this.jmDNSImpl.getCache().remove(c);
+                    this._jmDNSImpl.updateRecord(now, c);
+                    this._jmDNSImpl.getCache().remove(c);
                 }
             }
         }
