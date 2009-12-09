@@ -17,7 +17,7 @@ public class DNSState implements Comparable<DNSState>
 {
     // private static Logger logger = Logger.getLogger(DNSState.class.getName());
 
-    private final String name;
+    private final String _name;
 
     /**
      * Ordinal of next state to be created.
@@ -35,14 +35,14 @@ public class DNSState implements Comparable<DNSState>
 
     private DNSState(String name)
     {
-        this.name = name;
+        this._name = name;
         sequence.add(this);
     }
 
     @Override
     public final String toString()
     {
-        return name;
+        return _name;
     }
 
     public static final DNSState PROBING_1 = new DNSState("probing 1");

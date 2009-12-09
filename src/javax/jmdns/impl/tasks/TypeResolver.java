@@ -6,7 +6,6 @@ package javax.jmdns.impl.tasks;
 
 import java.util.Iterator;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,21 +24,17 @@ import javax.jmdns.impl.JmDNSImpl;
  * <p/>
  * The TypeResolver will run only if JmDNS is in state ANNOUNCED.
  */
-public class TypeResolver extends TimerTask
+public class TypeResolver extends DNSTask
 {
     static Logger logger = Logger.getLogger(TypeResolver.class.getName());
 
-    /**
-     * 
-     */
-    private final JmDNSImpl jmDNSImpl;
 
     /**
      * @param jmDNSImpl
      */
     public TypeResolver(JmDNSImpl jmDNSImpl)
     {
-        this.jmDNSImpl = jmDNSImpl;
+        super(jmDNSImpl);
     }
 
     public void start(Timer timer)
@@ -50,25 +45,25 @@ public class TypeResolver extends TimerTask
     /**
      * Counts the number of queries that were sent.
      */
-    int count = 0;
+    int _count = 0;
 
     @Override
     public void run()
     {
         try
         {
-            if (this.jmDNSImpl.getState() == DNSState.ANNOUNCED)
+            if (this._jmDNSImpl.getState() == DNSState.ANNOUNCED)
             {
-                if (count++ < 3)
+                if (_count++ < 3)
                 {
                     logger.finer("run() JmDNS querying type");
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
                     out.addQuestion(new DNSQuestion("_services._mdns._udp.local.", DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN));
-                    for (Iterator iterator = this.jmDNSImpl.getServiceTypes().values().iterator(); iterator.hasNext();)
+                    for (Iterator iterator = this._jmDNSImpl.getServiceTypes().values().iterator(); iterator.hasNext();)
                     {
                         out.addAnswer(new DNSRecord.Pointer("_services._mdns._udp.local.", DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, (String) iterator.next()), 0);
                     }
-                    this.jmDNSImpl.send(out);
+                    this._jmDNSImpl.send(out);
                 }
                 else
                 {
@@ -78,7 +73,7 @@ public class TypeResolver extends TimerTask
             }
             else
             {
-                if (this.jmDNSImpl.getState() == DNSState.CANCELED)
+                if (this._jmDNSImpl.getState() == DNSState.CANCELED)
                 {
                     this.cancel();
                 }
@@ -87,7 +82,7 @@ public class TypeResolver extends TimerTask
         catch (Throwable e)
         {
             logger.log(Level.WARNING, "run() exception ", e);
-            this.jmDNSImpl.recover();
+            this._jmDNSImpl.recover();
         }
     }
 }

@@ -6,7 +6,6 @@ package javax.jmdns.impl.tasks;
 
 import java.util.Collection;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,58 +18,51 @@ import javax.jmdns.impl.ServiceInfoImpl;
 /**
  * The Canceler sends two announces with TTL=0 for the specified services.
  */
-public class Canceler extends TimerTask
+public class Canceler extends DNSTask
 {
     static Logger logger = Logger.getLogger(Canceler.class.getName());
 
     /**
-     *
-     */
-    private final JmDNSImpl jmDNSImpl;
-    /**
      * Counts the number of announces being sent.
      */
-    int count = 0;
+    int _count = 0;
     /**
-     * The services that need cancelling.
-     * Note: We have to use a local variable here, because the services
-     * that are canceled, are removed immediately from variable JmDNS.services.
+     * The services that need cancelling. Note: We have to use a local variable here, because the services that are
+     * canceled, are removed immediately from variable JmDNS.services.
      */
-    private ServiceInfoImpl[] infos;
+    private ServiceInfoImpl[] _infos;
     /**
-     * We call notifyAll() on the lock object, when we have canceled the
-     * service infos.
-     * This is used by method JmDNS.unregisterService() and
-     * JmDNS.unregisterAllServices, to ensure that the JmDNS
-     * socket stays open until the Canceler has canceled all services.
+     * We call notifyAll() on the lock object, when we have canceled the service infos. This is used by method
+     * JmDNS.unregisterService() and JmDNS.unregisterAllServices, to ensure that the JmDNS socket stays open until the
+     * Canceler has canceled all services.
      * <p/>
-     * Note: We need this lock, because ServiceInfos do the transition from
-     * state ANNOUNCED to state CANCELED before we get here. We could get
-     * rid of this lock, if we added a state named CANCELLING to DNSState.
+     * Note: We need this lock, because ServiceInfos do the transition from state ANNOUNCED to state CANCELED before we
+     * get here. We could get rid of this lock, if we added a state named CANCELLING to DNSState.
      */
-    private Object lock;
-    int ttl = 0;
+    private Object _lock;
+    int _ttl = 0;
 
     public Canceler(JmDNSImpl jmDNSImpl, ServiceInfoImpl info, Object lock)
     {
-        this.jmDNSImpl = jmDNSImpl;
-        this.infos = new ServiceInfoImpl[]{info};
-        this.lock = lock;
-        this.jmDNSImpl.addListener(info, new DNSQuestion(info.getQualifiedName(), DNSConstants.TYPE_ANY, DNSConstants.CLASS_IN));
+        super(jmDNSImpl);
+        this._infos = new ServiceInfoImpl[] { info };
+        this._lock = lock;
+        this._jmDNSImpl.addListener(info, new DNSQuestion(info.getQualifiedName(), DNSConstants.TYPE_ANY,
+                DNSConstants.CLASS_IN));
     }
 
     public Canceler(JmDNSImpl jmDNSImpl, ServiceInfoImpl[] infos, Object lock)
     {
-        this.jmDNSImpl = jmDNSImpl;
-        this.infos = infos;
-        this.lock = lock;
+        super(jmDNSImpl);
+        this._infos = infos;
+        this._lock = lock;
     }
 
     public Canceler(JmDNSImpl jmDNSImpl, Collection infos, Object lock)
     {
-        this.jmDNSImpl = jmDNSImpl;
-        this.infos = (ServiceInfoImpl[]) infos.toArray(new ServiceInfoImpl[infos.size()]);
-        this.lock = lock;
+        super(jmDNSImpl);
+        this._infos = (ServiceInfoImpl[]) infos.toArray(new ServiceInfoImpl[infos.size()]);
+        this._lock = lock;
     }
 
     public void start(Timer timer)
@@ -83,28 +75,28 @@ public class Canceler extends TimerTask
     {
         try
         {
-            if (++count < 3)
+            if (++_count < 3)
             {
                 logger.finer("run() JmDNS canceling service");
                 // announce the service
-                //long now = System.currentTimeMillis();
+                // long now = System.currentTimeMillis();
                 DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
-                for (int i = 0; i < infos.length; i++)
+                for (int i = 0; i < _infos.length; i++)
                 {
-                    ServiceInfoImpl info = infos[i];
-                    info.addAnswers(out, ttl, this.jmDNSImpl.getLocalHost());
+                    ServiceInfoImpl info = _infos[i];
+                    info.addAnswers(out, _ttl, this._jmDNSImpl.getLocalHost());
 
-                    this.jmDNSImpl.getLocalHost().addAddressRecords(out, false);
+                    this._jmDNSImpl.getLocalHost().addAddressRecords(out, false);
                 }
-                this.jmDNSImpl.send(out);
+                this._jmDNSImpl.send(out);
             }
             else
             {
                 // After three successful announcements, we are finished.
-                synchronized (lock)
+                synchronized (_lock)
                 {
-                    this.jmDNSImpl.setClosed(true);
-                    lock.notifyAll();
+                    this._jmDNSImpl.setClosed(true);
+                    _lock.notifyAll();
                 }
                 this.cancel();
             }
@@ -112,7 +104,7 @@ public class Canceler extends TimerTask
         catch (Throwable e)
         {
             logger.log(Level.WARNING, "run() exception ", e);
-            this.jmDNSImpl.recover();
+            this._jmDNSImpl.recover();
         }
     }
 }

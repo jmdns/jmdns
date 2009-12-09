@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,14 +24,10 @@ import javax.jmdns.impl.ServiceInfoImpl;
  * <p/>
  * When the announcer has run two times, it finishes.
  */
-public class Announcer extends TimerTask
+public class Announcer extends DNSTask
 {
     static Logger logger = Logger.getLogger(Announcer.class.getName());
 
-    /**
-     *
-     */
-    private final JmDNSImpl jmDNSImpl;
     /**
      * The state of the announcer.
      */
@@ -40,16 +35,16 @@ public class Announcer extends TimerTask
 
     public Announcer(JmDNSImpl jmDNSImpl)
     {
-        this.jmDNSImpl = jmDNSImpl;
+        super(jmDNSImpl);
         // Associate host to this, if it needs announcing
-        if (this.jmDNSImpl.getState() == DNSState.ANNOUNCING_1)
+        if (this._jmDNSImpl.getState() == DNSState.ANNOUNCING_1)
         {
-            this.jmDNSImpl.setTask(this);
+            this._jmDNSImpl.setTask(this);
         }
         // Associate services to this, if they need announcing
-        synchronized (this.jmDNSImpl)
+        synchronized (this._jmDNSImpl)
         {
-            for (Iterator s = this.jmDNSImpl.getServices().values().iterator(); s.hasNext();)
+            for (Iterator s = this._jmDNSImpl.getServices().values().iterator(); s.hasNext();)
             {
                 ServiceInfoImpl info = (ServiceInfoImpl) s.next();
                 if (info.getState() == DNSState.ANNOUNCING_1)
@@ -69,15 +64,15 @@ public class Announcer extends TimerTask
     public boolean cancel()
     {
         // Remove association from host to this
-        if (this.jmDNSImpl.getTask() == this)
+        if (this._jmDNSImpl.getTask() == this)
         {
-            this.jmDNSImpl.setTask(null);
+            this._jmDNSImpl.setTask(null);
         }
 
         // Remove associations from services to this
-        synchronized (this.jmDNSImpl)
+        synchronized (this._jmDNSImpl)
         {
-            for (Iterator i = this.jmDNSImpl.getServices().values().iterator(); i.hasNext();)
+            for (Iterator i = this._jmDNSImpl.getServices().values().iterator(); i.hasNext();)
             {
                 ServiceInfoImpl info = (ServiceInfoImpl) i.next();
                 if (info.getTask() == this)
@@ -97,23 +92,23 @@ public class Announcer extends TimerTask
         try
         {
             // send probes for JmDNS itself
-            if (this.jmDNSImpl.getState() == taskState)
+            if (this._jmDNSImpl.getState() == taskState)
             {
                 if (out == null)
                 {
                     out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
                 }
-                this.jmDNSImpl.getLocalHost().addAddressRecords(out, false);
-                this.jmDNSImpl.advanceState();
+                this._jmDNSImpl.getLocalHost().addAddressRecords(out, false);
+                this._jmDNSImpl.advanceState();
             }
             // send announces for services
             // Defensively copy the services into a local list,
             // to prevent race conditions with methods registerService
             // and unregisterService.
             List<? extends ServiceInfo> list;
-            synchronized (this.jmDNSImpl)
+            synchronized (this._jmDNSImpl)
             {
-                list = new ArrayList<ServiceInfo>(this.jmDNSImpl.getServices().values());
+                list = new ArrayList<ServiceInfo>(this._jmDNSImpl.getServices().values());
             }
             for (Iterator<? extends ServiceInfo> i = list.iterator(); i.hasNext();)
             {
@@ -128,14 +123,14 @@ public class Announcer extends TimerTask
                         {
                             out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
                         }
-                        info.addAnswers(out, DNSConstants.DNS_TTL, this.jmDNSImpl.getLocalHost());
+                        info.addAnswers(out, DNSConstants.DNS_TTL, this._jmDNSImpl.getLocalHost());
                     }
                 }
             }
             if (out != null)
             {
                 logger.finer("run() JmDNS announcing #" + taskState);
-                this.jmDNSImpl.send(out);
+                this._jmDNSImpl.send(out);
             }
             else
             {
@@ -147,7 +142,7 @@ public class Announcer extends TimerTask
         catch (Throwable e)
         {
             logger.log(Level.WARNING, "run() exception ", e);
-            this.jmDNSImpl.recover();
+            this._jmDNSImpl.recover();
         }
 
         taskState = taskState.advance();
@@ -155,7 +150,7 @@ public class Announcer extends TimerTask
         {
             cancel();
 
-            this.jmDNSImpl.startRenewer();
+            this._jmDNSImpl.startRenewer();
         }
     }
 }
