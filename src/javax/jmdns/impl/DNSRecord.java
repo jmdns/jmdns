@@ -14,6 +14,8 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jmdns.ServiceInfo;
+
 /**
  * DNS record
  *
@@ -100,7 +102,7 @@ public abstract class DNSRecord extends DNSEntry
         {
             for (int i = msg._numAnswers; i-- > 0;)
             {
-                if (suppressedBy((DNSRecord) msg._answers.get(i)))
+                if (suppressedBy(msg._answers.get(i)))
                 {
                     return true;
                 }
@@ -345,7 +347,7 @@ public abstract class DNSRecord extends DNSEntry
                         // We lost the tie-break. We have to choose a different name.
                         dns.getLocalHost().incrementHostName();
                         dns.getCache().clear();
-                        for (Iterator i = dns.getServices().values().iterator(); i.hasNext();)
+                        for (Iterator<ServiceInfo> i = dns.getServices().values().iterator(); i.hasNext();)
                         {
                             ServiceInfoImpl info = (ServiceInfoImpl) i.next();
                             info.revertState();
@@ -375,7 +377,7 @@ public abstract class DNSRecord extends DNSEntry
                     {
                         dns.getLocalHost().incrementHostName();
                         dns.getCache().clear();
-                        for (Iterator i = dns.getServices().values().iterator(); i.hasNext();)
+                        for (Iterator<ServiceInfo> i = dns.getServices().values().iterator(); i.hasNext();)
                         {
                             ServiceInfoImpl info = (ServiceInfoImpl) i.next();
                             info.revertState();

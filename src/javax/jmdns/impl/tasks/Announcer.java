@@ -44,7 +44,7 @@ public class Announcer extends DNSTask
         // Associate services to this, if they need announcing
         synchronized (this._jmDNSImpl)
         {
-            for (Iterator s = this._jmDNSImpl.getServices().values().iterator(); s.hasNext();)
+            for (Iterator<? extends ServiceInfo> s = this._jmDNSImpl.getServices().values().iterator(); s.hasNext();)
             {
                 ServiceInfoImpl info = (ServiceInfoImpl) s.next();
                 if (info.getState() == DNSState.ANNOUNCING_1)
@@ -72,7 +72,7 @@ public class Announcer extends DNSTask
         // Remove associations from services to this
         synchronized (this._jmDNSImpl)
         {
-            for (Iterator i = this._jmDNSImpl.getServices().values().iterator(); i.hasNext();)
+            for (Iterator<? extends ServiceInfo> i = this._jmDNSImpl.getServices().values().iterator(); i.hasNext();)
             {
                 ServiceInfoImpl info = (ServiceInfoImpl) i.next();
                 if (info.getTask() == this)

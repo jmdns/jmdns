@@ -9,6 +9,7 @@ import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSConstants;
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSQuestion;
@@ -58,10 +59,10 @@ public class Canceler extends DNSTask
         this._lock = lock;
     }
 
-    public Canceler(JmDNSImpl jmDNSImpl, Collection infos, Object lock)
+    public Canceler(JmDNSImpl jmDNSImpl, Collection<? extends ServiceInfo> infos, Object lock)
     {
         super(jmDNSImpl);
-        this._infos = (ServiceInfoImpl[]) infos.toArray(new ServiceInfoImpl[infos.size()]);
+        this._infos = infos.toArray(new ServiceInfoImpl[infos.size()]);
         this._lock = lock;
     }
 

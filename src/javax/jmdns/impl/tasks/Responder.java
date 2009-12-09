@@ -7,9 +7,11 @@ package javax.jmdns.impl.tasks;
 import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSConstants;
 import javax.jmdns.impl.DNSEntry;
 import javax.jmdns.impl.DNSIncoming;
@@ -55,9 +57,10 @@ public class Responder extends DNSTask
         // We respond after 20-120 ms if the query is truncated.
 
         boolean iAmTheOnlyOne = true;
-        for (Iterator i = _in.getQuestions().iterator(); i.hasNext();)
+        for (Iterator<DNSQuestion> i = _in.getQuestions().iterator(); i.hasNext();)
         {
-            DNSEntry entry = (DNSEntry) i.next();
+            DNSEntry entry = i.next();
+            // FIXME [PJYF Dec 10 2009] Why do we do this test? This does not make much sense.
             if (entry instanceof DNSQuestion)
             {
                 DNSQuestion q = (DNSQuestion) entry;
@@ -96,8 +99,8 @@ public class Responder extends DNSTask
 
             // We use these sets to prevent duplicate records
             // FIXME - This should be moved into DNSOutgoing
-            HashSet questions = new HashSet();
-            HashSet answers = new HashSet();
+            Set<DNSQuestion> questions = new HashSet<DNSQuestion>();
+            Set<DNSRecord> answers = new HashSet<DNSRecord>();
 
             if (this._jmDNSImpl.getState() == DNSState.ANNOUNCED)
             {
@@ -106,9 +109,9 @@ public class Responder extends DNSTask
                     boolean isUnicast = (_port != DNSConstants.MDNS_PORT);
 
                     // Answer questions
-                    for (Iterator iterator = _in.getQuestions().iterator(); iterator.hasNext();)
+                    for (Iterator<DNSQuestion> iterator = _in.getQuestions().iterator(); iterator.hasNext();)
                     {
-                        DNSEntry entry = (DNSEntry) iterator.next();
+                        DNSEntry entry = iterator.next();
                         if (entry instanceof DNSQuestion)
                         {
                             DNSQuestion q = (DNSQuestion) entry;
@@ -175,8 +178,8 @@ public class Responder extends DNSTask
                                         // Answer a query for services of a given type
 
                                         // find matching services
-                                        for (Iterator serviceIterator = this._jmDNSImpl.getServices().values()
-                                                .iterator(); serviceIterator.hasNext();)
+                                        for (Iterator<? extends ServiceInfo> serviceIterator = this._jmDNSImpl
+                                                .getServices().values().iterator(); serviceIterator.hasNext();)
                                         {
                                             ServiceInfoImpl info = (ServiceInfoImpl) serviceIterator.next();
                                             if (info.getState() == DNSState.ANNOUNCED)
@@ -211,12 +214,13 @@ public class Responder extends DNSTask
                                         }
                                         if (q.getName().equalsIgnoreCase("_services._mdns._udp.local."))
                                         {
-                                            for (Iterator serviceTypeIterator = this._jmDNSImpl.getServiceTypes()
-                                                    .values().iterator(); serviceTypeIterator.hasNext();)
+                                            for (Iterator<String> serviceTypeIterator = this._jmDNSImpl
+                                                    .getServiceTypes().values().iterator(); serviceTypeIterator
+                                                    .hasNext();)
                                             {
                                                 answers.add(new DNSRecord.Pointer("_services._mdns._udp.local.",
                                                         DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN,
-                                                        DNSConstants.DNS_TTL, (String) serviceTypeIterator.next()));
+                                                        DNSConstants.DNS_TTL, serviceTypeIterator.next()));
                                             }
                                         }
                                         break;
@@ -265,9 +269,8 @@ public class Responder extends DNSTask
 
                     // remove known answers, if the ttl is at least half of
                     // the correct value. (See Draft Cheshire chapter 7.1.).
-                    for (Iterator i = _in.getAnswers().iterator(); i.hasNext();)
+                    for (DNSRecord knownAnswer : _in.getAnswers())
                     {
-                        DNSRecord knownAnswer = (DNSRecord) i.next();
                         if (knownAnswer.getTtl() > DNSConstants.DNS_TTL / 2 && answers.remove(knownAnswer))
                         {
                             logger.log(Level.FINER, "JmDNS Responder Known Answer Removed");
@@ -284,13 +287,13 @@ public class Responder extends DNSTask
                             out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, false);
                         }
 
-                        for (Iterator i = questions.iterator(); i.hasNext();)
+                        for (DNSQuestion question : questions)
                         {
-                            out.addQuestion((DNSQuestion) i.next());
+                            out.addQuestion(question);
                         }
-                        for (Iterator i = answers.iterator(); i.hasNext();)
+                        for (DNSRecord answer : answers)
                         {
-                            out = this._jmDNSImpl.addAnswer(_in, _addr, _port, out, (DNSRecord) i.next());
+                            out = this._jmDNSImpl.addAnswer(_in, _addr, _port, out, answer);
                         }
                         this._jmDNSImpl.send(out);
                     }

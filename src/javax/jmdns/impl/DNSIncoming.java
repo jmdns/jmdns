@@ -36,19 +36,14 @@ public final class DNSIncoming extends DNSMessage
     // final static Vector EMPTY = new Vector();
 
     private DatagramPacket _packet;
-    private int _off;
-    private int _len;
-    private byte _data[];
 
-    int _id;
-    private int _flags;
     private int _numQuestions;
     int _numAnswers;
     private int _numAuthorities;
     private int _numAdditionals;
     private long _receivedTime;
 
-    private List _questions;
+    private List<DNSQuestion> _questions;
     List<DNSRecord> _answers;
 
     /**
@@ -77,7 +72,7 @@ public final class DNSIncoming extends DNSMessage
             // parse questions
             if (_numQuestions > 0)
             {
-                _questions = Collections.synchronizedList(new ArrayList(_numQuestions));
+                _questions = Collections.synchronizedList(new ArrayList<DNSQuestion>(_numQuestions));
                 for (int i = 0; i < _numQuestions; i++)
                 {
                     DNSQuestion question = new DNSQuestion(readName(), readUnsignedShort(), readUnsignedShort());
@@ -249,6 +244,12 @@ public final class DNSIncoming extends DNSMessage
         return (readUnsignedShort() << 16) + readUnsignedShort();
     }
 
+    /**
+     * @param off
+     * @param len
+     * @return
+     * @throws IOException
+     */
     private byte[] readBytes(int off, int len) throws IOException
     {
         byte bytes[] = new byte[len];
@@ -354,12 +355,12 @@ public final class DNSIncoming extends DNSMessage
     {
         StringBuffer buf = new StringBuffer();
         buf.append(toString() + "\n");
-        for (Iterator iterator = _questions.iterator(); iterator.hasNext();)
+        for (Iterator<DNSQuestion> iterator = _questions.iterator(); iterator.hasNext();)
         {
             buf.append("    ques:" + iterator.next() + "\n");
         }
         int count = 0;
-        for (Iterator iterator = _answers.iterator(); iterator.hasNext(); count++)
+        for (Iterator<DNSRecord> iterator = _answers.iterator(); iterator.hasNext(); count++)
         {
             if (count < _numAnswers)
             {
@@ -496,7 +497,7 @@ public final class DNSIncoming extends DNSMessage
             if (that._numQuestions > 0)
             {
                 if (Collections.EMPTY_LIST.equals(this._questions))
-                    this._questions = Collections.synchronizedList(new ArrayList(that._numQuestions));
+                    this._questions = Collections.synchronizedList(new ArrayList<DNSQuestion>(that._numQuestions));
 
                 this._questions.addAll(that._questions);
                 this._numQuestions += that._numQuestions;
@@ -504,7 +505,7 @@ public final class DNSIncoming extends DNSMessage
 
             if (Collections.EMPTY_LIST.equals(_answers))
             {
-                _answers = Collections.synchronizedList(new ArrayList());
+                _answers = Collections.synchronizedList(new ArrayList<DNSRecord>());
             }
 
             if (that._numAnswers > 0)
@@ -536,12 +537,12 @@ public final class DNSIncoming extends DNSMessage
         return (int) (System.currentTimeMillis() - _receivedTime);
     }
 
-    public List getQuestions()
+    public List<DNSQuestion> getQuestions()
     {
         return _questions;
     }
 
-    public List getAnswers()
+    public List<DNSRecord> getAnswers()
     {
         return _answers;
     }
