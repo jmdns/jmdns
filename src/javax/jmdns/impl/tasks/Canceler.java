@@ -13,6 +13,8 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSConstants;
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSQuestion;
+import javax.jmdns.impl.DNSRecordClass;
+import javax.jmdns.impl.DNSRecordType;
 import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.ServiceInfoImpl;
 
@@ -48,8 +50,8 @@ public class Canceler extends DNSTask
         super(jmDNSImpl);
         this._infos = new ServiceInfoImpl[] { info };
         this._lock = lock;
-        this._jmDNSImpl.addListener(info, new DNSQuestion(info.getQualifiedName(), DNSConstants.TYPE_ANY,
-                DNSConstants.CLASS_IN));
+        this._jmDNSImpl.addListener(info, new DNSQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY,
+                DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
     }
 
     public Canceler(JmDNSImpl jmDNSImpl, ServiceInfoImpl[] infos, Object lock)

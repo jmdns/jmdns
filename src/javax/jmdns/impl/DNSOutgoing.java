@@ -6,8 +6,6 @@ package javax.jmdns.impl;
 
 import java.io.IOException;
 import java.util.Hashtable;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,13 +25,17 @@ public final class DNSOutgoing extends DNSMessage
     public static boolean USE_DOMAIN_NAME_COMPRESSION = true;
 
     private static Logger logger = Logger.getLogger(DNSOutgoing.class.getName());
-    private boolean _multicast;
     private int _numQuestions;
     private int _numAnswers;
     private int _numAuthorities;
     private int _numAdditionals;
     private Map<String, Integer> _names;
 
+    byte[] _data;
+
+    int _off;
+
+    int _len;
 
     /**
      * Create an outgoing multicast query or response.
@@ -53,8 +55,7 @@ public final class DNSOutgoing extends DNSMessage
      */
     public DNSOutgoing(int flags, boolean multicast)
     {
-        this._flags = flags;
-        this._multicast = multicast;
+        super(flags, 0, multicast);
         _names = new Hashtable<String, Integer>();
         _data = new byte[DNSConstants.MAX_MSG_TYPICAL];
         _off = 12;
@@ -125,8 +126,6 @@ public final class DNSOutgoing extends DNSMessage
             }
         }
     }
-
-    private List<DNSRecord> _authorativeAnswers = new LinkedList<DNSRecord>();
 
     /**
      * Add an authorative answer to the message.
@@ -292,9 +291,9 @@ public final class DNSOutgoing extends DNSMessage
 
     void writeQuestion(DNSQuestion question) throws IOException
     {
-        writeName(question._name);
-        writeShort(question._type);
-        writeShort(question._clazz);
+        writeName(question.getName());
+        writeShort(question.getRecordType().indexValue());
+        writeShort(question.getRecordClass().indexValue());
     }
 
     void writeRecord(DNSRecord rec, long now) throws IOException
@@ -302,10 +301,11 @@ public final class DNSOutgoing extends DNSMessage
         int save = _off;
         try
         {
-            writeName(rec._name);
-            writeShort(rec._type);
-            writeShort(rec._clazz | ((rec._unique && _multicast) ? DNSConstants.CLASS_UNIQUE : 0));
-            writeInt((now == 0) ? rec.getTtl() : rec.getRemainingTTL(now));
+            writeName(rec.getName());
+            writeShort(rec.getRecordType().indexValue());
+            writeShort(rec.getRecordClass().indexValue()
+                    | ((rec.isUnique() && this.isMulticast()) ? DNSRecordClass.CLASS_UNIQUE : 0));
+            writeInt((now == 0) ? rec.getTTL() : rec.getRemainingTTL(now));
             writeShort(0);
             int start = _off;
             rec.write(this);
@@ -337,11 +337,13 @@ public final class DNSOutgoing extends DNSMessage
         _off = save;
     }
 
-    boolean isQuery()
+    @Override
+    public boolean isQuery()
     {
         return (_flags & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_QUERY;
     }
 
+    @Override
     public boolean isEmpty()
     {
         return _numQuestions == 0 && _numAuthorities == 0 && _numAdditionals == 0 && _numAnswers == 0;

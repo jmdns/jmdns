@@ -18,12 +18,12 @@ interface DNSListener
     /**
      * Update a DNS record.
      *
-     * @param jmdns
-     *            jmDNS
+     * @param dnsCache
+     *            record cache
      * @param now
      *            update date
      * @param record
      *            DNS record
      */
-    void updateRecord(JmDNSImpl jmdns, long now, DNSRecord record);
+    void updateRecord(DNSCache dnsCache, long now, DNSEntry record);
 }

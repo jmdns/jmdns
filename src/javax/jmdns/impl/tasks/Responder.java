@@ -13,11 +13,12 @@ import java.util.logging.Logger;
 
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSConstants;
-import javax.jmdns.impl.DNSEntry;
 import javax.jmdns.impl.DNSIncoming;
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSQuestion;
 import javax.jmdns.impl.DNSRecord;
+import javax.jmdns.impl.DNSRecordClass;
+import javax.jmdns.impl.DNSRecordType;
 import javax.jmdns.impl.DNSState;
 import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.ServiceInfoImpl;
@@ -57,22 +58,18 @@ public class Responder extends DNSTask
         // We respond after 20-120 ms if the query is truncated.
 
         boolean iAmTheOnlyOne = true;
-        for (Iterator<DNSQuestion> i = _in.getQuestions().iterator(); i.hasNext();)
+        for (DNSQuestion question : _in.getQuestions())
         {
-            DNSEntry entry = i.next();
-            // FIXME [PJYF Dec 10 2009] Why do we do this test? This does not make much sense.
-            if (entry instanceof DNSQuestion)
+            logger.finest("start() question=" + question);
+            iAmTheOnlyOne &= DNSRecordType.TYPE_SRV.equals(question.getRecordType())
+                    || DNSRecordType.TYPE_TXT.equals(question.getRecordType())
+                    || DNSRecordType.TYPE_A.equals(question.getRecordType())
+                    || DNSRecordType.TYPE_AAAA.equals(question.getRecordType())
+                    || this._jmDNSImpl.getLocalHost().getName().equalsIgnoreCase(question.getName())
+                    || this._jmDNSImpl.getServices().containsKey(question.getName().toLowerCase());
+            if (!iAmTheOnlyOne)
             {
-                DNSQuestion q = (DNSQuestion) entry;
-                logger.finest("start() question=" + q);
-                iAmTheOnlyOne &= (q.getType() == DNSConstants.TYPE_SRV || q.getType() == DNSConstants.TYPE_TXT
-                        || q.getType() == DNSConstants.TYPE_A || q.getType() == DNSConstants.TYPE_AAAA
-                        || this._jmDNSImpl.getLocalHost().getName().equalsIgnoreCase(q.getName()) || this._jmDNSImpl
-                        .getServices().containsKey(q.getName().toLowerCase()));
-                if (!iAmTheOnlyOne)
-                {
-                    break;
-                }
+                break;
             }
         }
         int delay = (iAmTheOnlyOne && !_in.isTruncated()) ? 0 : DNSConstants.RESPONSE_MIN_WAIT_INTERVAL
@@ -109,161 +106,153 @@ public class Responder extends DNSTask
                     boolean isUnicast = (_port != DNSConstants.MDNS_PORT);
 
                     // Answer questions
-                    for (Iterator<DNSQuestion> iterator = _in.getQuestions().iterator(); iterator.hasNext();)
+                    for (DNSQuestion q : _in.getQuestions())
                     {
-                        DNSEntry entry = iterator.next();
-                        if (entry instanceof DNSQuestion)
+                        // for unicast responses the question must be included
+                        if (isUnicast)
                         {
-                            DNSQuestion q = (DNSQuestion) entry;
+                            // out.addQuestion(q);
+                            questions.add(q);
+                        }
 
-                            // for unicast responses the question must be included
-                            if (isUnicast)
+                        DNSRecordType type = q.getRecordType();
+                        if (DNSRecordType.TYPE_ANY.equals(type) || DNSRecordType.TYPE_SRV.equals(type))
+                        { // I ama not sure of why there is a special case here [PJYF Oct 15 2004]
+                            if (this._jmDNSImpl.getLocalHost().getName().equalsIgnoreCase(q.getName()))
                             {
-                                // out.addQuestion(q);
-                                questions.add(q);
-                            }
-
-                            int type = q.getType();
-                            if (type == DNSConstants.TYPE_ANY || type == DNSConstants.TYPE_SRV)
-                            { // I ama not sure of why there is a special case here [PJYF Oct 15 2004]
-                                if (this._jmDNSImpl.getLocalHost().getName().equalsIgnoreCase(q.getName()))
+                                // type = DNSConstants.TYPE_A;
+                                DNSRecord answer = this._jmDNSImpl.getLocalHost().getDNS4AddressRecord();
+                                if (answer != null)
                                 {
-                                    // type = DNSConstants.TYPE_A;
+                                    answers.add(answer);
+                                }
+                                answer = this._jmDNSImpl.getLocalHost().getDNS6AddressRecord();
+                                if (answer != null)
+                                {
+                                    answers.add(answer);
+                                }
+                                type = DNSRecordType.TYPE_IGNORE;
+                            }
+                            else
+                            {
+                                if (this._jmDNSImpl.getServiceTypes().containsKey(q.getName().toLowerCase()))
+                                {
+                                    type = DNSRecordType.TYPE_PTR;
+                                }
+                            }
+                        }
+
+                        switch (type)
+                        {
+                            case TYPE_A:
+                                {
+                                    // Answer a query for a domain name
+                                    // out = addAnswer( in, addr, port, out, host );
                                     DNSRecord answer = this._jmDNSImpl.getLocalHost().getDNS4AddressRecord();
                                     if (answer != null)
                                     {
                                         answers.add(answer);
                                     }
-                                    answer = this._jmDNSImpl.getLocalHost().getDNS6AddressRecord();
+                                    break;
+                                }
+                            case TYPE_AAAA:
+                                {
+                                    // Answer a query for a domain name
+                                    DNSRecord answer = this._jmDNSImpl.getLocalHost().getDNS6AddressRecord();
                                     if (answer != null)
                                     {
                                         answers.add(answer);
                                     }
-                                    type = DNSConstants.TYPE_IGNORE;
+                                    break;
                                 }
-                                else
+                            case TYPE_PTR:
                                 {
-                                    if (this._jmDNSImpl.getServiceTypes().containsKey(q.getName().toLowerCase()))
-                                    {
-                                        type = DNSConstants.TYPE_PTR;
-                                    }
-                                }
-                            }
+                                    // Answer a query for services of a given type
 
-                            switch (type)
-                            {
-                                case DNSConstants.TYPE_A:
+                                    // find matching services
+                                    for (Iterator<? extends ServiceInfo> serviceIterator = this._jmDNSImpl
+                                            .getServices().values().iterator(); serviceIterator.hasNext();)
                                     {
-                                        // Answer a query for a domain name
-                                        // out = addAnswer( in, addr, port, out, host );
+                                        ServiceInfoImpl info = (ServiceInfoImpl) serviceIterator.next();
+                                        if (info.getState() == DNSState.ANNOUNCED)
+                                        {
+                                            if (q.getName().equalsIgnoreCase(info.getType()))
+                                            {
+                                                DNSRecord answer = this._jmDNSImpl.getLocalHost()
+                                                        .getDNS4AddressRecord();
+                                                if (answer != null)
+                                                {
+                                                    answers.add(answer);
+                                                }
+                                                answer = this._jmDNSImpl.getLocalHost().getDNS6AddressRecord();
+                                                if (answer != null)
+                                                {
+                                                    answers.add(answer);
+                                                }
+                                                answers.add(new DNSRecord.Pointer(info.getType(),
+                                                        DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN,
+                                                        DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info
+                                                                .getQualifiedName()));
+                                                answers.add(new DNSRecord.Service(info.getQualifiedName(),
+                                                        DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN,
+                                                        DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL,
+                                                        info.getPriority(), info.getWeight(), info.getPort(),
+                                                        this._jmDNSImpl.getLocalHost().getName()));
+                                                answers.add(new DNSRecord.Text(info.getQualifiedName(),
+                                                        DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN,
+                                                        DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getText()));
+                                            }
+                                        }
+                                    }
+                                    if (q.getName().equalsIgnoreCase("_services._mdns._udp.local."))
+                                    {
+                                        for (Iterator<String> serviceTypeIterator = this._jmDNSImpl.getServiceTypes()
+                                                .values().iterator(); serviceTypeIterator.hasNext();)
+                                        {
+                                            answers.add(new DNSRecord.Pointer("_services._mdns._udp.local.",
+                                                    DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN,
+                                                    DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL,
+                                                    serviceTypeIterator.next()));
+                                        }
+                                    }
+                                    break;
+                                }
+                            case TYPE_SRV:
+                            case TYPE_ANY:
+                            case TYPE_TXT:
+                                {
+                                    ServiceInfoImpl info = (ServiceInfoImpl) this._jmDNSImpl.getServices().get(
+                                            q.getName().toLowerCase());
+                                    if (info != null && info.getState() == DNSState.ANNOUNCED)
+                                    {
                                         DNSRecord answer = this._jmDNSImpl.getLocalHost().getDNS4AddressRecord();
                                         if (answer != null)
                                         {
                                             answers.add(answer);
                                         }
-                                        break;
-                                    }
-                                case DNSConstants.TYPE_AAAA:
-                                    {
-                                        // Answer a query for a domain name
-                                        DNSRecord answer = this._jmDNSImpl.getLocalHost().getDNS6AddressRecord();
+                                        answer = this._jmDNSImpl.getLocalHost().getDNS6AddressRecord();
                                         if (answer != null)
                                         {
                                             answers.add(answer);
                                         }
-                                        break;
+                                        answers.add(new DNSRecord.Pointer(info.getType(), DNSRecordType.TYPE_PTR,
+                                                DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE,
+                                                DNSConstants.DNS_TTL, info.getQualifiedName()));
+                                        answers.add(new DNSRecord.Service(info.getQualifiedName(),
+                                                DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE,
+                                                DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info
+                                                        .getPort(), this._jmDNSImpl.getLocalHost().getName()));
+                                        answers.add(new DNSRecord.Text(info.getQualifiedName(), DNSRecordType.TYPE_TXT,
+                                                DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL,
+                                                info.getText()));
                                     }
-                                case DNSConstants.TYPE_PTR:
-                                    {
-                                        // Answer a query for services of a given type
-
-                                        // find matching services
-                                        for (Iterator<? extends ServiceInfo> serviceIterator = this._jmDNSImpl
-                                                .getServices().values().iterator(); serviceIterator.hasNext();)
-                                        {
-                                            ServiceInfoImpl info = (ServiceInfoImpl) serviceIterator.next();
-                                            if (info.getState() == DNSState.ANNOUNCED)
-                                            {
-                                                if (q.getName().equalsIgnoreCase(info.getType()))
-                                                {
-                                                    DNSRecord answer = this._jmDNSImpl.getLocalHost()
-                                                            .getDNS4AddressRecord();
-                                                    if (answer != null)
-                                                    {
-                                                        answers.add(answer);
-                                                    }
-                                                    answer = this._jmDNSImpl.getLocalHost().getDNS6AddressRecord();
-                                                    if (answer != null)
-                                                    {
-                                                        answers.add(answer);
-                                                    }
-                                                    answers.add(new DNSRecord.Pointer(info.getType(),
-                                                            DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN,
-                                                            DNSConstants.DNS_TTL, info.getQualifiedName()));
-                                                    answers.add(new DNSRecord.Service(info.getQualifiedName(),
-                                                            DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN
-                                                                    | DNSConstants.CLASS_UNIQUE, DNSConstants.DNS_TTL,
-                                                            info.getPriority(), info.getWeight(), info.getPort(),
-                                                            this._jmDNSImpl.getLocalHost().getName()));
-                                                    answers.add(new DNSRecord.Text(info.getQualifiedName(),
-                                                            DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN
-                                                                    | DNSConstants.CLASS_UNIQUE, DNSConstants.DNS_TTL,
-                                                            info.getText()));
-                                                }
-                                            }
-                                        }
-                                        if (q.getName().equalsIgnoreCase("_services._mdns._udp.local."))
-                                        {
-                                            for (Iterator<String> serviceTypeIterator = this._jmDNSImpl
-                                                    .getServiceTypes().values().iterator(); serviceTypeIterator
-                                                    .hasNext();)
-                                            {
-                                                answers.add(new DNSRecord.Pointer("_services._mdns._udp.local.",
-                                                        DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN,
-                                                        DNSConstants.DNS_TTL, serviceTypeIterator.next()));
-                                            }
-                                        }
-                                        break;
-                                    }
-                                case DNSConstants.TYPE_SRV:
-                                case DNSConstants.TYPE_ANY:
-                                case DNSConstants.TYPE_TXT:
-                                    {
-                                        ServiceInfoImpl info = (ServiceInfoImpl) this._jmDNSImpl.getServices().get(
-                                                q.getName().toLowerCase());
-                                        if (info != null && info.getState() == DNSState.ANNOUNCED)
-                                        {
-                                            DNSRecord answer = this._jmDNSImpl.getLocalHost().getDNS4AddressRecord();
-                                            if (answer != null)
-                                            {
-                                                answers.add(answer);
-                                            }
-                                            answer = this._jmDNSImpl.getLocalHost().getDNS6AddressRecord();
-                                            if (answer != null)
-                                            {
-                                                answers.add(answer);
-                                            }
-                                            answers.add(new DNSRecord.Pointer(info.getType(), DNSConstants.TYPE_PTR,
-                                                    DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info
-                                                            .getQualifiedName()));
-                                            answers.add(new DNSRecord.Service(info.getQualifiedName(),
-                                                    DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN
-                                                            | DNSConstants.CLASS_UNIQUE, DNSConstants.DNS_TTL, info
-                                                            .getPriority(), info.getWeight(), info.getPort(),
-                                                    this._jmDNSImpl.getLocalHost().getName()));
-                                            answers.add(new DNSRecord.Text(info.getQualifiedName(),
-                                                    DNSConstants.TYPE_TXT, DNSConstants.CLASS_IN
-                                                            | DNSConstants.CLASS_UNIQUE, DNSConstants.DNS_TTL, info
-                                                            .getText()));
-                                        }
-                                        break;
-                                    }
-                                default:
-                                    {
-                                        // System.out.println("JmDNSResponder.unhandled query:"+q);
-                                        break;
-                                    }
-                            }
+                                    break;
+                                }
+                            default:
+                                {
+                                    // System.out.println("JmDNSResponder.unhandled query:"+q);
+                                    break;
+                                }
                         }
                     }
 
@@ -271,7 +260,7 @@ public class Responder extends DNSTask
                     // the correct value. (See Draft Cheshire chapter 7.1.).
                     for (DNSRecord knownAnswer : _in.getAnswers())
                     {
-                        if (knownAnswer.getTtl() > DNSConstants.DNS_TTL / 2 && answers.remove(knownAnswer))
+                        if (knownAnswer.getTTL() > DNSConstants.DNS_TTL / 2 && answers.remove(knownAnswer))
                         {
                             logger.log(Level.FINER, "JmDNS Responder Known Answer Removed");
                         }
@@ -286,16 +275,18 @@ public class Responder extends DNSTask
                         {
                             out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, false);
                         }
-
-                        for (DNSQuestion question : questions)
+                        if (out != null)
                         {
-                            out.addQuestion(question);
+                            for (DNSQuestion question : questions)
+                            {
+                                out.addQuestion(question);
+                            }
+                            for (DNSRecord answer : answers)
+                            {
+                                out = this._jmDNSImpl.addAnswer(_in, _addr, _port, out, answer);
+                            }
+                            this._jmDNSImpl.send(out);
                         }
-                        for (DNSRecord answer : answers)
-                        {
-                            out = this._jmDNSImpl.addAnswer(_in, _addr, _port, out, answer);
-                        }
-                        this._jmDNSImpl.send(out);
                     }
                     this.cancel();
                 }

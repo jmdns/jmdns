@@ -4,7 +4,6 @@
 
 package javax.jmdns.impl;
 
-
 /**
  * A DNS question.
  *
@@ -20,28 +19,28 @@ public final class DNSQuestion extends DNSEntry
      *
      * @param name
      * @param type
-     * @param clazz
+     * @param recordClass
+     * @param unique
      */
-    public DNSQuestion(String name, int type, int clazz)
+    public DNSQuestion(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique)
     {
-        super(name, type, clazz);
+        super(name, type, recordClass, unique);
     }
 
     /**
      * Check if this question is answered by a given DNS record.
      */
-    boolean answeredBy(DNSRecord rec)
+    boolean answeredBy(DNSEntry rec)
     {
-        return (_clazz == rec._clazz) && ((_type == rec._type) || (_type == DNSConstants.TYPE_ANY))
-                && _name.equals(rec._name);
+        return (this.getRecordClass() == rec.getRecordClass())
+                && ((this.getRecordType() == rec.getRecordType()) || DNSRecordType.TYPE_ANY
+                        .equals(this.getRecordType())) && this.getName().equals(rec.getName());
     }
 
-    /**
-     * For debugging only.
-     */
     @Override
-    public String toString()
+    boolean isExpired(long now)
     {
-        return toString("question", null);
+        return false;
     }
+
 }

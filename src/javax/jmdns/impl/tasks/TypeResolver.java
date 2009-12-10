@@ -12,6 +12,8 @@ import javax.jmdns.impl.DNSConstants;
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSQuestion;
 import javax.jmdns.impl.DNSRecord;
+import javax.jmdns.impl.DNSRecordClass;
+import javax.jmdns.impl.DNSRecordType;
 import javax.jmdns.impl.DNSState;
 import javax.jmdns.impl.JmDNSImpl;
 
@@ -55,12 +57,11 @@ public class TypeResolver extends DNSTask
                 {
                     logger.finer("run() JmDNS querying type");
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                    out.addQuestion(new DNSQuestion("_services._mdns._udp.local.", DNSConstants.TYPE_PTR,
-                            DNSConstants.CLASS_IN));
-                    for (String type : this._jmDNSImpl.getServiceTypes().values())
+                    out.addQuestion(new DNSQuestion("_services._mdns._udp.local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                     for (String type : this._jmDNSImpl.getServiceTypes().values())
                     {
-                        out.addAnswer(new DNSRecord.Pointer("_services._mdns._udp.local.", DNSConstants.TYPE_PTR,
-                                DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, type), 0);
+                        out.addAnswer(new DNSRecord.Pointer("_services._mdns._udp.local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE,
+                                DNSConstants.DNS_TTL, type), 0);
                     }
                     this._jmDNSImpl.send(out);
                 }

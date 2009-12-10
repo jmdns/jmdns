@@ -10,7 +10,6 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,20 +36,24 @@ public final class DNSIncoming extends DNSMessage
 
     private DatagramPacket _packet;
 
+    private int _off;
+
+    private int _len;
+
+    private byte[] _data;
+
     private int _numQuestions;
     int _numAnswers;
     private int _numAuthorities;
     private int _numAdditionals;
     private long _receivedTime;
 
-    private List<DNSQuestion> _questions;
-    List<DNSRecord> _answers;
-
     /**
      * Parse a message from a datagram packet.
      */
     DNSIncoming(DatagramPacket packet) throws IOException
     {
+        super(0, 0, packet.getPort() == DNSConstants.MDNS_PORT);
         this._packet = packet;
         InetAddress source = packet.getAddress();
         this._data = packet.getData();
@@ -75,7 +78,11 @@ public final class DNSIncoming extends DNSMessage
                 _questions = Collections.synchronizedList(new ArrayList<DNSQuestion>(_numQuestions));
                 for (int i = 0; i < _numQuestions; i++)
                 {
-                    DNSQuestion question = new DNSQuestion(readName(), readUnsignedShort(), readUnsignedShort());
+                    DNSRecordType type = DNSRecordType.typeForIndex(this.readUnsignedShort());
+                    int clazz = readUnsignedShort();
+                    DNSRecordClass recordClass = DNSRecordClass.classForIndex(clazz);
+                    boolean unique = DNSRecordClass.isUnique(clazz);
+                    DNSQuestion question = new DNSQuestion(readName(), type, recordClass, unique);
                     _questions.add(question);
                 }
             }
@@ -88,21 +95,23 @@ public final class DNSIncoming extends DNSMessage
                 for (int i = 0; i < n; i++)
                 {
                     String domain = readName();
-                    int type = readUnsignedShort();
+                    DNSRecordType type = DNSRecordType.typeForIndex(this.readUnsignedShort());
                     int clazz = readUnsignedShort();
-                    int ttl = readInt();
-                    int len = readUnsignedShort();
+                    DNSRecordClass recordClass = DNSRecordClass.classForIndex(clazz);
+                    boolean unique = DNSRecordClass.isUnique(clazz);
+                    int ttl = this.readInt();
+                    int len = this.readUnsignedShort();
                     int end = _off + len;
                     DNSRecord rec = null;
 
                     switch (type)
                     {
-                        case DNSConstants.TYPE_A: // IPv4
-                        case DNSConstants.TYPE_AAAA: // IPv6 FIXME [PJYF Oct 14 2004] This has not been tested
-                            rec = new DNSRecord.Address(domain, type, clazz, ttl, readBytes(_off, len));
+                        case TYPE_A: // IPv4
+                        case TYPE_AAAA: // IPv6 FIXME [PJYF Oct 14 2004] This has not been tested
+                            rec = new DNSRecord.Address(domain, type, recordClass, unique, ttl, readBytes(_off, len));
                             break;
-                        case DNSConstants.TYPE_CNAME:
-                        case DNSConstants.TYPE_PTR:
+                        case TYPE_CNAME:
+                        case TYPE_PTR:
                             String service = "";
                             try
                             {
@@ -113,12 +122,12 @@ public final class DNSIncoming extends DNSMessage
                                 // there was a problem reading the service name
                                 e.printStackTrace();
                             }
-                            rec = new DNSRecord.Pointer(domain, type, clazz, ttl, service);
+                            rec = new DNSRecord.Pointer(domain, type, recordClass, unique, ttl, service);
                             break;
-                        case DNSConstants.TYPE_TXT:
-                            rec = new DNSRecord.Text(domain, type, clazz, ttl, readBytes(_off, len));
+                        case TYPE_TXT:
+                            rec = new DNSRecord.Text(domain, type, recordClass, unique, ttl, readBytes(_off, len));
                             break;
-                        case DNSConstants.TYPE_SRV:
+                        case TYPE_SRV:
                             int priority = readUnsignedShort();
                             int weight = readUnsignedShort();
                             int port = readUnsignedShort();
@@ -146,9 +155,10 @@ public final class DNSIncoming extends DNSMessage
                                 // of the record
                                 e.printStackTrace();
                             }
-                            rec = new DNSRecord.Service(domain, type, clazz, ttl, priority, weight, port, target);
+                            rec = new DNSRecord.Service(domain, type, recordClass, unique, ttl, priority, weight, port,
+                                    target);
                             break;
-                        case DNSConstants.TYPE_HINFO:
+                        case TYPE_HINFO:
                             // Maybe we should do something with those
                             break;
                         default:
@@ -193,36 +203,6 @@ public final class DNSIncoming extends DNSMessage
             logger.log(Level.WARNING, "DNSIncoming() dump " + print(true) + "\n exception ", e);
             throw e;
         }
-    }
-
-    /**
-     * Check if the message is a query.
-     *
-     * @return <code>true</code> if the message is a query, <code>false</code> otherwise.
-     */
-    boolean isQuery()
-    {
-        return (_flags & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_QUERY;
-    }
-
-    /**
-     * Check if the message is truncated.
-     *
-     * @return <code>true</code> if the message is truncated, <code>false</code> otherwise.
-     */
-    public boolean isTruncated()
-    {
-        return (_flags & DNSConstants.FLAGS_TC) != 0;
-    }
-
-    /**
-     * Check if the message is a response.
-     *
-     * @return <code>true</code> if the message is a response, <code>false</code> otherwise.
-     */
-    boolean isResponse()
-    {
-        return (_flags & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_RESPONSE;
     }
 
     private int get(int off) throws IOException
@@ -537,13 +517,4 @@ public final class DNSIncoming extends DNSMessage
         return (int) (System.currentTimeMillis() - _receivedTime);
     }
 
-    public List<DNSQuestion> getQuestions()
-    {
-        return _questions;
-    }
-
-    public List<DNSRecord> getAnswers()
-    {
-        return _answers;
-    }
 }
