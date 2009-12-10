@@ -15,6 +15,8 @@ import javax.jmdns.impl.DNSConstants;
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSQuestion;
 import javax.jmdns.impl.DNSRecord;
+import javax.jmdns.impl.DNSRecordClass;
+import javax.jmdns.impl.DNSRecordType;
 import javax.jmdns.impl.DNSState;
 import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.ServiceInfoImpl;
@@ -59,16 +61,17 @@ public class ServiceResolver extends DNSTask
                     logger.finer("run() JmDNS querying service");
                     long now = System.currentTimeMillis();
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                    out.addQuestion(new DNSQuestion(_type, DNSConstants.TYPE_PTR, DNSConstants.CLASS_IN));
+                    out.addQuestion(new DNSQuestion(_type, DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN,
+                            DNSRecordClass.NOT_UNIQUE));
                     for (Iterator<? extends ServiceInfo> s = this._jmDNSImpl.getServices().values().iterator(); s
                             .hasNext();)
                     {
                         final ServiceInfoImpl info = (ServiceInfoImpl) s.next();
                         try
                         {
-                            out.addAnswer(new DNSRecord.Pointer(info.getType(), DNSConstants.TYPE_PTR,
-                                    DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info.getQualifiedName()), now);
-                        }
+                            out.addAnswer(new DNSRecord.Pointer(info.getType(), DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info
+                                    .getQualifiedName()), now);
+                         }
                         catch (IOException ee)
                         {
                             break;

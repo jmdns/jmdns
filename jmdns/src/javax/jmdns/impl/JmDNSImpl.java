@@ -103,7 +103,7 @@ public class JmDNSImpl extends JmDNS
     /**
      * This is the shutdown hook, we registered with the java runtime.
      */
-    private Thread _shutdown;
+    protected Thread _shutdown;
 
     /**
      * Handle on the local host
@@ -533,8 +533,10 @@ public class JmDNSImpl extends JmDNS
         new TypeResolver(this).start(_timer);
     }
 
-    /**
-     * @see javax.jmdns.JmDNS#removeServiceTypeListener(javax.jmdns. ServiceTypeListener)
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.JmDNS#removeServiceTypeListener(javax.jmdns.ServiceTypeListener)
      */
     @Override
     public void removeServiceTypeListener(ServiceTypeListener listener)
@@ -545,7 +547,9 @@ public class JmDNSImpl extends JmDNS
         }
     }
 
-    /**
+    /*
+     * (non-Javadoc)
+     *
      * @see javax.jmdns.JmDNS#addServiceListener(java.lang.String, javax.jmdns.ServiceListener)
      */
     @Override
@@ -571,18 +575,16 @@ public class JmDNSImpl extends JmDNS
         final List<ServiceEvent> serviceEvents = new ArrayList<ServiceEvent>();
         synchronized (_cache)
         {
-            for (final Iterator i = _cache.iterator(); i.hasNext();)
+            Collection<DNSEntry> dnsEntryLits = this.getCache().allValues();
+            for (DNSEntry entry : dnsEntryLits)
             {
-                for (DNSCache.CacheNode n = (DNSCache.CacheNode) i.next(); n != null; n = n.next())
+                final DNSRecord record = (DNSRecord) entry;
+                if (DNSRecordType.TYPE_SRV.equals(record.getRecordType()))
                 {
-                    final DNSRecord rec = (DNSRecord) n.getValue();
-                    if (rec._type == DNSConstants.TYPE_SRV)
+                    if (record.getName().endsWith(type))
                     {
-                        if (rec._name.endsWith(type))
-                        {
-                            serviceEvents
-                                    .add(new ServiceEventImpl(this, type, toUnqualifiedName(type, rec._name), null));
-                        }
+                        serviceEvents.add(new ServiceEventImpl(this, type, toUnqualifiedName(type, record.getName()),
+                                null));
                     }
                 }
             }
@@ -780,35 +782,35 @@ public class JmDNSImpl extends JmDNS
      *
      * @return returns true, if the name of the host had to be changed.
      */
-    private boolean makeHostNameUnique(DNSRecord.Address host)
-    {
-        final String originalName = host.getName();
-        System.currentTimeMillis();
-
-        boolean collision;
-        do
-        {
-            collision = false;
-
-            // Check for collision in cache
-            for (DNSCache.CacheNode j = _cache.find(host.getName().toLowerCase()); j != null; j = j.next())
-            {
-                if (false)
-                {
-                    host._name = incrementName(host.getName());
-                    collision = true;
-                    break;
-                }
-            }
-        }
-        while (collision);
-
-        if (originalName.equals(host.getName()))
-        {
-            return false;
-        }
-        return true;
-    }
+    // private boolean makeHostNameUnique(DNSRecord.Address host)
+    // {
+    // final String originalName = host.getName();
+    // System.currentTimeMillis();
+    //
+    // boolean collision;
+    // do
+    // {
+    // collision = false;
+    //
+    // // Check for collision in cache
+    // for (DNSCache.CacheNode j = _cache.find(host.getName().toLowerCase()); j != null; j = j.next())
+    // {
+    // if (false)
+    // {
+    // host._name = incrementName(host.getName());
+    // collision = true;
+    // break;
+    // }
+    // }
+    // }
+    // while (collision);
+    //
+    // if (originalName.equals(host.getName()))
+    // {
+    // return false;
+    // }
+    // return true;
+    // }
 
     /**
      * Generate a possibly unique name for a service using the information we have in the cache.
@@ -826,20 +828,24 @@ public class JmDNSImpl extends JmDNS
             collision = false;
 
             // Check for collision in cache
-            for (DNSCache.CacheNode j = _cache.find(info.getQualifiedName().toLowerCase()); j != null; j = j.next())
+            Collection<? extends DNSEntry> entryList = this.getCache().getDNSEntryList(
+                    info.getQualifiedName().toLowerCase());
+            if (entryList != null)
             {
-                final DNSRecord a = (DNSRecord) j.getValue();
-                if ((a._type == DNSConstants.TYPE_SRV) && !a.isExpired(now))
+                for (DNSEntry dnsEntry : entryList)
                 {
-                    final DNSRecord.Service s = (DNSRecord.Service) a;
-                    if (s._port != info._port || !s._server.equals(_localHost.getName()))
+                    if (DNSRecordType.TYPE_SRV.equals(dnsEntry.getRecordType()) && !dnsEntry.isExpired(now))
                     {
-                        logger.finer("makeServiceNameUnique() JmDNS.makeServiceNameUnique srv collision:" + a
-                                + " s.server=" + s._server + " " + _localHost.getName() + " equals:"
-                                + (s._server.equals(_localHost.getName())));
-                        info.setName(incrementName(info.getName()));
-                        collision = true;
-                        break;
+                        final DNSRecord.Service s = (DNSRecord.Service) dnsEntry;
+                        if (s._port != info._port || !s._server.equals(_localHost.getName()))
+                        {
+                            logger.finer("makeServiceNameUnique() JmDNS.makeServiceNameUnique srv collision:"
+                                    + dnsEntry + " s.server=" + s._server + " " + _localHost.getName() + " equals:"
+                                    + (s._server.equals(_localHost.getName())));
+                            info.setName(incrementName(info.getName()));
+                            collision = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -859,24 +865,25 @@ public class JmDNSImpl extends JmDNS
 
     String incrementName(String name)
     {
+        String aName = name;
         try
         {
-            final int l = name.lastIndexOf('(');
-            final int r = name.lastIndexOf(')');
+            final int l = aName.lastIndexOf('(');
+            final int r = aName.lastIndexOf(')');
             if ((l >= 0) && (l < r))
             {
-                name = name.substring(0, l) + "(" + (Integer.parseInt(name.substring(l + 1, r)) + 1) + ")";
+                aName = aName.substring(0, l) + "(" + (Integer.parseInt(aName.substring(l + 1, r)) + 1) + ")";
             }
             else
             {
-                name += " (2)";
+                aName += " (2)";
             }
         }
         catch (final NumberFormatException e)
         {
-            name += " (2)";
+            aName += " (2)";
         }
-        return name;
+        return aName;
     }
 
     /**
@@ -899,14 +906,19 @@ public class JmDNSImpl extends JmDNS
         }
 
         // report existing matched records
+
         if (question != null)
         {
-            for (DNSCache.CacheNode i = _cache.find(question._name); i != null; i = i.next())
+            Collection<? extends DNSEntry> entryList = this.getCache()
+                    .getDNSEntryList(question.getName().toLowerCase());
+            if (entryList != null)
             {
-                final DNSRecord c = (DNSRecord) i.getValue();
-                if (question.answeredBy(c) && !c.isExpired(now))
+                for (DNSEntry dnsEntry : entryList)
                 {
-                    listener.updateRecord(this, now, c);
+                    if (question.answeredBy(dnsEntry) && !dnsEntry.isExpired(now))
+                    {
+                        listener.updateRecord(this.getCache(), now, dnsEntry);
+                    }
                 }
             }
         }
@@ -946,9 +958,9 @@ public class JmDNSImpl extends JmDNS
         }
         for (DNSListener listener : listenerList)
         {
-            listener.updateRecord(this, now, rec);
+            listener.updateRecord(this.getCache(), now, rec);
         }
-        if (rec._type == DNSConstants.TYPE_PTR || rec._type == DNSConstants.TYPE_SRV)
+        if (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()) || DNSRecordType.TYPE_SRV.equals(rec.getRecordType()))
         {
             List<ServiceListener> list = _serviceListeners.get(rec._name.toLowerCase());
             List<ServiceListener> serviceListenerList = Collections.emptyList();
@@ -1025,12 +1037,12 @@ public class JmDNSImpl extends JmDNS
                 if (!expired)
                 {
                     isInformative = true;
-                    _cache.add(rec);
+                    _cache.addDNSEntry(rec);
                 }
             }
-            switch (rec._type)
+            switch (rec.getRecordType())
             {
-                case DNSConstants.TYPE_PTR:
+                case TYPE_PTR:
                     // handle _mdns._udp records
                     if (rec.getName().indexOf("._mdns._udp.") >= 0)
                     {
@@ -1043,9 +1055,11 @@ public class JmDNSImpl extends JmDNS
                     }
                     registerServiceType(rec._name);
                     break;
+                default:
+                    break;
             }
 
-            if ((rec.getType() == DNSConstants.TYPE_A) || (rec.getType() == DNSConstants.TYPE_AAAA))
+            if (DNSRecordType.TYPE_A.equals(rec.getRecordType()) || DNSRecordType.TYPE_AAAA.equals(rec.getRecordType()))
             {
                 hostConflictDetected |= rec.handleResponse(this);
             }
@@ -1083,7 +1097,8 @@ public class JmDNSImpl extends JmDNS
         final long expirationTime = System.currentTimeMillis() + DNSConstants.KNOWN_ANSWER_TTL;
         for (DNSRecord answer : in._answers)
         {
-            if ((answer.getType() == DNSConstants.TYPE_A) || (answer.getType() == DNSConstants.TYPE_AAAA))
+            if (DNSRecordType.TYPE_A.equals(answer.getRecordType())
+                    || DNSRecordType.TYPE_AAAA.equals(answer.getRecordType()))
             {
                 hostConflictDetected |= answer.handleQuery(this, expirationTime);
             }
@@ -1196,7 +1211,7 @@ public class JmDNSImpl extends JmDNS
     /**
      * Shutdown operations.
      */
-    private class Shutdown implements Runnable
+    protected class Shutdown implements Runnable
     {
         public void run()
         {
@@ -1293,8 +1308,7 @@ public class JmDNSImpl extends JmDNS
      */
     void print()
     {
-        System.out.println("---- cache ----");
-        _cache.print();
+        System.out.println(_cache.toString());
         System.out.println();
     }
 

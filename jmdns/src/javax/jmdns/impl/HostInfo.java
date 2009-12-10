@@ -104,25 +104,22 @@ public class HostInfo
 
     DNSRecord.Address getDNSAddressRecord(DNSRecord.Address address)
     {
-        return (DNSConstants.TYPE_AAAA == address._type ? getDNS6AddressRecord() : getDNS4AddressRecord());
+        return (DNSRecordType.TYPE_AAAA.equals(address.getRecordType()) ? this.getDNS6AddressRecord() : this.getDNS4AddressRecord());
     }
 
     public DNSRecord.Address getDNS4AddressRecord()
     {
-        if ((getAddress() != null) &&
-            ((getAddress() instanceof Inet4Address) ||
-            ((getAddress() instanceof Inet6Address) && (((Inet6Address) getAddress()).isIPv4CompatibleAddress()))))
-        {
-            return new DNSRecord.Address(getName(), DNSConstants.TYPE_A, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, getAddress());
+        if ((this.getAddress() instanceof Inet4Address) || ((this.getAddress() instanceof Inet6Address) && (((Inet6Address) this.getAddress()).isIPv4CompatibleAddress()))) {
+            return new DNSRecord.Address(this.getName(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, this.getAddress());
         }
         return null;
     }
 
     public DNSRecord.Address getDNS6AddressRecord()
     {
-        if ((getAddress() != null) && (getAddress() instanceof Inet6Address))
-        {
-            return new DNSRecord.Address(getName(), DNSConstants.TYPE_AAAA, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, getAddress());
+        if (this.getAddress() instanceof Inet6Address) {
+            return new DNSRecord.Address(this.getName(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN,
+                    DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, this.getAddress());
         }
         return null;
     }
@@ -155,7 +152,7 @@ public class HostInfo
                 out.addAnswer(answer, 0);
             }
         }
-        
+
         answer = getDNS6AddressRecord();
         if (answer != null)
         {

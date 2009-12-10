@@ -94,10 +94,10 @@ public class Announcer extends DNSTask
             // send probes for JmDNS itself
             if (this._jmDNSImpl.getState() == taskState)
             {
-                if (out == null)
-                {
-                    out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
-                }
+                // if (out == null)
+                // {
+                // }
+                out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
                 this._jmDNSImpl.getLocalHost().addAddressRecords(out, false);
                 this._jmDNSImpl.advanceState();
             }

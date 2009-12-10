@@ -16,6 +16,8 @@ import javax.jmdns.impl.DNSConstants;
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSQuestion;
 import javax.jmdns.impl.DNSRecord;
+import javax.jmdns.impl.DNSRecordClass;
+import javax.jmdns.impl.DNSRecordType;
 import javax.jmdns.impl.DNSState;
 import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.ServiceInfoImpl;
@@ -121,12 +123,12 @@ public class Prober extends DNSTask
                 // send probes for JmDNS itself
                 if (this._jmDNSImpl.getState() == taskState && this._jmDNSImpl.getTask() == this)
                 {
-                    if (out == null)
-                    {
-                        out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                    }
-                    out.addQuestion(new DNSQuestion(this._jmDNSImpl.getLocalHost().getName(), DNSConstants.TYPE_ANY,
-                            DNSConstants.CLASS_IN));
+                    // if (out == null)
+                    // {
+                    // }
+                    out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
+                    out.addQuestion(new DNSQuestion(this._jmDNSImpl.getLocalHost().getName(), DNSRecordType.TYPE_ANY,
+                            DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
 
                     this._jmDNSImpl.getLocalHost().addAddressRecords(out, true);
                     this._jmDNSImpl.advanceState();
@@ -153,16 +155,15 @@ public class Prober extends DNSTask
                             if (out == null)
                             {
                                 out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                                out.addQuestion(new DNSQuestion(info.getQualifiedName(), DNSConstants.TYPE_ANY,
-                                        DNSConstants.CLASS_IN));
+                                out.addQuestion(new DNSQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY,
+                                        DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
                             }
                             // the "unique" flag should be not set here because these answers haven't been proven unique
-                            // yet
-                            // this means the record will not exactly match the announcement record
+                            // yet this means the record will not exactly match the announcement record
                             out.addAuthorativeAnswer(new DNSRecord.Service(info.getQualifiedName(),
-                                    DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN, DNSConstants.DNS_TTL, info
-                                            .getPriority(), info.getWeight(), info.getPort(), this._jmDNSImpl
-                                            .getLocalHost().getName()));
+                                    DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE,
+                                    DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(),
+                                    this._jmDNSImpl.getLocalHost().getName()));
                         }
                     }
                 }

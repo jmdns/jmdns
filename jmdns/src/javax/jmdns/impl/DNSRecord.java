@@ -4,9 +4,9 @@
 
 package javax.jmdns.impl;
 
-import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -36,9 +36,9 @@ public abstract class DNSRecord extends DNSEntry
     /**
      * Create a DNSRecord with a name, type, clazz, and ttl.
      */
-    DNSRecord(String name, int type, int clazz, int ttl)
+    DNSRecord(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl)
     {
-        super(name, type, clazz);
+        super(name, type, recordClass, unique);
         this._ttl = ttl;
         this._created = System.currentTimeMillis();
     }
@@ -153,6 +153,7 @@ public abstract class DNSRecord extends DNSEntry
      *            update date
      * @return <code>true</code> is the record is expired, <code>false</code> otherwise.
      */
+    @Override
     public boolean isExpired(long now)
     {
         return getExpirationTime(100) <= now;
@@ -192,15 +193,15 @@ public abstract class DNSRecord extends DNSEntry
         private static Logger logger1 = Logger.getLogger(Address.class.getName());
         InetAddress _addr;
 
-        Address(String name, int type, int clazz, int ttl, InetAddress addr)
+        Address(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl, InetAddress addr)
         {
-            super(name, type, clazz, ttl);
+            super(name, type, recordClass, unique, ttl);
             this._addr = addr;
         }
 
-        Address(String name, int type, int clazz, int ttl, byte[] rawAddress)
+        Address(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl, byte[] rawAddress)
         {
-            super(name, type, clazz, ttl);
+            super(name, type, recordClass, unique, ttl);
             try
             {
                 this._addr = InetAddress.getByAddress(rawAddress);
@@ -217,7 +218,7 @@ public abstract class DNSRecord extends DNSEntry
             if (_addr != null)
             {
                 byte[] buffer = _addr.getAddress();
-                if (DNSConstants.TYPE_A == _type)
+                if (DNSRecordType.TYPE_A.equals(this.getRecordType()))
                 {
                     // If we have a type A records we should answer with a IPv4 address
                     if (_addr instanceof Inet4Address)
@@ -282,50 +283,15 @@ public abstract class DNSRecord extends DNSEntry
          * Creates a byte array representation of this record. This is needed for tie-break tests according to
          * draft-cheshire-dnsext-multicastdns-04.txt chapter 9.2.
          */
-        private byte[] toByteArray()
+        @Override
+        protected void toByteArray(DataOutputStream dout) throws IOException
         {
-            try
+            super.toByteArray(dout);
+            byte[] buffer = _addr.getAddress();
+            for (int i = 0; i < buffer.length; i++)
             {
-                ByteArrayOutputStream bout = new ByteArrayOutputStream();
-                DataOutputStream dout = new DataOutputStream(bout);
-                dout.write(_name.getBytes("UTF8"));
-                dout.writeShort(_type);
-                dout.writeShort(_clazz);
-                // dout.writeInt(len);
-                byte[] buffer = _addr.getAddress();
-                for (int i = 0; i < buffer.length; i++)
-                {
-                    dout.writeByte(buffer[i]);
-                }
-                dout.close();
-                return bout.toByteArray();
+                dout.writeByte(buffer[i]);
             }
-            catch (IOException e)
-            {
-                throw new InternalError();
-            }
-        }
-
-        /**
-         * Does a lexicographic comparison of the byte array representation of this record and that record. This is
-         * needed for tie-break tests according to draft-cheshire-dnsext-multicastdns-04.txt chapter 9.2.
-         */
-        private int lexCompare(DNSRecord.Address that)
-        {
-            byte[] thisBytes = this.toByteArray();
-            byte[] thatBytes = that.toByteArray();
-            for (int i = 0, n = Math.min(thisBytes.length, thatBytes.length); i < n; i++)
-            {
-                if (thisBytes[i] > thatBytes[i])
-                {
-                    return 1;
-                }
-                if (thisBytes[i] < thatBytes[i])
-                {
-                    return -1;
-                }
-            }
-            return thisBytes.length - thatBytes.length;
         }
 
         /**
@@ -340,9 +306,9 @@ public abstract class DNSRecord extends DNSEntry
                 if (dnsAddress.sameType(this) && dnsAddress.sameName(this) && (!dnsAddress.sameValue(this)))
                 {
                     logger1.finer("handleQuery() Conflicting probe detected. dns state " + dns.getState()
-                            + " lex compare " + lexCompare(dnsAddress));
+                            + " lex compare " + compareTo(dnsAddress));
                     // Tie-breaker test
-                    if (dns.getState().isProbing() && lexCompare(dnsAddress) >= 0)
+                    if (dns.getState().isProbing() && compareTo(dnsAddress) >= 0)
                     {
                         // We lost the tie-break. We have to choose a different name.
                         dns.getLocalHost().incrementHostName();
@@ -397,10 +363,15 @@ public abstract class DNSRecord extends DNSEntry
             return out;
         }
 
+        /*
+         * (non-Javadoc)
+         *
+         * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
+         */
         @Override
-        public String toString()
+        public void toString(StringBuilder aLog)
         {
-            return toString(" address '" + (_addr != null ? _addr.getHostAddress() : "null") + "'");
+            aLog.append(" address: '" + (_addr != null ? _addr.getHostAddress() : "null") + "'");
         }
 
     }
@@ -413,9 +384,10 @@ public abstract class DNSRecord extends DNSEntry
         // private static Logger logger = Logger.getLogger(Pointer.class.getName());
         String _alias;
 
-        public Pointer(String name, int type, int clazz, int ttl, String alias)
+        public Pointer(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl,
+                String alias)
         {
-            super(name, type, clazz, ttl);
+            super(name, type, recordClass, unique, ttl);
             this._alias = alias;
         }
 
@@ -459,11 +431,17 @@ public abstract class DNSRecord extends DNSEntry
             return out;
         }
 
+        /*
+         * (non-Javadoc)
+         *
+         * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
+         */
         @Override
-        public String toString()
+        public void toString(StringBuilder aLog)
         {
-            return toString(_alias);
+            aLog.append(" alias: '" + (_alias != null ? _alias.toString() : "null") + "'");
         }
+
     }
 
     public static class Text extends DNSRecord
@@ -471,9 +449,9 @@ public abstract class DNSRecord extends DNSEntry
         // private static Logger logger = Logger.getLogger(Text.class.getName());
         byte[] _text;
 
-        public Text(String name, int type, int clazz, int ttl, byte text[])
+        public Text(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl, byte text[])
         {
-            super(name, type, clazz, ttl);
+            super(name, type, recordClass, unique, ttl);
             this._text = text;
         }
 
@@ -528,11 +506,17 @@ public abstract class DNSRecord extends DNSEntry
             return out;
         }
 
+        /*
+         * (non-Javadoc)
+         *
+         * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
+         */
         @Override
-        public String toString()
+        public void toString(StringBuilder aLog)
         {
-            return toString((_text.length > 10) ? new String(_text, 0, 7) + "..." : new String(_text));
+            aLog.append(" text: '" + ((_text.length > 10) ? new String(_text, 0, 7) + "..." : new String(_text)) + "'");
         }
+
     }
 
     /**
@@ -546,9 +530,10 @@ public abstract class DNSRecord extends DNSEntry
         int _port;
         String _server;
 
-        public Service(String name, int type, int clazz, int ttl, int priority, int weight, int port, String server)
+        public Service(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl,
+                int priority, int weight, int port, String server)
         {
-            super(name, type, clazz, ttl);
+            super(name, type, recordClass, unique, ttl);
             this._priority = priority;
             this._weight = weight;
             this._port = port;
@@ -575,45 +560,21 @@ public abstract class DNSRecord extends DNSEntry
             }
         }
 
-        private byte[] toByteArray()
+        @Override
+        protected void toByteArray(DataOutputStream dout) throws IOException
         {
+            super.toByteArray(dout);
+            dout.writeShort(_priority);
+            dout.writeShort(_weight);
+            dout.writeShort(_port);
             try
             {
-                ByteArrayOutputStream bout = new ByteArrayOutputStream();
-                DataOutputStream dout = new DataOutputStream(bout);
-                dout.write(_name.getBytes("UTF8"));
-                dout.writeShort(_type);
-                dout.writeShort(_clazz);
-                // dout.writeInt(len);
-                dout.writeShort(_priority);
-                dout.writeShort(_weight);
-                dout.writeShort(_port);
-                dout.write(_server.getBytes("UTF8"));
-                dout.close();
-                return bout.toByteArray();
+                dout.write(_server.getBytes("UTF-8"));
             }
-            catch (IOException e)
+            catch (UnsupportedEncodingException exception)
             {
-                throw new InternalError();
+                /* UTF-8 is always present */
             }
-        }
-
-        private int lexCompare(DNSRecord.Service that)
-        {
-            byte[] thisBytes = this.toByteArray();
-            byte[] thatBytes = that.toByteArray();
-            for (int i = 0, n = Math.min(thisBytes.length, thatBytes.length); i < n; i++)
-            {
-                if (thisBytes[i] > thatBytes[i])
-                {
-                    return 1;
-                }
-                if (thisBytes[i] < thatBytes[i])
-                {
-                    return -1;
-                }
-            }
-            return thisBytes.length - thatBytes.length;
         }
 
         @Override
@@ -631,8 +592,8 @@ public abstract class DNSRecord extends DNSEntry
             if (info != null && (_port != info._port || !_server.equalsIgnoreCase(dns.getLocalHost().getName())))
             {
                 logger1.finer("handleQuery() Conflicting probe detected from: " + getRecordSource());
-                DNSRecord.Service localService = new DNSRecord.Service(info.getQualifiedName(), DNSConstants.TYPE_SRV,
-                        DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE, DNSConstants.DNS_TTL, info._priority,
+                DNSRecord.Service localService = new DNSRecord.Service(info.getQualifiedName(), DNSRecordType.TYPE_SRV,
+                        DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info._priority,
                         info._weight, info._port, dns.getLocalHost().getName());
 
                 // This block is useful for debugging race conditions when jmdns is respoding to
@@ -650,7 +611,7 @@ public abstract class DNSRecord extends DNSEntry
                     e.printStackTrace();
                 }
 
-                int comparison = lexCompare(localService);
+                int comparison = this.compareTo(localService);
 
                 if (comparison == 0)
                 {
@@ -721,7 +682,7 @@ public abstract class DNSRecord extends DNSEntry
                 if (this._port == info._port != _server.equals(dns.getLocalHost().getName()))
                 {
                     return dns.addAnswer(in, addr, port, out, new DNSRecord.Service(info.getQualifiedName(),
-                            DNSConstants.TYPE_SRV, DNSConstants.CLASS_IN | DNSConstants.CLASS_UNIQUE,
+                            DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE,
                             DNSConstants.DNS_TTL, info._priority, info._weight, info._port, dns.getLocalHost()
                                     .getName()));
                 }
@@ -729,10 +690,15 @@ public abstract class DNSRecord extends DNSEntry
             return out;
         }
 
+        /*
+         * (non-Javadoc)
+         *
+         * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
+         */
         @Override
-        public String toString()
+        public void toString(StringBuilder aLog)
         {
-            return toString(_server + ":" + _port);
+            aLog.append(" server: '" + _server + ":" + _port + "'");
         }
     }
 
@@ -751,12 +717,12 @@ public abstract class DNSRecord extends DNSEntry
         return toString("record", _ttl + "/" + getRemainingTTL(System.currentTimeMillis()) + "," + other);
     }
 
-    public void setTtl(int ttl)
+    public void setTTL(int ttl)
     {
         this._ttl = ttl;
     }
 
-    public int getTtl()
+    public int getTTL()
     {
         return _ttl;
     }
