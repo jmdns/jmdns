@@ -1018,13 +1018,13 @@ public class JmDNSImpl extends JmDNS
             final boolean expired = rec.isExpired(now);
 
             // update the cache
-            final DNSRecord c = (DNSRecord) _cache.get(rec);
+            final DNSRecord c = (DNSRecord) this.getCache().getDNSEntry(rec);
             if (c != null)
             {
                 if (expired)
                 {
                     isInformative = true;
-                    _cache.remove(c);
+                    this.getCache().remove(c);
                 }
                 else
                 {
@@ -1037,7 +1037,7 @@ public class JmDNSImpl extends JmDNS
                 if (!expired)
                 {
                     isInformative = true;
-                    _cache.addDNSEntry(rec);
+                    this.getCache().addDNSEntry(rec);
                 }
             }
             switch (rec.getRecordType())
