@@ -100,9 +100,9 @@ public abstract class DNSRecord extends DNSEntry
     {
         try
         {
-            for (int i = msg._numAnswers; i-- > 0;)
+            for (DNSRecord answer : msg.getAllAnswers())
             {
-                if (suppressedBy(msg._answers.get(i)))
+                if (suppressedBy(answer))
                 {
                     return true;
                 }
@@ -575,6 +575,11 @@ public abstract class DNSRecord extends DNSEntry
             {
                 /* UTF-8 is always present */
             }
+        }
+
+        String getServer()
+        {
+            return _server;
         }
 
         @Override

@@ -7,9 +7,6 @@ package javax.jmdns.impl;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,10 +39,6 @@ public final class DNSIncoming extends DNSMessage
 
     private byte[] _data;
 
-    private int _numQuestions;
-    int _numAnswers;
-    private int _numAuthorities;
-    private int _numAdditionals;
     private long _receivedTime;
 
     /**
@@ -59,142 +52,63 @@ public final class DNSIncoming extends DNSMessage
         this._data = packet.getData();
         this._len = packet.getLength();
         this._off = packet.getOffset();
-        this._questions = Collections.emptyList();
-        this._answers = Collections.emptyList();
         this._receivedTime = System.currentTimeMillis();
 
         try
         {
             _id = readUnsignedShort();
             _flags = readUnsignedShort();
-            _numQuestions = readUnsignedShort();
-            _numAnswers = readUnsignedShort();
-            _numAuthorities = readUnsignedShort();
-            _numAdditionals = readUnsignedShort();
+            int numQuestions = readUnsignedShort();
+            int numAnswers = readUnsignedShort();
+            int numAuthorities = readUnsignedShort();
+            int numAdditionals = readUnsignedShort();
 
             // parse questions
-            if (_numQuestions > 0)
+            if (numQuestions > 0)
             {
-                _questions = Collections.synchronizedList(new ArrayList<DNSQuestion>(_numQuestions));
-                for (int i = 0; i < _numQuestions; i++)
+                for (int i = 0; i < numQuestions; i++)
                 {
-                    DNSRecordType type = DNSRecordType.typeForIndex(this.readUnsignedShort());
-                    int clazz = readUnsignedShort();
-                    DNSRecordClass recordClass = DNSRecordClass.classForIndex(clazz);
-                    boolean unique = DNSRecordClass.isUnique(clazz);
-                    DNSQuestion question = new DNSQuestion(readName(), type, recordClass, unique);
-                    _questions.add(question);
+                    _questions.add(this.readQuestion());
                 }
             }
 
             // parse answers
-            int n = _numAnswers + _numAuthorities + _numAdditionals;
-            if (n > 0)
+            if (numAnswers > 0)
             {
-                _answers = Collections.synchronizedList(new ArrayList<DNSRecord>(n));
-                for (int i = 0; i < n; i++)
+                for (int i = 0; i < numAnswers; i++)
                 {
-                    String domain = readName();
-                    DNSRecordType type = DNSRecordType.typeForIndex(this.readUnsignedShort());
-                    int clazz = readUnsignedShort();
-                    DNSRecordClass recordClass = DNSRecordClass.classForIndex(clazz);
-                    boolean unique = DNSRecordClass.isUnique(clazz);
-                    int ttl = this.readInt();
-                    int len = this.readUnsignedShort();
-                    int end = _off + len;
-                    DNSRecord rec = null;
-
-                    switch (type)
-                    {
-                        case TYPE_A: // IPv4
-                        case TYPE_AAAA: // IPv6 FIXME [PJYF Oct 14 2004] This has not been tested
-                            rec = new DNSRecord.Address(domain, type, recordClass, unique, ttl, readBytes(_off, len));
-                            break;
-                        case TYPE_CNAME:
-                        case TYPE_PTR:
-                            String service = "";
-                            try
-                            {
-                                service = readName();
-                            }
-                            catch (IOException e)
-                            {
-                                // there was a problem reading the service name
-                                e.printStackTrace();
-                            }
-                            rec = new DNSRecord.Pointer(domain, type, recordClass, unique, ttl, service);
-                            break;
-                        case TYPE_TXT:
-                            rec = new DNSRecord.Text(domain, type, recordClass, unique, ttl, readBytes(_off, len));
-                            break;
-                        case TYPE_SRV:
-                            int priority = readUnsignedShort();
-                            int weight = readUnsignedShort();
-                            int port = readUnsignedShort();
-                            String target = "";
-                            try
-                            {
-                                // This is a hack to handle a bug in the BonjourConformanceTest
-                                // It is sending out target strings that don't follow the "domain name"
-                                // format.
-
-                                if (USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET)
-                                {
-                                    target = readName();
-                                }
-                                else
-                                {
-                                    target = readNonNameString();
-                                }
-                            }
-                            catch (IOException e)
-                            {
-                                // this can happen if the type of the label
-                                // cannot be handled.
-                                // down below the offset gets advanced to the end
-                                // of the record
-                                e.printStackTrace();
-                            }
-                            rec = new DNSRecord.Service(domain, type, recordClass, unique, ttl, priority, weight, port,
-                                    target);
-                            break;
-                        case TYPE_HINFO:
-                            // Maybe we should do something with those
-                            break;
-                        default:
-                            logger.finer("DNSIncoming() unknown type:" + type);
-                            break;
-                    }
-
+                    DNSRecord rec = this.readAnswer(source);
                     if (rec != null)
                     {
-                        rec.setRecordSource(source);
                         // Add a record, if we were able to create one.
                         _answers.add(rec);
                     }
-                    else
+                }
+            }
+
+            if (numAuthorities > 0)
+            {
+                for (int i = 0; i < numAuthorities; i++)
+                {
+                    DNSRecord rec = this.readAnswer(source);
+                    if (rec != null)
                     {
-                        // Addjust the numbers for the skipped record
-                        if (_answers.size() < _numAnswers)
-                        {
-                            _numAnswers--;
-                        }
-                        else
-                        {
-                            if (_answers.size() < _numAnswers + _numAuthorities)
-                            {
-                                _numAuthorities--;
-                            }
-                            else
-                            {
-                                if (_answers.size() < _numAnswers + _numAuthorities + _numAdditionals)
-                                {
-                                    _numAdditionals--;
-                                }
-                            }
-                        }
+                        // Add a record, if we were able to create one.
+                        _authoritativeAnswers.add(rec);
                     }
-                    _off = end;
+                }
+            }
+
+            if (numAdditionals > 0)
+            {
+                for (int i = 0; i < numAdditionals; i++)
+                {
+                    DNSRecord rec = this.readAnswer(source);
+                    if (rec != null)
+                    {
+                        // Add a record, if we were able to create one.
+                        _additionals.add(rec);
+                    }
                 }
             }
         }
@@ -203,6 +117,96 @@ public final class DNSIncoming extends DNSMessage
             logger.log(Level.WARNING, "DNSIncoming() dump " + print(true) + "\n exception ", e);
             throw e;
         }
+    }
+
+    private DNSQuestion readQuestion() throws IOException
+    {
+        String domain = this.readName();
+        DNSRecordType type = DNSRecordType.typeForIndex(this.readUnsignedShort());
+        int clazz = readUnsignedShort();
+        DNSRecordClass recordClass = DNSRecordClass.classForIndex(clazz);
+        boolean unique = DNSRecordClass.isUnique(clazz);
+        return new DNSQuestion(domain, type, recordClass, unique);
+    }
+
+    private DNSRecord readAnswer(InetAddress source) throws IOException
+    {
+        String domain = this.readName();
+        DNSRecordType type = DNSRecordType.typeForIndex(this.readUnsignedShort());
+        int clazz = readUnsignedShort();
+        DNSRecordClass recordClass = DNSRecordClass.classForIndex(clazz);
+        boolean unique = DNSRecordClass.isUnique(clazz);
+        int ttl = this.readInt();
+        int len = this.readUnsignedShort();
+        int end = _off + len;
+        DNSRecord rec = null;
+
+        switch (type)
+        {
+            case TYPE_A: // IPv4
+            case TYPE_AAAA: // IPv6 FIXME [PJYF Oct 14 2004] This has not been tested
+                rec = new DNSRecord.Address(domain, type, recordClass, unique, ttl, readBytes(_off, len));
+                break;
+            case TYPE_CNAME:
+            case TYPE_PTR:
+                String service = "";
+                try
+                {
+                    service = readName();
+                }
+                catch (IOException e)
+                {
+                    // there was a problem reading the service name
+                    e.printStackTrace();
+                }
+                rec = new DNSRecord.Pointer(domain, type, recordClass, unique, ttl, service);
+                break;
+            case TYPE_TXT:
+                rec = new DNSRecord.Text(domain, type, recordClass, unique, ttl, readBytes(_off, len));
+                break;
+            case TYPE_SRV:
+                int priority = readUnsignedShort();
+                int weight = readUnsignedShort();
+                int port = readUnsignedShort();
+                String target = "";
+                try
+                {
+                    // This is a hack to handle a bug in the BonjourConformanceTest
+                    // It is sending out target strings that don't follow the "domain name"
+                    // format.
+
+                    if (USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET)
+                    {
+                        target = readName();
+                    }
+                    else
+                    {
+                        target = readNonNameString();
+                    }
+                }
+                catch (IOException e)
+                {
+                    // this can happen if the type of the label
+                    // cannot be handled.
+                    // down below the offset gets advanced to the end
+                    // of the record
+                    e.printStackTrace();
+                }
+                rec = new DNSRecord.Service(domain, type, recordClass, unique, ttl, priority, weight, port, target);
+                break;
+            case TYPE_HINFO:
+                // Maybe we should do something with those
+                break;
+            default:
+                logger.finer("DNSIncoming() unknown type:" + type);
+                break;
+        }
+        if (rec != null)
+        {
+            rec.setRecordSource(source);
+        }
+        _off = end;
+        return rec;
     }
 
     private int get(int off) throws IOException
@@ -335,29 +339,21 @@ public final class DNSIncoming extends DNSMessage
     {
         StringBuffer buf = new StringBuffer();
         buf.append(toString() + "\n");
-        for (Iterator<DNSQuestion> iterator = _questions.iterator(); iterator.hasNext();)
+        for (DNSQuestion question : _questions)
         {
-            buf.append("    ques:" + iterator.next() + "\n");
+            buf.append("    ques:" + question + "\n");
         }
-        int count = 0;
-        for (Iterator<DNSRecord> iterator = _answers.iterator(); iterator.hasNext(); count++)
+        for (DNSRecord answer : _answers)
         {
-            if (count < _numAnswers)
-            {
-                buf.append("    answ:");
-            }
-            else
-            {
-                if (count < _numAnswers + _numAuthorities)
-                {
-                    buf.append("    auth:");
-                }
-                else
-                {
-                    buf.append("    addi:");
-                }
-            }
-            buf.append(iterator.next() + "\n");
+            buf.append("    answ:" + answer + "\n");
+        }
+        for (DNSRecord answer : _authoritativeAnswers)
+        {
+            buf.append("    auth:" + answer + "\n");
+        }
+        for (DNSRecord answer : _additionals)
+        {
+            buf.append("    addi:" + answer + "\n");
         }
         if (dump)
         {
@@ -440,25 +436,25 @@ public final class DNSIncoming extends DNSMessage
                 buf.append(":tc");
             }
         }
-        if (_numQuestions > 0)
+        if (this.getNumberOfQuestions() > 0)
         {
             buf.append(",questions=");
-            buf.append(_numQuestions);
+            buf.append(this.getNumberOfQuestions());
         }
-        if (_numAnswers > 0)
+        if (this.getNumberOfAnswers() > 0)
         {
             buf.append(",answers=");
-            buf.append(_numAnswers);
+            buf.append(this.getNumberOfAnswers());
         }
-        if (_numAuthorities > 0)
+        if (this.getNumberOfAuthorities() > 0)
         {
             buf.append(",authorities=");
-            buf.append(_numAuthorities);
+            buf.append(this.getNumberOfAuthorities());
         }
-        if (_numAdditionals > 0)
+        if (this.getNumberOfAdditionals() > 0)
         {
             buf.append(",additionals=");
-            buf.append(_numAdditionals);
+            buf.append(this.getNumberOfAdditionals());
         }
         buf.append("]");
         return buf.toString();
@@ -474,37 +470,10 @@ public final class DNSIncoming extends DNSMessage
     {
         if (this.isQuery() && this.isTruncated() && that.isQuery())
         {
-            if (that._numQuestions > 0)
-            {
-                if (Collections.EMPTY_LIST.equals(this._questions))
-                    this._questions = Collections.synchronizedList(new ArrayList<DNSQuestion>(that._numQuestions));
-
-                this._questions.addAll(that._questions);
-                this._numQuestions += that._numQuestions;
-            }
-
-            if (Collections.EMPTY_LIST.equals(_answers))
-            {
-                _answers = Collections.synchronizedList(new ArrayList<DNSRecord>());
-            }
-
-            if (that._numAnswers > 0)
-            {
-                this._answers.addAll(this._numAnswers, that._answers.subList(0, that._numAnswers));
-                this._numAnswers += that._numAnswers;
-            }
-            if (that._numAuthorities > 0)
-            {
-                this._answers.addAll(this._numAnswers + this._numAuthorities, that._answers.subList(that._numAnswers,
-                        that._numAnswers + that._numAuthorities));
-                this._numAuthorities += that._numAuthorities;
-            }
-            if (that._numAdditionals > 0)
-            {
-                this._answers.addAll(that._answers.subList(that._numAnswers + that._numAuthorities, that._numAnswers
-                        + that._numAuthorities + that._numAdditionals));
-                this._numAdditionals += that._numAdditionals;
-            }
+            this._questions.addAll(that.getQuestions());
+            this._answers.addAll(that.getAnswers());
+            this._authoritativeAnswers.addAll(that.getAuthorities());
+            this._additionals.addAll(that.getAdditionals());
         }
         else
         {

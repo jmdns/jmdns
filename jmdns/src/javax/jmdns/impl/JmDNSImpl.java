@@ -962,7 +962,7 @@ public class JmDNSImpl extends JmDNS
         }
         if (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()) || DNSRecordType.TYPE_SRV.equals(rec.getRecordType()))
         {
-            List<ServiceListener> list = _serviceListeners.get(rec._name.toLowerCase());
+            List<ServiceListener> list = _serviceListeners.get(rec.getName().toLowerCase());
             List<ServiceListener> serviceListenerList = Collections.emptyList();
             // Iterate on a copy in case listeners will modify it
             if (list != null)
@@ -972,16 +972,17 @@ public class JmDNSImpl extends JmDNS
                     serviceListenerList = new ArrayList<ServiceListener>(list);
                 }
             }
-            if (serviceListenerList != null)
+            if (!serviceListenerList.isEmpty())
             {
                 final boolean expired = rec.isExpired(now);
                 final String type = rec.getName();
-                final String name = ((DNSRecord.Pointer) rec).getAlias();
+                final String name = (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()) ? ((DNSRecord.Pointer) rec)
+                        .getAlias() : ((DNSRecord.Service) rec).getServer());
                 // DNSRecord old = (DNSRecord)services.get(name.toLowerCase());
+                final ServiceEvent event = new ServiceEventImpl(this, type, toUnqualifiedName(type, name), null);
                 if (!expired)
                 {
                     // new record
-                    final ServiceEvent event = new ServiceEventImpl(this, type, toUnqualifiedName(type, name), null);
                     for (ServiceListener listener : serviceListenerList)
                     {
                         listener.serviceAdded(event);
@@ -990,7 +991,6 @@ public class JmDNSImpl extends JmDNS
                 else
                 {
                     // expire record
-                    final ServiceEvent event = new ServiceEventImpl(this, type, toUnqualifiedName(type, name), null);
                     for (ServiceListener listener : serviceListenerList)
                     {
                         listener.serviceRemoved(event);
@@ -1012,7 +1012,7 @@ public class JmDNSImpl extends JmDNS
         boolean hostConflictDetected = false;
         boolean serviceConflictDetected = false;
 
-        for (DNSRecord rec : msg._answers)
+        for (DNSRecord rec : msg.getAllAnswers())
         {
             boolean isInformative = false;
             final boolean expired = rec.isExpired(now);
@@ -1095,7 +1095,7 @@ public class JmDNSImpl extends JmDNS
         boolean hostConflictDetected = false;
         boolean serviceConflictDetected = false;
         final long expirationTime = System.currentTimeMillis() + DNSConstants.KNOWN_ANSWER_TTL;
-        for (DNSRecord answer : in._answers)
+        for (DNSRecord answer : in.getAllAnswers())
         {
             if (DNSRecordType.TYPE_A.equals(answer.getRecordType())
                     || DNSRecordType.TYPE_AAAA.equals(answer.getRecordType()))
