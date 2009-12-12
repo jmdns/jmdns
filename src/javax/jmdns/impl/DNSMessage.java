@@ -3,7 +3,9 @@
  */
 package javax.jmdns.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -34,13 +36,13 @@ public abstract class DNSMessage
 
     int _flags;
 
-    List<DNSQuestion> _questions;
+    protected final List<DNSQuestion> _questions;
 
-    List<DNSRecord> _answers;
+    protected final List<DNSRecord> _answers;
 
-    List<DNSRecord> _authorativeAnswers;
+    protected final List<DNSRecord> _authoritativeAnswers;
 
-    List<DNSRecord> _additionals;
+    protected final List<DNSRecord> _additionals;
 
     /**
      * @param flags
@@ -53,6 +55,10 @@ public abstract class DNSMessage
         _flags = flags;
         _id = id;
         _multicast = multicast;
+        _questions = Collections.synchronizedList(new LinkedList<DNSQuestion>());
+        _answers = Collections.synchronizedList(new LinkedList<DNSRecord>());
+        _authoritativeAnswers = Collections.synchronizedList(new LinkedList<DNSRecord>());
+        _additionals = Collections.synchronizedList(new LinkedList<DNSRecord>());
     }
 
     // public DatagramPacket getPacket() {
@@ -119,8 +125,6 @@ public abstract class DNSMessage
      */
     public Collection<? extends DNSQuestion> getQuestions()
     {
-        if (_questions == null)
-            _questions = new LinkedList<DNSQuestion>();
         return _questions;
     }
 
@@ -132,13 +136,21 @@ public abstract class DNSMessage
         return this.getQuestions().size();
     }
 
+    public Collection<? extends DNSRecord> getAllAnswers()
+    {
+        List<DNSRecord> aList = new ArrayList<DNSRecord>(_answers.size() + _authoritativeAnswers.size()
+                + _additionals.size());
+        aList.addAll(_answers);
+        aList.addAll(_authoritativeAnswers);
+        aList.addAll(_additionals);
+        return aList;
+    }
+
     /**
      * @return list of answers
      */
     public Collection<? extends DNSRecord> getAnswers()
     {
-        if (_answers == null)
-            _answers = new LinkedList<DNSRecord>();
         return _answers;
     }
 
@@ -155,9 +167,7 @@ public abstract class DNSMessage
      */
     public Collection<? extends DNSRecord> getAuthorities()
     {
-        if (_authorativeAnswers == null)
-            _authorativeAnswers = new LinkedList<DNSRecord>();
-        return _authorativeAnswers;
+        return _authoritativeAnswers;
     }
 
     /**
@@ -173,13 +183,11 @@ public abstract class DNSMessage
      */
     public Collection<? extends DNSRecord> getAdditionals()
     {
-        if (_additionals == null)
-            _additionals = new LinkedList<DNSRecord>();
         return _additionals;
     }
 
     /**
-     * @return number of additonals in the message
+     * @return number of additional in the message
      */
     public int getNumberOfAdditionals()
     {

@@ -25,10 +25,7 @@ public final class DNSOutgoing extends DNSMessage
     public static boolean USE_DOMAIN_NAME_COMPRESSION = true;
 
     private static Logger logger = Logger.getLogger(DNSOutgoing.class.getName());
-    private int _numQuestions;
-    private int _numAnswers;
-    private int _numAuthorities;
-    private int _numAdditionals;
+
     private Map<String, Integer> _names;
 
     byte[] _data;
@@ -69,11 +66,11 @@ public final class DNSOutgoing extends DNSMessage
      */
     public void addQuestion(DNSQuestion rec) throws IOException
     {
-        if (_numAnswers > 0 || _numAuthorities > 0 || _numAdditionals > 0)
+        if (this.getNumberOfAnswers() > 0 || this.getNumberOfAuthorities() > 0 || this.getNumberOfAdditionals() > 0)
         {
             throw new IllegalStateException("Questions must be added before answers");
         }
-        _numQuestions++;
+        _questions.add(rec);
         writeQuestion(rec);
     }
 
@@ -82,13 +79,13 @@ public final class DNSOutgoing extends DNSMessage
      */
     void addAnswer(DNSIncoming in, DNSRecord rec) throws IOException
     {
-        if (_numAuthorities > 0 || _numAdditionals > 0)
+        if (this.getNumberOfAuthorities() > 0 || this.getNumberOfAdditionals() > 0)
         {
             throw new IllegalStateException("Answers must be added before authorities and additionals");
         }
         if (!rec.suppressedBy(in))
         {
-            addAnswer(rec, 0);
+            this.addAnswer(rec, 0);
         }
     }
 
@@ -99,8 +96,8 @@ public final class DNSOutgoing extends DNSMessage
     {
         if ((_off < DNSConstants.MAX_MSG_TYPICAL - 200) && !rec.suppressedBy(in))
         {
-            writeRecord(rec, 0);
-            _numAdditionals++;
+            _additionals.add(rec);
+            this.writeRecord(rec, 0);
         }
     }
 
@@ -113,7 +110,7 @@ public final class DNSOutgoing extends DNSMessage
      */
     public void addAnswer(DNSRecord rec, long now) throws IOException
     {
-        if (_numAuthorities > 0 || _numAdditionals > 0)
+        if (this.getNumberOfAuthorities() > 0 || this.getNumberOfAdditionals() > 0)
         {
             throw new IllegalStateException("Questions must be added before answers");
         }
@@ -121,8 +118,8 @@ public final class DNSOutgoing extends DNSMessage
         {
             if ((now == 0) || !rec.isExpired(now))
             {
-                writeRecord(rec, now);
-                _numAnswers++;
+                _answers.add(rec);
+                this.writeRecord(rec, now);
             }
         }
     }
@@ -135,13 +132,12 @@ public final class DNSOutgoing extends DNSMessage
      */
     public void addAuthorativeAnswer(DNSRecord rec) throws IOException
     {
-        if (_numAdditionals > 0)
+        if (this.getNumberOfAdditionals() > 0)
         {
             throw new IllegalStateException("Authorative answers must be added before additional answers");
         }
-        _authorativeAnswers.add(rec);
-        writeRecord(rec, 0);
-        _numAuthorities++;
+        _authoritativeAnswers.add(rec);
+        this.writeRecord(rec, 0);
 
         // VERIFY:
 
@@ -330,10 +326,10 @@ public final class DNSOutgoing extends DNSMessage
 
         writeShort(_multicast ? 0 : _id);
         writeShort(_flags);
-        writeShort(_numQuestions);
-        writeShort(_numAnswers);
-        writeShort(_numAuthorities);
-        writeShort(_numAdditionals);
+        writeShort(this.getNumberOfQuestions());
+        writeShort(this.getNumberOfAnswers());
+        writeShort(this.getNumberOfAuthorities());
+        writeShort(this.getNumberOfAdditionals());
         _off = save;
     }
 
@@ -341,12 +337,6 @@ public final class DNSOutgoing extends DNSMessage
     public boolean isQuery()
     {
         return (_flags & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_QUERY;
-    }
-
-    @Override
-    public boolean isEmpty()
-    {
-        return _numQuestions == 0 && _numAuthorities == 0 && _numAdditionals == 0 && _numAnswers == 0;
     }
 
     @Override
@@ -378,28 +368,28 @@ public final class DNSOutgoing extends DNSMessage
                 buf.append(":tc");
             }
         }
-        if (_numQuestions > 0)
+        if (this.getNumberOfQuestions() > 0)
         {
             buf.append(",questions=");
-            buf.append(_numQuestions);
+            buf.append(this.getNumberOfQuestions());
         }
-        if (_numAnswers > 0)
+        if (this.getNumberOfAnswers() > 0)
         {
             buf.append(",answers=");
-            buf.append(_numAnswers);
+            buf.append(this.getNumberOfAnswers());
         }
-        if (_numAuthorities > 0)
+        if (this.getNumberOfAuthorities() > 0)
         {
             buf.append(",authorities=");
-            buf.append(_numAuthorities);
+            buf.append(this.getNumberOfAuthorities());
         }
-        if (_numAdditionals > 0)
+        if (this.getNumberOfAdditionals() > 0)
         {
             buf.append(",additionals=");
-            buf.append(_numAdditionals);
+            buf.append(this.getNumberOfAdditionals());
         }
         buf.append(",\nnames=" + _names);
-        buf.append(",\nauthorativeAnswers=" + _authorativeAnswers);
+        buf.append(",\nauthorativeAnswers=" + _authoritativeAnswers);
 
         buf.append("]");
         return buf.toString();
