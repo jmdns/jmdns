@@ -429,11 +429,14 @@ public class JmDNSImpl extends JmDNS
 
         try
         {
-            final long end = System.currentTimeMillis() + timeout;
-            long delay;
-            while (!info.hasData() && (delay = end - System.currentTimeMillis()) > 0)
+            synchronized (info)
             {
-                info.wait(delay);
+                final long end = System.currentTimeMillis() + timeout;
+                long delay;
+                while (!info.hasData() && (delay = end - System.currentTimeMillis()) > 0)
+                {
+                    info.wait(delay);
+                }
             }
         }
         catch (final InterruptedException e)
@@ -469,11 +472,14 @@ public class JmDNSImpl extends JmDNS
 
         try
         {
-            final long end = System.currentTimeMillis() + timeout;
-            long delay;
-            while (!info.hasData() && (delay = end - System.currentTimeMillis()) > 0)
+            synchronized (info)
             {
-                info.wait(delay);
+                final long end = System.currentTimeMillis() + timeout;
+                long delay;
+                while (!info.hasData() && (delay = end - System.currentTimeMillis()) > 0)
+                {
+                    info.wait(delay);
+                }
             }
         }
         catch (final InterruptedException e)
@@ -554,19 +560,16 @@ public class JmDNSImpl extends JmDNS
 
         // report cached service types
         final List<ServiceEvent> serviceEvents = new ArrayList<ServiceEvent>();
-        synchronized (_cache)
+        Collection<DNSEntry> dnsEntryLits = this.getCache().allValues();
+        for (DNSEntry entry : dnsEntryLits)
         {
-            Collection<DNSEntry> dnsEntryLits = this.getCache().allValues();
-            for (DNSEntry entry : dnsEntryLits)
+            final DNSRecord record = (DNSRecord) entry;
+            if (DNSRecordType.TYPE_SRV.equals(record.getRecordType()))
             {
-                final DNSRecord record = (DNSRecord) entry;
-                if (DNSRecordType.TYPE_SRV.equals(record.getRecordType()))
+                if (record.getName().endsWith(type))
                 {
-                    if (record.getName().endsWith(type))
-                    {
-                        serviceEvents.add(new ServiceEventImpl(this, type, toUnqualifiedName(type, record.getName()),
-                                null));
-                    }
+                    serviceEvents
+                            .add(new ServiceEventImpl(this, type, toUnqualifiedName(type, record.getName()), null));
                 }
             }
         }
@@ -627,9 +630,12 @@ public class JmDNSImpl extends JmDNS
         new /* Service */Prober(this).start(_timer);
         try
         {
-            while (!info.getState().isAnnounced())
+            synchronized (info)
             {
-                info.wait();
+                while (!info.getState().isAnnounced())
+                {
+                    info.wait();
+                }
             }
         }
         catch (final InterruptedException e)
