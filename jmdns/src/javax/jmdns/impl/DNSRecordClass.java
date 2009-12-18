@@ -3,6 +3,8 @@
  */
 package javax.jmdns.impl;
 
+import java.util.logging.Logger;
+
 /**
  * DNS Record Class
  *
@@ -11,6 +13,10 @@ package javax.jmdns.impl;
  */
 public enum DNSRecordClass
 {
+    /**
+     *
+     */
+    CLASS_UNKNOWN("?", 0),
     /**
      * Final Static Internet
      */
@@ -36,6 +42,8 @@ public enum DNSRecordClass
      */
     CLASS_ANY("any", 255);
 
+    private static Logger logger = Logger.getLogger(DNSRecordClass.class.getName());
+
     /**
      * Multicast DNS uses the bottom 15 bits to identify the record class...
      */
@@ -56,9 +64,9 @@ public enum DNSRecordClass
      */
     public final static boolean NOT_UNIQUE = false;
 
-    String _externalName;
+    private final String _externalName;
 
-    int _index;
+    private final int _index;
 
     DNSRecordClass(String name, int index)
     {
@@ -87,6 +95,16 @@ public enum DNSRecordClass
     }
 
     /**
+     * Checks if the class is unique
+     *
+     * @return <code>true</code> is the class is unique, <code>false</code> otherwise.
+     */
+    public boolean isUnique()
+    {
+        return (_index & CLASS_UNIQUE) != 0;
+    }
+
+    /**
      * @param name
      * @return class for name
      */
@@ -95,13 +113,14 @@ public enum DNSRecordClass
         if (name != null)
         {
             String aName = name.toLowerCase();
-            for (DNSRecordClass aType : DNSRecordClass.values())
+            for (DNSRecordClass aClass : DNSRecordClass.values())
             {
-                if (aType._externalName.equals(aName))
-                    return aType;
+                if (aClass._externalName.equals(aName))
+                    return aClass;
             }
         }
-        return null;
+        logger.severe("Could not find record class for name: " + name);
+        return CLASS_UNKNOWN;
     }
 
     /**
@@ -111,21 +130,13 @@ public enum DNSRecordClass
     public static DNSRecordClass classForIndex(int index)
     {
         int maskedIndex = index & CLASS_MASK;
-        for (DNSRecordClass aType : DNSRecordClass.values())
+        for (DNSRecordClass aClass : DNSRecordClass.values())
         {
-            if (aType._index == maskedIndex)
-                return aType;
+            if (aClass._index == maskedIndex)
+                return aClass;
         }
-        return null;
-    }
-
-    /**
-     * @param classIndex
-     * @return true it the record is unique
-     */
-    public static boolean isUnique(int classIndex)
-    {
-        return (classIndex & CLASS_UNIQUE) != 0;
+        logger.severe("Could not find record class for index: " + index);
+        return CLASS_UNKNOWN;
     }
 
     @Override

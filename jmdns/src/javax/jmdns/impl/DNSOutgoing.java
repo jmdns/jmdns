@@ -71,7 +71,7 @@ public final class DNSOutgoing extends DNSMessage
             throw new IllegalStateException("Questions must be added before answers");
         }
         _questions.add(rec);
-        writeQuestion(rec);
+        this.writeQuestion(rec);
     }
 
     /**

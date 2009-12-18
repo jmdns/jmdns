@@ -594,12 +594,12 @@ public abstract class DNSRecord extends DNSEntry
         boolean handleQuery(JmDNSImpl dns, long expirationTime)
         {
             ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(_name.toLowerCase());
-            if (info != null && (_port != info._port || !_server.equalsIgnoreCase(dns.getLocalHost().getName())))
+            if (info != null && (_port != info.getPort() || !_server.equalsIgnoreCase(dns.getLocalHost().getName())))
             {
                 logger1.finer("handleQuery() Conflicting probe detected from: " + getRecordSource());
                 DNSRecord.Service localService = new DNSRecord.Service(info.getQualifiedName(), DNSRecordType.TYPE_SRV,
-                        DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info._priority,
-                        info._weight, info._port, dns.getLocalHost().getName());
+                        DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info
+                                .getWeight(), info.getPort(), dns.getLocalHost().getName());
 
                 // This block is useful for debugging race conditions when jmdns is respoding to
                 // itself.
@@ -658,7 +658,7 @@ public abstract class DNSRecord extends DNSEntry
         boolean handleResponse(JmDNSImpl dns)
         {
             ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(_name.toLowerCase());
-            if (info != null && (_port != info._port || !_server.equalsIgnoreCase(dns.getLocalHost().getName())))
+            if (info != null && (_port != info.getPort() || !_server.equalsIgnoreCase(dns.getLocalHost().getName())))
             {
                 logger1.finer("handleResponse() Denial detected");
 
@@ -684,12 +684,12 @@ public abstract class DNSRecord extends DNSEntry
             ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(_name.toLowerCase());
             if (info != null)
             {
-                if (this._port == info._port != _server.equals(dns.getLocalHost().getName()))
+                if (this._port == info.getPort() != _server.equals(dns.getLocalHost().getName()))
                 {
                     return dns.addAnswer(in, addr, port, out, new DNSRecord.Service(info.getQualifiedName(),
                             DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE,
-                            DNSConstants.DNS_TTL, info._priority, info._weight, info._port, dns.getLocalHost()
-                                    .getName()));
+                            DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(), dns
+                                    .getLocalHost().getName()));
                 }
             }
             return out;
@@ -719,7 +719,7 @@ public abstract class DNSRecord extends DNSEntry
 
     public String toString(String other)
     {
-        return toString("record", _ttl + "/" + getRemainingTTL(System.currentTimeMillis()) + "," + other);
+        return toString("record", _ttl + "/" + getRemainingTTL(System.currentTimeMillis()) + ", " + other);
     }
 
     public void setTTL(int ttl)

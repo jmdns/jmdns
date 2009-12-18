@@ -15,7 +15,7 @@ import javax.jmdns.impl.DNSState;
 import javax.jmdns.impl.JmDNSImpl;
 
 /**
- * Periodicaly removes expired entries from the cache.
+ * Periodically removes expired entries from the cache.
  */
 public class RecordReaper extends DNSTask
 {

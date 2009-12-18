@@ -37,6 +37,11 @@ public final class DNSQuestion extends DNSEntry
                         .equals(this.getRecordType())) && this.getName().equals(rec.getName());
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSEntry#isExpired(long)
+     */
     @Override
     boolean isExpired(long now)
     {
