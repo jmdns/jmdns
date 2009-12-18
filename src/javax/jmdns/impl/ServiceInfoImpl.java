@@ -39,7 +39,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
      * For proper handling of concurrency, this variable must be changed only using methods advanceState(),
      * revertState() and cancel().
      */
-    private DNSState _state = DNSState.PROBING_1;
+    private volatile DNSState _state = DNSState.PROBING_1;
 
     /**
      * Task associated to this service info. Possible tasks are JmDNS.Prober, JmDNS.Announcer, JmDNS.Responder,
@@ -47,15 +47,15 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
      */
     private TimerTask _task;
 
-    String _type;
+    private String _type;
     private String _name;
-    String _server;
-    int _port;
-    int _weight;
-    int _priority;
+    private String _server;
+    private int _port;
+    private int _weight;
+    private int _priority;
     private byte _text[];
-    Map<String, Object> _props;
-    InetAddress _addr;
+    private Map<String, Object> _props;
+    private InetAddress _addr;
 
     /**
      * @param type
@@ -191,16 +191,16 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     /**
      * During recovery we need to duplicate service info to reregister them
      */
-    ServiceInfoImpl(ServiceInfoImpl info)
+    ServiceInfoImpl(ServiceInfo info)
     {
         if (info != null)
         {
-            this._type = info._type;
-            this._name = info._name;
-            this._port = info._port;
-            this._weight = info._weight;
-            this._priority = info._priority;
-            this.setText(info.getText());
+            this._type = info.getType();
+            this._name = info.getName();
+            this._port = info.getPort();
+            this._weight = info.getWeight();
+            this._priority = info.getPriority();
+            this.setText(info.getTextBytes());
         }
     }
 
@@ -252,6 +252,15 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     }
 
     /**
+     * @param server
+     *            the server to set
+     */
+    void setServer(String server)
+    {
+        this._server = server;
+    }
+
+    /**
      * @see javax.jmdns.ServiceInfo#getHostAddress()
      */
     @Override
@@ -269,6 +278,15 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     public InetAddress getAddress()
     {
         return _addr;
+    }
+
+    /**
+     * @param addr
+     *            the addr to set
+     */
+    void setAddress(InetAddress addr)
+    {
+        this._addr = addr;
     }
 
     /*
@@ -598,16 +616,6 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
                 notifyAll();
             }
         }
-    }
-
-    /**
-     * Returns true if the service info is filled with data.
-     *
-     * @return <code>true</code> if the service info has data, <code>false</code> otherwise.
-     */
-    public boolean hasData()
-    {
-        return _server != null && _addr != null && getText() != null;
     }
 
     // State machine

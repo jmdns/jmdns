@@ -33,7 +33,7 @@ public class ServiceInfoResolver extends DNSTask
      * Counts the number of queries being sent.
      */
     int _count = 0;
-    private ServiceInfoImpl _info;
+    private final ServiceInfoImpl _info;
 
     public ServiceInfoResolver(JmDNSImpl jmDNSImpl, ServiceInfoImpl info)
     {

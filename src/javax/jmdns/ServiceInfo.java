@@ -71,8 +71,7 @@ public abstract class ServiceInfo
      *            properties describing the service
      * @return new service info
      */
-    public static ServiceInfo create(String type, String name, int port, int weight, int priority,
-            Map<String, ?> props)
+    public static ServiceInfo create(String type, String name, int port, int weight, int priority, Map<String, ?> props)
     {
         return new ServiceInfoImpl(type, name, port, weight, priority, props);
     }
@@ -97,6 +96,16 @@ public abstract class ServiceInfo
     public static ServiceInfo create(String type, String name, int port, int weight, int priority, byte text[])
     {
         return new ServiceInfoImpl(type, name, port, weight, priority, text);
+    }
+
+    /**
+     * Returns true if the service info is filled with data.
+     *
+     * @return <code>true</code> if the service info has data, <code>false</code> otherwise.
+     */
+    public synchronized boolean hasData()
+    {
+        return this.getServer() != null && this.getAddress() != null && this.getTextBytes() != null;
     }
 
     /**

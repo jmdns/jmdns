@@ -123,9 +123,8 @@ public final class DNSIncoming extends DNSMessage
     {
         String domain = this.readName();
         DNSRecordType type = DNSRecordType.typeForIndex(this.readUnsignedShort());
-        int clazz = readUnsignedShort();
-        DNSRecordClass recordClass = DNSRecordClass.classForIndex(clazz);
-        boolean unique = DNSRecordClass.isUnique(clazz);
+        DNSRecordClass recordClass = DNSRecordClass.classForIndex(this.readUnsignedShort());
+        boolean unique = (recordClass != null ? recordClass.isUnique() : DNSRecordClass.NOT_UNIQUE);
         return new DNSQuestion(domain, type, recordClass, unique);
     }
 
@@ -133,9 +132,8 @@ public final class DNSIncoming extends DNSMessage
     {
         String domain = this.readName();
         DNSRecordType type = DNSRecordType.typeForIndex(this.readUnsignedShort());
-        int clazz = readUnsignedShort();
-        DNSRecordClass recordClass = DNSRecordClass.classForIndex(clazz);
-        boolean unique = DNSRecordClass.isUnique(clazz);
+        DNSRecordClass recordClass = DNSRecordClass.classForIndex(this.readUnsignedShort());
+        boolean unique = (recordClass != null ? recordClass.isUnique() : DNSRecordClass.NOT_UNIQUE);
         int ttl = this.readInt();
         int len = this.readUnsignedShort();
         int end = _off + len;
@@ -220,12 +218,12 @@ public final class DNSIncoming extends DNSMessage
 
     private int readUnsignedShort() throws IOException
     {
-        return (get(_off++) << 8) + get(_off++);
+        return (get(_off++) << 8) | get(_off++);
     }
 
     private int readInt() throws IOException
     {
-        return (readUnsignedShort() << 16) + readUnsignedShort();
+        return (readUnsignedShort() << 16) | readUnsignedShort();
     }
 
     /**
