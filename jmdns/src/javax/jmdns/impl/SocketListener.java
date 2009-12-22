@@ -9,6 +9,9 @@ import java.net.DatagramPacket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.impl.constants.DNSState;
+
 /**
  * Listen for multicast packets.
  */

@@ -1,7 +1,7 @@
 /**
  *
  */
-package javax.jmdns.impl;
+package javax.jmdns.impl.constants;
 
 import java.util.logging.Logger;
 

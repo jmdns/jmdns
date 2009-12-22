@@ -8,6 +8,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import javax.jmdns.impl.constants.DNSRecordClass;
+import javax.jmdns.impl.constants.DNSRecordType;
+
 /**
  * DNS entry with a name, type, and class. This is the base class for questions and records.
  *

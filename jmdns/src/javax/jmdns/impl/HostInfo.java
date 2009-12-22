@@ -15,6 +15,10 @@ import java.net.NetworkInterface;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.impl.constants.DNSRecordClass;
+import javax.jmdns.impl.constants.DNSRecordType;
+
 /**
  * HostInfo information on the local host to be able to cope with change of addresses.
  *

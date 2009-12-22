@@ -8,15 +8,15 @@ import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.jmdns.impl.DNSConstants;
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSQuestion;
 import javax.jmdns.impl.DNSRecord;
-import javax.jmdns.impl.DNSRecordClass;
-import javax.jmdns.impl.DNSRecordType;
-import javax.jmdns.impl.DNSState;
 import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.ServiceInfoImpl;
+import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.impl.constants.DNSRecordClass;
+import javax.jmdns.impl.constants.DNSRecordType;
+import javax.jmdns.impl.constants.DNSState;
 
 /**
  * The ServiceInfoResolver queries up to three times consecutively for a service info, and then removes itself from the

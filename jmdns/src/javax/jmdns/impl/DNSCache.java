@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.jmdns.impl.constants.DNSRecordClass;
+import javax.jmdns.impl.constants.DNSRecordType;
+
 /**
  * A table of DNS entries. This is a map table which can handle multiple entries with the same name.
  * <p/>
