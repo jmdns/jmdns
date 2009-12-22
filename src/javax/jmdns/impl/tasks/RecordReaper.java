@@ -8,11 +8,11 @@ import java.util.Collection;
 import java.util.Timer;
 import java.util.logging.Logger;
 
-import javax.jmdns.impl.DNSConstants;
 import javax.jmdns.impl.DNSEntry;
 import javax.jmdns.impl.DNSRecord;
-import javax.jmdns.impl.DNSState;
 import javax.jmdns.impl.JmDNSImpl;
+import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.impl.constants.DNSState;
 
 /**
  * Periodically removes expired entries from the cache.

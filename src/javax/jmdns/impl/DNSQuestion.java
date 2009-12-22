@@ -4,6 +4,9 @@
 
 package javax.jmdns.impl;
 
+import javax.jmdns.impl.constants.DNSRecordClass;
+import javax.jmdns.impl.constants.DNSRecordType;
+
 /**
  * A DNS question.
  *

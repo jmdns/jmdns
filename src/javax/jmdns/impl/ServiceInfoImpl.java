@@ -20,6 +20,9 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSRecord.Pointer;
 import javax.jmdns.impl.DNSRecord.Service;
 import javax.jmdns.impl.DNSRecord.Text;
+import javax.jmdns.impl.constants.DNSRecordClass;
+import javax.jmdns.impl.constants.DNSRecordType;
+import javax.jmdns.impl.constants.DNSState;
 
 /**
  * JmDNS service information.

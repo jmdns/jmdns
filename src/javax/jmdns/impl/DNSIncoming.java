@@ -10,6 +10,12 @@ import java.net.InetAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.impl.constants.DNSLabel;
+import javax.jmdns.impl.constants.DNSRecordClass;
+import javax.jmdns.impl.constants.DNSRecordType;
+import javax.jmdns.impl.constants.DNSResultCode;
+
 /**
  * Parse an incoming DNS message into its components.
  *
@@ -132,8 +138,10 @@ public final class DNSIncoming extends DNSMessage
     {
         String domain = this.readName();
         DNSRecordType type = DNSRecordType.typeForIndex(this.readUnsignedShort());
-        DNSRecordClass recordClass = DNSRecordClass.classForIndex(this.readUnsignedShort());
-        boolean unique = (recordClass != null ? recordClass.isUnique() : DNSRecordClass.NOT_UNIQUE);
+        int recordClassIndex = this.readUnsignedShort();
+        DNSRecordClass recordClass = (type == DNSRecordType.TYPE_OPT ? DNSRecordClass.CLASS_UNKNOWN : DNSRecordClass
+                .classForIndex(recordClassIndex));
+        boolean unique = recordClass.isUnique();
         int ttl = this.readInt();
         int len = this.readUnsignedShort();
         int end = _off + len;
@@ -155,7 +163,7 @@ public final class DNSIncoming extends DNSMessage
                 catch (IOException e)
                 {
                     // there was a problem reading the service name
-                    e.printStackTrace();
+                    logger.log(Level.WARNING, "There was a problem reading the service name of the answer.", e);
                 }
                 rec = new DNSRecord.Pointer(domain, type, recordClass, unique, ttl, service);
                 break;
@@ -184,16 +192,25 @@ public final class DNSIncoming extends DNSMessage
                 }
                 catch (IOException e)
                 {
-                    // this can happen if the type of the label
-                    // cannot be handled.
-                    // down below the offset gets advanced to the end
-                    // of the record
-                    e.printStackTrace();
+                    // this can happen if the type of the label cannot be handled.
+                    // down below the offset gets advanced to the end of the record
+                    logger
+                            .log(
+                                    Level.WARNING,
+                                    "There was a problem reading the label of the answer. This can happen if the type of the label  cannot be handled.",
+                                    e);
                 }
                 rec = new DNSRecord.Service(domain, type, recordClass, unique, ttl, priority, weight, port, target);
                 break;
             case TYPE_HINFO:
                 // Maybe we should do something with those
+                break;
+            case TYPE_OPT:
+                int senderUDPPayload = recordClassIndex;
+                DNSResultCode extendedResultCode = DNSResultCode.resultCodeForFlags(_flags, ttl);
+                int version = (ttl & 0x00ff0000) >> 16;
+                logger.log(Level.WARNING, "There was an OPT answer. Not currently handled. Payload: "
+                        + senderUDPPayload + "extended result code: " + extendedResultCode + " version: " + version);
                 break;
             default:
                 logger.finer("DNSIncoming() unknown type:" + type);
@@ -218,12 +235,12 @@ public final class DNSIncoming extends DNSMessage
 
     private int readUnsignedShort() throws IOException
     {
-        return (get(_off++) << 8) | get(_off++);
+        return (this.get(_off++) << 8) | this.get(_off++);
     }
 
     private int readInt() throws IOException
     {
-        return (readUnsignedShort() << 16) | readUnsignedShort();
+        return (this.readUnsignedShort() << 16) | this.readUnsignedShort();
     }
 
     /**
@@ -299,21 +316,21 @@ public final class DNSIncoming extends DNSMessage
             {
                 break;
             }
-            switch (len & 0xC0)
+            switch (DNSLabel.labelForByte(len))
             {
-                case 0x00:
+                case Standard:
                     // buf.append("[" + off + "]");
                     readUTF(buf, off, len);
                     off += len;
                     buf.append('.');
                     break;
-                case 0xC0:
+                case Compressed:
                     // buf.append("<" + (off - 1) + ">");
                     if (next < 0)
                     {
                         next = off + 1;
                     }
-                    off = ((len & 0x3F) << 8) | get(off++);
+                    off = (DNSLabel.labelValue(len) << 8) | this.get(off++);
                     if (off >= first)
                     {
                         throw new IOException("bad domain name: possible circular name detected." + " name start: "
@@ -321,6 +338,11 @@ public final class DNSIncoming extends DNSMessage
                     }
                     first = off;
                     break;
+                case Extended:
+                    // int extendedLabelClass = DNSLabel.labelValue(len);
+                    logger.severe("Extended label are not currently supported.");
+                    break;
+                case Unknown:
                 default:
                     throw new IOException("unsupported dns label type: '" + Integer.toHexString(len & 0xC0) + "' at "
                             + (off - 1));

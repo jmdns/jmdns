@@ -2,7 +2,7 @@
 //Licensed under Apache License version 2.0
 //Original license LGPL
 
-package javax.jmdns.impl;
+package javax.jmdns.impl.constants;
 
 /**
  * DNSState defines the possible states for services registered with JmDNS.

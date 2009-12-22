@@ -12,11 +12,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.jmdns.ServiceInfo;
-import javax.jmdns.impl.DNSConstants;
 import javax.jmdns.impl.DNSOutgoing;
-import javax.jmdns.impl.DNSState;
 import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.ServiceInfoImpl;
+import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.impl.constants.DNSState;
 
 /**
  * The Renewer is there to send renewal announcment when the record expire for ours infos.

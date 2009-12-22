@@ -11,15 +11,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.jmdns.ServiceInfo;
-import javax.jmdns.impl.DNSConstants;
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSQuestion;
 import javax.jmdns.impl.DNSRecord;
-import javax.jmdns.impl.DNSRecordClass;
-import javax.jmdns.impl.DNSRecordType;
-import javax.jmdns.impl.DNSState;
 import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.ServiceInfoImpl;
+import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.impl.constants.DNSRecordClass;
+import javax.jmdns.impl.constants.DNSRecordType;
+import javax.jmdns.impl.constants.DNSState;
 
 /**
  * The ServiceResolver queries three times consecutively for services of a given type, and then removes itself from the

@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.impl.constants.DNSRecordClass;
+
 /**
  * An outgoing DNS message.
  *

@@ -1,8 +1,9 @@
 /**
  *
  */
-package javax.jmdns.impl;
+package javax.jmdns.impl.constants;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -47,12 +48,12 @@ public enum DNSRecordClass
     /**
      * Multicast DNS uses the bottom 15 bits to identify the record class...
      */
-    final static int CLASS_MASK = 0x7FFF;
+    public final static int CLASS_MASK = 0x7FFF;
 
     /**
      * ... and the top bit indicates that all other cached records are now invalid
      */
-    final static int CLASS_UNIQUE = 0x8000;
+    public final static int CLASS_UNIQUE = 0x8000;
 
     /**
      *
@@ -119,7 +120,7 @@ public enum DNSRecordClass
                     return aClass;
             }
         }
-        logger.severe("Could not find record class for name: " + name);
+        logger.log(Level.WARNING, "Could not find record class for name: " + name);
         return CLASS_UNKNOWN;
     }
 
@@ -135,7 +136,7 @@ public enum DNSRecordClass
             if (aClass._index == maskedIndex)
                 return aClass;
         }
-        logger.severe("Could not find record class for index: " + index);
+        logger.log(Level.WARNING, "Could not find record class for index: " + index);
         return CLASS_UNKNOWN;
     }
 

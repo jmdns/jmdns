@@ -29,6 +29,9 @@ import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
+import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.impl.constants.DNSRecordType;
+import javax.jmdns.impl.constants.DNSState;
 import javax.jmdns.impl.tasks.Announcer;
 import javax.jmdns.impl.tasks.Canceler;
 import javax.jmdns.impl.tasks.Prober;
@@ -988,7 +991,7 @@ public class JmDNSImpl extends JmDNS
                         if (!expired && rec._name.startsWith("_services._mdns._udp."))
                         {
                             isInformative = true;
-                            registerServiceType(((DNSRecord.Pointer) rec)._alias);
+                            this.registerServiceType(((DNSRecord.Pointer) rec)._alias);
                         }
                         continue;
                     }
@@ -1010,7 +1013,7 @@ public class JmDNSImpl extends JmDNS
             // notify the listeners
             if (isInformative)
             {
-                updateRecord(now, rec);
+                this.updateRecord(now, rec);
             }
         }
 
@@ -1294,7 +1297,9 @@ public class JmDNSImpl extends JmDNS
         return aLog.toString();
     }
 
-    /**
+    /*
+     * (non-Javadoc)
+     *
      * @see javax.jmdns.JmDNS#list(java.lang.String)
      */
     @Override
