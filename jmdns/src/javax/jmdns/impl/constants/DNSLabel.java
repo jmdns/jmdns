@@ -4,7 +4,10 @@
 package javax.jmdns.impl.constants;
 
 /**
+ * DNS label.
  *
+ * @version %I%, %G%
+ * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Rick Blair
  */
 public enum DNSLabel
 {

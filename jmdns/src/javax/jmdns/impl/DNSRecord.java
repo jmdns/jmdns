@@ -37,7 +37,7 @@ public abstract class DNSRecord extends DNSEntry
     private InetAddress _source;
 
     /**
-     * Create a DNSRecord with a name, type, clazz, and ttl.
+     * Create a DNSRecord with a name, type, class, and ttl.
      */
     DNSRecord(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl)
     {
@@ -84,7 +84,7 @@ public abstract class DNSRecord extends DNSEntry
     abstract boolean handleQuery(JmDNSImpl dns, long expirationTime);
 
     /**
-     * Handles a responserepresented by this record.
+     * Handles a response represented by this record.
      *
      * @return Returns true if a conflict with one of the services registered with JmDNS or with the hostname occured.
      */
@@ -191,7 +191,7 @@ public abstract class DNSRecord extends DNSEntry
     /**
      * Address record.
      */
-    static class Address extends DNSRecord
+    public static class Address extends DNSRecord
     {
         private static Logger logger1 = Logger.getLogger(Address.class.getName());
         InetAddress _addr;
@@ -708,6 +708,102 @@ public abstract class DNSRecord extends DNSEntry
         {
             aLog.append(" server: '" + _server + ":" + _port + "'");
         }
+    }
+
+    public static class HostInformation extends DNSRecord
+    {
+        String _os;
+        String _cpu;
+
+        /**
+         * @param name
+         * @param type
+         * @param recordClass
+         * @param unique
+         * @param ttl
+         * @param cpu
+         * @param os
+         */
+        public HostInformation(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl,
+                String cpu, String os)
+        {
+            super(name, type, recordClass, unique, ttl);
+            _cpu = cpu;
+            _os = os;
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.jmdns.impl.DNSRecord#addAnswer(javax.jmdns.impl.JmDNSImpl, javax.jmdns.impl.DNSIncoming,
+         * java.net.InetAddress, int, javax.jmdns.impl.DNSOutgoing)
+         */
+        @Override
+        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out)
+                throws IOException
+        {
+            return out;
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.jmdns.impl.DNSRecord#handleQuery(javax.jmdns.impl.JmDNSImpl, long)
+         */
+        @Override
+        boolean handleQuery(JmDNSImpl dns, long expirationTime)
+        {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.jmdns.impl.DNSRecord#handleResponse(javax.jmdns.impl.JmDNSImpl)
+         */
+        @Override
+        boolean handleResponse(JmDNSImpl dns)
+        {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.jmdns.impl.DNSRecord#sameValue(javax.jmdns.impl.DNSRecord)
+         */
+        @Override
+        boolean sameValue(DNSRecord other)
+        {
+            HostInformation hinfo = (HostInformation) other;
+            return _cpu.equals(hinfo._cpu) && _os.equals(hinfo._os);
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.jmdns.impl.DNSRecord#write(javax.jmdns.impl.DNSOutgoing)
+         */
+        @Override
+        void write(DNSOutgoing out) throws IOException
+        {
+            String hostInfo = _cpu + " " + _os;
+            out.writeUTF(hostInfo, 0, hostInfo.length());
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
+         */
+        @Override
+        public void toString(StringBuilder aLog)
+        {
+            aLog.append(" cpu: '" + _cpu + "' os: '" + _os + "'");
+        }
+
     }
 
     public void setRecordSource(InetAddress source)

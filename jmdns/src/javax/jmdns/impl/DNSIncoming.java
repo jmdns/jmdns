@@ -203,7 +203,12 @@ public final class DNSIncoming extends DNSMessage
                 rec = new DNSRecord.Service(domain, type, recordClass, unique, ttl, priority, weight, port, target);
                 break;
             case TYPE_HINFO:
-                // Maybe we should do something with those
+                StringBuffer buf = new StringBuffer();
+                this.readUTF(buf, _off, len);
+                int index = buf.indexOf(" ");
+                String cpu = (index > 0 ? buf.substring(0, index) : buf.toString()).trim();
+                String os = (index > 0 ? buf.substring(index + 1) : "").trim();
+                rec = new DNSRecord.HostInformation(domain, type, recordClass, unique, ttl, cpu, os);
                 break;
             case TYPE_OPT:
                 int senderUDPPayload = recordClassIndex;
@@ -320,7 +325,7 @@ public final class DNSIncoming extends DNSMessage
             {
                 case Standard:
                     // buf.append("[" + off + "]");
-                    readUTF(buf, off, len);
+                    this.readUTF(buf, off, len);
                     off += len;
                     buf.append('.');
                     break;
