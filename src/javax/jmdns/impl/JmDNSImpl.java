@@ -1034,20 +1034,11 @@ public class JmDNSImpl extends JmDNS
     void handleQuery(DNSIncoming in, InetAddress addr, int port) throws IOException
     {
         // Track known answers
-        boolean hostConflictDetected = false;
-        boolean serviceConflictDetected = false;
+        boolean conflictDetected = false;
         final long expirationTime = System.currentTimeMillis() + DNSConstants.KNOWN_ANSWER_TTL;
         for (DNSRecord answer : in.getAllAnswers())
         {
-            if (DNSRecordType.TYPE_A.equals(answer.getRecordType())
-                    || DNSRecordType.TYPE_AAAA.equals(answer.getRecordType()))
-            {
-                hostConflictDetected |= answer.handleQuery(this, expirationTime);
-            }
-            else
-            {
-                serviceConflictDetected |= answer.handleQuery(this, expirationTime);
-            }
+            conflictDetected |= answer.handleQuery(this, expirationTime);
         }
 
         if (_plannedAnswer != null)
@@ -1064,7 +1055,7 @@ public class JmDNSImpl extends JmDNS
             new Responder(this, in, addr, port).start();
         }
 
-        if (hostConflictDetected || serviceConflictDetected)
+        if (conflictDetected)
         {
             new Prober(this).start(_timer);
         }
@@ -1239,6 +1230,9 @@ public class JmDNSImpl extends JmDNS
                 // Cancel all services
                 this.unregisterAllServices();
                 this.disposeServiceCollectors();
+
+                // Stop the canceler timer
+                _cancelerTimer.cancel();
 
                 // close socket
                 this.closeMulticastSocket();

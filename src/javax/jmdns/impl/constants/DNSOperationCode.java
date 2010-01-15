@@ -4,7 +4,10 @@
 package javax.jmdns.impl.constants;
 
 /**
+ * DNS operation code.
  *
+ * @version %I%, %G%
+ * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Rick Blair
  */
 public enum DNSOperationCode
 {

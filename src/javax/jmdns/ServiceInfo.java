@@ -9,6 +9,9 @@ import java.util.Map;
 
 import javax.jmdns.impl.ServiceInfoImpl;
 
+/**
+ *
+ */
 public abstract class ServiceInfo
 {
     public final static byte[] NO_VALUE = new byte[0];
