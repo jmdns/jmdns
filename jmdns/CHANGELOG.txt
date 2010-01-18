@@ -1,3 +1,11 @@
+CHANGELOG 17 December 2010 Rick Blair
+
+1. Changes by Pierre Frisch to compile clean under java 1.5 and java 1.6
+
+2. Patch to close as submitted by Lachian Deck
+
+Thanks all.
+
 CHANGELOG 06 December 2009 Rick Blair
 1. Merged in all outstanding patches.
 
