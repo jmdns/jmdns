@@ -11,7 +11,7 @@ import javax.jmdns.impl.JmDNSImpl;
 
 /**
  * mDNS implementation in Java.
- * 
+ *
  * @version %I%, %G%
  * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis, Scott Cytacki
  */
@@ -20,11 +20,11 @@ public abstract class JmDNS
     /**
      * The version of JmDNS.
      */
-    public static String VERSION = "3.0";
+    public static String VERSION = "3.1";
 
     /**
      * Create an instance of JmDNS.
-     * 
+     *
      * @return jmDNS instance
      * @throws IOException
      */
@@ -35,7 +35,7 @@ public abstract class JmDNS
 
     /**
      * Create an instance of JmDNS and bind it to a specific network interface given its IP-address.
-     * 
+     *
      * @param addr
      *            IP address to bind to.
      * @return jmDNS instance
@@ -49,14 +49,14 @@ public abstract class JmDNS
     /**
      * Return the HostName associated with this JmDNS instance. Note: May not be the same as what started. The host name
      * is subject to negotiation.
-     * 
+     *
      * @return Host name
      */
     public abstract String getHostName();
 
     /**
      * Return the address of the interface to which this instance of JmDNS is bound.
-     * 
+     *
      * @return Internet Address
      * @throws IOException
      */
@@ -68,7 +68,7 @@ public abstract class JmDNS
      * <p/>
      * Usage note: Do not call this method from the AWT event dispatcher thread. You will make the user interface
      * unresponsive.
-     * 
+     *
      * @param type
      *            fully qualified service type, such as <code>_http._tcp.local.</code> .
      * @param name
@@ -83,7 +83,7 @@ public abstract class JmDNS
      * <p/>
      * Usage note: If you call this method from the AWT event dispatcher thread, use a small timeout, or you will make
      * the user interface unresponsive.
-     * 
+     *
      * @param type
      *            full qualified service type, such as <code>_http._tcp.local.</code> .
      * @param name
@@ -100,7 +100,7 @@ public abstract class JmDNS
      * <p/>
      * Usage note: Do not call this method from the AWT event dispatcher thread. You will make the user interface
      * unresponsive.
-     * 
+     *
      * @param type
      *            full qualified service type, such as <code>_http._tcp.local.</code> .
      * @param name
@@ -111,7 +111,7 @@ public abstract class JmDNS
     /**
      * Request service information. The information about the service is requested and the
      * ServiceListener.resolveService method is called as soon as it is available.
-     * 
+     *
      * @param type
      *            full qualified service type, such as <code>_http._tcp.local.</code> .
      * @param name
@@ -123,7 +123,7 @@ public abstract class JmDNS
 
     /**
      * Listen for service types.
-     * 
+     *
      * @param listener
      *            listener for service types
      * @throws IOException
@@ -132,7 +132,7 @@ public abstract class JmDNS
 
     /**
      * Remove listener for service types.
-     * 
+     *
      * @param listener
      *            listener for service types
      */
@@ -141,7 +141,7 @@ public abstract class JmDNS
     /**
      * Listen for services of a given type. The type has to be a fully qualified type name such as
      * <code>_http._tcp.local.</code>.
-     * 
+     *
      * @param type
      *            full qualified service type, such as <code>_http._tcp.local.</code>.
      * @param listener
@@ -151,7 +151,7 @@ public abstract class JmDNS
 
     /**
      * Remove listener for services of a given type.
-     * 
+     *
      * @param type
      *            full qualified service type, such as <code>_http._tcp.local.</code>.
      * @param listener
@@ -162,7 +162,7 @@ public abstract class JmDNS
     /**
      * Register a service. The service is registered for access by other jmdns clients. The name of the service may be
      * changed to make it unique.
-     * 
+     *
      * @param info
      *            service info to register
      * @throws IOException
@@ -171,7 +171,7 @@ public abstract class JmDNS
 
     /**
      * Unregister a service. The service should have been registered.
-     * 
+     *
      * @param info
      *            service info to remove
      */
@@ -185,7 +185,7 @@ public abstract class JmDNS
     /**
      * Register a service type. If this service type was not already known, all service listeners will be notified of
      * the new service type. Service types are automatically registered as they are discovered.
-     * 
+     *
      * @param type
      *            full qualified service type, such as <code>_http._tcp.local.</code>.
      */
@@ -203,7 +203,7 @@ public abstract class JmDNS
 
     /**
      * Returns a list of service infos of the specified type.
-     * 
+     *
      * @param type
      *            Service type name, such as <code>_http._tcp.local.</code>.
      * @return An array of service instance names.
