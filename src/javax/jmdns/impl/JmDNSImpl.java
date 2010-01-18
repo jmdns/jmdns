@@ -1220,7 +1220,7 @@ public class JmDNSImpl extends JmDNS
             // Synchronize only if we are not already in process to prevent dead locks
             synchronized (this)
             {
-                // Stop JmDNS
+             // Stop JmDNS
                 // This protects against recursive calls
                 this.setState(DNSState.CANCELED);
 
@@ -1230,7 +1230,7 @@ public class JmDNSImpl extends JmDNS
                 // Cancel all services
                 this.unregisterAllServices();
                 this.disposeServiceCollectors();
-
+                
                 // Stop the canceler timer
                 _cancelerTimer.cancel();
 
