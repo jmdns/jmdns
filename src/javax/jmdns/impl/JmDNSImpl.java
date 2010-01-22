@@ -307,6 +307,8 @@ public class JmDNSImpl extends JmDNS
 
     private void closeMulticastSocket()
     {
+        // jP: 20010-01-18. See below. We'll need this monitor...
+        assert (Thread.holdsLock(this));
         logger.finer("closeMulticastSocket()");
         if (_socket != null)
         {
@@ -315,9 +317,24 @@ public class JmDNSImpl extends JmDNS
             {
                 _socket.leaveGroup(_group);
                 _socket.close();
-                if (_incomingListener != null)
+                // jP: 20010-01-18. It isn't safe to join() on the listener
+                // thread - it attempts to lock the IoLock object, and deadlock
+                // ensues. Per issue #2933183, changed this to wait on the JmDNS
+                // monitor, checking on each notify (or timeout) that the
+                // listener thread has stopped.
+                //
+                while (_incomingListener != null && _incomingListener.isAlive())
                 {
-                    _incomingListener.join();
+                    try
+                    {
+                        // wait time is arbitrary, we're really expecting notification.
+                        logger.finer("closeMulticastSocket(): waiting for jmDNS monitor");
+                        this.wait(1000);
+                    }
+                    catch (InterruptedException ignored)
+                    {
+                        // Ignored
+                    }
                 }
             }
             catch (final Exception exception)
@@ -1220,7 +1237,7 @@ public class JmDNSImpl extends JmDNS
             // Synchronize only if we are not already in process to prevent dead locks
             synchronized (this)
             {
-             // Stop JmDNS
+                // Stop JmDNS
                 // This protects against recursive calls
                 this.setState(DNSState.CANCELED);
 
@@ -1230,7 +1247,7 @@ public class JmDNSImpl extends JmDNS
                 // Cancel all services
                 this.unregisterAllServices();
                 this.disposeServiceCollectors();
-                
+
                 // Stop the canceler timer
                 _cancelerTimer.cancel();
 
