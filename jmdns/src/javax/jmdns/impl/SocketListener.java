@@ -20,7 +20,7 @@ class SocketListener implements Runnable
     static Logger logger = Logger.getLogger(SocketListener.class.getName());
 
     /**
-     * 
+     *
      */
     private final JmDNSImpl _jmDNSImpl;
 
@@ -85,6 +85,16 @@ class SocketListener implements Runnable
                 logger.log(Level.WARNING, "run() exception ", e);
                 this._jmDNSImpl.recover();
             }
+        }
+        // jP: 20010-01-18. Per issue #2933183. If this thread was stopped
+        // by closeMulticastSocket, we need to signal the other party via
+        // the jmDNS monitor. The other guy will then check to see if this
+        // thread has died.
+        // Note: This is placed here to avoid locking the IoLock object and
+        // 'this' instance together.
+        synchronized (this._jmDNSImpl)
+        {
+            this._jmDNSImpl.notifyAll();
         }
     }
 }
