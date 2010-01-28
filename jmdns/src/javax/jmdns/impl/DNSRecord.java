@@ -369,6 +369,18 @@ public abstract class DNSRecord extends DNSEntry
         /*
          * (non-Javadoc)
          *
+         * @see javax.jmdns.impl.DNSRecord#getServiceInfo()
+         */
+        @Override
+        public ServiceInfo getServiceInfo()
+        {
+            // FIXME [PJYF Jan 27 2010] We should really return something sensical here
+            return null;
+        }
+
+        /*
+         * (non-Javadoc)
+         *
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
@@ -432,6 +444,17 @@ public abstract class DNSRecord extends DNSEntry
                 throws IOException
         {
             return out;
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.jmdns.impl.DNSRecord#getServiceInfo()
+         */
+        @Override
+        public ServiceInfo getServiceInfo()
+        {
+            return new ServiceInfoImpl(this.getName(), this.getAlias());
         }
 
         /*
@@ -507,6 +530,18 @@ public abstract class DNSRecord extends DNSEntry
                 throws IOException
         {
             return out;
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.jmdns.impl.DNSRecord#getServiceInfo()
+         */
+        @Override
+        public ServiceInfo getServiceInfo()
+        {
+            // FIXME [PJYF Jan 27 2010] We should really return something sensical here
+            return null;
         }
 
         /*
@@ -701,6 +736,17 @@ public abstract class DNSRecord extends DNSEntry
         /*
          * (non-Javadoc)
          *
+         * @see javax.jmdns.impl.DNSRecord#getServiceInfo()
+         */
+        @Override
+        public ServiceInfo getServiceInfo()
+        {
+            return new ServiceInfoImpl(this.getName(), this.getServer(), _port, _weight, _priority, _server);
+        }
+
+        /*
+         * (non-Javadoc)
+         *
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
@@ -796,6 +842,18 @@ public abstract class DNSRecord extends DNSEntry
         /*
          * (non-Javadoc)
          *
+         * @see javax.jmdns.impl.DNSRecord#getServiceInfo()
+         */
+        @Override
+        public ServiceInfo getServiceInfo()
+        {
+            // FIXME [PJYF Jan 27 2010] We should really return something sensical here
+            return null;
+        }
+
+        /*
+         * (non-Javadoc)
+         *
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
@@ -805,6 +863,14 @@ public abstract class DNSRecord extends DNSEntry
         }
 
     }
+
+    /**
+     *
+     * Return a service information associated with that record if appropriate.
+     *
+     * @return service information
+     */
+    public abstract ServiceInfo getServiceInfo();
 
     public void setRecordSource(InetAddress source)
     {

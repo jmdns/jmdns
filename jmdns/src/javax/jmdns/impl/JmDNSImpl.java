@@ -938,7 +938,7 @@ public class JmDNSImpl extends JmDNS
                 final String name = (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()) ? ((DNSRecord.Pointer) rec)
                         .getAlias() : ((DNSRecord.Service) rec).getServer());
                 // DNSRecord old = (DNSRecord)services.get(name.toLowerCase());
-                final ServiceEvent event = new ServiceEventImpl(this, type, toUnqualifiedName(type, name), null);
+                final ServiceEvent event = new ServiceEventImpl(this, type, toUnqualifiedName(type, name), rec.getServiceInfo());
                 if (!expired)
                 {
                     // new record
