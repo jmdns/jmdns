@@ -33,7 +33,7 @@ public class ServiceEventImpl extends ServiceEvent
      * The service info record, or null if the service could be be resolved. This is also null, if the event was fired
      * to a service type listener.
      */
-    private ServiceInfoImpl _info;
+    private ServiceInfo _info;
 
     /**
      * Creates a new instance.
@@ -47,7 +47,7 @@ public class ServiceEventImpl extends ServiceEvent
      * @param info
      *            the service info record, or null if the service could be be resolved.
      */
-    public ServiceEventImpl(JmDNSImpl jmDNS, String type, String name, ServiceInfoImpl info)
+    public ServiceEventImpl(JmDNSImpl jmDNS, String type, String name, ServiceInfo info)
     {
         super(jmDNS);
         this._type = type;
