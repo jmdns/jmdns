@@ -1,22 +1,22 @@
 <!-- Build the Fulfillment stuff -->
-<project name="jmdns" default="help" basedir="."> 
-  <target name="init"> 
+<project name="jmdns" default="help" basedir=".">
+  <target name="init">
     <mkdir dir="${dest}" />
-    <tstamp/> 
+    <tstamp/>
   </target>
 
-  <!-- Configure the context PATH for this application --> 
-  <property name="src" value="./src" /> 
+  <!-- Configure the context PATH for this application -->
+  <property name="src" value="./src" />
   <property name="dest" value="./classes"/>
   <property name="doc" value="./docs"/>
-  <property name="version" value="3.1"/>
+  <property name="version" value="3.1.1"/>
 
   <!-- Configure custom Ant tasks for the Manager application -->
   <path id="jmdns.classpath">
-    <fileset dir="lib"> 
+    <fileset dir="lib">
       <include name="*.jar"/>
     </fileset>
-  </path> 
+  </path>
 
   <target name="help" description="Prints brief help message to screen">
     <echo message="usage:"/>
@@ -34,11 +34,11 @@
   <!-- Executable Targets -->
 
   <target name="build" depends="init" description="compile the generated source">
-    <javac target="1.5" srcdir= "${src}" destdir="${dest}" debug="true"> 
+    <javac target="1.5" srcdir= "${src}" destdir="${dest}" debug="true">
       <compilerarg value="-Xlint"/>
-      <include name="javax/**/*.java" /> 
-      <classpath refid="jmdns.classpath"/> 
-    </javac> 
+      <include name="javax/**/*.java" />
+      <classpath refid="jmdns.classpath"/>
+    </javac>
   </target>
 
   <target name="tools" depends="build" description="Main program" >
@@ -60,7 +60,7 @@
   <target name="jar" depends="build,tools" description="Jar the files">
     <jar destfile="lib/jmdns.jar"
          manifest="lib/jmdns.manifest"
-         basedir="${dest}" 
+         basedir="${dest}"
          includes="**/*.class"/>
   </target>
 

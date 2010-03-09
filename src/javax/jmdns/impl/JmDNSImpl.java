@@ -565,10 +565,15 @@ public class JmDNSImpl extends JmDNS
         final String lotype = type.toLowerCase();
         this.removeServiceListener(lotype, listener);
         List<ServiceListener> list = _serviceListeners.get(lotype);
+        boolean listAdded = false;
         if (list == null)
         {
-            _serviceListeners.putIfAbsent(lotype, new LinkedList<ServiceListener>());
+            listAdded = _serviceListeners.putIfAbsent(lotype, new LinkedList<ServiceListener>()) == null;
             list = _serviceListeners.get(lotype);
+            if (listAdded)
+            {
+                _serviceCollectors.putIfAbsent(lotype, new ServiceCollector(lotype));
+            }
         }
         synchronized (list)
         {
@@ -938,7 +943,8 @@ public class JmDNSImpl extends JmDNS
                 final String name = (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()) ? ((DNSRecord.Pointer) rec)
                         .getAlias() : ((DNSRecord.Service) rec).getServer());
                 // DNSRecord old = (DNSRecord)services.get(name.toLowerCase());
-                final ServiceEvent event = new ServiceEventImpl(this, type, toUnqualifiedName(type, name), rec.getServiceInfo());
+                final ServiceEvent event = new ServiceEventImpl(this, type, toUnqualifiedName(type, name), rec
+                        .getServiceInfo());
                 if (!expired)
                 {
                     // new record
@@ -1325,6 +1331,8 @@ public class JmDNSImpl extends JmDNS
         // instance for each service type which increases network traffic a
         // little.
 
+        String aType = type.toLowerCase();
+
         ServiceCollector collector;
 
         boolean newCollectorCreated = false;
@@ -1341,14 +1349,14 @@ public class JmDNSImpl extends JmDNS
                 return new ServiceInfo[0];
             }
 
-            collector = _serviceCollectors.get(type);
+            collector = _serviceCollectors.get(aType);
             if (collector == null)
             {
-                newCollectorCreated = _serviceCollectors.putIfAbsent(type, new ServiceCollector(type)) == null;
-                collector = _serviceCollectors.get(type);
+                newCollectorCreated = _serviceCollectors.putIfAbsent(aType, new ServiceCollector(aType)) == null;
+                collector = _serviceCollectors.get(aType);
                 if (newCollectorCreated)
                 {
-                    this.addServiceListener(type, collector);
+                    this.addServiceListener(aType, collector);
                 }
             }
         }

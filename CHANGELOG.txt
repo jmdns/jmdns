@@ -1,4 +1,9 @@
-CHANGELOG 17 December 2010 Rick Blair
+CHANGELOG 9 March 2010 Pierre Frisch
+Rev the source code to 3.1.1
+Merged issue: Service listener does not find any services - FIX - ID: 2910899
+
+
+CHANGELOG 17 December 2009 Rick Blair
 
 1. Changes by Pierre Frisch to compile clean under java 1.5 and java 1.6
 
@@ -12,24 +17,24 @@ CHANGELOG 06 December 2009 Rick Blair
 
 CHANGELOG 06 February 2008 Scott Cytacki
 1. Added code to make it easier to debug communication with other mdns implementations.
-  Including: 
+  Including:
     - keeping track of the the address which sent a dns record
     - flag to turning off domain-name compression
     - flag to use non domain-name format for targets of SRV records
-    - checks for conflicts from our own source address.    
+    - checks for conflicts from our own source address.
   Added the UNIQUE flag which is referred to the "cache flush bit" by the spec, on SRV
-  and TXT records sent to announce a Service.  
+  and TXT records sent to announce a Service.
 
 2. Made TimerTasks inside of JmDNSImpl into toplevel classes in a new package:
-  javax.jmdns.impl.tasks  This required making several method publics and encapsulating 
+  javax.jmdns.impl.tasks  This required making several method publics and encapsulating
   several fields with public getters and setters.  All these changes were done using Eclipse
   refactoring so there is a log chance of error.  I will be testing it with the Conformance
   Test to make sure it hasn't regressed.
 
 CHANGELOG 05 February 2008 Scott Cytacki
 1. Moved implementation classes into a impl package.  This paves the way for further
-  refactoring. By putting all the jmdns api classes and interfaces in one package, the impl 
-  classes can be split up more without exposing public classes and methods that aren't 
+  refactoring. By putting all the jmdns api classes and interfaces in one package, the impl
+  classes can be split up more without exposing public classes and methods that aren't
   part of the jmdns api.   This change breaks the old api, because the JmDNS and ServiceInfo
   classes cannot be instanciated directly.  Instead there are factory methods to create them.
 
@@ -37,14 +42,14 @@ CHANGELOG 01 February 2008 Scott Cytacki
 1. Fixed an error in the way ServiceInfo was constructing the text array for the TXT
   record.  The length byte was being omitted if the ServiceInfo constructor was called
   with the last argument of a String.  Added better handling of unsupported dns label
-  types.  The Apple Bonjour conformance test sends SRV records with target strings that 
+  types.  The Apple Bonjour conformance test sends SRV records with target strings that
   have lengths longer than 63, so the top 2 bits get used.
 
 CHANGELOG 25 January 2008 Scott Cytacki
-1. Consolidated most places where the ServiceInfo object was turned into a set of dns records.  
+1. Consolidated most places where the ServiceInfo object was turned into a set of dns records.
   And most places where the localHost (HostInfo) object was turned into dns records.
-  There is still one place that is duplicated (JmDNS.Responder) because it adds the dns records 
-  to a list first, removes known answers, and finally adds them to DNSOutgoing.  
+  There is still one place that is duplicated (JmDNS.Responder) because it adds the dns records
+  to a list first, removes known answers, and finally adds them to DNSOutgoing.
 
 CHANGELOG 17 January 2008 Scott Cytacki
 1. Added eclipse project files.  Forced the eclipse project to use java 1.4
@@ -52,20 +57,20 @@ CHANGELOG 17 January 2008 Scott Cytacki
 2. Changed the eclipse project to store built files in eclipse-lib because lib was already
    being used.
 
-3. Added eclipse code formating configuration files. They should match follow the turbine 
+3. Added eclipse code formating configuration files. They should match follow the turbine
 coding standards which have been used in this project: http://turbine.apache.org/common/code-standards.html
 Also this includes a minor formating clean up of JmDNS class.
 
 4. Changed Logger.getLogger parameter to use class.getName instead of class.toString. This is because
  class.toString returns for example "class javax.jmdns.JmDNS" while class.getName returns "javax.jmdns.JmDNS".
- The "class " messes up the logging hierarchical structure.  This javadoc specifices the string should be 
+ The "class " messes up the logging hierarchical structure.  This javadoc specifices the string should be
  dot separated: http://java.sun.com/j2se/1.5.0/docs/api/java/util/logging/Logger.html#getLogger(java.lang.String).
  Also this post to the mailing list talks about this issue:
  http://sourceforge.net/mailarchive/forum.php?thread_name=1196195175.2703.4.camel%40moya.kivasystems.com&forum_name=jmdns-discuss
  In that case getCanonicalName was used but that is only in Java 1.5 and basically does the same thing
- for normal classes. 
+ for normal classes.
 
- 
+
 CHANGELOG 16 July 2005  Rick Blair
 
 1. Added Apache License Version 2.0
@@ -93,7 +98,7 @@ CHANGELOG  30 November 2004 rawcoder
 
 4. Plattform dependency
 
-   - Due to the changes done for IPv6 support and the logging, 
+   - Due to the changes done for IPv6 support and the logging,
      JmDNS requires now a JVM supporting a J2SE 1.4 API.
 
 
@@ -102,9 +107,9 @@ CHANGELOG  6 June 2004 rawcoder
 1. General API Changes
 
    - RFE 868432: Changed listener API to comply with the commonly used
-                 EventListener/EventObject idiom 
-   - RFE 868433: Added a list method to class JmDNS which can be used to 
-                 retrieve a list of available  services without having to 
+                 EventListener/EventObject idiom
+   - RFE 868433: Added a list method to class JmDNS which can be used to
+                 retrieve a list of available  services without having to
                 implement a ServiceListener.
    - RFE 892855: All API's use now unqualified service instance names
 
@@ -112,7 +117,7 @@ CHANGELOG  6 June 2004 rawcoder
 
    - JmDNS now runs through the Rendezvous Conformance Test, when the options
      "-M hn" are used.
-   - Threads are now handled differently. ServiceListeners and 
+   - Threads are now handled differently. ServiceListeners and
      ServiceTypeListeners can not assume anymore that they are invoked from
      the AWT event dispatcher thread.
    - States are now handled explicitly using class DNSState.
@@ -158,14 +163,14 @@ CHANGELOG  6 June 2004 rawcoder
 9. JmDNS
 
    - Added comments to some of the instance variables.
-   - Added an instance variable named 'state' to track the state of the host name published by JmDNS, and of 
+   - Added an instance variable named 'state' to track the state of the host name published by JmDNS, and of
      JmDNS itself.
    - Replaced instance variable 'Vector browsers' by a hash map named 'serviceListeners'.
    - Got rid of the query cache. All caching is done now by a single cache.
    - Added instance variables for counting probe throttles.
    - Added an instance variable named 'hostNameCount' to create a new host name, when a conflict was detected.
    - Added a java.util.Timer. All outgoing messages and maintenance of the cache is now coordinated using the
-     timer. This greatly reduces the number of concurrent threads. 
+     timer. This greatly reduces the number of concurrent threads.
    - Added an instance variable named 'ioLock'. This lock is used to coordinate the incoming listener thread
      with the timer tasks.
    - Added a static variable named 'random'. It is used to generate random delays for responses.
@@ -177,7 +182,7 @@ CHANGELOG  6 June 2004 rawcoder
 
 10. ServiceInfo
 
-   - Added an instance variable named 'state' to track the state of the service. 
+   - Added an instance variable named 'state' to track the state of the service.
      This is used only, if the service is published by JmDNS.
    - Added an instance variable named 'task', to keep track of timer tasks associated with the service info.
 
@@ -201,7 +206,7 @@ CHANGELOG  6 June 2004 rawcoder
 CHANGELOG  21 APRIL 2004 RickBlair
 
 1. JmDNS
-   
+
    -Fixed broken additionals in the Query Function.
    -Added additionals to the SVC query.
 
@@ -216,51 +221,51 @@ CHANGELOG  28-29 MAR 2004 jeffs
 
   - Fixed wait times to be in line with the draft mDNS spec.
 
-  -  Added query cache so can check if another machine is also 
+  -  Added query cache so can check if another machine is also
      probing for our address.
 
   - Added support for slowing down the request rate during
     probing as per the draft mDNS spec.
 
   - Added conflict checks.
-  
+
   - General code clean up.
 
-  - changed visibility of static debug variable to public 
+  - changed visibility of static debug variable to public
   so apps can check it and decide to do their own logging and so on
-  
+
   - changed visbility of all non-static variables to private
-  
-  - added package protected method getCache() 
-  
+
+  - added package protected method getCache()
+
   - broke up handleQuery() into:
 
         private DNSOutgoing typeA()
         private DNSOutgoing typePTR()
         private DNSOutgoing findService()
-  
-  - reduced handleQuery() synchronized block 
+
+  - reduced handleQuery() synchronized block
   to just cover Socket.send() call
 
   [need to figure out what else needs synchronization]
 
 2. ServiceInfo
 
-  - changed all calls to JmDNS cache variable 
+  - changed all calls to JmDNS cache variable
   to use JmDNS getCache() accessor instead
-  
-  - replaced javadoc comment 
+
+  - replaced javadoc comment
         <code>_http._tcp.local.</code>
-  with 
+  with
         <code>_http&#46;_tcp.local&#46;</code>
   so the javadoc tool would quit whining
-  
+
 3. DNSConstants
 
   - Added constants for wait times and probe times.
 
   - changed to be a final class
-  
+
   - changed all references to it's fields in all other classes
   to read DNSConstants.whatever
 

@@ -20,7 +20,7 @@ public abstract class JmDNS
     /**
      * The version of JmDNS.
      */
-    public static String VERSION = "3.1";
+    public static String VERSION = "3.1.1";
 
     /**
      * Create an instance of JmDNS.
