@@ -252,7 +252,7 @@ public class JmDNSImpl extends JmDNS
                 aName = aName.substring(0, idx);
             }
             aName += ".local.";
-            _localHost = new HostInfo(address, aName);
+            _localHost = new HostInfo(addr, aName);
             // Bind to multicast socket
             this.openMulticastSocket(this.getLocalHost());
             this.start(this.getServices().values());
