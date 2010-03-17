@@ -54,7 +54,11 @@ public class Renewer extends DNSTask
 
     public void start(Timer timer)
     {
-        timer.schedule(this, DNSConstants.ANNOUNCED_RENEWAL_TTL_INTERVAL, DNSConstants.ANNOUNCED_RENEWAL_TTL_INTERVAL);
+        if (this._jmDNSImpl.getState() != DNSState.CANCELED)
+        {
+            timer.schedule(this, DNSConstants.ANNOUNCED_RENEWAL_TTL_INTERVAL,
+                    DNSConstants.ANNOUNCED_RENEWAL_TTL_INTERVAL);
+        }
     }
 
     @Override

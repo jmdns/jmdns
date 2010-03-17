@@ -31,7 +31,10 @@ public class RecordReaper extends DNSTask
 
     public void start(Timer timer)
     {
-        timer.schedule(this, DNSConstants.RECORD_REAPER_INTERVAL, DNSConstants.RECORD_REAPER_INTERVAL);
+        if (this._jmDNSImpl.getState() != DNSState.CANCELED)
+        {
+            timer.schedule(this, DNSConstants.RECORD_REAPER_INTERVAL, DNSConstants.RECORD_REAPER_INTERVAL);
+        }
     }
 
     @Override

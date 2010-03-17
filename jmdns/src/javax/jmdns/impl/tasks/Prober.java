@@ -81,7 +81,7 @@ public class Prober extends DNSTask
             timer.schedule(this, JmDNSImpl.getRandom().nextInt(1 + DNSConstants.PROBE_WAIT_INTERVAL),
                     DNSConstants.PROBE_WAIT_INTERVAL);
         }
-        else
+        else if (this._jmDNSImpl.getState() != DNSState.CANCELED)
         {
             timer.schedule(this, DNSConstants.PROBE_CONFLICT_INTERVAL, DNSConstants.PROBE_CONFLICT_INTERVAL);
         }

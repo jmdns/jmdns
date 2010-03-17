@@ -57,7 +57,10 @@ public class Announcer extends DNSTask
 
     public void start(Timer timer)
     {
-        timer.schedule(this, DNSConstants.ANNOUNCE_WAIT_INTERVAL, DNSConstants.ANNOUNCE_WAIT_INTERVAL);
+        if (this._jmDNSImpl.getState() != DNSState.CANCELED)
+        {
+            timer.schedule(this, DNSConstants.ANNOUNCE_WAIT_INTERVAL, DNSConstants.ANNOUNCE_WAIT_INTERVAL);
+        }
     }
 
     @Override

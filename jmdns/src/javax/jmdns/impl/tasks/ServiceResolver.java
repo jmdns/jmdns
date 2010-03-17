@@ -46,7 +46,10 @@ public class ServiceResolver extends DNSTask
 
     public void start(Timer timer)
     {
-        timer.schedule(this, DNSConstants.QUERY_WAIT_INTERVAL, DNSConstants.QUERY_WAIT_INTERVAL);
+        if (this._jmDNSImpl.getState() != DNSState.CANCELED)
+        {
+            timer.schedule(this, DNSConstants.QUERY_WAIT_INTERVAL, DNSConstants.QUERY_WAIT_INTERVAL);
+        }
     }
 
     @Override
@@ -69,9 +72,10 @@ public class ServiceResolver extends DNSTask
                         final ServiceInfoImpl info = (ServiceInfoImpl) s.next();
                         try
                         {
-                            out.addAnswer(new DNSRecord.Pointer(info.getType(), DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info
-                                    .getQualifiedName()), now);
-                         }
+                            out.addAnswer(new DNSRecord.Pointer(info.getType(), DNSRecordType.TYPE_PTR,
+                                    DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info
+                                            .getQualifiedName()), now);
+                        }
                         catch (IOException ee)
                         {
                             break;
