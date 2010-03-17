@@ -2,6 +2,7 @@ CHANGELOG 17 March 2010 Pierre Frisch
 Rev the source code to 3.1.2
 Merged issue: JmDNS.create() with no args doesn't set address properly - ID: 2937206
 Merged issue: IllegalStateException in Prober.start() - ID: 2942555
+Fixed an NPE exception and tested publishing and discovering the service on the same machine
 
 CHANGELOG 9 March 2010 Pierre Frisch
 Rev the source code to 3.1.1
