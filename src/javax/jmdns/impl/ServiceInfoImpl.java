@@ -552,7 +552,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
             }
             this._props = properties;
         }
-        return _props;
+        return (_props != null ? _props : Collections.<String, Object> emptyMap());
     }
 
     /**
