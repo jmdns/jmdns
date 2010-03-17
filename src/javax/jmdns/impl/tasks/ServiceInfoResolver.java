@@ -46,7 +46,10 @@ public class ServiceInfoResolver extends DNSTask
 
     public void start(Timer timer)
     {
-        timer.schedule(this, DNSConstants.QUERY_WAIT_INTERVAL, DNSConstants.QUERY_WAIT_INTERVAL);
+        if (this._jmDNSImpl.getState() != DNSState.CANCELED)
+        {
+            timer.schedule(this, DNSConstants.QUERY_WAIT_INTERVAL, DNSConstants.QUERY_WAIT_INTERVAL);
+        }
     }
 
     @Override

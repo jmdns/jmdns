@@ -1160,7 +1160,10 @@ public class JmDNSImpl extends JmDNS
 
     public void schedule(TimerTask task, int delay)
     {
-        _timer.schedule(task, delay);
+        if (this.getState() != DNSState.CANCELED)
+        {
+            _timer.schedule(task, delay);
+        }
     }
 
     // REMIND: Why is this not an anonymous inner class?
