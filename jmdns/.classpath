@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/easymock-2.5.2.jar" sourcepath="/Users/pierre/.m2/repository/org/easymock/easymock/2.5.2/easymock-2.5.2-sources.jar"/>
+	<classpathentry kind="lib" path="lib/junit-4.8.1.jar" sourcepath="/Users/pierre/.m2/repository/junit/junit/4.8.1/junit-4.8.1-sources.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>

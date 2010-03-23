@@ -1,0 +1,336 @@
+
+
+
+Network Working Group                                        S. Cheshire
+Internet-Draft                                               M. Krochmal
+Intended status: Standards Track                              R. McGuire
+Expires: January 7, 2010                                      Apple Inc.
+                                                            July 6, 2009
+
+
+                           EDNS0 OWNER Option
+                draft-cheshire-edns0-owner-option-00.txt
+
+Status of this Memo
+
+   This Internet-Draft is submitted to IETF in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt.
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+   This Internet-Draft will expire on January 7, 2010.
+
+Copyright Notice
+
+   Copyright (c) 2009 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents in effect on the date of
+   publication of this document (http://trustee.ietf.org/license-info).
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.
+
+Abstract
+
+   The DNS-SD Sleep Proxy Service uses a message format identical to
+   that used by standard DNS Update, with two additional pieces of
+
+
+
+Cheshire, et al.         Expires January 7, 2010                [Page 1]
+
+Internet-Draft             EDNS0 OWNER Option                  July 2009
+
+
+   information: the identity of the sleeping server to which the records
+   belong, and the Wake-on-LAN Magic Packet bit pattern which should be
+   used to wake the sleeping server.  This document specifies the EDNS0
+   option used to carry that additional information.
+
+
+1.  Introduction
+
+   The EDNS0 'Owner' Option is used by the DNS-SD Sleep Proxy Service.
+   The DNS-SD Sleep Proxy Service [mDNS] [DNS-SD] uses a message format
+   identical to that used by standard DNS Update [RFC2136] [RFC3007],
+   with two additional pieces of information: the identity of the
+   sleeping server to which the records belong, and the Wake-on-LAN
+   Magic Packet [WoL] bit pattern which should be used to wake the
+   sleeping server.  This document specifies the EDNS0 option [RFC2671]
+   used to carry that additional information.
+
+   The EDNS0 'Owner' Option is specified here with reference to the
+   DNS-SD Sleep Proxy Service, but could also be used for other purposes
+   not related to the Sleep Proxy Service.
+
+
+2.  Conventions and Terminology Used in this Document
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in "Key words for use in
+   RFCs to Indicate Requirement Levels" [RFC2119].
+
+
+3.  EDNS0 'Owner' Option
+
+   When a server that supports the DNS-SD Sleep Proxy protocol goes to
+   sleep, it communicates relevant DNS records, which describe its role
+   on the network, to the Sleep Proxy, in one or more DNS Update
+   messages [RFC2136] [RFC3007].  Typically these record registrations
+   with the Sleep Proxy do not last forever; they have a finite
+   lifetime, communicated using EDNS0 option 2 "DNS Update Lease"
+   [DNS-UL].
+
+   When the Sleep Proxy observes traffic on the network which warrants
+   waking the sleeping server, it does so by sending a Wake-on-LAN
+   "Magic Packet" [WoL].
+
+   A Wake-on-LAN "Magic Packet" consists of the following bit-pattern:
+   o  Sync sequence: 48 binary 1s (i.e. 6 bytes of 0xFF)
+
+
+
+
+
+Cheshire, et al.         Expires January 7, 2010                [Page 2]
+
+Internet-Draft             EDNS0 OWNER Option                  July 2009
+
+
+   o  Sixteen repetitions of the 48-bit MAC address of the sleeping
+      server's network interface
+   o  Optional 32-bit or 48-bit 'password'
+
+   When the Sleep Proxy determines that the sleeping server has awoken,
+   it can cease proxying for that server.
+
+   The Sleep Proxy needs to know the 48-bit MAC address (and possibly
+   32-bit or 48-bit 'password') to use to wake the sleeping server.
+
+   It also needs a way to determine when the sleeping server has awoken.
+   Because, when a sleeping server wakes it may be attached to the
+   network via a different interface (e.g. 802.11 wireless instead of
+   Ethernet), merely observing the source MAC address in the packets it
+   sends may not be sufficient to identify that this server on wireless
+   is the same server that moments earlier went to sleep while attached
+   via Ethernet.  Also, merely observing packets apparently originating
+   from the sleeping server may not be sufficient to conclude reliably
+   that it has woken -- since these could be old packets, from before it
+   slept, that were delayed in transit.
+
+   The necessary information is communicated in the EDNS0 'Owner'
+   option:
+   o  The 48-bit MAC address of the sleeping server's network interface
+   o  Optional 32-bit or 48-bit 'password'
+   o  A 48-bit value that uniquely identifies this machine regardless of
+      which interface it is using.  Typically the MAC address of the
+      machine's 'primary' interface is used for this purpose.
+   o  A sleep/wake sequence number.  Each time the server wakes and
+      begins a new period of wakefulness, this sequence number is
+      incremented.  If the Sleep Proxy observes the server send a packet
+      with the same sleep/wake sequence number as it saw in the proxy
+      registration, this is an old packet delayed in the network and
+      does not constitute evidence that the server has awoken.  If the
+      Sleep Proxy observes the server send a packet with a different
+      sleep/wake sequence number then the Sleep Proxy can conclude that
+      the server has awoken and the proxy need not continue answering
+      for it.
+
+3.1.  EDNS0 'Owner' Option Format
+
+   A full EDNS0 'Owner' option has the following format:
+
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |Opt|Len|V|S|Primary MAC|Wakeup MAC |Password   |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   The two-byte EDNS0 Option code 'Opt' for the 'Owner' option is 4.
+
+
+
+Cheshire, et al.         Expires January 7, 2010                [Page 3]
+
+Internet-Draft             EDNS0 OWNER Option                  July 2009
+
+
+   The two-byte length field 'Len' for this option is 24.
+
+   The one-byte version field 'V' is currently zero.  In the current
+   version of the protocol, senders MUST set this field to zero on
+   transmission, and receivers receiving an EDNS0 option 4 where the
+   version field is not zero MUST ignore the entire option.
+
+   The one-byte sequence number field 'S' is set to zero the first time
+   this option is used after boot, and then after that incremented each
+   time the machine awakens from sleep.
+
+   The six-byte Primary MAC field identifies the machine.  Typically,
+   the MAC address of the machine's 'primary' interface is used for this
+   purpose.
+
+   The six-byte pattern to be repeated 16 times in the wakeup packet.
+   This SHOULD be the MAC address of the interface through which the
+   packet containing this 'Owner' option is being sent.
+
+   The six-byte 'password' to be appended after the sixteen repetitions
+   of the MAC address.
+
+3.2.  Compact EDNS0 'Owner' Option Formats
+
+   Where the 'password' is only four bytes, a shorter format is used,
+   identified by the length field 'Len' having the value 22:
+
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |Opt|Len|V|S|Primary MAC|Wakeup MAC |Passwd |   (Len = 22)
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   When the 'password' is not required, it can be omitted entirely,
+   identified by the length field 'Len' having the value 18:
+
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |Opt|Len|V|S|Primary MAC|Wakeup MAC |   (Len = 18)
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   In the common case where the 'password' is not required and the
+   Primary MAC and Wakeup MAC are the same, both Wakeup MAC and password
+   may be omitted, identified by the length field 'Len' having the value
+   12:
+
+      +-+-+-+-+-+-+-+-+-+-+-+-+
+      |Opt|Len|V|S|Primary MAC|   (Len = 12)
+      +-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+
+
+
+Cheshire, et al.         Expires January 7, 2010                [Page 4]
+
+Internet-Draft             EDNS0 OWNER Option                  July 2009
+
+
+4.  Security Considerations
+
+   When a Wake-on-LAN Magic Packet is sent to wake a machine up, it is
+   sent in the clear, making it vulnerable to eavesdropping.
+
+
+5.  IANA Considerations
+
+   The EDNS0 OPTION CODE 4 has already been assigned for this DNS
+   extension.  No additional IANA services are required by this
+   document.
+
+
+6.  References
+
+6.1.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+   [RFC2671]  Vixie, P., "Extension Mechanisms for DNS (EDNS0)",
+              RFC 2671, August 1999.
+
+6.2.  Informative References
+
+   [RFC2136]  Vixie, P., Thomson, S., Rekhter, Y., and J. Bound,
+              "Dynamic Updates in the Domain Name System (DNS UPDATE)",
+              RFC 2136, April 1997.
+
+   [RFC3007]  Wellington, B., "Secure Domain Name System (DNS) Dynamic
+              Update", RFC 3007, November 2000.
+
+   [mDNS]     Cheshire, S. and M. Krochmal, "Multicast DNS",
+              draft-cheshire-dnsext-multicastdns-07.txt (work in
+              progress), September 2008.
+
+   [DNS-SD]   Cheshire, S. and M. Krochmal, "DNS-Based Service
+              Discovery", draft-cheshire-dnsext-multicastdns-07.txt
+              (work in progress), September 2008.
+
+   [DNS-UL]   Cheshire, S., Krochmal, M., and K. Sekar, "Dynamic DNS
+              Update Leases", draft-sekar-dns-ul-01.txt (work in
+              progress), August 2007.
+
+   [WoL]      "Wake-on-LAN Magic Packet",
+               http://en.wikipedia.org/wiki/Wake-on-LAN.
+
+
+
+
+
+Cheshire, et al.         Expires January 7, 2010                [Page 5]
+
+Internet-Draft             EDNS0 OWNER Option                  July 2009
+
+
+Authors' Addresses
+
+   Stuart Cheshire
+   Apple Inc.
+   1 Infinite Loop
+   Cupertino, California  95014
+   USA
+
+   Phone: +1 408 974 3207
+   Email: cheshire@apple.com
+
+
+   Marc Krochmal
+   Apple Inc.
+   1 Infinite Loop
+   Cupertino, California  95014
+   USA
+
+   Phone: +1 408 974 4368
+   Email: marc@apple.com
+
+
+   Rory McGuire
+   Apple Inc.
+   1 Infinite Loop
+   Cupertino, California  95014
+   USA
+
+   Phone: +1 408 974 1010
+   Email: @apple.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Cheshire, et al.         Expires January 7, 2010                [Page 6]
+

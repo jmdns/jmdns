@@ -22,11 +22,9 @@ import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSState;
 
 /**
- * The ServiceResolver queries three times consecutively for services of a given type, and then removes itself from the
- * timer.
+ * The ServiceResolver queries three times consecutively for services of a given type, and then removes itself from the timer.
  * <p/>
- * The ServiceResolver will run only if JmDNS is in state ANNOUNCED. REMIND: Prevent having multiple service resolvers
- * for the same type in the timer queue.
+ * The ServiceResolver will run only if JmDNS is in state ANNOUNCED. REMIND: Prevent having multiple service resolvers for the same type in the timer queue.
  */
 public class ServiceResolver extends DNSTask
 {
@@ -48,7 +46,7 @@ public class ServiceResolver extends DNSTask
     {
         if (this._jmDNSImpl.getState() != DNSState.CANCELED)
         {
-            timer.schedule(this, DNSConstants.QUERY_WAIT_INTERVAL, DNSConstants.QUERY_WAIT_INTERVAL);
+             timer.schedule(this, DNSConstants.QUERY_WAIT_INTERVAL, DNSConstants.QUERY_WAIT_INTERVAL);
         }
     }
 
@@ -59,22 +57,18 @@ public class ServiceResolver extends DNSTask
         {
             if (this._jmDNSImpl.getState() == DNSState.ANNOUNCED)
             {
-                if (_count++ < 3)
+                 if (_count++ < 3)
                 {
                     logger.finer("run() JmDNS querying service");
                     long now = System.currentTimeMillis();
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                    out.addQuestion(new DNSQuestion(_type, DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN,
-                            DNSRecordClass.NOT_UNIQUE));
-                    for (Iterator<? extends ServiceInfo> s = this._jmDNSImpl.getServices().values().iterator(); s
-                            .hasNext();)
+                    out.addQuestion(new DNSQuestion(_type, DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                    for (Iterator<? extends ServiceInfo> s = this._jmDNSImpl.getServices().values().iterator(); s.hasNext();)
                     {
                         final ServiceInfoImpl info = (ServiceInfoImpl) s.next();
                         try
                         {
-                            out.addAnswer(new DNSRecord.Pointer(info.getType(), DNSRecordType.TYPE_PTR,
-                                    DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info
-                                            .getQualifiedName()), now);
+                            out.addAnswer(new DNSRecord.Pointer(info.getType(), DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info.getQualifiedName()), now);
                         }
                         catch (IOException ee)
                         {

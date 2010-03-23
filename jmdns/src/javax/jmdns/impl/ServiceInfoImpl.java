@@ -15,6 +15,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSRecord.Pointer;
@@ -33,20 +34,18 @@ import javax.jmdns.impl.constants.DNSState;
 public class ServiceInfoImpl extends ServiceInfo implements DNSListener
 {
     // private static Logger logger = Logger.getLogger(ServiceInfoImpl.class.getName());
-    private JmDNSImpl _dns;
+    private AtomicReference<JmDNSImpl> _dns = new AtomicReference<JmDNSImpl>(null);
 
     // State machine
     /**
      * The state of this service info. This is used only for services announced by JmDNS.
      * <p/>
-     * For proper handling of concurrency, this variable must be changed only using methods advanceState(),
-     * revertState() and cancel().
+     * For proper handling of concurrency, this variable must be changed only using methods advanceState(), revertState() and cancel().
      */
     private volatile DNSState _state = DNSState.PROBING_1;
 
     /**
-     * Task associated to this service info. Possible tasks are JmDNS.Prober, JmDNS.Announcer, JmDNS.Responder,
-     * JmDNS.Canceler.
+     * Task associated to this service info. Possible tasks are JmDNS.Prober, JmDNS.Announcer, JmDNS.Responder, JmDNS.Canceler.
      */
     private TimerTask _task;
 
@@ -242,7 +241,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     @Override
     public String getQualifiedName()
     {
-        return _name + "." + _type;
+        return (_name != null ? _name.toLowerCase() : "") + "." + (_type != null ? _type.toLowerCase() : "");
     }
 
     /**
@@ -251,7 +250,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     @Override
     public String getServer()
     {
-        return _server;
+        return (_server != null ? _server : "");
     }
 
     /**
@@ -569,16 +568,15 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
             switch (rec.getRecordType())
             {
                 case TYPE_A: // IPv4
-                case TYPE_AAAA: // IPv6 FIXME [PJYF Oct 14 2004]
-                    // This has not been tested
-                    if (rec._name.equals(_server))
+                case TYPE_AAAA: // IPv6 FIXME [PJYF Oct 14 2004] This has not been tested
+                    if (rec.getName().equalsIgnoreCase(this.getServer()))
                     {
                         _addr = ((DNSRecord.Address) rec).getAddress();
 
                     }
                     break;
                 case TYPE_SRV:
-                    if (rec._name.equals(getQualifiedName()))
+                    if (rec.getName().equalsIgnoreCase(this.getQualifiedName()))
                     {
                         DNSRecord.Service srv = (DNSRecord.Service) rec;
                         _server = srv._server;
@@ -586,39 +584,46 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
                         _weight = srv._weight;
                         _priority = srv._priority;
                         _addr = null;
-                        // changed to use getCache() instead - jeffs
-                        // updateRecord(jmdns, now,
-                        // (DNSRecord)jmdns.cache.get(server, TYPE_A,
-                        // CLASS_IN));
-                        // updateRecord(jmdns, now, (DNSRecord) jmdns.getCache().get(_server, DNSConstants.TYPE_A,
-                        // DNSConstants.CLASS_IN));
-                        updateRecord(dnsCache, now, dnsCache.getDNSEntry(_server, DNSRecordType.TYPE_A,
-                                DNSRecordClass.CLASS_IN));
+                        this.updateRecord(dnsCache, now, dnsCache.getDNSEntry(_server, DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN));
                     }
                     break;
                 case TYPE_TXT:
-                    if (rec._name.equals(getQualifiedName()))
+                    if (rec.getName().equalsIgnoreCase(this.getQualifiedName()))
                     {
                         DNSRecord.Text txt = (DNSRecord.Text) rec;
-                        setText(txt._text);
+                        this.setText(txt._text);
                     }
                     break;
                 default:
                     break;
             }
             // Future Design Pattern
-            // This is done, to notify the wait loop in method
-            // JmDNS.getServiceInfo(type, name, timeout);
-            if (hasData() && getDns() != null)
+            // This is done, to notify the wait loop in method JmDNS.getServiceInfo(type, name, timeout);
+            if (this.hasData())
             {
-                getDns().handleServiceResolved(this);
-                setDns(null);
+                JmDNSImpl dns = _dns.getAndSet(null);
+                if (dns != null)
+                {
+                    dns.handleServiceResolved(this);
+                }
             }
             synchronized (this)
             {
-                notifyAll();
+                this.notifyAll();
             }
         }
+    }
+
+    /**
+     * Returns true if the service info is filled with data.
+     *
+     * @return <code>true</code> if the service info has data, <code>false</code> otherwise.
+     */
+    @Override
+    public synchronized boolean hasData()
+    {
+        return this.getServer() != null && this.getAddress() != null && this.getTextBytes() != null && this.getTextBytes().length > 0;
+        // return this.getServer() != null && (this.getAddress() != null || (this.getTextBytes() != null && this.getTextBytes().length > 0));
     }
 
     // State machine
@@ -678,8 +683,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     @Override
     public boolean equals(Object obj)
     {
-        return (obj instanceof ServiceInfoImpl)
-                && getQualifiedName().equals(((ServiceInfoImpl) obj).getQualifiedName());
+        return (obj instanceof ServiceInfoImpl) && getQualifiedName().equals(((ServiceInfoImpl) obj).getQualifiedName());
     }
 
     /*
@@ -720,27 +724,32 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     @Override
     public String toString()
     {
-        StringBuffer buf = new StringBuffer();
-        buf.append("service[");
-        buf.append(getQualifiedName());
-        buf.append(',');
-        buf.append(getAddress());
+        StringBuilder buf = new StringBuilder();
+        buf.append("[" + this.getClass().getName() + "@" + System.identityHashCode(this) + " ");
+        buf.append("name: '");
+        buf.append(this.getQualifiedName());
+        buf.append("' address: '");
+        buf.append(this.getAddress());
         buf.append(':');
-        buf.append(_port);
-        buf.append(',');
-        buf.append(getNiceTextString());
+        buf.append(this.getPort());
+        buf.append("'");
+        buf.append("' has ");
+        buf.append(this.hasData() ? "" : "NO ");
+        buf.append("data");
+        if (this.getText().length > 0)
+        {
+            buf.append("\n");
+            buf.append(this.getNiceTextString());
+        }
         buf.append(']');
         return buf.toString();
     }
 
     public void addAnswers(DNSOutgoing out, int ttl, HostInfo localHost) throws IOException
     {
-        out.addAnswer(new Pointer(_type, DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE,
-                ttl, getQualifiedName()), 0);
-        out.addAnswer(new Service(getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN,
-                DNSRecordClass.UNIQUE, ttl, _priority, _weight, _port, localHost.getName()), 0);
-        out.addAnswer(new Text(getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN,
-                DNSRecordClass.UNIQUE, ttl, getText()), 0);
+        out.addAnswer(new Pointer(_type, DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, getQualifiedName()), 0);
+        out.addAnswer(new Service(getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, _priority, _weight, _port, localHost.getName()), 0);
+        out.addAnswer(new Text(getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, getText()), 0);
     }
 
     public void setTask(TimerTask task)
@@ -760,16 +769,16 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
 
     public byte[] getText()
     {
-        return _text;
+        return (this._text != null ? this._text : new byte[] {});
     }
 
     public void setDns(JmDNSImpl dns)
     {
-        this._dns = dns;
+        this._dns.set(dns);
     }
 
     public JmDNSImpl getDns()
     {
-        return _dns;
+        return this._dns.get();
     }
 }
