@@ -81,12 +81,12 @@
 			<fileset dir="." includes="*.txt" />
 			<fileset dir="." includes="NOTICE" />
 			<fileset dir="." includes="LICENSE" />
-			<fileset dir="." includes="${lib}/jmdns.jar" />
-			<fileset dir="." includes="${lib}/jmdns.manifest" />
-			<fileset dir="." includes="${src}/**/*.java" />
-			<fileset dir="." includes="${doc}/**" />
-			<fileset dir="." includes="build.xml" />
-			<fileset dir="." includes="fulllogging.properties" />
+		    <fileset dir="." includes="lib/jmdns.jar"/>
+			<fileset dir="." includes="lib/jmdns.manifest"/>
+			<fileset dir="." includes="src/**/*.java"/>
+			<fileset dir="." includes="docs/**"/>
+			<fileset dir="." includes="build.xml"/>
+			<fileset dir="." includes="fulllogging.properties"/>
 		</copy>
 		<zip destfile="jmdns-${version}.zip">
 			<fileset dir="." includes="jmdns-${version}/**" />
