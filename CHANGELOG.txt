@@ -1,3 +1,10 @@
+CHANGELOG 22 March 2010 Pierre Frisch
+Rev the source code to 3.1.3
+Fixed a NPE in ServiceInfoImpl.getText()
+Fixed a case sensitivity issue in the Service Info updateRecord()
+Fixed a number of problem with the service listener that did not get called at the right time.
+****** Please note the changes in the JavaDoc for ServiceListener ****** This is not a change of behavior but a clarification of the contract.
+
 CHANGELOG 17 March 2010 Pierre Frisch
 Rev the source code to 3.1.2
 Merged issue: JmDNS.create() with no args doesn't set address properly - ID: 2937206

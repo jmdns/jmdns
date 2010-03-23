@@ -15,7 +15,9 @@ import java.util.EventListener;
 public interface ServiceListener extends EventListener
 {
     /**
-     * A service has been added.
+     * A service has been added.<br/>
+     * <b>Note:</b>This event is only the service added event. The service info associated with this event does not include resolution information.<br/>
+     * To get the full resolved information you need to listen to {@link #serviceResolved(ServiceEvent)} or call {@link JmDNS#getServiceInfo(String, String, int)}
      *
      * @param event
      *            The ServiceEvent providing the name and fully qualified type of the service.
@@ -34,8 +36,7 @@ public interface ServiceListener extends EventListener
      * A service has been resolved. Its details are now available in the ServiceInfo record.
      *
      * @param event
-     *            The ServiceEvent providing the name, the fully qualified type of the service, and the service info
-     *            record, or null if the service could not be resolved.
+     *            The ServiceEvent providing the name, the fully qualified type of the service, and the service info record, or null if the service could not be resolved.
      */
     void serviceResolved(ServiceEvent event);
 }

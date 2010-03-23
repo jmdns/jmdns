@@ -1,115 +1,144 @@
 <!-- Build the Fulfillment stuff -->
 <project name="jmdns" default="help" basedir=".">
-  <target name="init">
-    <mkdir dir="${dest}" />
-    <tstamp/>
-  </target>
+	<target name="init">
+		<mkdir dir="${dest}" />
+		<tstamp />
+	</target>
 
-  <!-- Configure the context PATH for this application -->
-  <property name="src" value="./src" />
-  <property name="dest" value="./classes"/>
-  <property name="doc" value="./docs"/>
-  <property name="version" value="3.1.2"/>
+	<!-- Configure the context PATH for this application -->
+	<property name="src" value="./src" />
+	<property name="lib" value="./lib" />
+	<property name="test" value="./test" />
+	<property name="dest" value="./classes" />
+	<property name="reports" value="./reports" />
+	<property name="doc" value="./docs" />
+	<property name="version" value="3.1.3" />
 
-  <!-- Configure custom Ant tasks for the Manager application -->
-  <path id="jmdns.classpath">
-    <fileset dir="lib">
-      <include name="*.jar"/>
-    </fileset>
-  </path>
+	<!-- Configure custom Ant tasks for the Manager application -->
+	<path id="jmdns.classpath">
+		<fileset dir="lib">
+			<include name="*.jar" />
+		</fileset>
+	</path>
 
-  <target name="help" description="Prints brief help message to screen">
-    <echo message="usage:"/>
-    <echo message="  ant TARGET where TARGET is one of the following:"/>
-    <echo message="      build   --- Compiles the JmDNS sources. Including the tools"/>
-    <echo message="      tools   --- Compiles the tools: The browser and main class"/>
-    <echo message="      samples --- Compiles the samples in the samples package"/>
-    <echo message="      jar     --- Creates the jmdns.jar file "/>
-    <echo message="      javadoc --- Creates the javadoc docs "/>
-    <echo message="      release --- Creates a release "/>
-    <echo message="      clean   --- Cleanup time! "/>
-    <echo message="      help    --- This message "/>
-  </target>
+	<target name="help" description="Prints brief help message to screen">
+		<echo message="usage:" />
+		<echo message="  ant TARGET where TARGET is one of the following:" />
+		<echo message="      build   --- Compiles the JmDNS sources. Including the tools" />
+		<echo message="      tools   --- Compiles the tools: The browser and main class" />
+		<echo message="      samples --- Compiles the samples in the samples package" />
+		<echo message="      jar     --- Creates the jmdns.jar file " />
+		<echo message="      javadoc --- Creates the javadoc docs " />
+		<echo message="      release --- Creates a release " />
+		<echo message="      clean   --- Cleanup time! " />
+		<echo message="      help    --- This message " />
+	</target>
 
-  <!-- Executable Targets -->
+	<!-- Executable Targets -->
 
-  <target name="build" depends="init" description="compile the generated source">
-    <javac target="1.5" srcdir= "${src}" destdir="${dest}" debug="true">
-      <compilerarg value="-Xlint"/>
-      <include name="javax/**/*.java" />
-      <classpath refid="jmdns.classpath"/>
-    </javac>
-  </target>
+	<target name="build" depends="init" description="compile the generated source">
+		<javac target="1.5" srcdir="${src}" destdir="${dest}" debug="true">
+			<compilerarg value="-Xlint" />
+			<include name="javax/**/*.java" />
+			<classpath refid="jmdns.classpath" />
+		</javac>
+	</target>
 
-  <target name="tools" depends="build" description="Main program" >
-    <javac target="1.5" srcdir="${src}" destdir="${dest}">
-      <compilerarg value="-Xlint"/>
-      <include name="com/**/tools/*.java"/>
-      <classpath refid="jmdns.classpath"/>
-    </javac>
-  </target>
+	<target name="tools" depends="build" description="Main program">
+		<javac target="1.5" srcdir="${src}" destdir="${dest}">
+			<compilerarg value="-Xlint" />
+			<include name="com/**/tools/*.java" />
+			<classpath refid="jmdns.classpath" />
+		</javac>
+	</target>
 
-  <target name="samples" depends="build" description="Sample programs" >
-    <javac target="1.5" srcdir="${src}" destdir="${dest}">
-      <compilerarg value="-Xlint"/>
-      <include name="samples/*.java"/>
-      <classpath refid="jmdns.classpath"/>
-    </javac>
-  </target>
+	<target name="samples" depends="build" description="Sample programs">
+		<javac target="1.5" srcdir="${src}" destdir="${dest}">
+			<compilerarg value="-Xlint" />
+			<include name="samples/*.java" />
+			<classpath refid="jmdns.classpath" />
+		</javac>
+	</target>
 
-  <target name="jar" depends="build,tools" description="Jar the files">
-    <jar destfile="lib/jmdns.jar"
-         manifest="lib/jmdns.manifest"
-         basedir="${dest}"
-         includes="**/*.class"/>
-  </target>
+	<target name="jar" depends="build,tools" description="Jar the files">
+		<jar destfile="${lib}/jmdns.jar" manifest="${lib}/jmdns.manifest" basedir="${dest}" includes="**/*.class" />
+	</target>
 
-  <target name="javadoc" depends="build" description="Create the java doc">
-    <javadoc
-       destdir="${doc}"
-       author="true"
-       version="true"
-       header="JmDNS ${version}"
-       windowtitle="JmDNS">
-      <fileset dir="${src}" defaultexcludes="yes">
-        <include name="javax/**/*.java"/>
-        <include name="com/**/*.java"/>
-      </fileset>
+	<target name="javadoc" depends="build" description="Create the java doc">
+		<javadoc destdir="${doc}" author="true" version="true" header="JmDNS ${version}" windowtitle="JmDNS">
+			<fileset dir="${src}" defaultexcludes="yes">
+				<include name="javax/**/*.java" />
+				<include name="com/**/*.java" />
+			</fileset>
 
-      <doctitle><![CDATA[<H1>JmDNS</h1>]]></doctitle>
-    </javadoc>
-  </target>
+			<doctitle><![CDATA[<h1>JmDNS</h1>]]></doctitle>
+		</javadoc>
+	</target>
 
-  <target name="release" depends="build,tools,javadoc,jar" description="Create a release">
-    <delete dir="jmdns-${version}"/>
-    <copy todir="jmdns-${version}">
-      <fileset dir="." includes="*.txt"/>
-      <fileset dir="." includes="NOTICE"/>
-      <fileset dir="." includes="LICENSE"/>
-      <fileset dir="." includes="lib/jmdns.jar"/>
-      <fileset dir="." includes="lib/jmdns.manifest"/>
-      <fileset dir="." includes="src/**/*.java"/>
-      <fileset dir="." includes="docs/**"/>
-      <fileset dir="." includes="build.xml"/>
-      <fileset dir="." includes="fulllogging.properties"/>
-    </copy>
-    <zip destfile="jmdns-${version}.zip">
-      <fileset dir="." includes="jmdns-${version}/**"/>
-    </zip>
-    <tar destfile="jmdns-${version}.tar">
-      <tarfileset dir="." includes="jmdns-${version}/**"/>
-    </tar>
-    <gzip destfile="jmdns-${version}.tgz" src="jmdns-${version}.tar"/>
-  </target>
+	<target name="release" depends="build,tools,javadoc,jar" description="Create a release">
+		<delete dir="jmdns-${version}" />
+		<copy todir="jmdns-${version}">
+			<fileset dir="." includes="*.txt" />
+			<fileset dir="." includes="NOTICE" />
+			<fileset dir="." includes="LICENSE" />
+			<fileset dir="." includes="${lib}/jmdns.jar" />
+			<fileset dir="." includes="${lib}/jmdns.manifest" />
+			<fileset dir="." includes="${src}/**/*.java" />
+			<fileset dir="." includes="${doc}/**" />
+			<fileset dir="." includes="build.xml" />
+			<fileset dir="." includes="fulllogging.properties" />
+		</copy>
+		<zip destfile="jmdns-${version}.zip">
+			<fileset dir="." includes="jmdns-${version}/**" />
+		</zip>
+		<tar destfile="jmdns-${version}.tar">
+			<tarfileset dir="." includes="jmdns-${version}/**" />
+		</tar>
+		<gzip destfile="jmdns-${version}.tgz" src="jmdns-${version}.tar" />
+	</target>
 
-  <target name="clean">
-    <delete dir="jmdns-${version}"/>
-    <delete includeEmptyDirs="true">
-      <fileset dir="classes" includes="**"/>
-      <fileset dir="docs" includes="**"/>
-      <fileset dir="lib" includes="jmdns.jar"/>
-      <fileset dir="." includes="jmdns-**"/>
-    </delete>
-  </target>
+	<target name="clean">
+		<delete dir="jmdns-${version}" failonerror="false" />
+		<delete includeEmptyDirs="true" failonerror="false">
+			<fileset dir="classes" includes="**" />
+			<fileset dir="${reports}" includes="**" />
+			<fileset dir="${lib}" includes="*.jar" />
+			<fileset dir="." includes="jmdns-**" />
+		</delete>
+	</target>
+
+	<target name="test" depends="build, jar">
+		<mkdir dir="${reports}" />
+		<get src="http://repo2.maven.org/maven2/org/easymock/easymock/2.5.2/easymock-2.5.2.jar" usetimestamp="yes" dest="${lib}/easymock-2.5.2.jar" />
+		<get src="http://repo2.maven.org/maven2/junit/junit/4.8.1/junit-4.8.1.jar" usetimestamp="yes" dest="${lib}/junit-4.8.1.jar" />
+
+		<javac target="1.5" srcdir="${test}" destdir="${dest}">
+			<compilerarg value="-Xlint" />
+			<classpath refid="jmdns.classpath" />
+		</javac>
+
+		<junit printsummary="yes" haltonfailure="no" showoutput="yes">
+			<classpath>
+				<pathelement path="${dest}" />
+				<fileset dir="${lib}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+
+			<batchtest fork="yes" todir="${reports}">
+				<formatter type="xml" />
+				<formatter type="brief" usefile="false" />
+				<fileset dir="${test}">
+					<include name="**/*.java" />
+				</fileset>
+			</batchtest>
+		</junit>
+		<junitreport todir="${reports}">
+			<fileset dir="${reports}">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<report todir="${reports}" />
+		</junitreport>
+	</target>
 
 </project>

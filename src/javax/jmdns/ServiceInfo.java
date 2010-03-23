@@ -57,8 +57,7 @@ public abstract class ServiceInfo
     }
 
     /**
-     * Construct a service description for registrating with JmDNS. The properties hashtable must map property names to
-     * either Strings or byte arrays describing the property values.
+     * Construct a service description for registrating with JmDNS. The properties hashtable must map property names to either Strings or byte arrays describing the property values.
      *
      * @param type
      *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
@@ -106,10 +105,7 @@ public abstract class ServiceInfo
      *
      * @return <code>true</code> if the service info has data, <code>false</code> otherwise.
      */
-    public synchronized boolean hasData()
-    {
-        return this.getServer() != null && this.getAddress() != null && this.getTextBytes() != null;
-    }
+    public abstract boolean hasData();
 
     /**
      * Fully qualified service type name, such as <code>_http._tcp.local.</code>
@@ -189,8 +185,7 @@ public abstract class ServiceInfo
     public abstract byte[] getTextBytes();
 
     /**
-     * Get the text for the service. This will interpret the text bytes as a UTF8 encoded string. Will return null if
-     * the bytes are not a valid UTF8 encoded string.
+     * Get the text for the service. This will interpret the text bytes as a UTF8 encoded string. Will return null if the bytes are not a valid UTF8 encoded string.
      *
      * @return service text
      */
@@ -213,8 +208,7 @@ public abstract class ServiceInfo
     public abstract String getURL(String protocol);
 
     /**
-     * Get a property of the service. This involves decoding the text bytes into a property list. Returns null if the
-     * property is not found or the text data could not be decoded correctly.
+     * Get a property of the service. This involves decoding the text bytes into a property list. Returns null if the property is not found or the text data could not be decoded correctly.
      *
      * @param name
      *            property name
@@ -223,9 +217,7 @@ public abstract class ServiceInfo
     public abstract byte[] getPropertyBytes(String name);
 
     /**
-     * Get a property of the service. This involves decoding the text bytes into a property list. Returns null if the
-     * property is not found, the text data could not be decoded correctly, or the resulting bytes are not a valid UTF8
-     * string.
+     * Get a property of the service. This involves decoding the text bytes into a property list. Returns null if the property is not found, the text data could not be decoded correctly, or the resulting bytes are not a valid UTF8 string.
      *
      * @param name
      *            property name

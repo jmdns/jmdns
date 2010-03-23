@@ -93,8 +93,7 @@ public abstract class DNSRecord extends DNSEntry
     /**
      * Adds this as an answer to the provided outgoing datagram.
      */
-    abstract DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out)
-            throws IOException;
+    abstract DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException;
 
     /**
      * True if this record is suppressed by the answers in a message.
@@ -121,8 +120,7 @@ public abstract class DNSRecord extends DNSEntry
     }
 
     /**
-     * True if this record would be supressed by an answer. This is the case if this record would not have a
-     * significantly longer TTL.
+     * True if this record would be supressed by an answer. This is the case if this record would not have a significantly longer TTL.
      */
     boolean suppressedBy(DNSRecord other)
     {
@@ -283,8 +281,7 @@ public abstract class DNSRecord extends DNSEntry
         }
 
         /**
-         * Creates a byte array representation of this record. This is needed for tie-break tests according to
-         * draft-cheshire-dnsext-multicastdns-04.txt chapter 9.2.
+         * Creates a byte array representation of this record. This is needed for tie-break tests according to draft-cheshire-dnsext-multicastdns-04.txt chapter 9.2.
          */
         @Override
         protected void toByteArray(DataOutputStream dout) throws IOException
@@ -308,8 +305,7 @@ public abstract class DNSRecord extends DNSEntry
             {
                 if (dnsAddress.sameType(this) && dnsAddress.sameName(this) && (!dnsAddress.sameValue(this)))
                 {
-                    logger1.finer("handleQuery() Conflicting probe detected. dns state " + dns.getState()
-                            + " lex compare " + compareTo(dnsAddress));
+                    logger1.finer("handleQuery() Conflicting probe detected. dns state " + dns.getState() + " lex compare " + compareTo(dnsAddress));
                     // Tie-breaker test
                     if (dns.getState().isProbing() && compareTo(dnsAddress) >= 0)
                     {
@@ -360,8 +356,7 @@ public abstract class DNSRecord extends DNSEntry
         }
 
         @Override
-        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out)
-                throws IOException
+        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException
         {
             return out;
         }
@@ -399,8 +394,7 @@ public abstract class DNSRecord extends DNSEntry
         // private static Logger logger = Logger.getLogger(Pointer.class.getName());
         String _alias;
 
-        public Pointer(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl,
-                String alias)
+        public Pointer(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl, String alias)
         {
             super(name, type, recordClass, unique, ttl);
             this._alias = alias;
@@ -440,8 +434,7 @@ public abstract class DNSRecord extends DNSEntry
         }
 
         @Override
-        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out)
-                throws IOException
+        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException
         {
             return out;
         }
@@ -454,7 +447,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         public ServiceInfo getServiceInfo()
         {
-            return new ServiceInfoImpl(this.getName(), this.getAlias());
+            return new ServiceInfoImpl(this.getName(), JmDNSImpl.toUnqualifiedName(this.getName(), this.getAlias()));
         }
 
         /*
@@ -519,15 +512,13 @@ public abstract class DNSRecord extends DNSEntry
             // Nothing to do (?)
             // Shouldn't we care if we get a conflict at this level?
             /*
-             * ServiceInfo info = (ServiceInfo) dns.services.get(name.toLowerCase()); if (info != null) { if (!
-             * Arrays.equals(text,info.text)) { info.revertState(); return true; } }
+             * ServiceInfo info = (ServiceInfo) dns.services.get(name.toLowerCase()); if (info != null) { if (! Arrays.equals(text,info.text)) { info.revertState(); return true; } }
              */
             return false;
         }
 
         @Override
-        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out)
-                throws IOException
+        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException
         {
             return out;
         }
@@ -568,8 +559,7 @@ public abstract class DNSRecord extends DNSEntry
         int _port;
         String _server;
 
-        public Service(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl,
-                int priority, int weight, int port, String server)
+        public Service(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl, int priority, int weight, int port, String server)
         {
             super(name, type, recordClass, unique, ttl);
             this._priority = priority;
@@ -624,8 +614,7 @@ public abstract class DNSRecord extends DNSEntry
         boolean sameValue(DNSRecord other)
         {
             Service s = (Service) other;
-            return (_priority == s._priority) && (_weight == s._weight) && (_port == s._port)
-                    && _server.equals(s._server);
+            return (_priority == s._priority) && (_weight == s._weight) && (_port == s._port) && _server.equals(s._server);
         }
 
         @Override
@@ -635,9 +624,8 @@ public abstract class DNSRecord extends DNSEntry
             if (info != null && (_port != info.getPort() || !_server.equalsIgnoreCase(dns.getLocalHost().getName())))
             {
                 logger1.finer("handleQuery() Conflicting probe detected from: " + getRecordSource());
-                DNSRecord.Service localService = new DNSRecord.Service(info.getQualifiedName(), DNSRecordType.TYPE_SRV,
-                        DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info
-                                .getWeight(), info.getPort(), dns.getLocalHost().getName());
+                DNSRecord.Service localService = new DNSRecord.Service(info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(), dns
+                        .getLocalHost().getName());
 
                 // This block is useful for debugging race conditions when jmdns is respoding to
                 // itself.
@@ -645,8 +633,7 @@ public abstract class DNSRecord extends DNSEntry
                 {
                     if (dns.getInterface().equals(getRecordSource()))
                     {
-                        logger1.warning("Got conflicting probe from ourselves\n" + "incoming: " + this.toString()
-                                + "\n" + "local   : " + localService.toString());
+                        logger1.warning("Got conflicting probe from ourselves\n" + "incoming: " + this.toString() + "\n" + "local   : " + localService.toString());
                     }
                 }
                 catch (IOException e)
@@ -716,18 +703,15 @@ public abstract class DNSRecord extends DNSEntry
         }
 
         @Override
-        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out)
-                throws IOException
+        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException
         {
             ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(_name.toLowerCase());
             if (info != null)
             {
                 if (this._port == info.getPort() != _server.equals(dns.getLocalHost().getName()))
                 {
-                    return dns.addAnswer(in, addr, port, out, new DNSRecord.Service(info.getQualifiedName(),
-                            DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE,
-                            DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(), dns
-                                    .getLocalHost().getName()));
+                    return dns.addAnswer(in, addr, port, out, new DNSRecord.Service(info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info
+                            .getPort(), dns.getLocalHost().getName()));
                 }
             }
             return out;
@@ -770,8 +754,7 @@ public abstract class DNSRecord extends DNSEntry
          * @param cpu
          * @param os
          */
-        public HostInformation(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl,
-                String cpu, String os)
+        public HostInformation(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl, String cpu, String os)
         {
             super(name, type, recordClass, unique, ttl);
             _cpu = cpu;
@@ -781,12 +764,10 @@ public abstract class DNSRecord extends DNSEntry
         /*
          * (non-Javadoc)
          *
-         * @see javax.jmdns.impl.DNSRecord#addAnswer(javax.jmdns.impl.JmDNSImpl, javax.jmdns.impl.DNSIncoming,
-         * java.net.InetAddress, int, javax.jmdns.impl.DNSOutgoing)
+         * @see javax.jmdns.impl.DNSRecord#addAnswer(javax.jmdns.impl.JmDNSImpl, javax.jmdns.impl.DNSIncoming, java.net.InetAddress, int, javax.jmdns.impl.DNSOutgoing)
          */
         @Override
-        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out)
-                throws IOException
+        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException
         {
             return out;
         }

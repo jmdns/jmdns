@@ -1,4 +1,4 @@
-#Sun Dec 06 08:56:28 EST 2009
+#Sat Mar 20 09:51:58 PDT 2010
 cleanup.add_default_serial_version_id=false
 cleanup.add_generated_serial_version_id=true
 cleanup.add_missing_annotations=true
@@ -52,10 +52,9 @@ cleanup.use_this_for_non_static_method_access_only_if_necessary=false
 cleanup_profile=_WebObjects
 cleanup_settings_version=2
 eclipse.preferences.version=1
-formatter_profile=_jmdns
+formatter_profile=_jmdnsCodeConvention
 formatter_settings_version=11
 org.eclipse.jdt.ui.exception.name=exception
 org.eclipse.jdt.ui.gettersetter.use.is=true
 org.eclipse.jdt.ui.keywordthis=true
 org.eclipse.jdt.ui.overrideannotation=true
-org.eclipse.jdt.ui.text.custom_code_templates=<?xml version\="1.0" encoding\="UTF-8"?><templates/>

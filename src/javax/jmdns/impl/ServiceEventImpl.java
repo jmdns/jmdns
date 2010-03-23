@@ -88,15 +88,17 @@ public class ServiceEventImpl extends ServiceEvent
     @Override
     public String toString()
     {
-        StringBuffer buf = new StringBuffer();
-        buf.append("<" + getClass().getName() + "> ");
-        buf.append(super.toString());
-        buf.append(" name ");
+        StringBuilder buf = new StringBuilder();
+        buf.append("[" + this.getClass().getName() + "@" + System.identityHashCode(this) + " ");
+        buf.append("\n\tname: '");
         buf.append(getName());
-        buf.append(" type ");
+        buf.append("' type: '");
         buf.append(getType());
-        buf.append(" info ");
+        buf.append("' info: '");
         buf.append(getInfo());
+        buf.append("' source: ");
+        buf.append("\n\t" + source + "");
+        buf.append("\n]");
         return buf.toString();
     }
 

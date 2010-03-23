@@ -215,7 +215,7 @@ public final class DNSIncoming extends DNSMessage
                 DNSResultCode extendedResultCode = DNSResultCode.resultCodeForFlags(_flags, ttl);
                 int version = (ttl & 0x00ff0000) >> 16;
                 logger.log(Level.WARNING, "There was an OPT answer. Not currently handled. Payload: "
-                        + senderUDPPayload + "extended result code: " + extendedResultCode + " version: " + version);
+                        + senderUDPPayload + " extended result code: " + extendedResultCode + " version: " + version);
                 break;
             default:
                 logger.finer("DNSIncoming() unknown type:" + type);

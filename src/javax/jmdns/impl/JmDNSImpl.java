@@ -21,6 +21,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -69,13 +70,12 @@ public class JmDNSImpl extends JmDNS
     private volatile boolean _closed = false;
 
     /**
-     * Holds instances of JmDNS.DNSListener. Must by a synchronized collection, because it is updated from concurrent
-     * threads.
+     * Holds instances of JmDNS.DNSListener. Must by a synchronized collection, because it is updated from concurrent threads.
      */
     private final List<DNSListener> _listeners;
+
     /**
-     * Holds instances of ServiceListener's. Keys are Strings holding a fully qualified service type. Values are
-     * LinkedList's of ServiceListener's.
+     * Holds instances of ServiceListener's. Keys are Strings holding a fully qualified service type. Values are LinkedList's of ServiceListener's.
      */
     private final ConcurrentMap<String, List<ServiceListener>> _serviceListeners;
 
@@ -90,15 +90,13 @@ public class JmDNSImpl extends JmDNS
     private DNSCache _cache;
 
     /**
-     * This hashtable holds the services that have been registered. Keys are instances of String which hold an all
-     * lower-case version of the fully qualified service name. Values are instances of ServiceInfo.
+     * This hashtable holds the services that have been registered. Keys are instances of String which hold an all lower-case version of the fully qualified service name. Values are instances of ServiceInfo.
      */
     private final ConcurrentMap<String, ServiceInfo> _services;
 
     /**
-     * This hashtable holds the service types that have been registered or that have been received in an incoming
-     * datagram. Keys are instances of String which hold an all lower-case version of the fully qualified service type.
-     * Values hold the fully qualified service type.
+     * This hashtable holds the service types that have been registered or that have been received in an incoming datagram. Keys are instances of String which hold an all lower-case version of the fully qualified service type. Values hold the fully
+     * qualified service type.
      */
     private final ConcurrentMap<String, String> _serviceTypes;
     /**
@@ -114,8 +112,7 @@ public class JmDNSImpl extends JmDNS
     private final Thread _incomingListener;
 
     /**
-     * Throttle count. This is used to count the overall number of probes sent by JmDNS. When the last throttle
-     * increment happened .
+     * Throttle count. This is used to count the overall number of probes sent by JmDNS. When the last throttle increment happened .
      */
     private int _throttle;
     /**
@@ -129,36 +126,30 @@ public class JmDNSImpl extends JmDNS
     //
     // ---------------------------------------------------
     /**
-     * The timer that triggers our announcements. We can't use the main timer object, because that could cause a
-     * deadlock where Prober waits on JmDNS.this lock held by close(), close() waits for us to finish, and we wait for
-     * Prober to give us back the timer thread so we can announce. (Patch from docbug in 2006-04-19 still wasn't patched
-     * .. so I'm doing it!)
+     * The timer that triggers our announcements. We can't use the main timer object, because that could cause a deadlock where Prober waits on JmDNS.this lock held by close(), close() waits for us to finish, and we wait for Prober to give us back
+     * the timer thread so we can announce. (Patch from docbug in 2006-04-19 still wasn't patched .. so I'm doing it!)
      */
     private Timer _cancelerTimer = new Timer("JmDNS.cancelerTimer");
     // ---------------------------------------------------
 
     /**
-     * The timer is used to dispatch all outgoing messages of JmDNS. It is also used to dispatch maintenance tasks for
-     * the DNS cache.
+     * The timer is used to dispatch all outgoing messages of JmDNS. It is also used to dispatch maintenance tasks for the DNS cache.
      */
     private final Timer _timer;
 
     /**
-     * The source for random values. This is used to introduce random delays in responses. This reduces the potential
-     * for collisions on the network.
+     * The source for random values. This is used to introduce random delays in responses. This reduces the potential for collisions on the network.
      */
     private final static Random _random = new Random();
 
     /**
-     * This lock is used to coordinate processing of incoming and outgoing messages. This is needed, because the
-     * Rendezvous Conformance Test does not forgive race conditions.
+     * This lock is used to coordinate processing of incoming and outgoing messages. This is needed, because the Rendezvous Conformance Test does not forgive race conditions.
      */
     private Object _ioLock = new Object();
 
     /**
-     * If an incoming package which needs an answer is truncated, we store it here. We add more incoming DNSRecords to
-     * it, until the JmDNS.Responder timer picks it up. Remind: This does not work well with multiple planned answers
-     * for packages that came in from different clients.
+     * If an incoming package which needs an answer is truncated, we store it here. We add more incoming DNSRecords to it, until the JmDNS.Responder timer picks it up. Remind: This does not work well with multiple planned answers for packages that
+     * came in from different clients.
      */
     private DNSIncoming _plannedAnswer;
 
@@ -166,20 +157,17 @@ public class JmDNSImpl extends JmDNS
     /**
      * The state of JmDNS.
      * <p/>
-     * For proper handling of concurrency, this variable must be changed only using methods advanceState(),
-     * revertState() and cancel().
+     * For proper handling of concurrency, this variable must be changed only using methods advanceState(), revertState() and cancel().
      */
     private DNSState _state = DNSState.PROBING_1;
 
     /**
-     * Timer task associated to the host name. This is used to prevent from having multiple tasks associated to the host
-     * name at the same time.
+     * Timer task associated to the host name. This is used to prevent from having multiple tasks associated to the host name at the same time.
      */
     private TimerTask _task;
 
     /**
-     * This hashtable is used to maintain a list of service types being collected by this JmDNS instance. The key of the
-     * hashtable is a service type name, the value is an instance of JmDNS.ServiceCollector.
+     * This hashtable is used to maintain a list of service types being collected by this JmDNS instance. The key of the hashtable is a service type name, the value is an instance of JmDNS.ServiceCollector.
      *
      * @see #list
      */
@@ -259,8 +247,7 @@ public class JmDNSImpl extends JmDNS
         }
         catch (final IOException e)
         {
-            // FIXME [PJYF Dec 17 2009] This looks really bizarre why not fail and throw an exception. What good will
-            // this provide?
+            // FIXME [PJYF Dec 17 2009] This looks really bizarre why not fail and throw an exception. What good will this provide?
             _localHost = new HostInfo(null, "computer");
             // Bind to multicast socket
             this.openMulticastSocket(getLocalHost());
@@ -444,6 +431,13 @@ public class JmDNSImpl extends JmDNS
     @Override
     public ServiceInfo getServiceInfo(String type, String name, int timeout)
     {
+        this.registerServiceType(type);
+        String lotype = type.toLowerCase();
+        if (_serviceCollectors.putIfAbsent(lotype, new ServiceCollector(lotype)) == null)
+        {
+            this.addServiceListener(lotype, _serviceCollectors.get(lotype));
+        }
+
         final ServiceInfoImpl info = new ServiceInfoImpl(type, name);
         new ServiceInfoResolver(this, info).start(_timer);
 
@@ -486,7 +480,13 @@ public class JmDNSImpl extends JmDNS
     @Override
     public void requestServiceInfo(String type, String name, int timeout)
     {
-        registerServiceType(type);
+        this.registerServiceType(type);
+        String lotype = type.toLowerCase();
+        if (_serviceCollectors.putIfAbsent(lotype, new ServiceCollector(lotype)) == null)
+        {
+            this.addServiceListener(lotype, _serviceCollectors.get(lotype));
+        }
+
         final ServiceInfoImpl info = new ServiceInfoImpl(type, name);
         new ServiceInfoResolver(this, info).start(_timer);
 
@@ -563,17 +563,17 @@ public class JmDNSImpl extends JmDNS
     public void addServiceListener(String type, ServiceListener listener)
     {
         final String lotype = type.toLowerCase();
-        this.removeServiceListener(lotype, listener);
         List<ServiceListener> list = _serviceListeners.get(lotype);
-        boolean listAdded = false;
         if (list == null)
         {
-            listAdded = _serviceListeners.putIfAbsent(lotype, new LinkedList<ServiceListener>()) == null;
-            list = _serviceListeners.get(lotype);
-            if (listAdded)
+            if (_serviceListeners.putIfAbsent(lotype, new LinkedList<ServiceListener>()) == null)
             {
-                _serviceCollectors.putIfAbsent(lotype, new ServiceCollector(lotype));
+                if (_serviceCollectors.putIfAbsent(lotype, new ServiceCollector(lotype)) == null)
+                {
+                    this.addServiceListener(lotype, _serviceCollectors.get(lotype));
+                }
             }
+            list = _serviceListeners.get(lotype);
         }
         synchronized (list)
         {
@@ -593,8 +593,7 @@ public class JmDNSImpl extends JmDNS
             {
                 if (record.getName().endsWith(type))
                 {
-                    serviceEvents
-                            .add(new ServiceEventImpl(this, type, toUnqualifiedName(type, record.getName()), null));
+                    serviceEvents.add(new ServiceEventImpl(this, type, toUnqualifiedName(type, record.getName()), null));
                 }
             }
         }
@@ -768,7 +767,7 @@ public class JmDNSImpl extends JmDNS
     public void registerServiceType(String type)
     {
         final String name = type.toLowerCase();
-        if (!_serviceTypes.containsKey(name) && (type.indexOf("._mdns._udp.") < 0) && !type.endsWith(".in-addr.arpa."))
+        if (!_serviceTypes.containsKey(name) && (name.indexOf("._mdns._udp.") < 0) && !name.endsWith(".in-addr.arpa."))
         {
             boolean typeAdded = _serviceTypes.putIfAbsent(name, type) == null;
             if (typeAdded)
@@ -798,8 +797,7 @@ public class JmDNSImpl extends JmDNS
             collision = false;
 
             // Check for collision in cache
-            Collection<? extends DNSEntry> entryList = this.getCache().getDNSEntryList(
-                    info.getQualifiedName().toLowerCase());
+            Collection<? extends DNSEntry> entryList = this.getCache().getDNSEntryList(info.getQualifiedName().toLowerCase());
             if (entryList != null)
             {
                 for (DNSEntry dnsEntry : entryList)
@@ -809,9 +807,7 @@ public class JmDNSImpl extends JmDNS
                         final DNSRecord.Service s = (DNSRecord.Service) dnsEntry;
                         if (s._port != info.getPort() || !s._server.equals(_localHost.getName()))
                         {
-                            logger.finer("makeServiceNameUnique() JmDNS.makeServiceNameUnique srv collision:"
-                                    + dnsEntry + " s.server=" + s._server + " " + _localHost.getName() + " equals:"
-                                    + (s._server.equals(_localHost.getName())));
+                            logger.finer("makeServiceNameUnique() JmDNS.makeServiceNameUnique srv collision:" + dnsEntry + " s.server=" + s._server + " " + _localHost.getName() + " equals:" + (s._server.equals(_localHost.getName())));
                             info.setName(incrementName(info.getName()));
                             collision = true;
                             break;
@@ -857,8 +853,7 @@ public class JmDNSImpl extends JmDNS
     }
 
     /**
-     * Add a listener for a question. The listener will receive updates of answers to the question as they arrive, or
-     * from the cache if they are already available.
+     * Add a listener for a question. The listener will receive updates of answers to the question as they arrive, or from the cache if they are already available.
      *
      * @param listener
      *            DSN listener
@@ -876,8 +871,7 @@ public class JmDNSImpl extends JmDNS
 
         if (question != null)
         {
-            Collection<? extends DNSEntry> entryList = this.getCache()
-                    .getDNSEntryList(question.getName().toLowerCase());
+            Collection<? extends DNSEntry> entryList = this.getCache().getDNSEntryList(question.getName().toLowerCase());
             if (entryList != null)
             {
                 for (DNSEntry dnsEntry : entryList)
@@ -913,22 +907,23 @@ public class JmDNSImpl extends JmDNS
      */
     public void updateRecord(long now, DNSRecord rec)
     {
-        // We do not want to block the entire DNS while we are updating the
-        // record for each listener (service info)
-        List<DNSListener> listenerList = null;
-        synchronized (_listeners)
+        // We do not want to block the entire DNS while we are updating the record for each listener (service info)
         {
-            listenerList = new ArrayList<DNSListener>(_listeners);
+            List<DNSListener> listenerList = null;
+            synchronized (_listeners)
+            {
+                listenerList = new ArrayList<DNSListener>(_listeners);
+            }
+            for (DNSListener listener : listenerList)
+            {
+                listener.updateRecord(this.getCache(), now, rec);
+            }
         }
-        for (DNSListener listener : listenerList)
-        {
-            listener.updateRecord(this.getCache(), now, rec);
-        }
+        // FIXME [PJYF Mar 21 2010] This is bad we should not call listener while probing this result in incomplete info.
         if (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()) || DNSRecordType.TYPE_SRV.equals(rec.getRecordType()))
         {
             List<ServiceListener> list = _serviceListeners.get(rec.getName().toLowerCase());
             List<ServiceListener> serviceListenerList = Collections.emptyList();
-            // Iterate on a copy in case listeners will modify it
             if (list != null)
             {
                 synchronized (list)
@@ -940,11 +935,9 @@ public class JmDNSImpl extends JmDNS
             {
                 final boolean expired = rec.isExpired(now);
                 final String type = rec.getName();
-                final String name = (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()) ? ((DNSRecord.Pointer) rec)
-                        .getAlias() : ((DNSRecord.Service) rec).getServer());
+                final String name = (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()) ? ((DNSRecord.Pointer) rec).getAlias() : ((DNSRecord.Service) rec).getServer());
                 // DNSRecord old = (DNSRecord)services.get(name.toLowerCase());
-                final ServiceEvent event = new ServiceEventImpl(this, type, toUnqualifiedName(type, name), rec
-                        .getServiceInfo());
+                final ServiceEvent event = new ServiceEventImpl(this, type, toUnqualifiedName(type, name), rec.getServiceInfo());
                 if (!expired)
                 {
                     // new record
@@ -1095,8 +1088,7 @@ public class JmDNSImpl extends JmDNS
      * @return outgoing answer
      * @throws IOException
      */
-    public DNSOutgoing addAnswer(DNSIncoming in, InetAddress addr, int port, DNSOutgoing out, DNSRecord rec)
-            throws IOException
+    public DNSOutgoing addAnswer(DNSIncoming in, InetAddress addr, int port, DNSOutgoing out, DNSRecord rec) throws IOException
     {
         DNSOutgoing newOut = out;
         if (newOut == null)
@@ -1364,27 +1356,11 @@ public class JmDNSImpl extends JmDNS
             }
         }
 
-        // After creating a new ServiceCollector, we collect service infos for
-        // 200 milliseconds. This should be enough time, to get some service
-        // infos from the network.
-        if (newCollectorCreated)
-        {
-            try
-            {
-                Thread.sleep(200);
-            }
-            catch (final InterruptedException e)
-            {
-                /* Stub */
-            }
-        }
-
-        return collector.list();
+        return collector.list(200L);
     }
 
     /**
-     * This method disposes all ServiceCollector instances which have been created by calls to method
-     * <code>list(type)</code>.
+     * This method disposes all ServiceCollector instances which have been created by calls to method <code>list(type)</code>.
      *
      * @see #list
      */
@@ -1418,11 +1394,14 @@ public class JmDNSImpl extends JmDNS
 
         private final String _type;
 
+        private final AtomicBoolean _shoudlWaitForList;
+
         public ServiceCollector(String type)
         {
             super();
             _infos = new ConcurrentHashMap<String, ServiceInfo>();
             _type = type;
+            _shoudlWaitForList = new AtomicBoolean(true);
         }
 
         /**
@@ -1434,6 +1413,7 @@ public class JmDNSImpl extends JmDNS
         public void serviceAdded(ServiceEvent event)
         {
             event.getDNS().requestServiceInfo(event.getType(), event.getName(), 0);
+            _shoudlWaitForList.set(true);
         }
 
         /**
@@ -1461,10 +1441,37 @@ public class JmDNSImpl extends JmDNS
         /**
          * Returns an array of all service infos which have been collected by this ServiceCollector.
          *
+         * @param timeout
+         *            timeout if the info list is empty.
+         *
          * @return Service Info array
          */
-        public ServiceInfo[] list()
+        public ServiceInfo[] list(long timeout)
         {
+            if (_infos.isEmpty())
+            {
+                if (_shoudlWaitForList.get())
+                {
+                    long loops = (timeout / 200L) + 1;
+                    for (int i = 0; i < loops; i++)
+                    {
+                        try
+                        {
+                            Thread.sleep(200);
+                        }
+                        catch (final InterruptedException e)
+                        {
+                            /* Stub */
+                        }
+                        if (!_infos.isEmpty())
+                        {
+                            // System.err.println("JmDNSImpl.Collector timeout: " + i * 200 + "ms.");
+                            break;
+                        }
+                    }
+                    _shoudlWaitForList.set(false);
+                }
+            }
             return _infos.values().toArray(new ServiceInfo[_infos.size()]);
         }
 
@@ -1472,16 +1479,23 @@ public class JmDNSImpl extends JmDNS
         public String toString()
         {
             final StringBuffer aLog = new StringBuffer();
-            aLog.append("\n\ttype: " + _type);
-            for (String key : _infos.keySet())
+            aLog.append("\n\tType: " + _type);
+            if (_infos.isEmpty())
             {
-                aLog.append("\n\t\tService: " + key + ": " + _infos.get(key));
+                aLog.append("\n\tNo services collected.");
+            }
+            else
+            {
+                for (String key : _infos.keySet())
+                {
+                    aLog.append("\n\t\tService: " + key + ": " + _infos.get(key));
+                }
             }
             return aLog.toString();
         }
     }
 
-    private static String toUnqualifiedName(String type, String qualifiedName)
+    static String toUnqualifiedName(String type, String qualifiedName)
     {
         if (qualifiedName.endsWith(type))
         {

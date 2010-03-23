@@ -23,12 +23,10 @@ import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSState;
 
 /**
- * The Prober sends three consecutive probes for all service infos that needs probing as well as for the host name. The
- * state of each service info of the host name is advanced, when a probe has been sent for it. When the prober has run
- * three times, it launches an Announcer.
+ * The Prober sends three consecutive probes for all service infos that needs probing as well as for the host name. The state of each service info of the host name is advanced, when a probe has been sent for it. When the prober has run three times,
+ * it launches an Announcer.
  * <p/>
- * If a conflict during probes occurs, the affected service infos (and affected host name) are taken away from the
- * prober. This eventually causes the prober tho cancel itself.
+ * If a conflict during probes occurs, the affected service infos (and affected host name) are taken away from the prober. This eventually causes the prober to cancel itself.
  */
 public class Prober extends DNSTask
 {
@@ -50,8 +48,7 @@ public class Prober extends DNSTask
         // Associate services to this, if they need probing
         synchronized (this._jmDNSImpl)
         {
-            for (Iterator<? extends ServiceInfo> iterator = this._jmDNSImpl.getServices().values().iterator(); iterator
-                    .hasNext();)
+            for (Iterator<? extends ServiceInfo> iterator = this._jmDNSImpl.getServices().values().iterator(); iterator.hasNext();)
             {
                 ServiceInfoImpl info = (ServiceInfoImpl) iterator.next();
                 if (info.getState() == DNSState.PROBING_1)
@@ -75,11 +72,9 @@ public class Prober extends DNSTask
         }
         this._jmDNSImpl.setLastThrottleIncrement(now);
 
-        if (this._jmDNSImpl.getState() == DNSState.ANNOUNCED
-                && this._jmDNSImpl.getThrottle() < DNSConstants.PROBE_THROTTLE_COUNT)
+        if (this._jmDNSImpl.getState() == DNSState.ANNOUNCED && this._jmDNSImpl.getThrottle() < DNSConstants.PROBE_THROTTLE_COUNT)
         {
-            timer.schedule(this, JmDNSImpl.getRandom().nextInt(1 + DNSConstants.PROBE_WAIT_INTERVAL),
-                    DNSConstants.PROBE_WAIT_INTERVAL);
+            timer.schedule(this, JmDNSImpl.getRandom().nextInt(1 + DNSConstants.PROBE_WAIT_INTERVAL), DNSConstants.PROBE_WAIT_INTERVAL);
         }
         else if (this._jmDNSImpl.getState() != DNSState.CANCELED)
         {
@@ -127,16 +122,13 @@ public class Prober extends DNSTask
                     // {
                     // }
                     out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                    out.addQuestion(new DNSQuestion(this._jmDNSImpl.getLocalHost().getName(), DNSRecordType.TYPE_ANY,
-                            DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                    out.addQuestion(new DNSQuestion(this._jmDNSImpl.getLocalHost().getName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
 
                     this._jmDNSImpl.getLocalHost().addAddressRecords(out, true);
                     this._jmDNSImpl.advanceState();
                 }
                 // send probes for services
-                // Defensively copy the services into a local list,
-                // to prevent race conditions with methods registerService
-                // and unregisterService.
+                // Defensively copy the services into a local list, to prevent race conditions with methods registerService and unregisterService.
                 List<? extends ServiceInfo> list;
                 synchronized (this._jmDNSImpl)
                 {
@@ -155,15 +147,12 @@ public class Prober extends DNSTask
                             if (out == null)
                             {
                                 out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                                out.addQuestion(new DNSQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY,
-                                        DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                                out.addQuestion(new DNSQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
                             }
                             // the "unique" flag should be not set here because these answers haven't been proven unique
                             // yet this means the record will not exactly match the announcement record
-                            out.addAuthorativeAnswer(new DNSRecord.Service(info.getQualifiedName(),
-                                    DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE,
-                                    DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(),
-                                    this._jmDNSImpl.getLocalHost().getName()));
+                            out.addAuthorativeAnswer(new DNSRecord.Service(info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info
+                                    .getPort(), this._jmDNSImpl.getLocalHost().getName()));
                         }
                     }
                 }

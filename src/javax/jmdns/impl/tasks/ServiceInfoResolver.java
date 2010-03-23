@@ -19,11 +19,9 @@ import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSState;
 
 /**
- * The ServiceInfoResolver queries up to three times consecutively for a service info, and then removes itself from the
- * timer.
+ * The ServiceInfoResolver queries up to three times consecutively for a service info, and then removes itself from the timer.
  * <p/>
- * The ServiceInfoResolver will run only if JmDNS is in state ANNOUNCED. REMIND: Prevent having multiple service
- * resolvers for the same info in the timer queue.
+ * The ServiceInfoResolver will run only if JmDNS is in state ANNOUNCED. REMIND: Prevent having multiple service resolvers for the same info in the timer queue.
  */
 public class ServiceInfoResolver extends DNSTask
 {
@@ -40,8 +38,7 @@ public class ServiceInfoResolver extends DNSTask
         super(jmDNSImpl);
         this._info = info;
         info.setDns(this._jmDNSImpl);
-        this._jmDNSImpl.addListener(info, new DNSQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY,
-                DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+        this._jmDNSImpl.addListener(info, new DNSQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
     }
 
     public void start(Timer timer)
@@ -63,23 +60,17 @@ public class ServiceInfoResolver extends DNSTask
                 {
                     long now = System.currentTimeMillis();
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                    out.addQuestion(new DNSQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_SRV,
-                            DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-                    out.addQuestion(new DNSQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_TXT,
-                            DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                    out.addQuestion(new DNSQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                    out.addQuestion(new DNSQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
                     if (_info.getServer() != null)
                     {
-                        out.addQuestion(new DNSQuestion(_info.getServer(), DNSRecordType.TYPE_A,
-                                DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                        out.addQuestion(new DNSQuestion(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
                     }
-                    out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getQualifiedName(),
-                            DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN), now);
-                    out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getQualifiedName(),
-                            DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN), now);
+                    out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN), now);
+                    out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN), now);
                     if (_info.getServer() != null)
                     {
-                        out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getServer(),
-                                DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN), now);
+                        out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN), now);
                     }
                     this._jmDNSImpl.send(out);
                 }
