@@ -143,8 +143,7 @@ public abstract class DNSMessage
 
     public Collection<? extends DNSRecord> getAllAnswers()
     {
-        List<DNSRecord> aList = new ArrayList<DNSRecord>(_answers.size() + _authoritativeAnswers.size()
-                + _additionals.size());
+        List<DNSRecord> aList = new ArrayList<DNSRecord>(_answers.size() + _authoritativeAnswers.size() + _additionals.size());
         aList.addAll(_answers);
         aList.addAll(_authoritativeAnswers);
         aList.addAll(_additionals);
@@ -236,8 +235,33 @@ public abstract class DNSMessage
      */
     public boolean isEmpty()
     {
-        return (this.getNumberOfQuestions() + this.getNumberOfAnswers() + this.getNumberOfAuthorities() + this
-                .getNumberOfAdditionals()) == 0;
+        return (this.getNumberOfQuestions() + this.getNumberOfAnswers() + this.getNumberOfAuthorities() + this.getNumberOfAdditionals()) == 0;
+    }
+
+    /**
+     * Debugging.
+     */
+    String print()
+    {
+        StringBuffer buf = new StringBuffer();
+        buf.append(this.toString() + "\n");
+        for (DNSQuestion question : _questions)
+        {
+            buf.append("    ques:" + question + "\n");
+        }
+        for (DNSRecord answer : _answers)
+        {
+            buf.append("    answ:" + answer + "\n");
+        }
+        for (DNSRecord answer : _authoritativeAnswers)
+        {
+            buf.append("    auth:" + answer + "\n");
+        }
+        for (DNSRecord answer : _additionals)
+        {
+            buf.append("    addi:" + answer + "\n");
+        }
+        return buf.toString();
     }
 
 }

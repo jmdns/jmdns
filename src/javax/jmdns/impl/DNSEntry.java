@@ -194,7 +194,7 @@ public abstract class DNSEntry
     {
         StringBuilder aLog = new StringBuilder();
         aLog.append("[ " + this.getClass().getName());
-        aLog.append(" [type: " + this.getRecordType());
+        aLog.append(" type: " + this.getRecordType());
         aLog.append(", class: " + this.getRecordClass());
         aLog.append((_unique ? "-unique," : ","));
         aLog.append(" name: " + _name);

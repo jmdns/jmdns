@@ -363,23 +363,7 @@ public final class DNSIncoming extends DNSMessage
     String print(boolean dump)
     {
         StringBuffer buf = new StringBuffer();
-        buf.append(toString() + "\n");
-        for (DNSQuestion question : _questions)
-        {
-            buf.append("    ques:" + question + "\n");
-        }
-        for (DNSRecord answer : _answers)
-        {
-            buf.append("    answ:" + answer + "\n");
-        }
-        for (DNSRecord answer : _authoritativeAnswers)
-        {
-            buf.append("    auth:" + answer + "\n");
-        }
-        for (DNSRecord answer : _additionals)
-        {
-            buf.append("    addi:" + answer + "\n");
-        }
+        buf.append(this.print());
         if (dump)
         {
             for (int off = 0, len = _packet.getLength(); off < len; off += 32)
@@ -440,13 +424,13 @@ public final class DNSIncoming extends DNSMessage
         }
         buf.append(':');
         buf.append(_packet.getPort());
-        buf.append(",len=");
+        buf.append(", len=");
         buf.append(_packet.getLength());
-        buf.append(",id=0x");
+        buf.append(", id=0x");
         buf.append(Integer.toHexString(_id));
         if (_flags != 0)
         {
-            buf.append(",flags=0x");
+            buf.append(", flags=0x");
             buf.append(Integer.toHexString(_flags));
             if ((_flags & DNSConstants.FLAGS_QR_RESPONSE) != 0)
             {

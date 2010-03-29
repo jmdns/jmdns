@@ -1,37 +1,34 @@
-Document: draft-cheshire-dnsext-nbp-07.txt               Stuart Cheshire
+Document: draft-cheshire-dnsext-nbp-08.txt               Stuart Cheshire
 Internet-Draft                                             Marc Krochmal
 Category: Informational                                       Apple Inc.
-Expires: 17 May 2009                                    17 November 2008
+Expires: 8 September 2010                                   8 March 2010
 
-                  Requirements for Replacing AppleTalk
+          Requirements for a Protocol to Replace AppleTalk NBP
 
-                   <draft-cheshire-dnsext-nbp-07.txt>
+                   <draft-cheshire-dnsext-nbp-08.txt>
 
 Status of this Memo
 
-   By submitting this Internet-Draft, each author represents that any
-   applicable patent or other IPR claims of which he or she is aware
-   have been or will be disclosed, and any of which he or she becomes
-   aware will be disclosed, in accordance with Section 6 of BCP 79.
-   For the purposes of this document, the term "BCP 79" refers
-   exclusively to RFC 3979, "Intellectual Property Rights in IETF
-   Technology", published March 2005.
+   This Internet-Draft is submitted to IETF in full conformance with the
+   provisions of BCP 78 and BCP 79.
 
    Internet-Drafts are working documents of the Internet Engineering
-   Task Force (IETF), its areas, and its working groups. Note that
+   Task Force (IETF), its areas, and its working groups.  Note that
    other groups may also distribute working documents as Internet-
    Drafts.
 
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
-   time. It is inappropriate to use Internet-Drafts as reference
+   time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
    The list of current Internet-Drafts can be accessed at
-   http://www.ietf.org/1id-abstracts.html
+   http://www.ietf.org/ietf/1id-abstracts.txt.
 
    The list of Internet-Draft Shadow Directories can be accessed at
-   http://www.ietf.org/shadow.html
+   http://www.ietf.org/shadow.html.
+
+   This Internet-Draft will expire on 8th September 2010.
 
 
 Abstract
@@ -55,9 +52,12 @@ Abstract
 
 
 
-Expires 17th May 2009               Cheshire                    [Page 1]
+
+
+
+Expires 8th September 2010          Cheshire                    [Page 1]
 
-Internet Draft       Replacement of AppleTalk         17th November 2008
+Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 Table of Contents
@@ -113,9 +113,9 @@ Table of Contents
 
 
 
-Expires 17th May 2009               Cheshire                    [Page 2]
+Expires 8th September 2010          Cheshire                    [Page 2]
 
-Internet Draft       Replacement of AppleTalk         17th November 2008
+Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 1. Introduction
@@ -171,9 +171,9 @@ Internet Draft       Replacement of AppleTalk         17th November 2008
 
 
 
-Expires 17th May 2009               Cheshire                    [Page 3]
+Expires 8th September 2010          Cheshire                    [Page 3]
 
-Internet Draft       Replacement of AppleTalk         17th November 2008
+Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 2. Zero Configuration Networking
@@ -229,9 +229,9 @@ Internet Draft       Replacement of AppleTalk         17th November 2008
 
 
 
-Expires 17th May 2009               Cheshire                    [Page 4]
+Expires 8th September 2010          Cheshire                    [Page 4]
 
-Internet Draft       Replacement of AppleTalk         17th November 2008
+Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 3. Requirements
@@ -287,9 +287,9 @@ Internet Draft       Replacement of AppleTalk         17th November 2008
    implements those services. There may be a single machine hosting both
 
 
-Expires 17th May 2009               Cheshire                    [Page 5]
+Expires 8th September 2010          Cheshire                    [Page 5]
 
-Internet Draft       Replacement of AppleTalk         17th November 2008
+Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
    services, or there may be two separate machines. The end user doesn't
@@ -345,9 +345,9 @@ Internet Draft       Replacement of AppleTalk         17th November 2008
    host. In contrast, if an lpr print server offers three print queues,
 
 
-Expires 17th May 2009               Cheshire                    [Page 6]
+Expires 8th September 2010          Cheshire                    [Page 6]
 
-Internet Draft       Replacement of AppleTalk         17th November 2008
+Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
    all three print queues are typically reached through the same
@@ -403,9 +403,9 @@ Internet Draft       Replacement of AppleTalk         17th November 2008
 
 
 
-Expires 17th May 2009               Cheshire                    [Page 7]
+Expires 8th September 2010          Cheshire                    [Page 7]
 
-Internet Draft       Replacement of AppleTalk         17th November 2008
+Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 3.4 Typed Name Space
@@ -461,9 +461,9 @@ Internet Draft       Replacement of AppleTalk         17th November 2008
 
 
 
-Expires 17th May 2009               Cheshire                    [Page 8]
+Expires 8th September 2010          Cheshire                    [Page 8]
 
-Internet Draft       Replacement of AppleTalk         17th November 2008
+Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 3.5 User-Friendly Names
@@ -519,9 +519,9 @@ Internet Draft       Replacement of AppleTalk         17th November 2008
 
 
 
-Expires 17th May 2009               Cheshire                    [Page 9]
+Expires 8th September 2010          Cheshire                    [Page 9]
 
-Internet Draft       Replacement of AppleTalk         17th November 2008
+Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 3.7 Name Space Management
@@ -577,9 +577,9 @@ Internet Draft       Replacement of AppleTalk         17th November 2008
    then assume that the names will remain unique indefinitely.
 
 
-Expires 17th May 2009               Cheshire                   [Page 10]
+Expires 8th September 2010          Cheshire                   [Page 10]
 
-Internet Draft       Replacement of AppleTalk         17th November 2008
+Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
    If the Zeroconf naming mechanism is integrated with the existing
@@ -635,9 +635,9 @@ Internet Draft       Replacement of AppleTalk         17th November 2008
    protocol(s).
 
 
-Expires 17th May 2009               Cheshire                   [Page 11]
+Expires 8th September 2010          Cheshire                   [Page 11]
 
-Internet Draft       Replacement of AppleTalk         17th November 2008
+Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 3.11 Browsing and Registration Guidance
@@ -693,9 +693,9 @@ Internet Draft       Replacement of AppleTalk         17th November 2008
 
 
 
-Expires 17th May 2009               Cheshire                   [Page 12]
+Expires 8th September 2010          Cheshire                   [Page 12]
 
-Internet Draft       Replacement of AppleTalk         17th November 2008
+Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 3.13 Protocol Agnostic
@@ -751,9 +751,9 @@ Internet Draft       Replacement of AppleTalk         17th November 2008
 
 
 
-Expires 17th May 2009               Cheshire                   [Page 13]
+Expires 8th September 2010          Cheshire                   [Page 13]
 
-Internet Draft       Replacement of AppleTalk         17th November 2008
+Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 4. Existing Protocols
@@ -809,9 +809,9 @@ Internet Draft       Replacement of AppleTalk         17th November 2008
 
 
 
-Expires 17th May 2009               Cheshire                   [Page 14]
+Expires 8th September 2010          Cheshire                   [Page 14]
 
-Internet Draft       Replacement of AppleTalk         17th November 2008
+Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 7. IANA Considerations
@@ -835,62 +835,52 @@ Internet Draft       Replacement of AppleTalk         17th November 2008
 
 8. Copyright Notice
 
-   Copyright (C) The IETF Trust (2008).
+   Copyright (c) 2010 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
 
-   This document is subject to the rights, licenses and restrictions
-   contained in BCP 78, and except as set forth therein, the authors
-   retain all their rights.
-
-   This document and the information contained herein are provided on an
-   "AS IS" basis and THE CONTRIBUTOR, THE ORGANIZATION HE/SHE REPRESENTS
-   OR IS SPONSORED BY (IF ANY), THE INTERNET SOCIETY, THE IETF TRUST AND
-   THE INTERNET ENGINEERING TASK FORCE DISCLAIM ALL WARRANTIES, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF
-   THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
-   WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.
 
 
-9. Intellectual Property Notice
-
-   The IETF takes no position regarding the validity or scope of any
-   Intellectual Property Rights or other rights that might be claimed to
-   pertain to the implementation or use of the technology described in
-   this document or the extent to which any license under such rights
-   might or might not be available; nor does it represent that it has
-   made any independent effort to identify any such rights.  Information
-   on the procedures with respect to rights in RFC documents can be
-   found in BCP 78 and BCP 79.
-
-   Copies of IPR disclosures made to the IETF Secretariat and any
-   assurances of licenses to be made available, or the result of an
-   attempt made to obtain a general license or permission for the use of
-   such proprietary rights by implementers or users of this
 
 
-Expires 17th May 2009               Cheshire                   [Page 15]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Expires 8th September 2010          Cheshire                   [Page 15]
 
-Internet Draft       Replacement of AppleTalk         17th November 2008
-
-
-   specification can be obtained from the IETF on-line IPR repository at
-   http://www.ietf.org/ipr.
-
-   The IETF invites any interested party to bring to its attention any
-   copyrights, patents or patent applications, or other proprietary
-   rights that may cover technology that may be required to implement
-   this standard.  Please address the information to the IETF at
-   ietf-ipr@ietf.org.
+Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 10. Informative References
 
    [DNS-SD]   Cheshire, S., and M. Krochmal, "DNS-Based Service
               Discovery", Internet-Draft (work in progress),
-              draft-cheshire-dnsext-dns-sd-05.txt, September 2008.
+              draft-cheshire-dnsext-dns-sd-06.txt, March 2010.
 
    [mDNS]     Cheshire, S., and M. Krochmal, "Multicast DNS",
               Internet-Draft (work in progress),
-              draft-cheshire-dnsext-multicastdns-07.txt, September 2008.
+              draft-cheshire-dnsext-multicastdns-09.txt, March 2010.
 
    [RFC 792]  Postel, J., "Internet Control Message Protocol",
               STD 5, RFC 792,September 1981.
@@ -925,9 +915,19 @@ Internet Draft       Replacement of AppleTalk         17th November 2008
 
 
 
-Expires 17th May 2009               Cheshire                   [Page 16]
+
+
+
+
+
+
+
+
+
+
+Expires 8th September 2010          Cheshire                   [Page 16]
 
-Internet Draft       Replacement of AppleTalk         17th November 2008
+Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 11. Author's Address
@@ -983,4 +983,4 @@ Internet Draft       Replacement of AppleTalk         17th November 2008
 
 
 
-Expires 17th May 2009               Cheshire                   [Page 17]
+Expires 8th September 2010          Cheshire                   [Page 17]
