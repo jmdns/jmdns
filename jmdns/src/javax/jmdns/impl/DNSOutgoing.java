@@ -22,8 +22,7 @@ import javax.jmdns.impl.constants.DNSRecordClass;
 public final class DNSOutgoing extends DNSMessage
 {
     /**
-     * This can be used to turn off domain name compression. This was helpful for tracking problems interacting with
-     * other mdns implementations.
+     * This can be used to turn off domain name compression. This was helpful for tracking problems interacting with other mdns implementations.
      */
     public static boolean USE_DOMAIN_NAME_COMPRESSION = true;
 
@@ -302,8 +301,7 @@ public final class DNSOutgoing extends DNSMessage
         {
             writeName(rec.getName());
             writeShort(rec.getRecordType().indexValue());
-            writeShort(rec.getRecordClass().indexValue()
-                    | ((rec.isUnique() && this.isMulticast()) ? DNSRecordClass.CLASS_UNIQUE : 0));
+            writeShort(rec.getRecordClass().indexValue() | ((rec.isUnique() && this.isMulticast()) ? DNSRecordClass.CLASS_UNIQUE : 0));
             writeInt((now == 0) ? rec.getTTL() : rec.getRemainingTTL(now));
             writeShort(0);
             int start = _off;
@@ -346,17 +344,12 @@ public final class DNSOutgoing extends DNSMessage
     public String toString()
     {
         StringBuffer buf = new StringBuffer();
-        buf.append(isQuery() ? "dns[query," : "dns[response,");
-        // buf.append(packet.getAddress().getHostAddress());
-        buf.append(':');
-        // buf.append(packet.getPort());
-        // buf.append(",len=");
-        // buf.append(packet.getLength());
-        buf.append(",id=0x");
+        buf.append(isQuery() ? "dns[query:" : "dns[response:");
+        buf.append(" id=0x");
         buf.append(Integer.toHexString(_id));
         if (_flags != 0)
         {
-            buf.append(",flags=0x");
+            buf.append(", flags=0x");
             buf.append(Integer.toHexString(_flags));
             if ((_flags & DNSConstants.FLAGS_QR_RESPONSE) != 0)
             {
@@ -373,28 +366,84 @@ public final class DNSOutgoing extends DNSMessage
         }
         if (this.getNumberOfQuestions() > 0)
         {
-            buf.append(",questions=");
+            buf.append(", questions=");
             buf.append(this.getNumberOfQuestions());
         }
         if (this.getNumberOfAnswers() > 0)
         {
-            buf.append(",answers=");
+            buf.append(", answers=");
             buf.append(this.getNumberOfAnswers());
         }
         if (this.getNumberOfAuthorities() > 0)
         {
-            buf.append(",authorities=");
+            buf.append(", authorities=");
             buf.append(this.getNumberOfAuthorities());
         }
         if (this.getNumberOfAdditionals() > 0)
         {
-            buf.append(",additionals=");
+            buf.append(", additionals=");
             buf.append(this.getNumberOfAdditionals());
         }
         buf.append(",\nnames=" + _names);
         buf.append(",\nauthorativeAnswers=" + _authoritativeAnswers);
 
         buf.append("]");
+        return buf.toString();
+    }
+
+    /**
+     * Debugging.
+     */
+    String print(boolean dump)
+    {
+        StringBuffer buf = new StringBuffer();
+        buf.append(this.print());
+        if (dump)
+        {
+            for (int off = 0, len = _data.length; off < len; off += 32)
+            {
+                int n = Math.min(32, len - off);
+                if (off < 10)
+                {
+                    buf.append(' ');
+                }
+                if (off < 100)
+                {
+                    buf.append(' ');
+                }
+                buf.append(off);
+                buf.append(':');
+                for (int i = 0; i < n; i++)
+                {
+                    if ((i % 8) == 0)
+                    {
+                        buf.append(' ');
+                    }
+                    buf.append(Integer.toHexString((_data[off + i] & 0xF0) >> 4));
+                    buf.append(Integer.toHexString((_data[off + i] & 0x0F) >> 0));
+                }
+                buf.append("\n");
+                buf.append("    ");
+                for (int i = 0; i < n; i++)
+                {
+                    if ((i % 8) == 0)
+                    {
+                        buf.append(' ');
+                    }
+                    buf.append(' ');
+                    int ch = _data[off + i] & 0xFF;
+                    buf.append(((ch > ' ') && (ch < 127)) ? (char) ch : '.');
+                }
+                buf.append("\n");
+
+                // limit message size
+                if (off + 32 >= 256)
+                {
+                    buf.append("....\n");
+                    break;
+                }
+            }
+        }
         return buf.toString();
     }
 

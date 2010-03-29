@@ -35,9 +35,7 @@ public final class DNSQuestion extends DNSEntry
      */
     boolean answeredBy(DNSEntry rec)
     {
-        return (this.getRecordClass() == rec.getRecordClass())
-                && ((this.getRecordType() == rec.getRecordType()) || DNSRecordType.TYPE_ANY
-                        .equals(this.getRecordType())) && this.getName().equals(rec.getName());
+        return (this.getRecordClass() == rec.getRecordClass()) && ((this.getRecordType() == rec.getRecordType()) || DNSRecordType.TYPE_ANY.equals(this.getRecordType())) && this.getName().equals(rec.getName());
     }
 
     /*
@@ -49,6 +47,17 @@ public final class DNSQuestion extends DNSEntry
     boolean isExpired(long now)
     {
         return false;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSEntry#toString(java.lang.StringBuilder)
+     */
+    @Override
+    public void toString(StringBuilder aLog)
+    {
+        // do nothing
     }
 
 }

@@ -30,28 +30,28 @@ public class Canceler extends DNSTask
      */
     int _count = 0;
     /**
-     * The services that need cancelling. Note: We have to use a local variable here, because the services that are
-     * canceled, are removed immediately from variable JmDNS.services.
+     * The services that need cancelling. Note: We have to use a local variable here, because the services that are canceled, are removed immediately from variable JmDNS.services.
      */
     private ServiceInfoImpl[] _infos;
     /**
-     * We call notifyAll() on the lock object, when we have canceled the service infos. This is used by method
-     * JmDNS.unregisterService() and JmDNS.unregisterAllServices, to ensure that the JmDNS socket stays open until the
-     * Canceler has canceled all services.
+     * We call notifyAll() on the lock object, when we have canceled the service infos. This is used by method JmDNS.unregisterService() and JmDNS.unregisterAllServices, to ensure that the JmDNS socket stays open until the Canceler has canceled all
+     * services.
      * <p/>
-     * Note: We need this lock, because ServiceInfos do the transition from state ANNOUNCED to state CANCELED before we
-     * get here. We could get rid of this lock, if we added a state named CANCELLING to DNSState.
+     * Note: We need this lock, because ServiceInfos do the transition from state ANNOUNCED to state CANCELED before we get here. We could get rid of this lock, if we added a state named CANCELLING to DNSState.
      */
     private Object _lock;
-    int _ttl = 0;
+
+    /**
+     * By setting a 0 ttl we effectively expire the record.
+     */
+    private final int _ttl = 0;
 
     public Canceler(JmDNSImpl jmDNSImpl, ServiceInfoImpl info, Object lock)
     {
         super(jmDNSImpl);
         this._infos = new ServiceInfoImpl[] { info };
         this._lock = lock;
-        this._jmDNSImpl.addListener(info, new DNSQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY,
-                DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+        this._jmDNSImpl.addListener(info, new DNSQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
     }
 
     public Canceler(JmDNSImpl jmDNSImpl, ServiceInfoImpl[] infos, Object lock)

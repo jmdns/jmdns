@@ -110,7 +110,8 @@ public class Prober extends DNSTask
     @Override
     public void run()
     {
-        synchronized (this._jmDNSImpl.getIoLock())
+        this._jmDNSImpl.ioLock();
+        try
         {
             DNSOutgoing out = null;
             try
@@ -163,8 +164,7 @@ public class Prober extends DNSTask
                 }
                 else
                 {
-                    // If we have nothing to send, another timer taskState ahead
-                    // of us has done the job for us. We can cancel.
+                    // If we have nothing to send, another timer taskState ahead of us has done the job for us. We can cancel.
                     cancel();
                     return;
                 }
@@ -182,6 +182,10 @@ public class Prober extends DNSTask
 
                 this._jmDNSImpl.startAnnouncer();
             }
+        }
+        finally
+        {
+            this._jmDNSImpl.ioUnlock();
         }
     }
 

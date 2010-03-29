@@ -627,8 +627,7 @@ public abstract class DNSRecord extends DNSEntry
                 DNSRecord.Service localService = new DNSRecord.Service(info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(), dns
                         .getLocalHost().getName());
 
-                // This block is useful for debugging race conditions when jmdns is respoding to
-                // itself.
+                // This block is useful for debugging race conditions when jmdns is responding to itself.
                 try
                 {
                     if (dns.getInterface().equals(getRecordSource()))
@@ -646,7 +645,7 @@ public abstract class DNSRecord extends DNSEntry
                 if (comparison == 0)
                 {
                     // the 2 records are identical this probably means we are seeing our own record.
-                    // With mutliple interfaces on a single computer it is possible to see our
+                    // With multiple interfaces on a single computer it is possible to see our
                     // own records come in on different interfaces than the ones they were sent on.
                     // see section "10. Conflict Resolution" of mdns draft spec.
                     logger1.finer("handleQuery() Ignoring a identical service query");

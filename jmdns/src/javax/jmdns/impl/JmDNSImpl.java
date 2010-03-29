@@ -22,6 +22,7 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -145,7 +146,7 @@ public class JmDNSImpl extends JmDNS
     /**
      * This lock is used to coordinate processing of incoming and outgoing messages. This is needed, because the Rendezvous Conformance Test does not forgive race conditions.
      */
-    private Object _ioLock = new Object();
+    private final ReentrantLock _ioLock = new ReentrantLock();
 
     /**
      * If an incoming package which needs an answer is truncated, we store it here. We add more incoming DNSRecords to it, until the JmDNS.Responder timer picks it up. Remind: This does not work well with multiple planned answers for packages that
@@ -173,23 +174,18 @@ public class JmDNSImpl extends JmDNS
      */
     private final ConcurrentMap<String, ServiceCollector> _serviceCollectors;
 
-    /**
-     * Create an instance of JmDNS.
-     *
-     * @throws IOException
-     */
-    public JmDNSImpl() throws IOException
-    {
-        this(null);
-    }
+    private final String _name;
 
     /**
      * Create an instance of JmDNS and bind it to a specific network interface given its IP-address.
      *
      * @param address
+     *            IP address to bind to.
+     * @param name
+     *            name of the newly created JmDNS
      * @throws IOException
      */
-    public JmDNSImpl(InetAddress address) throws IOException
+    public JmDNSImpl(InetAddress address, String name) throws IOException
     {
         super();
         logger.finer("JmDNS instance created");
@@ -253,6 +249,7 @@ public class JmDNSImpl extends JmDNS
             this.openMulticastSocket(getLocalHost());
             this.start(this.getServices().values());
         }
+        _name = (name != null ? name : _localHost.getName());
     }
 
     private void start(Collection<? extends ServiceInfo> serviceInfos)
@@ -383,6 +380,17 @@ public class JmDNSImpl extends JmDNS
     /*
      * (non-Javadoc)
      *
+     * @see javax.jmdns.JmDNS#getName()
+     */
+    @Override
+    public String getName()
+    {
+        return _name;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see javax.jmdns.JmDNS#getHostName()
      */
     @Override
@@ -420,7 +428,7 @@ public class JmDNSImpl extends JmDNS
     @Override
     public ServiceInfo getServiceInfo(String type, String name)
     {
-        return this.getServiceInfo(type, name, 3 * 1000);
+        return this.getServiceInfo(type, name, 5 * 1000);
     }
 
     /*
@@ -441,21 +449,28 @@ public class JmDNSImpl extends JmDNS
         final ServiceInfoImpl info = new ServiceInfoImpl(type, name);
         new ServiceInfoResolver(this, info).start(_timer);
 
-        try
+        synchronized (info)
         {
-            synchronized (info)
+            long loops = (timeout / 200L);
+            if (loops < 1)
             {
-                final long end = System.currentTimeMillis() + timeout;
-                long delay;
-                while (!info.hasData() && (delay = end - System.currentTimeMillis()) > 0)
+                loops = 1;
+            }
+            for (int i = 0; i < loops; i++)
+            {
+                try
                 {
-                    info.wait(delay);
+                    info.wait(200);
+                }
+                catch (final InterruptedException e)
+                {
+                    /* Stub */
+                }
+                if (info.hasData())
+                {
+                    break;
                 }
             }
-        }
-        catch (final InterruptedException e)
-        {
-            // empty
         }
 
         return (info.hasData()) ? info : null;
@@ -469,7 +484,7 @@ public class JmDNSImpl extends JmDNS
     @Override
     public void requestServiceInfo(String type, String name)
     {
-        this.requestServiceInfo(type, name, 3 * 1000);
+        this.requestServiceInfo(type, name, 5 * 1000);
     }
 
     /*
@@ -490,21 +505,28 @@ public class JmDNSImpl extends JmDNS
         final ServiceInfoImpl info = new ServiceInfoImpl(type, name);
         new ServiceInfoResolver(this, info).start(_timer);
 
-        try
+        synchronized (info)
         {
-            synchronized (info)
+            long loops = (timeout / 200L);
+            if (loops < 1)
             {
-                final long end = System.currentTimeMillis() + timeout;
-                long delay;
-                while (!info.hasData() && (delay = end - System.currentTimeMillis()) > 0)
+                loops = 1;
+            }
+            for (int i = 0; i < loops; i++)
+            {
+                try
                 {
-                    info.wait(delay);
+                    info.wait(200);
+                }
+                catch (final InterruptedException e)
+                {
+                    /* Stub */
+                }
+                if (info.hasData())
+                {
+                    break;
                 }
             }
-        }
-        catch (final InterruptedException e)
-        {
-            // empty
         }
     }
 
@@ -1067,7 +1089,6 @@ public class JmDNSImpl extends JmDNS
             {
                 _plannedAnswer = in;
             }
-
             new Responder(this, in, addr, port).start();
         }
 
@@ -1317,6 +1338,22 @@ public class JmDNSImpl extends JmDNS
     @Override
     public ServiceInfo[] list(String type)
     {
+        return this.list(type, 6000);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.JmDNS#list(java.lang.String)
+     */
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.JmDNS#list(java.lang.String, int)
+     */
+    @Override
+    public ServiceInfo[] list(String type, int timeout)
+    {
         // Implementation note: The first time a list for a given type is
         // requested, a ServiceCollector is created which collects service
         // infos. This greatly speeds up the performance of subsequent calls
@@ -1356,7 +1393,7 @@ public class JmDNSImpl extends JmDNS
             }
         }
 
-        return collector.list(200L);
+        return collector.list(timeout);
     }
 
     /**
@@ -1452,7 +1489,11 @@ public class JmDNSImpl extends JmDNS
             {
                 if (_shoudlWaitForList.get())
                 {
-                    long loops = (timeout / 200L) + 1;
+                    long loops = (timeout / 200L);
+                    if (loops < 1)
+                    {
+                        loops = 1;
+                    }
                     for (int i = 0; i < loops; i++)
                     {
                         try
@@ -1465,7 +1506,6 @@ public class JmDNSImpl extends JmDNS
                         }
                         if (!_infos.isEmpty())
                         {
-                            // System.err.println("JmDNSImpl.Collector timeout: " + i * 200 + "ms.");
                             break;
                         }
                     }
@@ -1549,14 +1589,14 @@ public class JmDNSImpl extends JmDNS
         return _random;
     }
 
-    public void setIoLock(Object ioLock)
+    public void ioLock()
     {
-        this._ioLock = ioLock;
+        _ioLock.lock();
     }
 
-    public Object getIoLock()
+    public void ioUnlock()
     {
-        return _ioLock;
+        _ioLock.unlock();
     }
 
     public void setPlannedAnswer(DNSIncoming plannedAnswer)

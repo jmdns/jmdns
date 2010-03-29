@@ -229,4 +229,37 @@ public class JmDNSTest
         }
     }
 
+    @Test
+    public void testRegisterAndListServiceOnOtherRegistry() throws IOException
+    {
+        JmDNS registry = null;
+        JmDNS newServiceRegistry = null;
+        try
+        {
+            registry = JmDNS.create("Registry");
+
+            registry.registerService(service);
+            newServiceRegistry = JmDNS.create("Listener");
+            ServiceInfo[] fetchedServices = newServiceRegistry.list(service.getType());
+
+            assertEquals("Did not get the expected services listed:", 1, fetchedServices.length);
+            assertEquals("Did not get the expected service type:", service.getType(), fetchedServices[0].getType());
+            assertEquals("Did not get the expected service name:", service.getName(), fetchedServices[0].getName());
+            assertEquals("Did not get the expected service fully qualified name:", service.getQualifiedName(), fetchedServices[0].getQualifiedName());
+            newServiceRegistry.getServiceInfo(service.getType(), service.getName());
+
+            assertEquals("Did not get the expected service info: ", service, fetchedServices[0]);
+            registry.close();
+            fetchedServices = newServiceRegistry.list(service.getType());
+            assertEquals("The service was not cancelled after the close:", 0, fetchedServices.length);
+        }
+        finally
+        {
+            if (newServiceRegistry != null)
+                newServiceRegistry.close();
+            if (registry != null)
+                registry.close();
+        }
+    }
+
 }

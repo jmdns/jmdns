@@ -56,7 +56,8 @@ class SocketListener implements Runnable
                     DNSIncoming msg = new DNSIncoming(packet);
                     logger.finest("SocketListener.run() JmDNS in:" + msg.print(true));
 
-                    synchronized (this._jmDNSImpl.getIoLock())
+                    this._jmDNSImpl.ioLock();
+                    try
                     {
                         if (msg.isQuery())
                         {
@@ -70,6 +71,10 @@ class SocketListener implements Runnable
                         {
                             this._jmDNSImpl.handleResponse(msg);
                         }
+                    }
+                    finally
+                    {
+                        this._jmDNSImpl.ioUnlock();
                     }
                 }
                 catch (IOException e)
