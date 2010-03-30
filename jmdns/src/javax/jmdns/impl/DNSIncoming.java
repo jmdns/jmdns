@@ -131,7 +131,7 @@ public final class DNSIncoming extends DNSMessage
         DNSRecordType type = DNSRecordType.typeForIndex(this.readUnsignedShort());
         DNSRecordClass recordClass = DNSRecordClass.classForIndex(this.readUnsignedShort());
         boolean unique = (recordClass != null ? recordClass.isUnique() : DNSRecordClass.NOT_UNIQUE);
-        return new DNSQuestion(domain, type, recordClass, unique);
+        return DNSQuestion.newQuestion(domain, type, recordClass, unique);
     }
 
     private DNSRecord readAnswer(InetAddress source) throws IOException
@@ -139,8 +139,7 @@ public final class DNSIncoming extends DNSMessage
         String domain = this.readName();
         DNSRecordType type = DNSRecordType.typeForIndex(this.readUnsignedShort());
         int recordClassIndex = this.readUnsignedShort();
-        DNSRecordClass recordClass = (type == DNSRecordType.TYPE_OPT ? DNSRecordClass.CLASS_UNKNOWN : DNSRecordClass
-                .classForIndex(recordClassIndex));
+        DNSRecordClass recordClass = (type == DNSRecordType.TYPE_OPT ? DNSRecordClass.CLASS_UNKNOWN : DNSRecordClass.classForIndex(recordClassIndex));
         boolean unique = recordClass.isUnique();
         int ttl = this.readInt();
         int len = this.readUnsignedShort();
@@ -194,11 +193,7 @@ public final class DNSIncoming extends DNSMessage
                 {
                     // this can happen if the type of the label cannot be handled.
                     // down below the offset gets advanced to the end of the record
-                    logger
-                            .log(
-                                    Level.WARNING,
-                                    "There was a problem reading the label of the answer. This can happen if the type of the label  cannot be handled.",
-                                    e);
+                    logger.log(Level.WARNING, "There was a problem reading the label of the answer. This can happen if the type of the label  cannot be handled.", e);
                 }
                 rec = new DNSRecord.Service(domain, type, recordClass, unique, ttl, priority, weight, port, target);
                 break;
@@ -214,8 +209,7 @@ public final class DNSIncoming extends DNSMessage
                 int senderUDPPayload = recordClassIndex;
                 DNSResultCode extendedResultCode = DNSResultCode.resultCodeForFlags(_flags, ttl);
                 int version = (ttl & 0x00ff0000) >> 16;
-                logger.log(Level.WARNING, "There was an OPT answer. Not currently handled. Payload: "
-                        + senderUDPPayload + " extended result code: " + extendedResultCode + " version: " + version);
+                logger.log(Level.WARNING, "There was an OPT answer. Not currently handled. Payload: " + senderUDPPayload + " extended result code: " + extendedResultCode + " version: " + version);
                 break;
             default:
                 logger.finer("DNSIncoming() unknown type:" + type);
@@ -338,8 +332,7 @@ public final class DNSIncoming extends DNSMessage
                     off = (DNSLabel.labelValue(len) << 8) | this.get(off++);
                     if (off >= first)
                     {
-                        throw new IOException("bad domain name: possible circular name detected." + " name start: "
-                                + first + " bad offset: 0x" + Integer.toHexString(off));
+                        throw new IOException("bad domain name: possible circular name detected." + " name start: " + first + " bad offset: 0x" + Integer.toHexString(off));
                     }
                     first = off;
                     break;
@@ -349,8 +342,7 @@ public final class DNSIncoming extends DNSMessage
                     break;
                 case Unknown:
                 default:
-                    throw new IOException("unsupported dns label type: '" + Integer.toHexString(len & 0xC0) + "' at "
-                            + (off - 1));
+                    throw new IOException("unsupported dns label type: '" + Integer.toHexString(len & 0xC0) + "' at " + (off - 1));
             }
         }
         this._off = (next >= 0) ? next : off;

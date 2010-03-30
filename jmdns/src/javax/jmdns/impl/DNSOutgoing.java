@@ -78,8 +78,12 @@ public final class DNSOutgoing extends DNSMessage
 
     /**
      * Add an answer if it is not suppressed.
+     *
+     * @param in
+     * @param rec
+     * @throws IOException
      */
-    void addAnswer(DNSIncoming in, DNSRecord rec) throws IOException
+    public void addAnswer(DNSIncoming in, DNSRecord rec) throws IOException
     {
         if (this.getNumberOfAuthorities() > 0 || this.getNumberOfAdditionals() > 0)
         {
@@ -319,6 +323,8 @@ public final class DNSOutgoing extends DNSMessage
 
     /**
      * Finish the message before sending it off.
+     *
+     * @throws IOException
      */
     void finish() throws IOException
     {
