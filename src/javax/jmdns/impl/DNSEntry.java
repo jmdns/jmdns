@@ -52,8 +52,7 @@ public abstract class DNSEntry
         if (obj instanceof DNSEntry)
         {
             DNSEntry other = (DNSEntry) obj;
-            result = this.getKey().equals(other.getKey()) && this.getRecordType().equals(other.getRecordType())
-                    && _dnsClass == other.getRecordClass();
+            result = this.getKey().equals(other.getKey()) && this.getRecordType().equals(other.getRecordType()) && _dnsClass == other.getRecordClass();
         }
         return result;
     }
@@ -100,7 +99,7 @@ public abstract class DNSEntry
      */
     public DNSRecordClass getRecordClass()
     {
-        return _dnsClass;
+        return (_dnsClass != null ? _dnsClass : DNSRecordClass.CLASS_UNKNOWN);
     }
 
     /**
@@ -117,6 +116,28 @@ public abstract class DNSEntry
     abstract boolean isExpired(long now);
 
     /**
+     * Check that 2 entries are of the same class.
+     *
+     * @param entry
+     * @return <code>true</code> is the two class are the same, <code>false</code> otherwise.
+     */
+    public boolean isSameRecordClass(DNSEntry entry)
+    {
+        return (entry != null) && (entry.getRecordClass() == this.getRecordClass());
+    }
+
+    /**
+     * Check that 2 entries are of the same type.
+     *
+     * @param entry
+     * @return <code>true</code> is the two type are the same, <code>false</code> otherwise.
+     */
+    public boolean isSameType(DNSEntry entry)
+    {
+        return (entry != null) && (entry.getRecordType() == this.getRecordType());
+    }
+
+    /**
      * @param dout
      * @throws IOException
      */
@@ -128,8 +149,7 @@ public abstract class DNSEntry
     }
 
     /**
-     * Creates a byte array representation of this record. This is needed for tie-break tests according to
-     * draft-cheshire-dnsext-multicastdns-04.txt chapter 9.2.
+     * Creates a byte array representation of this record. This is needed for tie-break tests according to draft-cheshire-dnsext-multicastdns-04.txt chapter 9.2.
      *
      * @return byte array representation
      */
@@ -150,12 +170,10 @@ public abstract class DNSEntry
     }
 
     /**
-     * Does a lexicographic comparison of the byte array representation of this record and that record. This is needed
-     * for tie-break tests according to draft-cheshire-dnsext-multicastdns-04.txt chapter 9.2.
+     * Does a lexicographic comparison of the byte array representation of this record and that record. This is needed for tie-break tests according to draft-cheshire-dnsext-multicastdns-04.txt chapter 9.2.
      *
      * @param that
-     * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than
-     *         the specified object.
+     * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than the specified object.
      */
     public int compareTo(DNSEntry that)
     {
@@ -213,7 +231,6 @@ public abstract class DNSEntry
 
     public String toString(String hdr, String other)
     {
-        return hdr + "[" + this.getRecordType() + "," + this.getRecordClass() + (_unique ? "-unique," : ",") + _name
-                + ((other != null) ? "," + other + "]" : "]");
+        return hdr + "[" + this.getRecordType() + "," + this.getRecordClass() + (_unique ? "-unique," : ",") + _name + ((other != null) ? "," + other + "]" : "]");
     }
 }

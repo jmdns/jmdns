@@ -1089,7 +1089,7 @@ public class JmDNSImpl extends JmDNS
             {
                 _plannedAnswer = in;
             }
-            new Responder(this, in, addr, port).start();
+            new Responder(this, in, port).start();
         }
 
         if (conflictDetected)

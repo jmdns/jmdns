@@ -123,7 +123,7 @@ public class Prober extends DNSTask
                     // {
                     // }
                     out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                    out.addQuestion(new DNSQuestion(this._jmDNSImpl.getLocalHost().getName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                    out.addQuestion(DNSQuestion.newQuestion(this._jmDNSImpl.getLocalHost().getName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
 
                     this._jmDNSImpl.getLocalHost().addAddressRecords(out, true);
                     this._jmDNSImpl.advanceState();
@@ -148,7 +148,7 @@ public class Prober extends DNSTask
                             if (out == null)
                             {
                                 out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                                out.addQuestion(new DNSQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                                out.addQuestion(DNSQuestion.newQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
                             }
                             // the "unique" flag should be not set here because these answers haven't been proven unique
                             // yet this means the record will not exactly match the announcement record

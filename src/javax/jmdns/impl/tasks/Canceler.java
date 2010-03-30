@@ -51,7 +51,7 @@ public class Canceler extends DNSTask
         super(jmDNSImpl);
         this._infos = new ServiceInfoImpl[] { info };
         this._lock = lock;
-        this._jmDNSImpl.addListener(info, new DNSQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+        this._jmDNSImpl.addListener(info, DNSQuestion.newQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
     }
 
     public Canceler(JmDNSImpl jmDNSImpl, ServiceInfoImpl[] infos, Object lock)

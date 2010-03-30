@@ -46,7 +46,7 @@ public class ServiceResolver extends DNSTask
     {
         if (this._jmDNSImpl.getState() != DNSState.CANCELED)
         {
-             timer.schedule(this, DNSConstants.QUERY_WAIT_INTERVAL, DNSConstants.QUERY_WAIT_INTERVAL);
+            timer.schedule(this, DNSConstants.QUERY_WAIT_INTERVAL, DNSConstants.QUERY_WAIT_INTERVAL);
         }
     }
 
@@ -57,12 +57,12 @@ public class ServiceResolver extends DNSTask
         {
             if (this._jmDNSImpl.getState() == DNSState.ANNOUNCED)
             {
-                 if (_count++ < 3)
+                if (_count++ < 3)
                 {
                     logger.finer("run() JmDNS querying service");
                     long now = System.currentTimeMillis();
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                    out.addQuestion(new DNSQuestion(_type, DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                    out.addQuestion(DNSQuestion.newQuestion(_type, DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
                     for (Iterator<? extends ServiceInfo> s = this._jmDNSImpl.getServices().values().iterator(); s.hasNext();)
                     {
                         final ServiceInfoImpl info = (ServiceInfoImpl) s.next();
