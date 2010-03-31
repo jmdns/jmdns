@@ -1,35 +1,35 @@
 
 Domain Name System (DNS) Parameters
 
-(last updated 2009-07-16)
+(last updated 2010-02-17)
 
 Registries included below:
 - DNS CLASSes
-- Resource Record (RR) TYPEs 
+- Resource Record (RR) TYPEs
 - DNS OpCodes
 - DNS RCODEs
 - AFSDB RR Subtype
 - DHCID RR Identifier Type Codes
-- DNS Label types 
-- DNS EDNS0 Options 
-- DNS Header Flags 
+- DNS Label types
+- DNS EDNS0 Options
+- DNS Header Flags
 - EDNS Header Flags (16 bits)
 - EDNS Version Numbers (8 bits)
 
 
 Registry Name: DNS CLASSes
 Reference: [RFC5395]
-Range         
+Range
 Decimal
 Hexadecimal    Registration Procedures        Notes
--------------  -----------------------------  ----------------------   
+-------------  -----------------------------  ----------------------
 0              Standards Action
 0x0000
 1-127          IETF Review                    data CLASSes only
 0x000-0x007F
 128-253        IETF Review                    QCLASSes and meta-CLASSes only
-0x0080-0x00FD 
-256-32767      IETF Review                   
+0x0080-0x00FD
+256-32767      IETF Review
 0x0100-0x7FFF
 32768-57343    Specification Required         data CLASSes only
 0x8000-0xDFFF
@@ -41,36 +41,36 @@ Hexadecimal    Registration Procedures        Notes
 0xFFFF
 
 Registry:
-Decimal     
+Decimal
 Hexadecimal    Name                            Reference
 -------------  ------------------------------  ---------
 0              Reserved                        [RFC5395]
 0x0000
 1              Internet (IN)                   [RFC1035]
 0x0001
-2              Unassigned                      
+2              Unassigned
 0x0002
 3              Chaos (CH)                      [Moon1981]
 0x0003
 4              Hesiod (HS)                     [Dyer1987]
 0x0004
-5-253          Unassigned                    
+5-253          Unassigned
 0x0005-0x00FD
 254            QCLASS NONE                     [RFC2136]
 0x00FD
 255            QCLASS * (ANY)                  [RFC1035]
 0x00FF
-256-65279      Unassigned                      
+256-65279      Unassigned
 0x0100-0xFEFF
 65280-65534    Reserved for Private Use        [RFC5395]
 0xFF00-0xFFFE
-65535          Reserved                        [RFC5395] 
+65535          Reserved                        [RFC5395]
 0xFFFF
 
 
-Registry Name: Resource Record (RR) TYPEs 
+Registry Name: Resource Record (RR) TYPEs
 Reference: [RFC5395][RFC1035]
-Range        
+Range
 Decimal
 Hexadecimal    Registration Procedures                                         Notes
 -------------  --------------------------------------------------------------  --------------
@@ -84,7 +84,7 @@ Hexadecimal    Registration Procedures                                         N
 256-61439      DNS RRTYPE Allocation Policy                                    data RRTYPEs
 0x0100-0xEFFF
 61440-65279    IETF Review
-0xF000-0xFEFF  
+0xF000-0xFEFF
 65280-65534    Reserved for Private Use
 0xFF00-0xFFFE
 65535          Reserved (Standards Action)
@@ -115,7 +115,7 @@ X25          19 for X.25 PSDN address                       [RFC1183]
 ISDN         20 for ISDN address                            [RFC1183]
 RT           21 for Route Through                           [RFC1183]
 NSAP         22 for NSAP address, NSAP style A record       [RFC1706]
-NSAP-PTR     23 for domain name pointer, NSAP style         [RFC1348] 
+NSAP-PTR     23 for domain name pointer, NSAP style         [RFC1348]
 SIG          24 for security signature                      [RFC4034][RFC3755][RFC2535]
 KEY          25 for security key                            [RFC4034][RFC3755][RFC2535]
 PX           26 X.400 mail mapping information              [RFC2163]
@@ -148,7 +148,8 @@ Unassigned   52-54
 HIP          55 Host Identity Protocol                      [RFC5205]
 NINFO        56 NINFO                                       [Reid]
 RKEY         57 RKEY                                        [Reid]
-Unassigned   58-98
+TALINK       58 Trust Anchor LINK                           [Wijngaards]
+Unassigned   59-98
 SPF          99                                             [RFC4408]
 UINFO        100                                            [IANA-Reserved]
 UID          101                                            [IANA-Reserved]
@@ -165,9 +166,9 @@ MAILA        254 mail agent RRs (Obsolete - see MX)         [RFC1035]
 Unassigned   256-32767
 TA           32768   DNSSEC Trust Authorities               [Weiler]           2005-12-13
 DLV          32769   DNSSEC Lookaside Validation            [RFC4431]
-Unassigned   32770-65279  
+Unassigned   32770-65279
 Private use  65280-65534
-Reserved     65535 
+Reserved     65535
 
 Note: In [RFC1002], two types are defined.  It is not clear that these
 are in use, though if so their assignment does conflict with those above.
@@ -195,7 +196,7 @@ Registry Name: DNS RCODEs
 Reference: [RFC5395][RFC1035]
 Registration Procedures: IETF Review
 
-Registry: 
+Registry:
 RCODE
 Decimal
 Hexadecimal  Name        Description                          Reference
@@ -211,7 +212,7 @@ Hexadecimal  Name        Description                          Reference
 8            NXRRSet     RR Set that should exist does not    [RFC2136]
 9            NotAuth     Server Not Authoritative for zone    [RFC2136]
 10           NotZone     Name not contained in zone           [RFC2136]
-11-15        Unassigned  
+11-15        Unassigned
 16           BADVERS     Bad OPT Version                      [RFC2671]
 16           BADSIG      TSIG Signature Failure               [RFC2845]
 17           BADKEY      Key not recognized                   [RFC2845]
@@ -223,14 +224,14 @@ Hexadecimal  Name        Description                          Reference
 23-3840      Unassigned
 3841-4095    Reserved for Private Use                         [RFC5395]
 4096-65534   Unassigned
-65535        Reserved, can be allocated by Standards Action   [RFC5395]     
+65535        Reserved, can be allocated by Standards Action   [RFC5395]
 
 
 Registry Name: AFSDB RR Subtype
 Reference: [RFC5395][RFC1035]
-Range        
+Range
 Decimal
-Hexadecimal    Registration Procedures               
+Hexadecimal    Registration Procedures
 -------------  --------------------------------------
 0              Standards Action
 0x0000
@@ -248,7 +249,7 @@ Hexadecimal    Description                                 Reference
 0              Reserved                                    [RFC5395]
 0x0000
 1              Andrews File Service v3.0 Location Service  [RFC1183]
-0x0001 
+0x0001
 2              DCE/NCA root cell directory node            [RFC1183]
 0x0002
 3-65279        Unassigned
@@ -264,29 +265,29 @@ Reference: [RFC4701]
 Registration Procedures: Standards Action
 
 Note: Registration rules to be as follows:
-New DHCID RR type codes are tentatively assigned after the specification for the associated type code, 
+New DHCID RR type codes are tentatively assigned after the specification for the associated type code,
 published as an Internet Draft, has received expert review by a designated expert.
 The final assignment of DHCID RR type codes is through Standards Action, as defined in [RFC2434].
 
 The expert will be Olafur Gudmundsson
 
 Registry:
-Identifier Type Code  Identifier                                        Reference  
+Identifier Type Code  Identifier                                        Reference
 --------------------  ------------------------------------------------  ---------
-0x0000                The 1-octet 'htype' followed by 'hlen' octets     [RFC4701] 
+0x0000                The 1-octet 'htype' followed by 'hlen' octets     [RFC4701]
                       of 'chaddr' from a DHCPv4 client's DHCPREQUEST.
-0x0001                The data octets (i.e., the Type and               [RFC4701] 
-                      Client-Identifier fields) from a DHCPv4        
-                      client's Client Identifier option.        
+0x0001                The data octets (i.e., the Type and               [RFC4701]
+                      Client-Identifier fields) from a DHCPv4
+                      client's Client Identifier option.
 0x0002                The client's DUID (i.e., the data octets of a     [RFC4701]
-                      DHCPv6 client's Client Identifier option  
-                      or the DUID field from a DHCPv4 client's       
-                      Client Identifier option).                 
-0x0003-0xfffe         Unassigned                                        [RFC4701] 
-0xffff                Reserved                                          [RFC4701] 
+                      DHCPv6 client's Client Identifier option
+                      or the DUID field from a DHCPv4 client's
+                      Client Identifier option).
+0x0003-0xfffe         Unassigned                                        [RFC4701]
+0xffff                Reserved                                          [RFC4701]
 
 
-Registry Name: DNS Label types 
+Registry Name: DNS Label types
 Reference: [RFC5001]
 Registration Procedures: Standards Action
 
@@ -300,14 +301,14 @@ Value             Type                                                       Sta
 0 0               Normal label lower 6 bits is the length of the label       Standard                      [RFC1035]
 1 1               Compressed label the lower 6 bits and the 8 bits           Standard                      [RFC1035]
                   from next octet form a pointer to the compression target.
-0 1               Extended label type the lower 6 bits of this type          Proposed                      [RFC2671]     
+0 1               Extended label type the lower 6 bits of this type          Proposed                      [RFC2671]
                   (section 3) indicate the type of label in use
 0 1 0 0 0 0 0 1   Binary Label                                               Experimental not recommended  [RFC3364][RFC3363][RFC2673]
 0 1 1 1 1 1 1 1   Reserved for future expansion.                             Proposed                      [RFC2671]
 1 0               Unallocated
 
 
-Registry Name: DNS EDNS0 Options 
+Registry Name: DNS EDNS0 Options
 Reference: [RFC5001]
 Registration Procedures: Specification Required
 
@@ -326,9 +327,9 @@ Registry Name: DNS Header Flags
 Reference: [RFC5395][RFC1035]
 Registration Procedures: Standards Action
 
-Note: 
+Note:
 In DNS query header there is a flag field in the
-second 16 bit word in query from bit 5 through 
+second 16 bit word in query from bit 5 through
 bit 11 ([RFC1035] section 4.1.1)
 
 Registry:
@@ -343,9 +344,9 @@ bit 10    AD    Authentic Data         [RFC4035]
 bit 11    CD    Checking Disabled      [RFC4035]
 
 
-Registry Name: EDNS Header Flags (16 bits) 
+Registry Name: EDNS Header Flags (16 bits)
 Reference: [RFC2671]
-Registration Procedures: RFC Required 
+Registration Procedures: RFC Required
 
 Registry:
 Bit        Flag  Description            Reference
@@ -375,7 +376,7 @@ References
 [Dyer1987] Dyer, S., and F. Hsu, "Hesiod", Project Athena Technical
            Plan - Name Service, April 1987.
 
-[Moon1981] D. Moon, "Chaosnet", A.I. Memo 628, Massachusetts Institute of 
+[Moon1981] D. Moon, "Chaosnet", A.I. Memo 628, Massachusetts Institute of
            Technology Artificial Intelligence Laboratory, June 1981.
 
 [RFC1034]  Mockapetris, P., "Domain Names - Concepts and
@@ -398,7 +399,7 @@ References
            Encoding of Geographical Location", RFC 1712, Curtin
            University of Technology, October 1994.
 
-[RFC1876]  C. Davis, P. Vixie, T. Goodwin, and I. Dickinson, "A Means for 
+[RFC1876]  C. Davis, P. Vixie, T. Goodwin, and I. Dickinson, "A Means for
            Expressing Location Information in the Domain Name System",
            RFC 1876, January 1996.
 
@@ -419,7 +420,7 @@ References
 
 [RFC2168]  R. Danie1, M. Mealling., "Resolution of Uniform Resource
            Identifiers using the Domain Name System", RFC 2168, Los
-           Alamos National Laboratory, Network Solutions, Inc., 
+           Alamos National Laboratory, Network Solutions, Inc.,
            June 1997.
 
 [RFC2230]  Atkinson, R., "Key Exchange Delegation Record for the DNS",
@@ -455,15 +456,15 @@ References
 [RFC3123]  P. Koch, "A DNS RR Type for Lists of Address Prefixes (APL RR)",
            RFC 3123, June 2001.
 
-[RFC3225]  D. Conrad, "Indicating Resolver Support of DNSSEC", 
+[RFC3225]  D. Conrad, "Indicating Resolver Support of DNSSEC",
            RFC 3225, December 2001.
-        
+
 [RFC3226]  O. Gudmundsson, "DNSSEC and IPv6 A6 aware server/resolver message
            size requirements", RFC 3226, December 2001.
 
 [RFC3425]  D. Lawrence, "Obsoleting IQUERY", RFC 3425, November 2002.
 
-[RFC3596]  S. Thomson, C. Huitema, V. Ksinant, and M. Souissi, "DNS 
+[RFC3596]  S. Thomson, C. Huitema, V. Ksinant, and M. Souissi, "DNS
            Extensions to Support IP Version 6", RFC 3596, October 2003.
 
 [RFC3658]  O. Gudmundsson, "Delegation Signer Resource Record", RFC 3658,
@@ -472,48 +473,48 @@ References
 [RFC3755]  S. Weiler, "Legacy Resolver Compatibility for Delegation Signer",
            RFC 3755, May 2004.
 
-[RFC4020]  K. Kompella, A. Zinin, "Early IANA Allocation of Standards Track 
+[RFC4020]  K. Kompella, A. Zinin, "Early IANA Allocation of Standards Track
            Code Points", RFC 4020, February 2005.
 
 [RFC4025]  M. Richardson, "A Method for Storing IPsec Keying Material in DNS",
            RFC 4025, March 2005.
 
-[RFC4034]  R. Arends, R. Austein, M. Larson, D. Massey, and S. Rose, 
+[RFC4034]  R. Arends, R. Austein, M. Larson, D. Massey, and S. Rose,
            "Resource Records for the DNS Security Extensions", RFC 4034,
            March 2005.
 
-[RFC4035]  R. Arends, R. Austein, M. Larson, D. Massey, and S. Rose, 
-           "Protocol Modifications for the DNS Security Extensions", 
+[RFC4035]  R. Arends, R. Austein, M. Larson, D. Massey, and S. Rose,
+           "Protocol Modifications for the DNS Security Extensions",
            RFC 4035, March 2005.
 
-[RFC4255]  J. Schlyter and W. Griffin, "Using DNS to Securely Publish SSH 
+[RFC4255]  J. Schlyter and W. Griffin, "Using DNS to Securely Publish SSH
            Key Fingerprints", RFC 4255, January 2006.
 
 [RFC4398]  S. Josefsson, "Storing Certificates in the Domain Name System (DNS)",
            RFC 4398, March 2006.
 
-[RFC4408]  M. Wong and W. Schlitt, "Sender Policy Framework (SPF) for Authorizing 
+[RFC4408]  M. Wong and W. Schlitt, "Sender Policy Framework (SPF) for Authorizing
            Use of Domains in E-MAIL, version 1", RFC 4408, April 2006.
 
-[RFC4431]  M. Andrews and S. Weiler, "The DNSSEC Lookaside Validation (DLV) 
+[RFC4431]  M. Andrews and S. Weiler, "The DNSSEC Lookaside Validation (DLV)
            DNS Resource Record", RFC 4431, February 2006.
 
-[RFC4635]  D. Eastlake 3rd, "HMAC SHA TSIG Algorithm Identifiers", RFC 4635, 
+[RFC4635]  D. Eastlake 3rd, "HMAC SHA TSIG Algorithm Identifiers", RFC 4635,
            August 2006.
 
-[RFC4701]  M. Stapp, T. Lemon, A. Gustafsson, "A DNS RR for Encoding DHCP 
+[RFC4701]  M. Stapp, T. Lemon, A. Gustafsson, "A DNS RR for Encoding DHCP
            Information (DHCID RR)", RFC 4701, October 2006.
 
 [RFC5001]  R. Austein, "DNS Name Server Identifier Option (NSID)",
            RFC 5001, August 2007.
 
-[RFC5155]  B. Laurie, G. Sisson, R. Arends, D. Blacka, "DNSSEC Hashed 
+[RFC5155]  B. Laurie, G. Sisson, R. Arends, D. Blacka, "DNSSEC Hashed
            Authenticated Denial of Existence", RFC 5155, March 2008.
 
-[RFC5205]  P. Nikander, J. Laganier, "Host Identity Protocol (HIP) 
+[RFC5205]  P. Nikander, J. Laganier, "Host Identity Protocol (HIP)
            Domain Name System (DNS) Extensions", RFC 5205, April 2008.
 
-[RFC5395]  D. Eastlake, "Domain Name System (DNS) IANA Considerations", 
+[RFC5395]  D. Eastlake, "Domain Name System (DNS) IANA Considerations",
            BCP 42, RFC 5395, November 2008.
 
 [draft-cheshire-edns0-owner-option]  work in progress
@@ -541,9 +542,11 @@ People
 [Vixie] Paul Vixie, <paul&vix.com>, June 1997.
 
 [Weiler] Sam Weiler, <weiler+iana&tislabs.com>, December 2005.
-         Deploying DNSSEC Without a Signed Rott.  Technical Report 1999-19, 
+         Deploying DNSSEC Without a Signed Rott.  Technical Report 1999-19,
          Information Networking Institute, Carnegie Mellon University, April 2004.
          http://cameo.library.cmu.edu/
          http://www.watson.org/~weiler/INI1999-19.pdf
+
+[Wijngaards] Wouter Wijngaards, <wouter&nlnetlabs.nl>, 2010-02-17.
 
 []

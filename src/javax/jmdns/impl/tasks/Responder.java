@@ -118,7 +118,7 @@ public class Responder extends DNSTask
                     if (answers.size() != 0)
                     {
                         logger.finer("run() JmDNS responding");
-                        DNSOutgoing out = newDNSOutgoing(_unicast, _in.getId());
+                        DNSOutgoing out = newDNSOutgoing(_unicast, _in.getId(), _in.getSenderUDPPayload());
                         for (DNSQuestion question : questions)
                         {
                             out.addQuestion(question);
@@ -137,7 +137,7 @@ public class Responder extends DNSTask
                                 this._jmDNSImpl.send(out);
 
                                 // Start a new one.
-                                out = newDNSOutgoing(_unicast, _in.getId());
+                                out = newDNSOutgoing(_unicast, _in.getId(), _in.getSenderUDPPayload());
                                 out.addAnswer(_in, answer);
                             }
                         }
@@ -158,14 +158,9 @@ public class Responder extends DNSTask
         }
     }
 
-    private static final DNSOutgoing newDNSOutgoing(boolean isUnicast, int id)
+    private static final DNSOutgoing newDNSOutgoing(boolean isUnicast, int id, int senderUDPPayload)
     {
-        DNSOutgoing out = null;
-        if (isUnicast)
-        {
-            out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, false);
-        }
-        out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
+        DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, !isUnicast, senderUDPPayload);
         out.setId(id);
         return out;
     }

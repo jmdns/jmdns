@@ -10,7 +10,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -369,8 +371,20 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         public ServiceInfo getServiceInfo()
         {
-            // FIXME [PJYF Jan 27 2010] We should really return something sensical here
-            return null;
+            // We need to split the name as this is the fully qualified name.
+            int index = this.getName().indexOf('.');
+            String serviceName = this.getName();
+            String domainName = "";
+            if (index > 0)
+            {
+                serviceName = this.getName().substring(0, index);
+                if (index + 1 < this.getName().length())
+                    domainName = this.getName().substring(index + 1);
+            }
+
+            ServiceInfoImpl info = new ServiceInfoImpl(domainName, serviceName);
+            info.setAddress(_addr);
+            return info;
         }
 
         /*
@@ -447,7 +461,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         public ServiceInfo getServiceInfo()
         {
-            return new ServiceInfoImpl(this.getName(), JmDNSImpl.toUnqualifiedName(this.getName(), this.getAlias()));
+            return new ServiceInfoImpl(this.getAlias(), JmDNSImpl.toUnqualifiedName(this.getName(), this.getAlias()));
         }
 
         /*
@@ -531,8 +545,20 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         public ServiceInfo getServiceInfo()
         {
-            // FIXME [PJYF Jan 27 2010] We should really return something sensical here
-            return null;
+            // We need to split the name as this is the fully qualified name.
+            int index = this.getName().indexOf('.');
+            String serviceName = this.getName();
+            String domainName = "";
+            if (index > 0)
+            {
+                serviceName = this.getName().substring(0, index);
+                if (index + 1 < this.getName().length())
+                    domainName = this.getName().substring(index + 1);
+            }
+
+            ServiceInfoImpl info = new ServiceInfoImpl(domainName, serviceName);
+            info.setText(_text);
+            return info;
         }
 
         /*
@@ -724,7 +750,18 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         public ServiceInfo getServiceInfo()
         {
-            return new ServiceInfoImpl(this.getName(), this.getServer(), _port, _weight, _priority, _server);
+            // We need to split the name as this is the fully qualified name.
+            int index = this.getName().indexOf('.');
+            String serviceName = this.getName();
+            String domainName = "";
+            if (index > 0)
+            {
+                serviceName = this.getName().substring(0, index);
+                if (index + 1 < this.getName().length())
+                    domainName = this.getName().substring(index + 1);
+            }
+
+            return new ServiceInfoImpl(domainName, serviceName, _port, _weight, _priority, _server);
         }
 
         /*
@@ -827,8 +864,22 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         public ServiceInfo getServiceInfo()
         {
-            // FIXME [PJYF Jan 27 2010] We should really return something sensical here
-            return null;
+            // We need to split the name as this is the fully qualified name.
+            int index = this.getName().indexOf('.');
+            String serviceName = this.getName();
+            String domainName = "";
+            if (index > 0)
+            {
+                serviceName = this.getName().substring(0, index);
+                if (index + 1 < this.getName().length())
+                    domainName = this.getName().substring(index + 1);
+            }
+
+            Map<String, String> hinfo = new HashMap<String, String>(2);
+            hinfo.put("cpu", _cpu);
+            hinfo.put("os", _os);
+            ServiceInfoImpl info = new ServiceInfoImpl(domainName, serviceName, 0, 0, 0, hinfo);
+             return info;
         }
 
         /*

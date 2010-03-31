@@ -38,7 +38,7 @@ import javax.jmdns.ServiceTypeListener;
 public class Main {
     static class SampleListener implements ServiceListener, ServiceTypeListener {
         public void serviceAdded(ServiceEvent event) {
-            System.out.println("ADD: " + event.getDNS().getServiceInfo(event.getType(), event.getName(), 3*1000));
+            System.out.println("ADD: " + event.getDNS().getServiceInfo(event.getType(), event.getName()));
         }
         public void serviceRemoved(ServiceEvent event) {
             System.out.println("REMOVE: " + event.getName());

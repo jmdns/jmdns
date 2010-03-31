@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSLabel;
+import javax.jmdns.impl.constants.DNSOptionCode;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSResultCode;
@@ -47,6 +48,8 @@ public final class DNSIncoming extends DNSMessage
 
     private long _receivedTime;
 
+    private int _senderUDPPayload;
+
     /**
      * Parse a message from a datagram packet.
      */
@@ -59,6 +62,7 @@ public final class DNSIncoming extends DNSMessage
         this._len = packet.getLength();
         this._off = packet.getOffset();
         this._receivedTime = System.currentTimeMillis();
+        this._senderUDPPayload = DNSConstants.MAX_MSG_TYPICAL;
 
         try
         {
@@ -206,10 +210,58 @@ public final class DNSIncoming extends DNSMessage
                 rec = new DNSRecord.HostInformation(domain, type, recordClass, unique, ttl, cpu, os);
                 break;
             case TYPE_OPT:
-                int senderUDPPayload = recordClassIndex;
                 DNSResultCode extendedResultCode = DNSResultCode.resultCodeForFlags(_flags, ttl);
                 int version = (ttl & 0x00ff0000) >> 16;
-                logger.log(Level.WARNING, "There was an OPT answer. Not currently handled. Payload: " + senderUDPPayload + " extended result code: " + extendedResultCode + " version: " + version);
+                if (version == 0)
+                {
+                    _senderUDPPayload = recordClassIndex;
+                    while (_off < end)
+                    {
+                        // Read RDData
+                        int optionCodeInt = 0;
+                        DNSOptionCode optionCode = null;
+                        if (end - _off >= 2)
+                        {
+                            optionCodeInt = this.readUnsignedShort();
+                            optionCode = DNSOptionCode.resultCodeForFlags(optionCodeInt);
+                        }
+                        else
+                        {
+                            logger.log(Level.WARNING, "There was a problem reading the OPT reord. Ignoring.");
+                            break;
+                        }
+                        int optionLength = 0;
+                        if (end - _off >= 2)
+                        {
+                            optionLength = readUnsignedShort();
+                        }
+                        else
+                        {
+                            logger.log(Level.WARNING, "There was a problem reading the OPT reord. Ignoring.");
+                            break;
+                        }
+                        byte[] optiondata = new byte[0];
+                        if (end - _off >= optionLength)
+                        {
+                            optiondata = this.readBytes(_off, optionLength);
+                            _off = _off + optionLength;
+                        }
+                        //
+                        if (DNSOptionCode.Unknown == optionCode)
+                        {
+                            logger.log(Level.WARNING, "There was an OPT answer. Not currently handled. Option code: " + optionCodeInt + " data: " + this._hexString(optiondata));
+                        }
+                        else
+                        {
+                            // We should really do something with those options.
+                            logger.log(Level.INFO, "There was an OPT answer. Option code: " + optionCode + " data: " + this._hexString(optiondata));
+                        }
+                    }
+                }
+                else
+                {
+                    logger.log(Level.WARNING, "There was an OPT answer. Wrong version number: " + version + " result code: " + extendedResultCode);
+                }
                 break;
             default:
                 logger.finer("DNSIncoming() unknown type:" + type);
@@ -251,7 +303,8 @@ public final class DNSIncoming extends DNSMessage
     private byte[] readBytes(int off, int len) throws IOException
     {
         byte bytes[] = new byte[len];
-        System.arraycopy(_data, off, bytes, 0, len);
+        if (len > 0)
+            System.arraycopy(_data, off, bytes, 0, len);
         return bytes;
     }
 
@@ -485,6 +538,40 @@ public final class DNSIncoming extends DNSMessage
     public int elapseSinceArrival()
     {
         return (int) (System.currentTimeMillis() - _receivedTime);
+    }
+
+    /**
+     * This will return the default UDP payload except if an OPT record was found with a different size.
+     *
+     * @return the senderUDPPayload
+     */
+    public int getSenderUDPPayload()
+    {
+        return this._senderUDPPayload;
+    }
+
+    private static final char[] _nibbleToHex = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
+    /**
+     * Returns a hex-string for printing
+     *
+     * @param bytes
+     *
+     * @return Returns a hex-string which can be used within a SQL expression
+     */
+    private String _hexString(byte[] bytes)
+    {
+
+        StringBuilder result = new StringBuilder(2 * bytes.length);
+
+        for (int i = 0; i < bytes.length; i++)
+        {
+            int b = bytes[i] & 0xFF;
+            result.append(_nibbleToHex[b / 16]);
+            result.append(_nibbleToHex[b % 16]);
+        }
+
+        return result.toString();
     }
 
 }

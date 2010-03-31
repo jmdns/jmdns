@@ -83,6 +83,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     public ServiceInfoImpl(String type, String name, int port, int weight, int priority, String text)
     {
         this(type, name, port, weight, priority, (byte[]) null);
+        _server = text;
         try
         {
             ByteArrayOutputStream out = new ByteArrayOutputStream(text.length());
@@ -697,7 +698,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
         StringBuffer buf = new StringBuffer();
         for (int i = 0, len = getText().length; i < len; i++)
         {
-            if (i >= 20)
+            if (i >= 200)
             {
                 buf.append("...");
                 break;
@@ -747,9 +748,9 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
 
     public void addAnswers(DNSOutgoing out, int ttl, HostInfo localHost) throws IOException
     {
-        out.addAnswer(new Pointer(_type, DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, getQualifiedName()), 0);
-        out.addAnswer(new Service(getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, _priority, _weight, _port, localHost.getName()), 0);
-        out.addAnswer(new Text(getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, getText()), 0);
+        out.addAnswer(new Pointer(_type, DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()), 0);
+        out.addAnswer(new Service(this.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, _priority, _weight, _port, localHost.getName()), 0);
+        out.addAnswer(new Text(this.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, this.getText()), 0);
     }
 
     public void setTask(TimerTask task)
