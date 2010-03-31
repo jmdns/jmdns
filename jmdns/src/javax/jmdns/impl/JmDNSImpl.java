@@ -32,6 +32,7 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
 import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSState;
 import javax.jmdns.impl.tasks.Announcer;
@@ -446,9 +447,50 @@ public class JmDNSImpl extends JmDNS
             this.addServiceListener(lotype, _serviceCollectors.get(lotype));
         }
 
-        final ServiceInfoImpl info = new ServiceInfoImpl(type, name);
+        // Check if the answer is in the cache.
+        final ServiceInfoImpl info = this.getServiceInfoFromCache(type, name);
+        // We still run the resolver to do the dispatch but if the info is already there it will quit immediately
         new ServiceInfoResolver(this, info).start(_timer);
 
+        this.waitForInfoData(info, timeout);
+
+        return (info.hasData()) ? info : null;
+    }
+
+    private ServiceInfoImpl getServiceInfoFromCache(String type, String name)
+    {
+        // Check if the answer is in the cache.
+        ServiceInfoImpl info = new ServiceInfoImpl(type, name);
+        DNSEntry serviceEntry = this.getCache().getDNSEntry(info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_ANY);
+        if (serviceEntry instanceof DNSRecord)
+        {
+            ServiceInfo cachedInfo = ((DNSRecord) serviceEntry).getServiceInfo();
+            if (cachedInfo instanceof ServiceInfoImpl)
+            {
+                DNSEntry addressEntry = this.getCache().getDNSEntry(cachedInfo.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_ANY);
+                if (addressEntry == null)
+                {
+                    addressEntry = this.getCache().getDNSEntry(cachedInfo.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_ANY);
+                }
+                if (addressEntry instanceof DNSRecord)
+                {
+                    ServiceInfo cachedAddressInfo = ((DNSRecord) addressEntry).getServiceInfo();
+                    if (cachedAddressInfo != null)
+                    {
+                        ((ServiceInfoImpl) cachedInfo).setAddress(cachedAddressInfo.getAddress());
+                    }
+                }
+            }
+            if ((cachedInfo != null) && (cachedInfo.hasData()))
+            {
+                info = (ServiceInfoImpl) cachedInfo;
+            }
+        }
+        return info;
+    }
+
+    private void waitForInfoData(ServiceInfo info, int timeout)
+    {
         synchronized (info)
         {
             long loops = (timeout / 200L);
@@ -472,8 +514,6 @@ public class JmDNSImpl extends JmDNS
                 }
             }
         }
-
-        return (info.hasData()) ? info : null;
     }
 
     /*
@@ -502,32 +542,13 @@ public class JmDNSImpl extends JmDNS
             this.addServiceListener(lotype, _serviceCollectors.get(lotype));
         }
 
-        final ServiceInfoImpl info = new ServiceInfoImpl(type, name);
+        // Check if the answer is in the cache.
+        final ServiceInfoImpl info = this.getServiceInfoFromCache(type, name);
+        // We still run the resolver to do the dispatch but if the info is already there it will quit immediately
         new ServiceInfoResolver(this, info).start(_timer);
 
-        synchronized (info)
-        {
-            long loops = (timeout / 200L);
-            if (loops < 1)
-            {
-                loops = 1;
-            }
-            for (int i = 0; i < loops; i++)
-            {
-                try
-                {
-                    info.wait(200);
-                }
-                catch (final InterruptedException e)
-                {
-                    /* Stub */
-                }
-                if (info.hasData())
-                {
-                    break;
-                }
-            }
-        }
+        this.waitForInfoData(info, timeout);
+
     }
 
     void handleServiceResolved(ServiceInfoImpl info)
@@ -615,7 +636,7 @@ public class JmDNSImpl extends JmDNS
             {
                 if (record.getName().endsWith(type))
                 {
-                    serviceEvents.add(new ServiceEventImpl(this, type, toUnqualifiedName(type, record.getName()), null));
+                    serviceEvents.add(new ServiceEventImpl(this, type, toUnqualifiedName(type, record.getName()), record.getServiceInfo()));
                 }
             }
         }
@@ -1114,7 +1135,7 @@ public class JmDNSImpl extends JmDNS
         DNSOutgoing newOut = out;
         if (newOut == null)
         {
-            newOut = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
+            newOut = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, false, in.getSenderUDPPayload());
         }
         try
         {
@@ -1127,7 +1148,7 @@ public class JmDNSImpl extends JmDNS
             newOut.finish();
             send(newOut);
 
-            newOut = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
+            newOut = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, false, in.getSenderUDPPayload());
             newOut.addAnswer(in, rec);
         }
         return newOut;

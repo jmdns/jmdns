@@ -43,7 +43,7 @@ public final class DNSOutgoing extends DNSMessage
      */
     public DNSOutgoing(int flags)
     {
-        this(flags, true);
+        this(flags, true, DNSConstants.MAX_MSG_TYPICAL);
     }
 
     /**
@@ -54,9 +54,22 @@ public final class DNSOutgoing extends DNSMessage
      */
     public DNSOutgoing(int flags, boolean multicast)
     {
+        this(flags, multicast, DNSConstants.MAX_MSG_TYPICAL);
+    }
+
+    /**
+     * Create an outgoing query or response.
+     *
+     * @param flags
+     * @param multicast
+     * @param senderUDPPayload
+     *            The sender's UDP payload size is the number of bytes of the largest UDP payload that can be reassembled and delivered in the sender's network stack.
+     */
+    public DNSOutgoing(int flags, boolean multicast, int senderUDPPayload)
+    {
         super(flags, 0, multicast);
         _names = new Hashtable<String, Integer>();
-        _data = new byte[DNSConstants.MAX_MSG_TYPICAL];
+        _data = new byte[senderUDPPayload];
         _off = 12;
     }
 
@@ -100,7 +113,7 @@ public final class DNSOutgoing extends DNSMessage
      */
     void addAdditionalAnswer(DNSIncoming in, DNSRecord rec) throws IOException
     {
-        if ((_off < DNSConstants.MAX_MSG_TYPICAL - 200) && !rec.suppressedBy(in))
+        if ((_off < _data.length - 200) && !rec.suppressedBy(in))
         {
             _additionals.add(rec);
             this.writeRecord(rec, 0);

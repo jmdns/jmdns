@@ -19,6 +19,13 @@ public interface ServiceListener extends EventListener
      * <b>Note:</b>This event is only the service added event. The service info associated with this event does not include resolution information.<br/>
      * To get the full resolved information you need to listen to {@link #serviceResolved(ServiceEvent)} or call {@link JmDNS#getServiceInfo(String, String, int)}
      *
+     * <pre>
+     *  ServiceInfo info = event.getDNS().getServiceInfo(event.getType(), event.getName())
+     * </pre>
+     * <p>
+     * Please note that service resolution may take a few second to resolve.
+     * </p>
+     *
      * @param event
      *            The ServiceEvent providing the name and fully qualified type of the service.
      */

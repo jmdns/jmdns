@@ -91,11 +91,11 @@ public class ServiceEventImpl extends ServiceEvent
         StringBuilder buf = new StringBuilder();
         buf.append("[" + this.getClass().getName() + "@" + System.identityHashCode(this) + " ");
         buf.append("\n\tname: '");
-        buf.append(getName());
+        buf.append(this.getName());
         buf.append("' type: '");
-        buf.append(getType());
+        buf.append(this.getType());
         buf.append("' info: '");
-        buf.append(getInfo());
+        buf.append(this.getInfo());
         buf.append("' source: ");
         buf.append("\n\t" + source + "");
         buf.append("\n]");
