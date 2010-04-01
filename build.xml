@@ -12,7 +12,7 @@
 	<property name="dest" value="./classes" />
 	<property name="reports" value="./reports" />
 	<property name="doc" value="./docs" />
-	<property name="version" value="3.1.5" />
+	<property name="version" value="3.1.6" />
 
 	<!-- Configure custom Ant tasks for the Manager application -->
 	<path id="jmdns.classpath">
