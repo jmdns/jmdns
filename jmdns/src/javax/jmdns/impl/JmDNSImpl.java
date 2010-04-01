@@ -247,7 +247,7 @@ public class JmDNSImpl extends JmDNS
             // FIXME [PJYF Dec 17 2009] This looks really bizarre why not fail and throw an exception. What good will this provide?
             _localHost = new HostInfo(null, "computer");
             // Bind to multicast socket
-            this.openMulticastSocket(getLocalHost());
+            this.openMulticastSocket(this.getLocalHost());
             this.start(this.getServices().values());
         }
         _name = (name != null ? name : _localHost.getName());
@@ -282,7 +282,7 @@ public class JmDNSImpl extends JmDNS
             this.closeMulticastSocket();
         }
         _socket = new MulticastSocket(DNSConstants.MDNS_PORT);
-        if ((hostInfo != null) && (_localHost.getInterface() != null))
+        if ((hostInfo != null) && (hostInfo.getInterface() != null))
         {
             _socket.setNetworkInterface(hostInfo.getInterface());
         }
@@ -467,6 +467,17 @@ public class JmDNSImpl extends JmDNS
             ServiceInfo cachedInfo = ((DNSRecord) serviceEntry).getServiceInfo();
             if (cachedInfo instanceof ServiceInfoImpl)
             {
+                ServiceInfoImpl cachedInfoImp = (ServiceInfoImpl) cachedInfo;
+                // ((ServiceInfoImpl) cachedInfo).setText(null);
+                DNSEntry textEntry = this.getCache().getDNSEntry(cachedInfo.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_ANY);
+                if (textEntry instanceof DNSRecord)
+                {
+                    ServiceInfo cachedTextInfo = ((DNSRecord) textEntry).getServiceInfo();
+                    if (cachedTextInfo != null)
+                    {
+                        cachedInfoImp.setText(cachedTextInfo.getTextBytes());
+                    }
+                }
                 DNSEntry addressEntry = this.getCache().getDNSEntry(cachedInfo.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_ANY);
                 if (addressEntry == null)
                 {
@@ -477,13 +488,13 @@ public class JmDNSImpl extends JmDNS
                     ServiceInfo cachedAddressInfo = ((DNSRecord) addressEntry).getServiceInfo();
                     if (cachedAddressInfo != null)
                     {
-                        ((ServiceInfoImpl) cachedInfo).setAddress(cachedAddressInfo.getAddress());
+                        cachedInfoImp.setAddress(cachedAddressInfo.getAddress());
                     }
                 }
-            }
-            if ((cachedInfo != null) && (cachedInfo.hasData()))
-            {
-                info = (ServiceInfoImpl) cachedInfo;
+                if (cachedInfoImp.hasData())
+                {
+                    info = cachedInfoImp;
+                }
             }
         }
         return info;
@@ -1257,7 +1268,7 @@ public class JmDNSImpl extends JmDNS
                 //
                 try
                 {
-                    this.openMulticastSocket(getLocalHost());
+                    this.openMulticastSocket(this.getLocalHost());
                     this.start(oldServiceInfos);
                 }
                 catch (final Exception exception)
