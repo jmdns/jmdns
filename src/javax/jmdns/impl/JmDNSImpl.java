@@ -1036,7 +1036,7 @@ public class JmDNSImpl extends JmDNS
                 if (expired)
                 {
                     isInformative = true;
-                    this.getCache().remove(c);
+                    this.getCache().removeDNSEntry(c);
                 }
                 else
                 {
