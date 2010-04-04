@@ -461,7 +461,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         public ServiceInfo getServiceInfo()
         {
-            return new ServiceInfoImpl(this.getAlias(), JmDNSImpl.toUnqualifiedName(this.getName(), this.getAlias()));
+            return new ServiceInfoImpl(this.getName(), JmDNSImpl.toUnqualifiedName(this.getName(), this.getAlias()));
         }
 
         /*
@@ -879,7 +879,7 @@ public abstract class DNSRecord extends DNSEntry
             hinfo.put("cpu", _cpu);
             hinfo.put("os", _os);
             ServiceInfoImpl info = new ServiceInfoImpl(domainName, serviceName, 0, 0, 0, hinfo);
-             return info;
+            return info;
         }
 
         /*
