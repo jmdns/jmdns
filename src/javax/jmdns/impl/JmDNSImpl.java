@@ -467,17 +467,11 @@ public class JmDNSImpl extends JmDNS
             ServiceInfo cachedInfo = ((DNSRecord) serviceEntry).getServiceInfo();
             if (cachedInfo instanceof ServiceInfoImpl)
             {
+                // To get a complete info record we need to retrieve the address and the text bytes.
+
                 ServiceInfoImpl cachedInfoImp = (ServiceInfoImpl) cachedInfo;
-                // ((ServiceInfoImpl) cachedInfo).setText(null);
-                DNSEntry textEntry = this.getCache().getDNSEntry(cachedInfo.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_ANY);
-                if (textEntry instanceof DNSRecord)
-                {
-                    ServiceInfo cachedTextInfo = ((DNSRecord) textEntry).getServiceInfo();
-                    if (cachedTextInfo != null)
-                    {
-                        cachedInfoImp.setText(cachedTextInfo.getTextBytes());
-                    }
-                }
+                byte[] srvBytes = cachedInfoImp.getText();
+                cachedInfoImp.setText(null);
                 DNSEntry addressEntry = this.getCache().getDNSEntry(cachedInfo.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_ANY);
                 if (addressEntry == null)
                 {
@@ -489,7 +483,21 @@ public class JmDNSImpl extends JmDNS
                     if (cachedAddressInfo != null)
                     {
                         cachedInfoImp.setAddress(cachedAddressInfo.getAddress());
+                        cachedInfoImp.setText(cachedAddressInfo.getTextBytes());
                     }
+                }
+                DNSEntry textEntry = this.getCache().getDNSEntry(cachedInfo.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_ANY);
+                if (textEntry instanceof DNSRecord)
+                {
+                    ServiceInfo cachedTextInfo = ((DNSRecord) textEntry).getServiceInfo();
+                    if (cachedTextInfo != null)
+                    {
+                        cachedInfoImp.setText(cachedTextInfo.getTextBytes());
+                    }
+                }
+                if (cachedInfoImp.getTextBytes().length == 0)
+                {
+                    cachedInfoImp.setText(srvBytes);
                 }
                 if (cachedInfoImp.hasData())
                 {

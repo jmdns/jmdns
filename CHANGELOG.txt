@@ -1,9 +1,10 @@
-CHANGELOG XX xxxxx 2010 Pierre Frisch
+CHANGELOG 5 April 2010 Pierre Frisch
 Rev the source code to 3.1.6
 Fix an issue in the discovery where the values where not correctly retrieved from the cache.
 Bug in method JmDNSImpl.openMulticastSocket - ID: 2980409
 JmDNSImpl DNS Cache Entry Removal - ID: 2981167
 Bug in Pointer.getServiceInfo() - ID: 2980727
+TXT String not set when ServiceInfo retrieved from the Cache - ID: 2982114
 
 CHANGELOG 30 March 2010 Pierre Frisch
 Rev the source code to 3.1.5
