@@ -75,7 +75,7 @@ public abstract class DNSRecord extends DNSEntry
      */
     boolean sameType(DNSRecord other)
     {
-        return _type == other._type;
+        return this.getRecordType() == other.getRecordType();
     }
 
     /**
@@ -268,7 +268,7 @@ public abstract class DNSRecord extends DNSEntry
 
         boolean sameName(DNSRecord other)
         {
-            return _name.equalsIgnoreCase(((Address) other)._name);
+            return this.getName().equalsIgnoreCase(((Address) other).getName());
         }
 
         @Override
@@ -646,7 +646,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         boolean handleQuery(JmDNSImpl dns, long expirationTime)
         {
-            ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(_name.toLowerCase());
+            ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(this.getKey());
             if (info != null && (_port != info.getPort() || !_server.equalsIgnoreCase(dns.getLocalHost().getName())))
             {
                 logger1.finer("handleQuery() Conflicting probe detected from: " + getRecordSource());
@@ -707,7 +707,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         boolean handleResponse(JmDNSImpl dns)
         {
-            ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(_name.toLowerCase());
+            ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(this.getKey());
             if (info != null && (_port != info.getPort() || !_server.equalsIgnoreCase(dns.getLocalHost().getName())))
             {
                 logger1.finer("handleResponse() Denial detected");
@@ -730,7 +730,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException
         {
-            ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(_name.toLowerCase());
+            ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(this.getKey());
             if (info != null)
             {
                 if (this._port == info.getPort() != _server.equals(dns.getLocalHost().getName()))

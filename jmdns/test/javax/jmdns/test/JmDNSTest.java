@@ -1,17 +1,29 @@
 package javax.jmdns.test;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotSame;
+import static junit.framework.Assert.assertTrue;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.MulticastSocket;
+import java.net.UnknownHostException;
+
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
+
 import org.easymock.Capture;
 import org.junit.Before;
 import org.junit.Test;
-import static junit.framework.Assert.*;
-import static org.easymock.EasyMock.*;
 
 public class JmDNSTest
 {
@@ -40,6 +52,7 @@ public class JmDNSTest
     public void testCreateINet() throws IOException
     {
         JmDNS registry = JmDNS.create(InetAddress.getLocalHost());
+        // assertEquals("We did not register on the local host inet:", InetAddress.getLocalHost(), registry.getInterface());
         registry.close();
     }
 
@@ -113,13 +126,30 @@ public class JmDNSTest
             registry.addServiceListener(service.getType(), serviceListenerMock);
             registry.registerService(service);
 
-            assertTrue("We did not get the service added event.", capServiceAddedEvent.hasCaptured());
             // We get the service added event when we register the service. However the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
+            assertTrue("We did not get the service added event.", capServiceAddedEvent.hasCaptured());
+            ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
+            assertEquals("We did not get the right name for the added service:", service.getName(), info.getName());
+            assertEquals("We did not get the right type for the added service:", service.getType(), info.getType());
+            assertEquals("We did not get the right fully qualified name for the added service:", service.getQualifiedName(), info.getQualifiedName());
+
+            assertEquals("We should not get the server for the added service:", "", info.getServer());
+            assertEquals("We should not get the address for the added service:", null, info.getAddress());
+            assertEquals("We should not get the HostAddress for the added service:", "", info.getHostAddress());
+            assertEquals("We should not get the InetAddress for the added service:", null, info.getInetAddress());
+            assertEquals("We should not get the NiceTextString for the added service:", "", info.getNiceTextString());
+            assertEquals("We should not get the Priority for the added service:", 0, info.getPriority());
+            assertFalse("We should not get the PropertyNames for the added service:", info.getPropertyNames().hasMoreElements());
+            assertEquals("We should not get the TextBytes for the added service:", 0, info.getTextBytes().length);
+            assertEquals("We should not get the TextString for the added service:", null, info.getTextString());
+            assertEquals("We should not get the Weight for the added service:", 0, info.getWeight());
+            assertNotSame("We should not get the URL for the added service:", "", info.getURL());
+
             assertTrue("We did not get the service resolved event.", capServiceResolvedEvent.hasCaptured());
             verify(serviceListenerMock);
-            Object result = capServiceResolvedEvent.getValue().getInfo();
-            assertEquals("Did not get the expected service info: ", service, result);
+            ServiceInfo resolvedInfo = capServiceResolvedEvent.getValue().getInfo();
+            assertEquals("Did not get the expected service info: ", service, resolvedInfo);
         }
         finally
         {
@@ -145,20 +175,25 @@ public class JmDNSTest
             registry.addServiceListener(service.getType(), serviceListenerMock);
             registry.registerService(service);
 
-            assertTrue("We did not get the service added event.", capServiceAddedEvent.hasCaptured());
             // We get the service added event when we register the service. However the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
+            assertTrue("We did not get the service added event.", capServiceAddedEvent.hasCaptured());
+
             ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
+            assertEquals("We did not get the right name for the resolved service:", service.getName(), info.getName());
+            assertEquals("We did not get the right type for the resolved service:", service.getType(), info.getType());
+
             // This will force the resolution of the service which in turn will get the listener called with a service resolved event.
             // The info associated with a service resolved event has all the information available.
+            // Which in turn populates the ServiceInfo opbjects returned by JmDNS.list.
             ServiceInfo[] services = registry.list(info.getType());
             assertEquals("We did not get the expected number of services: ", 1, services.length);
             assertEquals("The service returned was not the one expected", service, services[0]);
 
             assertTrue("We did not get the service resolved event.", capServiceResolvedEvent.hasCaptured());
             verify(serviceListenerMock);
-            Object result = capServiceResolvedEvent.getValue().getInfo();
-            assertEquals("Did not get the expected service info: ", service, result);
+            ServiceInfo resolvedInfo = capServiceResolvedEvent.getValue().getInfo();
+            assertEquals("Did not get the expected service info: ", service, resolvedInfo);
         }
         finally
         {
@@ -187,7 +222,12 @@ public class JmDNSTest
             newServiceRegistry = JmDNS.create();
             newServiceRegistry.registerService(service);
 
+            // We get the service added event when we register the service. However the service has not been resolved at this point.
+            // The info associated with the event only has the minimum information i.e. name and type.
             assertTrue("We did not get the service added event.", capServiceAddedEvent.hasCaptured());
+            ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
+            assertEquals("We did not get the right name for the resolved service:", service.getName(), info.getName());
+            assertEquals("We did not get the right type for the resolved service:", service.getType(), info.getType());
             // We get the service added event when we register the service. However the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
             assertTrue("We did not get the service resolved event.", capServiceResolvedEvent.hasCaptured());
@@ -230,13 +270,15 @@ public class JmDNSTest
     }
 
     @Test
-    public void testRegisterAndListServiceOnOtherRegistry() throws IOException
+    public void testRegisterAndListServiceOnOtherRegistry() throws IOException, InterruptedException
     {
         JmDNS registry = null;
         JmDNS newServiceRegistry = null;
         try
         {
             registry = JmDNS.create("Registry");
+
+            Thread.sleep(4000);
 
             registry.registerService(service);
             newServiceRegistry = JmDNS.create("Listener");
@@ -250,15 +292,57 @@ public class JmDNSTest
 
             assertEquals("Did not get the expected service info: ", service, fetchedServices[0]);
             registry.close();
+            registry = null;
             fetchedServices = newServiceRegistry.list(service.getType());
             assertEquals("The service was not cancelled after the close:", 0, fetchedServices.length);
         }
         finally
         {
-            if (newServiceRegistry != null)
-                newServiceRegistry.close();
             if (registry != null)
                 registry.close();
+            if (newServiceRegistry != null)
+                newServiceRegistry.close();
+        }
+    }
+
+    @Test
+    public void testTwoMulticastPortsAtOnce() throws UnknownHostException, IOException
+    {
+        MulticastSocket firstSocket = null;
+        MulticastSocket secondSocket = null;
+        try
+        {
+            String firstMessage = "ping";
+            String secondMessage = "pong";
+            InetAddress someInet = InetAddress.getByName("224.0.0.252");
+            firstSocket = new MulticastSocket(8053);
+            secondSocket = new MulticastSocket(8053);
+
+            firstSocket.joinGroup(someInet);
+            secondSocket.joinGroup(someInet);
+
+            DatagramPacket data = new DatagramPacket(firstMessage.getBytes("UTF-8"), firstMessage.length(), someInet, 8053);
+            firstSocket.send(data);
+
+            secondSocket.receive(data);
+            String fromFirst = new String(data.getData(), "UTF-8");
+            assertEquals("Expected the second socket to recieve the same message the first socket sent", firstMessage, fromFirst);
+            // Make sure the first socket had read its own message
+            firstSocket.receive(data);
+
+            data = new DatagramPacket(secondMessage.getBytes("UTF-8"), secondMessage.length(), someInet, 8053);
+            secondSocket.send(data);
+
+            firstSocket.receive(data);
+            String fromSecond = new String(data.getData(), "UTF-8");
+            assertEquals("Expected the first socket to recieve the same message the second socket sent", secondMessage, fromSecond);
+        }
+        finally
+        {
+            if (firstSocket != null)
+                firstSocket.close();
+            if (secondSocket != null)
+                secondSocket.close();
         }
     }
 

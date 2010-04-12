@@ -1066,14 +1066,14 @@ public class JmDNSImpl extends JmDNS
                     // handle _mdns._udp records
                     if (rec.getName().indexOf("._mdns._udp.") >= 0)
                     {
-                        if (!expired && rec._name.startsWith("_services._mdns._udp."))
+                        if (!expired && rec.getName().startsWith("_services._mdns._udp."))
                         {
                             isInformative = true;
                             this.registerServiceType(((DNSRecord.Pointer) rec)._alias);
                         }
                         continue;
                     }
-                    registerServiceType(rec._name);
+                    registerServiceType(rec.getName());
                     break;
                 default:
                     break;

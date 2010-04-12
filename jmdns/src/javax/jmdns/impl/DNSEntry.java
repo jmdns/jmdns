@@ -20,15 +20,15 @@ import javax.jmdns.impl.constants.DNSRecordType;
 public abstract class DNSEntry
 {
     // private static Logger logger = Logger.getLogger(DNSEntry.class.getName());
-    String _key;
+    private final String _key;
 
-    String _name;
+    private final String _name;
 
-    DNSRecordType _type;
+    private final DNSRecordType _type;
 
-    DNSRecordClass _dnsClass;
+    private final DNSRecordClass _dnsClass;
 
-    boolean _unique;
+    private final boolean _unique;
 
     /**
      * Create an entry.
@@ -75,15 +75,6 @@ public abstract class DNSEntry
     public String getKey()
     {
         return (_key != null ? _key : "");
-    }
-
-    /**
-     * @param value
-     */
-    public void setName(String value)
-    {
-        _key = (value != null ? value.trim().toLowerCase() : null);
-        _name = value;
     }
 
     /**

@@ -32,12 +32,6 @@ public final class DNSIncoming extends DNSMessage
     // format.
     public static boolean USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET = true;
 
-    // Implementation note: This vector should be immutable.
-    // If a client of DNSIncoming changes the contents of this vector,
-    // we get undesired results. To fix this, we have to migrate to
-    // the Collections API of Java 1.2. i.e we replace Vector by List.
-    // final static Vector EMPTY = new Vector();
-
     private DatagramPacket _packet;
 
     private int _off;
@@ -227,7 +221,7 @@ public final class DNSIncoming extends DNSMessage
                         }
                         else
                         {
-                            logger.log(Level.WARNING, "There was a problem reading the OPT reord. Ignoring.");
+                            logger.log(Level.WARNING, "There was a problem reading the OPT record. Ignoring.");
                             break;
                         }
                         int optionLength = 0;
@@ -237,7 +231,7 @@ public final class DNSIncoming extends DNSMessage
                         }
                         else
                         {
-                            logger.log(Level.WARNING, "There was a problem reading the OPT reord. Ignoring.");
+                            logger.log(Level.WARNING, "There was a problem reading the OPT record. Ignoring.");
                             break;
                         }
                         byte[] optiondata = new byte[0];
