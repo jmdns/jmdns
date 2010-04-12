@@ -47,15 +47,6 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
 {
     // private static Logger logger = Logger.getLogger(DNSCache.class.getName());
 
-    // Implementation note:
-    // We might completely hide the existence of CacheNode's in a future version
-    // of DNSCache. But this will require to implement two (inner) classes for
-    // the iterators that will be returned by method <code>iterator()</code> and
-    // method <code>find(name)</code>.
-    // Since DNSCache is not a public class, it does not seem worth the effort
-    // to clean its API up that much.
-
-    // [PJYF Oct 15 2004] This should implements Collections that would be a much cleaner implementation
     private transient Set<Map.Entry<String, List<? extends DNSEntry>>> _entrySet = null;
 
     /**
@@ -311,7 +302,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
      */
     public DNSCache()
     {
-        super();
+        this(1024);
     }
 
     /**
@@ -319,8 +310,11 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
      */
     public DNSCache(DNSCache map)
     {
-        this();
-        this.putAll(map);
+        this(map != null ? map.size() : 1024);
+        if (map != null)
+        {
+            this.putAll(map);
+        }
     }
 
     /**
@@ -330,7 +324,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
      */
     public DNSCache(int initialCapacity)
     {
-        this();
+        super();
         _entrySet = new HashSet<Map.Entry<String, List<? extends DNSEntry>>>(initialCapacity);
     }
 

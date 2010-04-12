@@ -25,6 +25,7 @@
 		<echo message="usage:" />
 		<echo message="  ant TARGET where TARGET is one of the following:" />
 		<echo message="      build   --- Compiles the JmDNS sources. Including the tools" />
+		<echo message="      test    --- Compiles the JmDNS tests and runs them against JmDNS" />
 		<echo message="      tools   --- Compiles the tools: The browser and main class" />
 		<echo message="      samples --- Compiles the samples in the samples package" />
 		<echo message="      jar     --- Creates the jmdns.jar file " />
@@ -84,6 +85,7 @@
 		    <fileset dir="." includes="lib/jmdns.jar"/>
 			<fileset dir="." includes="lib/jmdns.manifest"/>
 			<fileset dir="." includes="src/**/*.java"/>
+			<fileset dir="." includes="test/**/*.java"/>
 			<fileset dir="." includes="docs/**"/>
 			<fileset dir="." includes="build.xml"/>
 			<fileset dir="." includes="fulllogging.properties"/>
@@ -117,7 +119,7 @@
 			<classpath refid="jmdns.classpath" />
 		</javac>
 
-		<junit printsummary="yes" haltonfailure="no" showoutput="yes">
+		<junit printsummary="yes" haltonfailure="yes" showoutput="yes">
 			<classpath>
 				<pathelement path="${dest}" />
 				<fileset dir="${lib}">
