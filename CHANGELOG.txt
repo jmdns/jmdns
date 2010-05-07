@@ -1,5 +1,6 @@
 CHANGELOG xx XXXX 2010 Pierre Frisch
 Rev the source code to 3.1.7
+index out of range exception in javax.jmdns.JmDNS	 - ID: 1414816
 
 CHANGELOG 5 April 2010 Pierre Frisch
 Rev the source code to 3.1.6
