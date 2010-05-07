@@ -54,7 +54,7 @@ class SocketListener implements Runnable
                     }
 
                     DNSIncoming msg = new DNSIncoming(packet);
-                    if (logger.getLevel().intValue() <= Level.FINEST.intValue())
+                    if (logger.isLoggable(Level.FINEST))
                     {
                         logger.finest("SocketListener.run() JmDNS in:" + msg.print(true));
                     }
