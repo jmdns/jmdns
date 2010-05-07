@@ -1384,11 +1384,6 @@ public class JmDNSImpl extends JmDNS
     /*
      * (non-Javadoc)
      *
-     * @see javax.jmdns.JmDNS#list(java.lang.String)
-     */
-    /*
-     * (non-Javadoc)
-     *
      * @see javax.jmdns.JmDNS#list(java.lang.String, int)
      */
     @Override
@@ -1577,7 +1572,7 @@ public class JmDNSImpl extends JmDNS
 
     static String toUnqualifiedName(String type, String qualifiedName)
     {
-        if (qualifiedName.endsWith(type))
+        if (qualifiedName.endsWith(type) && !(qualifiedName.equals(type)))
         {
             return qualifiedName.substring(0, qualifiedName.length() - type.length() - 1);
         }
