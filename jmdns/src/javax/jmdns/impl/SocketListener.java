@@ -54,7 +54,10 @@ class SocketListener implements Runnable
                     }
 
                     DNSIncoming msg = new DNSIncoming(packet);
-                    logger.finest("SocketListener.run() JmDNS in:" + msg.print(true));
+                    if (logger.getLevel().intValue() <= Level.FINEST.intValue())
+                    {
+                        logger.finest("SocketListener.run() JmDNS in:" + msg.print(true));
+                    }
 
                     this._jmDNSImpl.ioLock();
                     try
