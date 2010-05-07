@@ -829,7 +829,7 @@ public class JmDNSImpl extends JmDNS
     public void registerServiceType(String type)
     {
         final String name = type.toLowerCase();
-        if (!_serviceTypes.containsKey(name) && (name.indexOf("._mdns._udp.") < 0) && !name.endsWith(".in-addr.arpa."))
+        if (!_serviceTypes.containsKey(name) && (name.indexOf("._mdns._udp.") < 0) && !name.endsWith(".in-addr.arpa.") && !name.endsWith(".ip6.arpa."))
         {
             boolean typeAdded = _serviceTypes.putIfAbsent(name, type) == null;
             if (typeAdded)
