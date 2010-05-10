@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -284,7 +285,14 @@ public class JmDNSImpl extends JmDNS
         _socket = new MulticastSocket(DNSConstants.MDNS_PORT);
         if ((hostInfo != null) && (hostInfo.getInterface() != null))
         {
-            _socket.setNetworkInterface(hostInfo.getInterface());
+            try
+            {
+                _socket.setNetworkInterface(hostInfo.getInterface());
+            }
+            catch (SocketException e)
+            {
+                logger.fine("openMulticastSocket() Set network interface exception: " + e.getMessage());
+            }
         }
         _socket.setTimeToLive(255);
         _socket.joinGroup(_group);
