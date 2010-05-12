@@ -437,7 +437,29 @@ public class JmDNSImpl extends JmDNS
     @Override
     public ServiceInfo getServiceInfo(String type, String name)
     {
-        return this.getServiceInfo(type, name, 5 * 1000);
+        return this.getServiceInfo(type, name, false, 5 * 1000);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.JmDNS#getServiceInfo(java.lang.String, java.lang.String)
+     */
+    @Override
+    public ServiceInfo getServiceInfo(String type, String name, int timeout)
+    {
+        return this.getServiceInfo(type, name, false, timeout);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.JmDNS#getServiceInfo(java.lang.String, java.lang.String)
+     */
+    @Override
+    public ServiceInfo getServiceInfo(String type, String name, boolean persistent)
+    {
+        return this.getServiceInfo(type, name, persistent, 5 * 1000);
     }
 
     /*
@@ -446,7 +468,7 @@ public class JmDNSImpl extends JmDNS
      * @see javax.jmdns.JmDNS#getServiceInfo(java.lang.String, java.lang.String, int)
      */
     @Override
-    public ServiceInfo getServiceInfo(String type, String name, int timeout)
+    public ServiceInfo getServiceInfo(String type, String name, boolean persistent, int timeout)
     {
         this.registerServiceType(type);
         String lotype = type.toLowerCase();
@@ -456,7 +478,7 @@ public class JmDNSImpl extends JmDNS
         }
 
         // Check if the answer is in the cache.
-        final ServiceInfoImpl info = this.getServiceInfoFromCache(type, name);
+        final ServiceInfoImpl info = this.getServiceInfoFromCache(type, name, persistent);
         // We still run the resolver to do the dispatch but if the info is already there it will quit immediately
         new ServiceInfoResolver(this, info).start(_timer);
 
@@ -465,10 +487,10 @@ public class JmDNSImpl extends JmDNS
         return (info.hasData()) ? info : null;
     }
 
-    private ServiceInfoImpl getServiceInfoFromCache(String type, String name)
+    private ServiceInfoImpl getServiceInfoFromCache(String type, String name, boolean persistent)
     {
         // Check if the answer is in the cache.
-        ServiceInfoImpl info = new ServiceInfoImpl(type, name);
+        ServiceInfoImpl info = new ServiceInfoImpl(type, name, 0, 0, 0, persistent, (byte[]) null);
         DNSEntry serviceEntry = this.getCache().getDNSEntry(info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_ANY);
         if (serviceEntry instanceof DNSRecord)
         {
@@ -479,7 +501,7 @@ public class JmDNSImpl extends JmDNS
 
                 ServiceInfoImpl cachedInfoImp = (ServiceInfoImpl) cachedInfo;
                 byte[] srvBytes = cachedInfoImp.getText();
-                cachedInfoImp.setText(null);
+                cachedInfoImp._setText((byte[]) null);
                 DNSEntry addressEntry = this.getCache().getDNSEntry(cachedInfo.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_ANY);
                 if (addressEntry == null)
                 {
@@ -491,7 +513,7 @@ public class JmDNSImpl extends JmDNS
                     if (cachedAddressInfo != null)
                     {
                         cachedInfoImp.setAddress(cachedAddressInfo.getAddress());
-                        cachedInfoImp.setText(cachedAddressInfo.getTextBytes());
+                        cachedInfoImp._setText(cachedAddressInfo.getTextBytes());
                     }
                 }
                 DNSEntry textEntry = this.getCache().getDNSEntry(cachedInfo.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_ANY);
@@ -500,12 +522,12 @@ public class JmDNSImpl extends JmDNS
                     ServiceInfo cachedTextInfo = ((DNSRecord) textEntry).getServiceInfo();
                     if (cachedTextInfo != null)
                     {
-                        cachedInfoImp.setText(cachedTextInfo.getTextBytes());
+                        cachedInfoImp._setText(cachedTextInfo.getTextBytes());
                     }
                 }
                 if (cachedInfoImp.getTextBytes().length == 0)
                 {
-                    cachedInfoImp.setText(srvBytes);
+                    cachedInfoImp._setText(srvBytes);
                 }
                 if (cachedInfoImp.hasData())
                 {
@@ -551,7 +573,18 @@ public class JmDNSImpl extends JmDNS
     @Override
     public void requestServiceInfo(String type, String name)
     {
-        this.requestServiceInfo(type, name, 5 * 1000);
+        this.requestServiceInfo(type, name, false, 5 * 1000);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.JmDNS#requestServiceInfo(java.lang.String, java.lang.String, boolean)
+     */
+    @Override
+    public void requestServiceInfo(String type, String name, boolean persistent)
+    {
+        this.requestServiceInfo(type, name, persistent, 5 * 1000);
     }
 
     /*
@@ -562,6 +595,17 @@ public class JmDNSImpl extends JmDNS
     @Override
     public void requestServiceInfo(String type, String name, int timeout)
     {
+        this.requestServiceInfo(type, name, false, 5 * 1000);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.JmDNS#requestServiceInfo(java.lang.String, java.lang.String, boolean, int)
+     */
+    @Override
+    public void requestServiceInfo(String type, String name, boolean persistent, int timeout)
+    {
         this.registerServiceType(type);
         String lotype = type.toLowerCase();
         if (_serviceCollectors.putIfAbsent(lotype, new ServiceCollector(lotype)) == null)
@@ -570,7 +614,7 @@ public class JmDNSImpl extends JmDNS
         }
 
         // Check if the answer is in the cache.
-        final ServiceInfoImpl info = this.getServiceInfoFromCache(type, name);
+        final ServiceInfoImpl info = this.getServiceInfoFromCache(type, name, persistent);
         // We still run the resolver to do the dispatch but if the info is already there it will quit immediately
         new ServiceInfoResolver(this, info).start(_timer);
 
@@ -1056,8 +1100,17 @@ public class JmDNSImpl extends JmDNS
                 }
                 else
                 {
-                    c.resetTTL(rec);
-                    rec = c;
+                    // If a TXT entry is received, if it has changed update the cache and inform the outside world.
+                    if (DNSRecordType.TYPE_TXT.equals(rec.getRecordType()) && !rec.sameValue(c))
+                    {
+                        isInformative = true;
+                        this.getCache().replaceDNSEntry(rec, c);
+                    }
+                    else
+                    {
+                        c.resetTTL(rec);
+                        rec = c;
+                    }
                 }
             }
             else

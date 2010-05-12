@@ -144,7 +144,7 @@ public class HostInfo
 
     public void addAddressRecords(DNSOutgoing out, boolean authoritative) throws IOException
     {
-        DNSRecord answer = getDNS4AddressRecord();
+        DNSRecord answer = this.getDNS4AddressRecord();
         if (answer != null)
         {
             if (authoritative)
@@ -157,7 +157,7 @@ public class HostInfo
             }
         }
 
-        answer = getDNS6AddressRecord();
+        answer = this.getDNS6AddressRecord();
         if (answer != null)
         {
             if (authoritative)

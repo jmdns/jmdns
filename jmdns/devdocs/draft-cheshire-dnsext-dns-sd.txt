@@ -1,37 +1,34 @@
-Document: draft-cheshire-dnsext-dns-sd-05.txt            Stuart Cheshire
+Document: draft-cheshire-dnsext-dns-sd-06.txt            Stuart Cheshire
 Internet-Draft                                             Marc Krochmal
-Category: Informational                                       Apple Inc.
-Expires: 10 March 2009                                 10 September 2008
+Category: Standards Track                                     Apple Inc.
+Expires: 8 September 2010                                   8 March 2010
 
                       DNS-Based Service Discovery
 
-                 <draft-cheshire-dnsext-dns-sd-05.txt>
+                 <draft-cheshire-dnsext-dns-sd-06.txt>
 
 Status of this Memo
 
-   By submitting this Internet-Draft, each author represents that any
-   applicable patent or other IPR claims of which he or she is aware
-   have been or will be disclosed, and any of which he or she becomes
-   aware will be disclosed, in accordance with Section 6 of BCP 79.
-   For the purposes of this document, the term "BCP 79" refers
-   exclusively to RFC 3979, "Intellectual Property Rights in IETF
-   Technology", published March 2005.
+   This Internet-Draft is submitted to IETF in full conformance with the
+   provisions of BCP 78 and BCP 79.
 
    Internet-Drafts are working documents of the Internet Engineering
-   Task Force (IETF), its areas, and its working groups. Note that
+   Task Force (IETF), its areas, and its working groups.  Note that
    other groups may also distribute working documents as Internet-
    Drafts.
 
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
-   time. It is inappropriate to use Internet-Drafts as reference
+   time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
    The list of current Internet-Drafts can be accessed at
-   http://www.ietf.org/1id-abstracts.html
+   http://www.ietf.org/ietf/1id-abstracts.txt.
 
    The list of Internet-Draft Shadow Directories can be accessed at
-   http://www.ietf.org/shadow.html
+   http://www.ietf.org/shadow.html.
+
+   This Internet-Draft will expire on 8th September 2010.
 
 
 Abstract
@@ -55,9 +52,12 @@ Abstract
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal           [Page 1]
+
+
+
+Expires 8th September 2010         Cheshire & Krochmal          [Page 1]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
 Table of Contents
@@ -100,10 +100,9 @@ Table of Contents
    20.  Acknowledgments...............................................37
    21.  Deployment History............................................37
    22.  Copyright Notice..............................................38
-   23.  Intellectual Property Notice..................................38
-   24.  Normative References..........................................39
-   25.  Informative References........................................39
-   26.  Authors' Addresses............................................40
+   23.  Normative References..........................................39
+   24.  Informative References........................................39
+   25.  Authors' Addresses............................................40
 
 
 
@@ -113,9 +112,10 @@ Table of Contents
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal           [Page 2]
+
+Expires 8th September 2010         Cheshire & Krochmal          [Page 2]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
 1. Introduction
@@ -124,7 +124,7 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    resource records. Given a type of service that a client is looking
    for, and a domain in which the client is looking for that service,
    this convention allows clients to discover a list of named instances
-   of a that desired service, using standard DNS queries. In short, this
+   of that desired service, using standard DNS queries. In short, this
    is referred to as DNS-based Service Discovery, or DNS-SD.
 
    This document proposes no change to the structure of DNS messages,
@@ -171,9 +171,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    that DNS already enjoys.
 
 
-Expires 10th March 2009           Cheshire & Krochmal           [Page 3]
+Expires 8th September 2010         Cheshire & Krochmal          [Page 3]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
 2. Conventions and Terminology Used in this Document
@@ -212,10 +212,10 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
    These goals are discussed in more detail in the remainder of this
    document. A more thorough treatment of service discovery requirements
-   may be found in "Requirements for Replacing AppleTalk" [ATalk].
+   may be found in "Requirements for Replacing AppleTalk NBP" [ATalk].
    That document draws upon examples from two decades of operational
    experience with AppleTalk Name Binding Protocol to develop a list of
-   universal requirements which are broadly applicable to any potential
+   universal requirements that are broadly applicable to any potential
    service discovery protocol.
 
 
@@ -229,9 +229,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal           [Page 4]
+Expires 8th September 2010         Cheshire & Krochmal          [Page 4]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
 4. Service Instance Enumeration (Browsing)
@@ -287,9 +287,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal           [Page 5]
+Expires 8th September 2010         Cheshire & Krochmal          [Page 5]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    The result of this PTR lookup for the name "<Service>.<Domain>" is a
@@ -300,8 +300,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
    The <Instance> portion of the Service Instance Name is a single DNS
    label, containing arbitrary precomposed (Unicode Normalization Form C
-   [UAX15]) UTF-8-encoded text [RFC 3629]. It is a user-friendly name,
-   meaning that it is allowed to contain any characters, without
+   [UAX15]) UTF-8-encoded text [RFC 3629]. It is a user-friendly name.
+   It MUST NOT contain ASCII control characters (byte values 0x00 -
+   0x1F) but otherwise is allowed to contain any characters, without
    restriction, including spaces, upper case, lower case, punctuation --
    including dots -- accented characters, non-roman text, and anything
    else that may be represented using UTF-8. Although the original DNS
@@ -342,14 +343,14 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
    Note that just because this protocol supports arbitrary UTF-8-encoded
    names doesn't mean that any particular user or administrator is
-   obliged to make use of that capability. Any user is free, if they
 
 
-Expires 10th March 2009           Cheshire & Krochmal           [Page 6]
+Expires 8th September 2010         Cheshire & Krochmal          [Page 6]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
+   obliged to make use of that capability. Any user is free, if they
    wish, to continue naming their services using only letters, digits
    and hyphens, with no spaces, capital letters, or other punctuation.
 
@@ -376,16 +377,16 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    The <Domain> portion of the Service Instance Name specifies the DNS
    subdomain within which the service names are registered. It may be
    "local.", meaning "link-local Multicast DNS" [mDNS], or it may be
-   a conventional unicast DNS domain name, such as "apple.com.",
+   a conventional unicast DNS domain name, such as "ietf.org.",
    "cs.stanford.edu.", or "eng.us.ibm.com." Because service names are
    not host names, they are not constrained by the usual rules for host
    names [RFC 1033][RFC 1034][RFC 1035], and rich-text service
    subdomains are allowed and encouraged, for example:
 
-     Building 2, 1st Floor.apple.com.
-     Building 2, 2nd Floor.apple.com.
-     Building 2, 3rd Floor.apple.com.
-     Building 2, 4th Floor.apple.com.
+     Building 2, 1st Floor.example.com.
+     Building 2, 2nd Floor.example.com.
+     Building 2, 3rd Floor.example.com.
+     Building 2, 4th Floor.example.com.
 
    In addition, because Service Instance Names are not constrained by
    the limitations of host names, this document recommends that they
@@ -402,10 +403,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-
-Expires 10th March 2009           Cheshire & Krochmal           [Page 7]
+Expires 8th September 2010         Cheshire & Krochmal          [Page 7]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
 4.2 User Interface Presentation
@@ -461,9 +461,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal           [Page 8]
+Expires 8th September 2010         Cheshire & Krochmal          [Page 8]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
 4.4 What You See Is What You Get
@@ -519,9 +519,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal           [Page 9]
+Expires 8th September 2010         Cheshire & Krochmal          [Page 9]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
 
@@ -577,9 +577,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 10]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 10]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    There are three reasons why it is beneficial to name service
@@ -635,9 +635,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    different machine, so that the machine handling service discovery
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 11]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 11]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    doesn't have to be the same as the machine handling other day-to-day
@@ -693,9 +693,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 12]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 12]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    In the event that more than one SRV is returned, clients SHOULD
@@ -751,9 +751,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 13]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 13]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    The format of the data within a DNS TXT record is one or more
@@ -809,9 +809,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 14]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 14]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    server over TCP, the client enters into a protocol exchange with the
@@ -867,9 +867,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 15]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 15]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
 6.4 Rules for Keys in DNS-SD Key/Value Pairs
@@ -925,9 +925,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 16]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 16]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    If a client receives a TXT record containing the same key more than
@@ -983,9 +983,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 17]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 17]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    For other keys it may be sensible to define other semantics, such as
@@ -1041,9 +1041,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 18]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 18]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
 6.6 Example TXT Record
@@ -1099,9 +1099,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 19]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 19]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
 7. Application Protocol Names
@@ -1157,9 +1157,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    the service actually does.
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 20]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 20]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    Another common question is to ask whether the service type advertised
@@ -1215,9 +1215,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 21]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 21]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    Note that the advertised web page's Service Instance Name is
@@ -1258,8 +1258,24 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    long as it does it using the SOAP XML RPC mechanism."
 
    As with the TXT record key/value pairs, the list of possible
-   subtypes, if any, are defined and specified separately for each basic
-   service type.
+   subtypes, if any, are defined and specified separately for each
+   basic service type.
+
+   Subtype strings (e.g. "_printer" in the example above) may be
+   constructed using arbitrary 8-bit data values. These data values may
+   in many cases be UTF-8 representations of text, or even (as in the
+   example above) plain ASCII, but they do not have to be. Note however
+   that DNS name comparisons are case-insensitive, so the byte values
+   0x41 and 0x61 will be considered equivalent for subtype comparison
+   purposes.
+
+
+
+
+
+Expires 8th September 2010         Cheshire & Krochmal         [Page 22]
+
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
 7.2 Service Name Length Limits
@@ -1269,14 +1285,6 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    as many bytes of the domain name as possible available for use
    by both the network administrator (choosing service domain names)
    and the end user (choosing instance names).
-
-
-
-
-Expires 10th March 2009           Cheshire & Krochmal          [Page 22]
-
-Internet Draft       DNS-Based Service Discovery     10th September 2008
-
 
    A domain name may be up to 256 bytes long, including the final
    terminating root label at the end. Domain names used by DNS-SD
@@ -1300,9 +1308,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    63 bytes, plus the length byte, making 64. Including the "_sub"
    and its length byte, this makes 69 bytes.
 
-   The application protocol name <app> may be up to 14 bytes, plus the
-   underscore and length byte, making 16. Including the "_udp" or "_tcp"
-   and its length byte, this makes 21 bytes.
+   The application protocol name <app> may be up to 15 bytes, plus
+   the underscore and length byte, making a total of 17. Including
+   the "_udp" or "_tcp" and its length byte, this makes 22 bytes.
 
    Typically, DNS-SD service records are placed into subdomains of their
    own beneath a company's existing domain name. Since these subdomains
@@ -1313,14 +1321,21 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
    The terminating root label at the end counts as one byte.
 
-   Of our available 256 bytes, we have now accounted for 69+21+64+1 =
-   155 bytes. This leaves 101 bytes to accommodate the organization's
+   Of our available 256 bytes, we have now accounted for 69+22+64+1 =
+   156 bytes. This leaves 100 bytes to accommodate the organization's
    existing domain name <parentdomain>. When used with Multicast DNS,
    <parentdomain> is "local.", which easily fits. When used with parent
    domains of 100 bytes or less, the full functionality of DNS-SD is
    available without restriction. When used with parent domains longer
    than 100 bytes, the protocol risks exceeding the maximum possible
    length of domain names, causing failures. In this case, careful
+
+
+Expires 8th September 2010         Cheshire & Krochmal         [Page 23]
+
+Internet Draft         DNS-Based Service Discovery        8th March 2010
+
+
    choice of short <servicedomain> names can help avoid overflows.
    If the <servicedomain> and <parentdomain> are too long, then service
    instances with long instance names will not be discoverable or
@@ -1328,16 +1343,10 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    may fail.
 
    Because of this constraint, we choose to limit Application Protocol
-   Names to 14 characters or less. Allowing more characters would not
-
-
-Expires 10th March 2009           Cheshire & Krochmal          [Page 23]
-
-Internet Draft       DNS-Based Service Discovery     10th September 2008
-
-
+   Names to 15 characters or less. Allowing more characters would not
    increase the expressive power of the protocol, and would needlessly
    reduce the maximum <parentdomain> length that may be safely used.
+
 
 8. Flagship Naming
 
@@ -1378,6 +1387,13 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    for different service types are intentionally disjoint -- it is
    acceptable and desirable to be able to have both a file server called
    "Sales Department" and a printer called "Sales Department". However,
+
+
+Expires 8th September 2010         Cheshire & Krochmal         [Page 24]
+
+Internet Draft         DNS-Based Service Discovery        8th March 2010
+
+
    it is not desirable, in the common case, to have two different
    printers both called "Sales Department", just because those printers
    implement different protocols.
@@ -1387,12 +1403,6 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    the protocols is declared the "flagship" of the fleet of related
    protocols. Typically the flagship protocol is the oldest and/or
    best-known protocol of the set.
-
-
-Expires 10th March 2009           Cheshire & Krochmal          [Page 24]
-
-Internet Draft       DNS-Based Service Discovery     10th September 2008
-
 
    If a device does not implement the flagship protocol, then it instead
    creates a placeholder SRV record (priority=0, weight=0, port=0,
@@ -1435,6 +1445,13 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
    For this reason, a special meta-query is defined. A DNS query for PTR
    records with the name "_services._dns-sd._udp.<Domain>" yields a list
+
+
+Expires 8th September 2010         Cheshire & Krochmal         [Page 25]
+
+Internet Draft         DNS-Based Service Discovery        8th March 2010
+
+
    of PTR records, where the rdata of each PTR record is the two-label
    name of a service type, e.g. "_http._tcp." These two-label service
    types can then be used to construct subsequent Service Instance
@@ -1447,11 +1464,6 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    labels SHOULD interpret the first two labels as a service type and
    silently ignore any additional labels in the PTR rdata.
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 25]
-
-Internet Draft       DNS-Based Service Discovery     10th September 2008
-
-
 10. Populating the DNS with Information
 
    How a service's PTR, SRV and TXT records make their way into the DNS
@@ -1463,12 +1475,13 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
    A network monitoring tool could output a standard zone file to be
    read into a conventional DNS server. For example, a tool that can
-   find Apple LaserWriters using AppleTalk NBP could find the list
-   of printers, communicate with each one to find its IP address,
-   PostScript version, installed options, etc., and then write out a
-   DNS zone file describing those printers and their capabilities using
-   DNS resource records. That information would then be available to
-   DNS-SD clients that don't implement AppleTalk NBP, and don't want to.
+   find networked PostScript laser printers using AppleTalk NBP, could
+   find the list of printers, communicate with each one to find its IP
+   address, PostScript version, installed options, etc., and then write
+   out a DNS zone file describing those printers and their capabilities
+   using DNS resource records. That information would then be available
+   to DNS-SD clients that don't implement AppleTalk NBP, and don't want
+   to.
 
    IP printers could use Dynamic DNS Update [RFC 2136] to automatically
    register their own PTR, SRV and TXT records with the DNS server.
@@ -1485,7 +1498,6 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    Zeroconf printers answer Multicast DNS queries on the local link
    for appropriate PTR, SRV and TXT names ending with ".local." [mDNS]
 
-
 11. Relationship to Multicast DNS
 
    DNS-Based Service Discovery is only peripherally related to Multicast
@@ -1493,21 +1505,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    be performed using multicast when appropriate, which is particularly
    beneficial in Zeroconf environments.
 
-
-
-
-
-
-
-
-
-
-
-
-
-Expires 10th March 2009           Cheshire & Krochmal          [Page 26]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 26]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
 12. Discovery of Browsing and Registration Domains (Domain Enumeration)
@@ -1563,9 +1563,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 27]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 27]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    The <domain> part of the Domain Enumeration query name may be
@@ -1621,9 +1621,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 28]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 28]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
 13.2 SRV Records
@@ -1679,9 +1679,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 29]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 29]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    clients to register with the central aggregation server. Virtually
@@ -1737,9 +1737,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 30]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 30]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
 15. Working Examples
@@ -1795,9 +1795,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    The address for dns-sd.org is also given (64.142.82.154).
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 31]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 31]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
 16. User Interface Considerations
@@ -1842,20 +1842,20 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    names are as follows:
 
       Brother 5070N
-      Canon W2200                            [ Apologies to makers of ]
-      HP LaserJet 4600                       [ DNS-SD/mDNS printers   ]
-      Lexmark W840                           [ not listed. Email      ]
-      Okidata C5300                          [ the authors and we'll  ]
-      Ricoh Aficio CL7100                    [ add you to the list.   ]
+      Canon W2200
+      HP LaserJet 4600
+      Lexmark W840
+      Okidata C5300
+      Ricoh Aficio CL7100
       Xerox Phaser 6200DX
 
 
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 32]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 32]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    To make the case for why adding long ugly serial numbers to
@@ -1911,9 +1911,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    the user immediately finds the service instance they're looking for.
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 33]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 33]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    In the case where the user is looking for (say) a particular printer,
@@ -1969,9 +1969,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 34]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 34]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
       discovered and appears in the list, or it was not, and does not.
@@ -2000,26 +2000,6 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
       old wireless base station, and add all the services discovered via
       the new one.
 
-   If these requirements seem to be setting an arbitrary and
-   unreasonably high standard for service discovery, bear in mind that
-   while it may have seemed that way to some, back in the 1990s when
-   these ideas were first proposed, in the years since then Apple and
-   other companies have shipped multiple implementations of DNS-SD/mDNS
-   that meet and exceed these requirements. In the years since Apple
-   shipped Mac OS X 10.2 Jaguar with the Open Source mDNSResponder
-   daemon, this service discovery "live browsing" paradigm has been
-   adopted and implemented in a wide range of Apple and third-party
-   applications, including printer discovery, Safari discovery of
-   devices with embedded web servers (for status and configuration),
-   iTunes music sharing, iPhoto photo sharing, the iChat Bonjour buddy
-   list, iPhone remote control of Apple TV, SubEthaEdit multi-user
-   document editing, etc.
-
-   With so many different applications demonstrating that the "live
-   browsing" paradigm is clearly achievable, these four requirements
-   should not be regarded as idealistic unattainable goals, but
-   instead as the bare minimum baseline functionality that any
-   credible service discovery protocol needs to achieve.
 
 
 
@@ -2027,9 +2007,29 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 35]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Expires 8th September 2010         Cheshire & Krochmal         [Page 35]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
 17. IPv6 Considerations
@@ -2085,9 +2085,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    advocates that on or before the date a product ships, developers
    should properly register their service names.
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 36]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 36]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    Some developers have expressed concern that publicly registering
@@ -2143,9 +2143,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    supports DNS-SD/mDNS, even if you didn't know that at the time.
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 37]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 37]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    For Mac OS X users, telling if you have DNS-SD/mDNS printers on your
@@ -2160,53 +2160,53 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
    some in C like Apple's mDNSResponder daemon, and others in a variety
    of different languages including Java, Python, Perl, and C#/Mono.
 
+
 22. Copyright Notice
 
-   Copyright (C) The IETF Trust (2008).
+   Copyright (c) 2010 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
 
-   This document is subject to the rights, licenses and restrictions
-   contained in BCP 78, and except as set forth therein, the authors
-   retain all their rights.
-
-   This document and the information contained herein are provided on an
-   "AS IS" basis and THE CONTRIBUTOR, THE ORGANIZATION HE/SHE REPRESENTS
-   OR IS SPONSORED BY (IF ANY), THE INTERNET SOCIETY, THE IETF TRUST AND
-   THE INTERNET ENGINEERING TASK FORCE DISCLAIM ALL WARRANTIES, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF
-   THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
-   WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-
-23. Intellectual Property Notice
-
-   The IETF takes no position regarding the validity or scope of any
-   Intellectual Property Rights or other rights that might be claimed to
-   pertain to the implementation or use of the technology described in
-   this document or the extent to which any license under such rights
-   might or might not be available; nor does it represent that it has
-   made any independent effort to identify any such rights.  Information
-   on the procedures with respect to rights in RFC documents can be
-   found in BCP 78 and BCP 79.
-
-   Copies of IPR disclosures made to the IETF Secretariat and any
-   assurances of licenses to be made available, or the result of an
-   attempt made to obtain a general license or permission for the use of
-   such proprietary rights by implementers or users of this
-   specification can be obtained from the IETF on-line IPR repository at
-   http://www.ietf.org/ipr.
-
-   The IETF invites any interested party to bring to its attention any
-   copyrights, patents or patent applications, or other proprietary
-   rights that may cover technology that may be required to implement
-   this standard.  Please address the information to the IETF at
-   ietf-ipr@ietf.org.
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 38]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Expires 8th September 2010         Cheshire & Krochmal         [Page 38]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
-24. Normative References
+23. Normative References
 
    [ports]    IANA list of assigned application protocol names and port
               numbers <http://www.iana.org/assignments/port-numbers>
@@ -2233,7 +2233,7 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
               http://www.unicode.org/reports/tr15/
 
 
-25. Informative References
+24. Informative References
 
    [AFP]      Apple Filing Protocol <http://developer.apple.com/
               documentation/Networking/Conceptual/AFP/>
@@ -2244,12 +2244,12 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
    [mDNS]     Cheshire, S., and M. Krochmal, "Multicast DNS",
               Internet-Draft (work in progress),
-              draft-cheshire-dnsext-multicastdns-07.txt, September 2008.
+              draft-cheshire-dnsext-multicastdns-09.txt, March 2010.
 
    [ATalk]    Cheshire, S., and M. Krochmal,
-              "Requirements for Replacing AppleTalk",
+              "Requirements for a Protocol to Replace AppleTalk NBP",
               Internet-Draft (work in progress),
-              draft-cheshire-dnsext-nbp-06.txt, September 2008.
+              draft-cheshire-dnsext-nbp-08.txt, March 2010.
 
    [RFC 2132] Alexander, S., and Droms, R., "DHCP Options and BOOTP
               Vendor Extensions", RFC 2132, March 1997.
@@ -2259,9 +2259,9 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 39]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 39]
 
-Internet Draft       DNS-Based Service Discovery     10th September 2008
+Internet Draft         DNS-Based Service Discovery        8th March 2010
 
 
    [RFC 2181] Elz, R., and Bush, R., "Clarifications to the DNS
@@ -2286,7 +2286,7 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
               http://www.w3.org/TR/2003/REC-soap12-part0-20030624
 
 
-26. Authors' Addresses
+25. Authors' Addresses
 
    Stuart Cheshire
    Apple Inc.
@@ -2317,4 +2317,4 @@ Internet Draft       DNS-Based Service Discovery     10th September 2008
 
 
 
-Expires 10th March 2009           Cheshire & Krochmal          [Page 40]
+Expires 8th September 2010         Cheshire & Krochmal         [Page 40]

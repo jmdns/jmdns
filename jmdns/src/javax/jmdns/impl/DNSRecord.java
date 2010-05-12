@@ -382,7 +382,7 @@ public abstract class DNSRecord extends DNSEntry
                     domainName = this.getName().substring(index + 1);
             }
 
-            ServiceInfoImpl info = new ServiceInfoImpl(domainName, serviceName);
+            ServiceInfoImpl info = new ServiceInfoImpl(domainName, serviceName, 0, 0, 0, false, (byte[]) null);
             info.setAddress(_addr);
             return info;
         }
@@ -461,7 +461,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         public ServiceInfo getServiceInfo()
         {
-            return new ServiceInfoImpl(this.getName(), JmDNSImpl.toUnqualifiedName(this.getName(), this.getAlias()));
+            return new ServiceInfoImpl(this.getName(), JmDNSImpl.toUnqualifiedName(this.getName(), this.getAlias()), 0, 0, 0, false, (byte[]) null);
         }
 
         /*
@@ -556,9 +556,7 @@ public abstract class DNSRecord extends DNSEntry
                     domainName = this.getName().substring(index + 1);
             }
 
-            ServiceInfoImpl info = new ServiceInfoImpl(domainName, serviceName);
-            info.setText(_text);
-            return info;
+            return new ServiceInfoImpl(domainName, serviceName, 0, 0, 0, false, _text);
         }
 
         /*
@@ -761,7 +759,7 @@ public abstract class DNSRecord extends DNSEntry
                     domainName = this.getName().substring(index + 1);
             }
 
-            return new ServiceInfoImpl(domainName, serviceName, _port, _weight, _priority, _server);
+            return new ServiceInfoImpl(domainName, serviceName, _port, _weight, _priority, false, _server);
         }
 
         /*
@@ -878,7 +876,7 @@ public abstract class DNSRecord extends DNSEntry
             Map<String, String> hinfo = new HashMap<String, String>(2);
             hinfo.put("cpu", _cpu);
             hinfo.put("os", _os);
-            ServiceInfoImpl info = new ServiceInfoImpl(domainName, serviceName, 0, 0, 0, hinfo);
+            ServiceInfoImpl info = new ServiceInfoImpl(domainName, serviceName, 0, 0, 0, false, hinfo);
             return info;
         }
 

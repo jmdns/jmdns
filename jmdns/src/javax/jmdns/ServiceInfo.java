@@ -31,7 +31,7 @@ public abstract class ServiceInfo
      */
     public static ServiceInfo create(String type, String name, int port, String text)
     {
-        return new ServiceInfoImpl(type, name, port, text);
+        return new ServiceInfoImpl(type, name, port, 0, 0, false, text);
     }
 
     /**
@@ -53,7 +53,7 @@ public abstract class ServiceInfo
      */
     public static ServiceInfo create(String type, String name, int port, int weight, int priority, String text)
     {
-        return new ServiceInfoImpl(type, name, port, weight, priority, text);
+        return new ServiceInfoImpl(type, name, port, weight, priority, false, text);
     }
 
     /**
@@ -75,7 +75,7 @@ public abstract class ServiceInfo
      */
     public static ServiceInfo create(String type, String name, int port, int weight, int priority, Map<String, ?> props)
     {
-        return new ServiceInfoImpl(type, name, port, weight, priority, props);
+        return new ServiceInfoImpl(type, name, port, weight, priority, false, props);
     }
 
     /**
@@ -97,7 +97,79 @@ public abstract class ServiceInfo
      */
     public static ServiceInfo create(String type, String name, int port, int weight, int priority, byte text[])
     {
-        return new ServiceInfoImpl(type, name, port, weight, priority, text);
+        return new ServiceInfoImpl(type, name, port, weight, priority, false, text);
+    }
+
+    /**
+     * Construct a service description for registrating with JmDNS.
+     *
+     * @param type
+     *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
+     * @param name
+     *            unqualified service instance name, such as <code>foobar</code>
+     * @param port
+     *            the local port on which the service runs
+     * @param weight
+     *            weight of the service
+     * @param priority
+     *            priority of the service
+     * @param persistent
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     * @param text
+     *            string describing the service
+     * @return new service info
+     */
+    public static ServiceInfo create(String type, String name, int port, int weight, int priority, boolean persistent, String text)
+    {
+        return new ServiceInfoImpl(type, name, port, weight, priority, persistent, text);
+    }
+
+    /**
+     * Construct a service description for registrating with JmDNS. The properties hashtable must map property names to either Strings or byte arrays describing the property values.
+     *
+     * @param type
+     *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
+     * @param name
+     *            unqualified service instance name, such as <code>foobar</code>
+     * @param port
+     *            the local port on which the service runs
+     * @param weight
+     *            weight of the service
+     * @param priority
+     *            priority of the service
+     * @param persistent
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     * @param props
+     *            properties describing the service
+     * @return new service info
+     */
+    public static ServiceInfo create(String type, String name, int port, int weight, int priority, boolean persistent, Map<String, ?> props)
+    {
+        return new ServiceInfoImpl(type, name, port, weight, priority, persistent, props);
+    }
+
+    /**
+     * Construct a service description for registrating with JmDNS.
+     *
+     * @param type
+     *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
+     * @param name
+     *            unqualified service instance name, such as <code>foobar</code>
+     * @param port
+     *            the local port on which the service runs
+     * @param weight
+     *            weight of the service
+     * @param priority
+     *            priority of the service
+     * @param persistent
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     * @param text
+     *            bytes describing the service
+     * @return new service info
+     */
+    public static ServiceInfo create(String type, String name, int port, int weight, int priority, boolean persistent, byte text[])
+    {
+        return new ServiceInfoImpl(type, name, port, weight, priority, persistent, text);
     }
 
     /**
@@ -238,5 +310,32 @@ public abstract class ServiceInfo
      * @return service info description
      */
     public abstract String getNiceTextString();
+
+    /**
+     * Set the text for the service. Setting the text will fore a re-announce of the service.
+     *
+     * @param text
+     *            the raw byte representation of the text field.
+     * @throws IllegalStateException
+     *             if attempting to set the text for a non persistent service info.
+     */
+    public abstract void setText(byte[] text) throws IllegalStateException;
+
+    /**
+     * Set the text for the service. Setting the text will fore a re-announce of the service.
+     *
+     * @param props
+     *            a key=value map that will be encoded into raw bytes.
+     * @throws IllegalStateException
+     *             if attempting to set the text for a non persistent service info.
+     */
+    public abstract void setText(Map<String, ?> props) throws IllegalStateException;
+
+    /**
+     * Returns <code>true</code> if ServiceListener.resolveService will be called whenever new new information is received.
+     *
+     * @return the persistent
+     */
+    public abstract boolean isPersistent();
 
 }

@@ -125,6 +125,38 @@ public abstract class JmDNS
     public abstract ServiceInfo getServiceInfo(String type, String name, int timeout);
 
     /**
+     * Get service information. If the information is not cached, the method will block until updated information is received.
+     * <p/>
+     * Usage note: Do not call this method from the AWT event dispatcher thread. You will make the user interface unresponsive.
+     *
+     * @param type
+     *            fully qualified service type, such as <code>_http._tcp.local.</code> .
+     * @param name
+     *            unqualified service name, such as <code>foobar</code> .
+     * @param persistent
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     * @return null if the service information cannot be obtained
+     */
+    public abstract ServiceInfo getServiceInfo(String type, String name, boolean persistent);
+
+    /**
+     * Get service information. If the information is not cached, the method will block for the given timeout until updated information is received.
+     * <p/>
+     * Usage note: If you call this method from the AWT event dispatcher thread, use a small timeout, or you will make the user interface unresponsive.
+     *
+     * @param type
+     *            full qualified service type, such as <code>_http._tcp.local.</code> .
+     * @param name
+     *            unqualified service name, such as <code>foobar</code> .
+     * @param timeout
+     *            timeout in milliseconds. Typical timeout should be 5s.
+     * @param persistent
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     * @return null if the service information cannot be obtained
+     */
+    public abstract ServiceInfo getServiceInfo(String type, String name, boolean persistent, int timeout);
+
+    /**
      * Request service information. The information about the service is requested and the ServiceListener.resolveService method is called as soon as it is available.
      * <p/>
      * Usage note: Do not call this method from the AWT event dispatcher thread. You will make the user interface unresponsive.
@@ -138,6 +170,20 @@ public abstract class JmDNS
 
     /**
      * Request service information. The information about the service is requested and the ServiceListener.resolveService method is called as soon as it is available.
+     * <p/>
+     * Usage note: Do not call this method from the AWT event dispatcher thread. You will make the user interface unresponsive.
+     *
+     * @param type
+     *            full qualified service type, such as <code>_http._tcp.local.</code> .
+     * @param name
+     *            unqualified service name, such as <code>foobar</code> .
+     * @param persistent
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     */
+    public abstract void requestServiceInfo(String type, String name, boolean persistent);
+
+    /**
+     * Request service information. The information about the service is requested and the ServiceListener.resolveService method is called as soon as it is available.
      *
      * @param type
      *            full qualified service type, such as <code>_http._tcp.local.</code> .
@@ -147,6 +193,20 @@ public abstract class JmDNS
      *            timeout in milliseconds
      */
     public abstract void requestServiceInfo(String type, String name, int timeout);
+
+    /**
+     * Request service information. The information about the service is requested and the ServiceListener.resolveService method is called as soon as it is available.
+     *
+     * @param type
+     *            full qualified service type, such as <code>_http._tcp.local.</code> .
+     * @param name
+     *            unqualified service name, such as <code>foobar</code> .
+     * @param persistent
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     * @param timeout
+     *            timeout in milliseconds
+     */
+    public abstract void requestServiceInfo(String type, String name, boolean persistent, int timeout);
 
     /**
      * Listen for service types.

@@ -30,7 +30,7 @@ public class Canceler extends DNSTask
      */
     int _count = 0;
     /**
-     * The services that need cancelling. Note: We have to use a local variable here, because the services that are canceled, are removed immediately from variable JmDNS.services.
+     * The services that need to be canceled. Note: We have to use a local variable here, because the services that are canceled, are removed immediately from variable JmDNS.services.
      */
     private ServiceInfoImpl[] _infos;
     /**
@@ -52,13 +52,6 @@ public class Canceler extends DNSTask
         this._infos = new ServiceInfoImpl[] { info };
         this._lock = lock;
         this._jmDNSImpl.addListener(info, DNSQuestion.newQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-    }
-
-    public Canceler(JmDNSImpl jmDNSImpl, ServiceInfoImpl[] infos, Object lock)
-    {
-        super(jmDNSImpl);
-        this._infos = infos;
-        this._lock = lock;
     }
 
     public Canceler(JmDNSImpl jmDNSImpl, Collection<? extends ServiceInfo> infos, Object lock)
@@ -84,14 +77,16 @@ public class Canceler extends DNSTask
                 // announce the service
                 // long now = System.currentTimeMillis();
                 DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
-                for (int i = 0; i < _infos.length; i++)
+                for (ServiceInfoImpl info : _infos)
                 {
-                    ServiceInfoImpl info = _infos[i];
                     info.addAnswers(out, _ttl, this._jmDNSImpl.getLocalHost());
 
                     this._jmDNSImpl.getLocalHost().addAddressRecords(out, false);
                 }
-                this._jmDNSImpl.send(out);
+                if (!out.isEmpty())
+                {
+                    this._jmDNSImpl.send(out);
+                }
             }
             else
             {
