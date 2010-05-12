@@ -5,7 +5,6 @@
 package javax.jmdns.impl.tasks;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,7 +13,6 @@ import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSQuestion;
 import javax.jmdns.impl.DNSRecord;
 import javax.jmdns.impl.JmDNSImpl;
-import javax.jmdns.impl.ServiceInfoImpl;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
@@ -46,9 +44,8 @@ public class ServiceResolver extends Resolver
     {
         boolean result = false;
         long now = System.currentTimeMillis();
-        for (Iterator<? extends ServiceInfo> s = this._jmDNSImpl.getServices().values().iterator(); s.hasNext();)
+        for (ServiceInfo info : this._jmDNSImpl.getServices().values())
         {
-            final ServiceInfoImpl info = (ServiceInfoImpl) s.next();
             try
             {
                 out.addAnswer(new DNSRecord.Pointer(info.getType(), DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info.getQualifiedName()), now);

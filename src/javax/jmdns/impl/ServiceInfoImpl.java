@@ -31,7 +31,7 @@ import javax.jmdns.impl.constants.DNSState;
  * @version %I%, %G%
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer
  */
-public class ServiceInfoImpl extends ServiceInfo implements DNSListener
+public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneable
 {
     // private static Logger logger = Logger.getLogger(ServiceInfoImpl.class.getName());
     private AtomicReference<JmDNSImpl> _dns = new AtomicReference<JmDNSImpl>(null);
@@ -59,17 +59,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     private Map<String, Object> _props;
     private InetAddress _addr;
 
-    /**
-     * @param type
-     * @param name
-     * @param port
-     * @param text
-     * @see javax.jmdns.ServiceInfo#create(String, String, int, String)
-     */
-    public ServiceInfoImpl(String type, String name, int port, String text)
-    {
-        this(type, name, port, 0, 0, text);
-    }
+    private boolean _persistent;
+    private boolean _needTextAnnouncing;
 
     /**
      * @param type
@@ -77,21 +68,19 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
      * @param port
      * @param weight
      * @param priority
+     * @param persistent
      * @param text
      * @see javax.jmdns.ServiceInfo#create(String, String, int, int, int, String)
      */
-    public ServiceInfoImpl(String type, String name, int port, int weight, int priority, String text)
+    public ServiceInfoImpl(String type, String name, int port, int weight, int priority, boolean persistent, String text)
     {
-        this(type, name, port, weight, priority, (byte[]) null);
+        this(type, name, port, weight, priority, persistent, (byte[]) null);
         _server = text;
         try
         {
             ByteArrayOutputStream out = new ByteArrayOutputStream(text.length());
             writeUTF(out, text);
-            byte[] data = out.toByteArray();
-            this.setText(new byte[data.length + 1]);
-            this.getText()[0] = (byte) data.length;
-            System.arraycopy(data, 0, this.getText(), 1, data.length);
+            this._text = out.toByteArray();
         }
         catch (IOException e)
         {
@@ -105,54 +94,13 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
      * @param port
      * @param weight
      * @param priority
+     * @param persistent
      * @param props
      * @see javax.jmdns.ServiceInfo#create(String, String, int, int, int, Map)
      */
-    public ServiceInfoImpl(String type, String name, int port, int weight, int priority, Map<String, ?> props)
+    public ServiceInfoImpl(String type, String name, int port, int weight, int priority, boolean persistent, Map<String, ?> props)
     {
-        this(type, name, port, weight, priority, new byte[0]);
-        if (props != null)
-        {
-            try
-            {
-                ByteArrayOutputStream out = new ByteArrayOutputStream(256);
-                for (String key : props.keySet())
-                {
-                    Object val = props.get(key);
-                    ByteArrayOutputStream out2 = new ByteArrayOutputStream(100);
-                    writeUTF(out2, key);
-                    if (val instanceof String)
-                    {
-                        out2.write('=');
-                        writeUTF(out2, (String) val);
-                    }
-                    else
-                    {
-                        if (val instanceof byte[])
-                        {
-                            out2.write('=');
-                            byte[] bval = (byte[]) val;
-                            out2.write(bval, 0, bval.length);
-                        }
-                        else
-                        {
-                            if (val != NO_VALUE)
-                            {
-                                throw new IllegalArgumentException("invalid property value: " + val);
-                            }
-                        }
-                    }
-                    byte data[] = out2.toByteArray();
-                    out.write(data.length);
-                    out.write(data, 0, data.length);
-                }
-                this.setText(out.toByteArray());
-            }
-            catch (IOException e)
-            {
-                throw new RuntimeException("unexpected exception: " + e);
-            }
-        }
+        this(type, name, port, weight, priority, persistent, textFromProperties(props));
     }
 
     /**
@@ -161,34 +109,19 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
      * @param port
      * @param weight
      * @param priority
+     * @param persistent
      * @param text
      * @see javax.jmdns.ServiceInfo#create(String, String, int, int, int, byte[])
      */
-    public ServiceInfoImpl(String type, String name, int port, int weight, int priority, byte text[])
+    public ServiceInfoImpl(String type, String name, int port, int weight, int priority, boolean persistent, byte text[])
     {
         this._type = type;
         this._name = name;
         this._port = port;
         this._weight = weight;
         this._priority = priority;
-        this.setText(text);
-    }
-
-    /**
-     * Construct a service record during service discovery.
-     *
-     * @param type
-     * @param name
-     */
-    ServiceInfoImpl(String type, String name)
-    {
-        if (!type.endsWith("."))
-        {
-            throw new IllegalArgumentException("type must be fully qualified DNS name ending in '.': " + type);
-        }
-
-        this._type = type;
-        this._name = name;
+        this._text = text;
+        this._needTextAnnouncing = false;
     }
 
     /**
@@ -203,7 +136,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
             this._port = info.getPort();
             this._weight = info.getWeight();
             this._priority = info.getPriority();
-            this.setText(info.getTextBytes());
+            this._text = info.getTextBytes();
         }
     }
 
@@ -430,7 +363,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     /**
      * Write a UTF string with a length to a stream.
      */
-    void writeUTF(OutputStream out, String str) throws IOException
+    static void writeUTF(OutputStream out, String str) throws IOException
     {
         for (int i = 0, len = str.length(); i < len; i++)
         {
@@ -592,7 +525,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
                     if (rec.getName().equalsIgnoreCase(this.getQualifiedName()))
                     {
                         DNSRecord.Text txt = (DNSRecord.Text) rec;
-                        this.setText(txt._text);
+                        _text = txt._text;
                     }
                     break;
                 default:
@@ -720,6 +653,17 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     /*
      * (non-Javadoc)
      *
+     * @see java.lang.Object#clone()
+     */
+    @Override
+    public Object clone()
+    {
+        return new ServiceInfoImpl(_type, _name, _port, _weight, _priority, _persistent, _text);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see java.lang.Object#toString()
      */
     @Override
@@ -756,6 +700,27 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     public void setTask(TimerTask task)
     {
         this._task = task;
+        if ((this._task == null) && (this._needTextAnnouncing))
+        {
+            synchronized (this)
+            {
+                if ((this._task == null) && (this._needTextAnnouncing))
+                {
+                    if (this.getState().isAnnounced())
+                    {
+                        this._state = DNSState.ANNOUNCING_1;
+                        if (this.getDns() != null)
+                        {
+                            this.getDns().startAnnouncer();
+                        }
+                    }
+                    else
+                    {
+                        this._needTextAnnouncing = false;
+                    }
+                }
+            }
+        }
     }
 
     public TimerTask getTask()
@@ -763,9 +728,85 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
         return _task;
     }
 
-    public void setText(byte[] text)
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.ServiceInfo#setText(byte[])
+     */
+    @Override
+    public void setText(byte[] text) throws IllegalStateException
     {
         this._text = text;
+        this._needTextAnnouncing = true;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.ServiceInfo#setText(java.util.Map)
+     */
+    @Override
+    public void setText(Map<String, ?> props) throws IllegalStateException
+    {
+        this._text = textFromProperties(props);
+        this._needTextAnnouncing = true;
+    }
+
+    /**
+     * This is used internally by the framework
+     *
+     * @param text
+     */
+    void _setText(byte[] text)
+    {
+        this._text = text;
+    }
+
+    private static byte[] textFromProperties(Map<String, ?> props)
+    {
+        if (props != null)
+        {
+            try
+            {
+                ByteArrayOutputStream out = new ByteArrayOutputStream(256);
+                for (String key : props.keySet())
+                {
+                    Object val = props.get(key);
+                    ByteArrayOutputStream out2 = new ByteArrayOutputStream(100);
+                    writeUTF(out2, key);
+                    if (val instanceof String)
+                    {
+                        out2.write('=');
+                        writeUTF(out2, (String) val);
+                    }
+                    else
+                    {
+                        if (val instanceof byte[])
+                        {
+                            out2.write('=');
+                            byte[] bval = (byte[]) val;
+                            out2.write(bval, 0, bval.length);
+                        }
+                        else
+                        {
+                            if (val != NO_VALUE)
+                            {
+                                throw new IllegalArgumentException("invalid property value: " + val);
+                            }
+                        }
+                    }
+                    byte data[] = out2.toByteArray();
+                    out.write(data.length);
+                    out.write(data, 0, data.length);
+                }
+                return out.toByteArray();
+            }
+            catch (IOException e)
+            {
+                throw new RuntimeException("unexpected exception: " + e);
+            }
+        }
+        return new byte[0];
     }
 
     public byte[] getText()
@@ -781,5 +822,16 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener
     public JmDNSImpl getDns()
     {
         return this._dns.get();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.ServiceInfo#isPersistent()
+     */
+    @Override
+    public boolean isPersistent()
+    {
+        return _persistent;
     }
 }

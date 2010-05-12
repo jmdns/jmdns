@@ -60,13 +60,12 @@ public abstract class Resolver extends DNSTask
                 {
                     logger.finer("run() JmDNS " + this.description());
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                    boolean answersAdded = false;
-                    boolean questionsAdded = this.addQuestions(out);
+                    this.addQuestions(out);
                     if (this._jmDNSImpl.getState() == DNSState.ANNOUNCED)
                     {
-                        answersAdded = this.addAnswers(out);
+                        this.addAnswers(out);
                     }
-                    if (questionsAdded || answersAdded)
+                    if (!out.isEmpty())
                         this._jmDNSImpl.send(out);
                 }
                 else

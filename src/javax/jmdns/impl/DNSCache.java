@@ -546,6 +546,47 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
         return result;
     }
 
+    /**
+     * Replace an existing entry by a new one.<br/>
+     * <b>Note:</b> the 2 entries must have the same key.
+     *
+     * @param newDNSEntry
+     * @param existingDNSEntry
+     * @return <code>true</code> if the entry has been replace, <code>false</code> otherwise.
+     */
+    public synchronized boolean replaceDNSEntry(DNSEntry newDNSEntry, DNSEntry existingDNSEntry)
+    {
+        boolean result = false;
+        if ((newDNSEntry != null) && (existingDNSEntry != null) && (newDNSEntry.getKey().equals(existingDNSEntry.getKey())))
+        {
+            Map.Entry<String, List<? extends DNSEntry>> oldEntry = this.getEntry(newDNSEntry.getKey());
+
+            List<DNSEntry> aNewValue = null;
+            if (oldEntry != null)
+            {
+                aNewValue = new ArrayList<DNSEntry>(oldEntry.getValue());
+            }
+            else
+            {
+                aNewValue = new ArrayList<DNSEntry>();
+            }
+            aNewValue.remove(existingDNSEntry);
+            aNewValue.add(newDNSEntry);
+
+            if (oldEntry != null)
+            {
+                oldEntry.setValue(aNewValue);
+            }
+            else
+            {
+                this.entrySet().add(new _CacheEntry(newDNSEntry.getKey(), aNewValue));
+            }
+            // This is probably not very informative
+            result = true;
+        }
+        return result;
+    }
+
     /*
      * (non-Javadoc)
      *

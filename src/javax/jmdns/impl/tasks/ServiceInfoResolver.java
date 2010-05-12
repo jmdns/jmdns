@@ -45,7 +45,10 @@ public class ServiceInfoResolver extends Resolver
     {
         // We should not forget to remove the listener
         boolean result = super.cancel();
-        this._jmDNSImpl.removeListener(_info);
+        if (!_info.isPersistent())
+        {
+            this._jmDNSImpl.removeListener(_info);
+        }
         return result;
     }
 
@@ -58,21 +61,24 @@ public class ServiceInfoResolver extends Resolver
     protected boolean addAnswers(DNSOutgoing out)
     {
         boolean result = false;
-        long now = System.currentTimeMillis();
-        try
+        if (!_info.hasData())
         {
-            out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN), now);
-            out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN), now);
-            result = true;
-            if (_info.getServer() != null)
+            long now = System.currentTimeMillis();
+            try
             {
-                out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN), now);
-                out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN), now);
+                out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN), now);
+                out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN), now);
+                result = true;
+                if (_info.getServer() != null)
+                {
+                    out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN), now);
+                    out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN), now);
+                }
             }
-        }
-        catch (IOException exception)
-        {
-            logger.log(Level.WARNING, "addAnswers() exception ", exception);
+            catch (IOException exception)
+            {
+                logger.log(Level.WARNING, "addAnswers() exception ", exception);
+            }
         }
         return result;
     }
@@ -86,20 +92,23 @@ public class ServiceInfoResolver extends Resolver
     protected boolean addQuestions(DNSOutgoing out)
     {
         boolean result = false;
-        try
+        if (!_info.hasData())
         {
-            out.addQuestion(DNSQuestion.newQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-            out.addQuestion(DNSQuestion.newQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-            result = true;
-            if (_info.getServer() != null)
+            try
             {
-                out.addQuestion(DNSQuestion.newQuestion(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-                out.addQuestion(DNSQuestion.newQuestion(_info.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                out.addQuestion(DNSQuestion.newQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                out.addQuestion(DNSQuestion.newQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                result = true;
+                if (_info.getServer() != null)
+                {
+                    out.addQuestion(DNSQuestion.newQuestion(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                    out.addQuestion(DNSQuestion.newQuestion(_info.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                }
             }
-        }
-        catch (IOException exception)
-        {
-            logger.log(Level.WARNING, "addQuestions() exception ", exception);
+            catch (IOException exception)
+            {
+                logger.log(Level.WARNING, "addQuestions() exception ", exception);
+            }
         }
         return result;
     }
