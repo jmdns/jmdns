@@ -4,7 +4,7 @@
 
 package javax.jmdns.impl.tasks;
 
-import java.util.Timer;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,24 +13,18 @@ import javax.jmdns.impl.DNSQuestion;
 import javax.jmdns.impl.DNSRecord;
 import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.ServiceInfoImpl;
-import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
-import javax.jmdns.impl.constants.DNSState;
 
 /**
  * The ServiceInfoResolver queries up to three times consecutively for a service info, and then removes itself from the timer.
  * <p/>
  * The ServiceInfoResolver will run only if JmDNS is in state ANNOUNCED. REMIND: Prevent having multiple service resolvers for the same info in the timer queue.
  */
-public class ServiceInfoResolver extends DNSTask
+public class ServiceInfoResolver extends Resolver
 {
-    static Logger logger = Logger.getLogger(ServiceInfoResolver.class.getName());
+    private static Logger logger = Logger.getLogger(ServiceInfoResolver.class.getName());
 
-    /**
-     * Counts the number of queries being sent.
-     */
-    int _count = 0;
     private final ServiceInfoImpl _info;
 
     public ServiceInfoResolver(JmDNSImpl jmDNSImpl, ServiceInfoImpl info)
@@ -41,61 +35,84 @@ public class ServiceInfoResolver extends DNSTask
         this._jmDNSImpl.addListener(info, DNSQuestion.newQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
     }
 
-    public void start(Timer timer)
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.util.TimerTask#cancel()
+     */
+    @Override
+    public boolean cancel()
     {
-        if (this._jmDNSImpl.getState() != DNSState.CANCELED)
-        {
-            timer.schedule(this, DNSConstants.QUERY_WAIT_INTERVAL, DNSConstants.QUERY_WAIT_INTERVAL);
-        }
+        // We should not forget to remove the listener
+        boolean result = super.cancel();
+        this._jmDNSImpl.removeListener(_info);
+        return result;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.Resolver#addAnswers(javax.jmdns.impl.DNSOutgoing)
+     */
     @Override
-    public void run()
+    protected boolean addAnswers(DNSOutgoing out)
     {
+        boolean result = false;
+        long now = System.currentTimeMillis();
         try
         {
-            if (this._jmDNSImpl.getState() == DNSState.ANNOUNCED)
+            out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN), now);
+            out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN), now);
+            result = true;
+            if (_info.getServer() != null)
             {
-                if (_count++ < 3 && !_info.hasData())
-                {
-                    long now = System.currentTimeMillis();
-                    DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                    out.addQuestion(DNSQuestion.newQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-                    out.addQuestion(DNSQuestion.newQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-                    if (_info.getServer() != null)
-                    {
-                        out.addQuestion(DNSQuestion.newQuestion(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-                        out.addQuestion(DNSQuestion.newQuestion(_info.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-                    }
-                    out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN), now);
-                    out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN), now);
-                    if (_info.getServer() != null)
-                    {
-                        out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN), now);
-                        out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN), now);
-                    }
-                    this._jmDNSImpl.send(out);
-                }
-                else
-                {
-                    // After three queries, we can quit.
-                    this.cancel();
-                    this._jmDNSImpl.removeListener(_info);
-                }
-            }
-            else
-            {
-                if (this._jmDNSImpl.getState() == DNSState.CANCELED)
-                {
-                    this.cancel();
-                    this._jmDNSImpl.removeListener(_info);
-                }
+                out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN), now);
+                out.addAnswer((DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN), now);
             }
         }
-        catch (Throwable e)
+        catch (IOException exception)
         {
-            logger.log(Level.WARNING, "run() exception ", e);
-            this._jmDNSImpl.recover();
+            logger.log(Level.WARNING, "addAnswers() exception ", exception);
         }
+        return result;
     }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.Resolver#addQuestions(javax.jmdns.impl.DNSOutgoing)
+     */
+    @Override
+    protected boolean addQuestions(DNSOutgoing out)
+    {
+        boolean result = false;
+        try
+        {
+            out.addQuestion(DNSQuestion.newQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+            out.addQuestion(DNSQuestion.newQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+            result = true;
+            if (_info.getServer() != null)
+            {
+                out.addQuestion(DNSQuestion.newQuestion(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                out.addQuestion(DNSQuestion.newQuestion(_info.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+            }
+        }
+        catch (IOException exception)
+        {
+            logger.log(Level.WARNING, "addQuestions() exception ", exception);
+        }
+        return result;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.Resolver#description()
+     */
+    @Override
+    protected String description()
+    {
+        return "querying service info";
+    }
+
 }
