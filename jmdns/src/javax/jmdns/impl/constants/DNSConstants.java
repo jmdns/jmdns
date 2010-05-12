@@ -17,7 +17,7 @@ public final class DNSConstants
     // changed to final class - jeffs
     public final static String MDNS_GROUP = "224.0.0.251";
     public final static String MDNS_GROUP_IPV6 = "FF02::FB";
-    public final static int MDNS_PORT = 5353;
+    public final static int MDNS_PORT = Integer.parseInt(System.getProperty("net.mdns.port", "5353"));
     public final static int DNS_PORT = 53;
     public final static int DNS_TTL = 60 * 60; // default one hour TTL
     // public final static int DNS_TTL = 120 * 60; // two hour TTL (draft-cheshire-dnsext-multicastdns.txt ch 13)
