@@ -19,8 +19,7 @@ import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSState;
 
 /**
- * The Announcer sends an accumulated query of all announces, and advances the state of all serviceInfos, for which it
- * has sent an announce. The Announcer also sends announcements and advances the state of JmDNS itself.
+ * The Announcer sends an accumulated query of all announces, and advances the state of all serviceInfos, for which it has sent an announce. The Announcer also sends announcements and advances the state of JmDNS itself.
  * <p/>
  * When the announcer has run two times, it finishes.
  */
@@ -97,9 +96,6 @@ public class Announcer extends DNSTask
             // send probes for JmDNS itself
             if (this._jmDNSImpl.getState() == taskState)
             {
-                // if (out == null)
-                // {
-                // }
                 out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
                 this._jmDNSImpl.getLocalHost().addAddressRecords(out, false);
                 this._jmDNSImpl.advanceState();

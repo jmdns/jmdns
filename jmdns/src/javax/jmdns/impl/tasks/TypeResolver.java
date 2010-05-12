@@ -4,7 +4,7 @@
 
 package javax.jmdns.impl.tasks;
 
-import java.util.Timer;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,7 +15,6 @@ import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
-import javax.jmdns.impl.constants.DNSState;
 
 /**
  * Helper class to resolve service types.
@@ -24,9 +23,9 @@ import javax.jmdns.impl.constants.DNSState;
  * <p/>
  * The TypeResolver will run only if JmDNS is in state ANNOUNCED.
  */
-public class TypeResolver extends DNSTask
+public class TypeResolver extends Resolver
 {
-    static Logger logger = Logger.getLogger(TypeResolver.class.getName());
+    private static Logger logger = Logger.getLogger(TypeResolver.class.getName());
 
     /**
      * @param jmDNSImpl
@@ -36,55 +35,60 @@ public class TypeResolver extends DNSTask
         super(jmDNSImpl);
     }
 
-    public void start(Timer timer)
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.Resolver#addAnswers(javax.jmdns.impl.DNSOutgoing)
+     */
+    @Override
+    protected boolean addAnswers(DNSOutgoing out)
     {
-        if (this._jmDNSImpl.getState() != DNSState.CANCELED)
+        boolean result = false;
+        long now = System.currentTimeMillis();
+        for (String type : this._jmDNSImpl.getServiceTypes().values())
         {
-            timer.schedule(this, DNSConstants.QUERY_WAIT_INTERVAL, DNSConstants.QUERY_WAIT_INTERVAL);
+            try
+            {
+                out.addAnswer(new DNSRecord.Pointer("_services._mdns._udp.local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, type), now);
+                result = true;
+            }
+            catch (IOException exception)
+            {
+                logger.log(Level.WARNING, "addAnswers() exception ", exception);
+                break;
+            }
         }
+        return result;
     }
 
-    /**
-     * Counts the number of queries that were sent.
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.Resolver#addQuestions(javax.jmdns.impl.DNSOutgoing)
      */
-    int _count = 0;
-
     @Override
-    public void run()
+    protected boolean addQuestions(DNSOutgoing out)
     {
         try
         {
-            if (this._jmDNSImpl.getState() == DNSState.ANNOUNCED)
-            {
-                if (_count++ < 3)
-                {
-                    logger.finer("run() JmDNS querying type");
-                    DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                    out.addQuestion(DNSQuestion.newQuestion("_services._mdns._udp.local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-                    for (String type : this._jmDNSImpl.getServiceTypes().values())
-                    {
-                        out.addAnswer(new DNSRecord.Pointer("_services._mdns._udp.local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, type), 0);
-                    }
-                    this._jmDNSImpl.send(out);
-                }
-                else
-                {
-                    // After three queries, we can quit.
-                    this.cancel();
-                }
-            }
-            else
-            {
-                if (this._jmDNSImpl.getState() == DNSState.CANCELED)
-                {
-                    this.cancel();
-                }
-            }
+            out.addQuestion(DNSQuestion.newQuestion("_services._mdns._udp.local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
         }
-        catch (Throwable e)
+        catch (IOException exception)
         {
-            logger.log(Level.WARNING, "run() exception ", e);
-            this._jmDNSImpl.recover();
+            logger.log(Level.WARNING, "addQuestions() exception ", exception);
+            return false;
         }
+        return true;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.Resolver#description()
+     */
+    @Override
+    protected String description()
+    {
+        return "querying type";
     }
 }
