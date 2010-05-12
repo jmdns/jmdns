@@ -338,4 +338,18 @@ public abstract class ServiceInfo
      */
     public abstract boolean isPersistent();
 
+    /**
+     * Returns the raw protocol from of the service info suitable for printing.
+     *
+     * @return service protocol
+     */
+    public abstract String getProtocol();
+
+    /**
+     * Returns the domain of the service info suitable for printing.
+     *
+     * @return service domain
+     */
+    public abstract String getDomain();
+
 }

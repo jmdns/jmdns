@@ -360,6 +360,33 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return new Vector<String>(names).elements();
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.ServiceInfo#getDomain()
+     */
+    @Override
+    public String getDomain()
+    {
+        String protocol = getProtocol();
+        int start = _type.indexOf(protocol) + protocol.length() + 1;
+        int end = _type.length() - 1;
+        return _type.substring(start, end);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.ServiceInfo#getProtocol()
+     */
+    @Override
+    public String getProtocol()
+    {
+        int start = _type.lastIndexOf("._") + 2;
+        int end = _type.indexOf('.', start);
+        return _type.substring(start, end);
+    }
+
     /**
      * Write a UTF string with a length to a stream.
      */
