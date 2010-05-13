@@ -95,11 +95,11 @@ public class DNSQuestion extends DNSEntry
             {
                 this.addAnswersForServiceInfo(jmDNSImpl, answers, (ServiceInfoImpl) serviceInfo);
             }
-            if (this.getName().equalsIgnoreCase("_services._mdns._udp.local."))
+            if (this.getName().equalsIgnoreCase("_services" + DNSConstants.DNS_META_QUERY + "local."))
             {
                 for (String serviceType : jmDNSImpl.getServiceTypes().values())
                 {
-                    answers.add(new DNSRecord.Pointer("_services._mdns._udp.local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, serviceType));
+                    answers.add(new DNSRecord.Pointer("_services" + DNSConstants.DNS_META_QUERY + "local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, serviceType));
                 }
             }
         }

@@ -49,7 +49,7 @@ public class TypeResolver extends Resolver
         {
             try
             {
-                out.addAnswer(new DNSRecord.Pointer("_services._mdns._udp.local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, type), now);
+                out.addAnswer(new DNSRecord.Pointer("_services" + DNSConstants.DNS_META_QUERY + "local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, type), now);
                 result = true;
             }
             catch (IOException exception)
@@ -71,7 +71,7 @@ public class TypeResolver extends Resolver
     {
         try
         {
-            out.addQuestion(DNSQuestion.newQuestion("_services._mdns._udp.local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+            out.addQuestion(DNSQuestion.newQuestion("_services" + DNSConstants.DNS_META_QUERY + "local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
         }
         catch (IOException exception)
         {

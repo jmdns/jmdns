@@ -50,7 +50,7 @@ import javax.jmdns.impl.tasks.TypeResolver;
 
 /**
  * mDNS implementation in Java.
- * 
+ *
  * @version %I%, %G%
  * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis
  */
@@ -171,7 +171,7 @@ public class JmDNSImpl extends JmDNS
 
     /**
      * This hashtable is used to maintain a list of service types being collected by this JmDNS instance. The key of the hashtable is a service type name, the value is an instance of JmDNS.ServiceCollector.
-     * 
+     *
      * @see #list
      */
     private final ConcurrentMap<String, ServiceCollector> _serviceCollectors;
@@ -180,7 +180,7 @@ public class JmDNSImpl extends JmDNS
 
     /**
      * Create an instance of JmDNS and bind it to a specific network interface given its IP-address.
-     * 
+     *
      * @param address
      *            IP address to bind to.
      * @param name
@@ -376,7 +376,7 @@ public class JmDNSImpl extends JmDNS
 
     /**
      * Returns the current state of this info.
-     * 
+     *
      * @return Info state
      */
     public DNSState getState()
@@ -386,7 +386,7 @@ public class JmDNSImpl extends JmDNS
 
     /**
      * Return the DNSCache associated with the cache variable
-     * 
+     *
      * @return DNS cache
      */
     public DNSCache getCache()
@@ -396,7 +396,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#getName()
      */
     @Override
@@ -407,7 +407,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#getHostName()
      */
     @Override
@@ -418,7 +418,7 @@ public class JmDNSImpl extends JmDNS
 
     /**
      * Returns the local host info
-     * 
+     *
      * @return local host info
      */
     public HostInfo getLocalHost()
@@ -428,7 +428,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#getInterface()
      */
     @Override
@@ -439,7 +439,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#getServiceInfo(java.lang.String, java.lang.String)
      */
     @Override
@@ -450,7 +450,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#getServiceInfo(java.lang.String, java.lang.String)
      */
     @Override
@@ -461,7 +461,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#getServiceInfo(java.lang.String, java.lang.String)
      */
     @Override
@@ -472,7 +472,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#getServiceInfo(java.lang.String, java.lang.String, int)
      */
     @Override
@@ -575,7 +575,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#requestServiceInfo(java.lang.String, java.lang.String)
      */
     @Override
@@ -586,7 +586,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#requestServiceInfo(java.lang.String, java.lang.String, boolean)
      */
     @Override
@@ -597,7 +597,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#requestServiceInfo(java.lang.String, java.lang.String, int)
      */
     @Override
@@ -608,7 +608,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#requestServiceInfo(java.lang.String, java.lang.String, boolean, int)
      */
     @Override
@@ -667,7 +667,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#removeServiceTypeListener(javax.jmdns.ServiceTypeListener)
      */
     @Override
@@ -678,7 +678,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#addServiceListener(java.lang.String, javax.jmdns.ServiceListener)
      */
     @Override
@@ -730,7 +730,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#removeServiceListener(java.lang.String, javax.jmdns.ServiceListener)
      */
     @Override
@@ -753,7 +753,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#registerService(javax.jmdns.ServiceInfo)
      */
     @Override
@@ -793,7 +793,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#unregisterService(javax.jmdns.ServiceInfo)
      */
     @Override
@@ -829,7 +829,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#unregisterAllServices()
      */
     @Override
@@ -882,14 +882,14 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#registerServiceType(java.lang.String)
      */
     @Override
     public void registerServiceType(String type)
     {
         final String name = type.toLowerCase();
-        if (!_serviceTypes.containsKey(name) && (name.indexOf("._mdns._udp.") < 0) && !name.endsWith(".in-addr.arpa.") && !name.endsWith(".ip6.arpa."))
+        if (!_serviceTypes.containsKey(name) && (name.indexOf(DNSConstants.DNS_META_QUERY) < 0) && !name.endsWith(".in-addr.arpa.") && !name.endsWith(".ip6.arpa."))
         {
             boolean typeAdded = _serviceTypes.putIfAbsent(name, type) == null;
             if (typeAdded)
@@ -905,7 +905,7 @@ public class JmDNSImpl extends JmDNS
 
     /**
      * Generate a possibly unique name for a service using the information we have in the cache.
-     * 
+     *
      * @return returns true, if the name of the service info had to be changed.
      */
     private boolean makeServiceNameUnique(ServiceInfoImpl info)
@@ -976,7 +976,7 @@ public class JmDNSImpl extends JmDNS
 
     /**
      * Add a listener for a question. The listener will receive updates of answers to the question as they arrive, or from the cache if they are already available.
-     * 
+     *
      * @param listener
      *            DSN listener
      * @param question
@@ -1009,7 +1009,7 @@ public class JmDNSImpl extends JmDNS
 
     /**
      * Remove a listener from all outstanding questions. The listener will no longer receive any updates.
-     * 
+     *
      * @param listener
      *            DSN listener
      */
@@ -1021,7 +1021,7 @@ public class JmDNSImpl extends JmDNS
     // Remind: Method updateRecord should receive a better name.
     /**
      * Notify all listeners that a record was updated.
-     * 
+     *
      * @param now
      *            update date
      * @param rec
@@ -1082,7 +1082,7 @@ public class JmDNSImpl extends JmDNS
 
     /**
      * Handle an incoming response. Cache answers, and pass them on to the appropriate questions.
-     * 
+     *
      * @throws IOException
      */
     void handleResponse(DNSIncoming msg) throws IOException
@@ -1132,10 +1132,10 @@ public class JmDNSImpl extends JmDNS
             switch (rec.getRecordType())
             {
                 case TYPE_PTR:
-                    // handle _mdns._udp records
-                    if (rec.getName().indexOf("._mdns._udp.") >= 0)
+                    // handle DNSConstants.DNS_META_QUERY records
+                    if (rec.getName().indexOf(DNSConstants.DNS_META_QUERY) >= 0)
                     {
-                        if (!expired && rec.getName().startsWith("_services._mdns._udp."))
+                        if (!expired && rec.getName().startsWith("_services" + DNSConstants.DNS_META_QUERY))
                         {
                             isInformative = true;
                             this.registerServiceType(((DNSRecord.Pointer) rec)._alias);
@@ -1172,7 +1172,7 @@ public class JmDNSImpl extends JmDNS
 
     /**
      * Handle an incoming query. See if we can answer any part of it given our service infos.
-     * 
+     *
      * @param in
      * @param addr
      * @param port
@@ -1209,7 +1209,7 @@ public class JmDNSImpl extends JmDNS
 
     /**
      * Add an answer to a question. Deal with the case when the outgoing packet overflows
-     * 
+     *
      * @param in
      * @param addr
      * @param port
@@ -1244,7 +1244,7 @@ public class JmDNSImpl extends JmDNS
 
     /**
      * Send an outgoing multicast DNS message.
-     * 
+     *
      * @param out
      * @throws IOException
      */
@@ -1441,7 +1441,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#list(java.lang.String)
      */
     @Override
@@ -1452,7 +1452,7 @@ public class JmDNSImpl extends JmDNS
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.JmDNS#list(java.lang.String, int)
      */
     @Override
@@ -1502,7 +1502,7 @@ public class JmDNSImpl extends JmDNS
 
     /**
      * This method disposes all ServiceCollector instances which have been created by calls to method <code>list(type)</code>.
-     * 
+     *
      * @see #list
      */
     private void disposeServiceCollectors()
@@ -1521,7 +1521,7 @@ public class JmDNSImpl extends JmDNS
 
     /**
      * Instances of ServiceCollector are used internally to speed up the performance of method <code>list(type)</code>.
-     * 
+     *
      * @see #list
      */
     private static class ServiceCollector implements ServiceListener
@@ -1547,7 +1547,7 @@ public class JmDNSImpl extends JmDNS
 
         /**
          * A service has been added.
-         * 
+         *
          * @param event
          *            service event
          */
@@ -1559,7 +1559,7 @@ public class JmDNSImpl extends JmDNS
 
         /**
          * A service has been removed.
-         * 
+         *
          * @param event
          *            service event
          */
@@ -1570,7 +1570,7 @@ public class JmDNSImpl extends JmDNS
 
         /**
          * A service has been resolved. Its details are now available in the ServiceInfo record.
-         * 
+         *
          * @param event
          *            service event
          */
@@ -1581,10 +1581,10 @@ public class JmDNSImpl extends JmDNS
 
         /**
          * Returns an array of all service infos which have been collected by this ServiceCollector.
-         * 
+         *
          * @param timeout
          *            timeout if the info list is empty.
-         * 
+         *
          * @return Service Info array
          */
         public ServiceInfo[] list(long timeout)
