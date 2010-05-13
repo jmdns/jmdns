@@ -53,4 +53,6 @@ public final class DNSConstants
     public final static int RECORD_REAPER_INTERVAL = 10000; // milliseconds between cache cleanups.
     public final static int KNOWN_ANSWER_TTL = 120;
     public final static int ANNOUNCED_RENEWAL_TTL_INTERVAL = DNS_TTL * 500; // 50% of the TTL in milliseconds
+
+    public final static String DNS_META_QUERY = "._dns-sd._udp."; // PTR records, where the rdata of each PTR record is the two-label name of a service
 }
