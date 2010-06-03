@@ -4,9 +4,9 @@
 
 package javax.jmdns.impl.tasks;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,8 +16,6 @@ import javax.jmdns.impl.DNSQuestion;
 import javax.jmdns.impl.DNSRecord;
 import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.constants.DNSConstants;
-import javax.jmdns.impl.constants.DNSRecordType;
-import javax.jmdns.impl.constants.DNSState;
 
 /**
  * The Responder sends a single answer for the specified service infos and for the host name.
@@ -43,21 +41,49 @@ public class Responder extends DNSTask
         this._unicast = (port != DNSConstants.MDNS_PORT);
     }
 
-    public void start()
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.DNSTask#getName()
+     */
+    @Override
+    public String getName()
     {
-        // According to draft-cheshire-dnsext-multicastdns.txt chapter "8 Responding":
+        return "Responder";
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString()
+    {
+        return super.toString() + " incomming: " + _in;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.DNSTask#start(java.util.Timer)
+     */
+    @Override
+    public void start(Timer timer)
+    {
+        // According to draft-cheshire-dnsext-multicastdns.txt chapter "7 Responding":
         // We respond immediately if we know for sure, that we are the only one who can respond to the query.
         // In all other cases, we respond within 20-120 ms.
         //
-        // According to draft-cheshire-dnsext-multicastdns.txt chapter "7.2 Multi-Packet Known Answer Suppression":
+        // According to draft-cheshire-dnsext-multicastdns.txt chapter "6.2 Multi-Packet Known Answer Suppression":
         // We respond after 20-120 ms if the query is truncated.
 
         boolean iAmTheOnlyOne = true;
         for (DNSQuestion question : _in.getQuestions())
         {
+            System.err.println("Responder() Incomming question: " + question);
             logger.finest("start() question=" + question);
-            iAmTheOnlyOne &= DNSRecordType.TYPE_SRV.equals(question.getRecordType()) || DNSRecordType.TYPE_TXT.equals(question.getRecordType()) || DNSRecordType.TYPE_A.equals(question.getRecordType())
-                    || DNSRecordType.TYPE_AAAA.equals(question.getRecordType()) || this._jmDNSImpl.getLocalHost().getName().equalsIgnoreCase(question.getName()) || this._jmDNSImpl.getServices().containsKey(question.getName().toLowerCase());
+            iAmTheOnlyOne = question.iAmTheOnlyOne(this._jmDNSImpl);
             if (!iAmTheOnlyOne)
             {
                 break;
@@ -68,8 +94,12 @@ public class Responder extends DNSTask
         {
             delay = 0;
         }
+        System.err.println("Responder() chosen delay=" + delay);
         logger.finest("start() Responder chosen delay=" + delay);
-        this._jmDNSImpl.schedule(this, delay);
+        if (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled())
+        {
+            timer.schedule(this, delay);
+        }
     }
 
     @Override
@@ -83,12 +113,13 @@ public class Responder extends DNSTask
                 this._jmDNSImpl.setPlannedAnswer(null);
             }
 
+            System.err.println("Responder() Incomming: " + _in);
             // We use these sets to prevent duplicate records
             // FIXME - This should be moved into DNSOutgoing
             Set<DNSQuestion> questions = new HashSet<DNSQuestion>();
             Set<DNSRecord> answers = new HashSet<DNSRecord>();
 
-            if (this._jmDNSImpl.getState() == DNSState.ANNOUNCED)
+            if (this._jmDNSImpl.isAnnounced())
             {
                 try
                 {
@@ -103,6 +134,7 @@ public class Responder extends DNSTask
                         }
 
                         question.addAnswers(_jmDNSImpl, answers);
+                        System.err.println("Responder() Incomming question: " + question + "\n\tanswers: " + answers);
                     }
 
                     // remove known answers, if the ttl is at least half of the correct value. (See Draft Cheshire chapter 7.1.).
@@ -110,6 +142,7 @@ public class Responder extends DNSTask
                     {
                         if (knownAnswer.getTTL() > DNSConstants.DNS_TTL / 2 && answers.remove(knownAnswer))
                         {
+                            System.err.println("JmDNS Responder Known Answer Removed: " + knownAnswer);
                             logger.log(Level.FINER, "JmDNS Responder Known Answer Removed");
                         }
                     }
@@ -117,31 +150,21 @@ public class Responder extends DNSTask
                     // respond if we have answers
                     if (answers.size() != 0)
                     {
+                        System.err.println("Responder() Responding &&&&&&&&&&&&&&&&&&&&");
                         logger.finer("run() JmDNS responding");
-                        DNSOutgoing out = newDNSOutgoing(_unicast, _in.getId(), _in.getSenderUDPPayload());
+                        DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, !_unicast, _in.getSenderUDPPayload());
+                        out.setId(_in.getId());
                         for (DNSQuestion question : questions)
                         {
-                            out.addQuestion(question);
+                            out = this.addQuestion(out, question);
                         }
                         for (DNSRecord answer : answers)
                         {
-                            try
-                            {
-                                out.addAnswer(_in, answer);
-                            }
-                            catch (final IOException e)
-                            {
-                                // The message is full send it and start a new one
-                                // Mark the response as truncated
-                                out.setFlags(out.getFlags() | DNSConstants.FLAGS_TC);
-                                this._jmDNSImpl.send(out);
-
-                                // Start a new one.
-                                out = newDNSOutgoing(_unicast, _in.getId(), _in.getSenderUDPPayload());
-                                out.addAnswer(_in, answer);
-                            }
+                            out = this.addAnswer(out, _in, answer);
                         }
-                        this._jmDNSImpl.send(out);
+                        System.err.println("Responder() Outgoing: " + out);
+                        if (!out.isEmpty())
+                            this._jmDNSImpl.send(out);
                     }
                     this.cancel();
                 }
@@ -156,13 +179,6 @@ public class Responder extends DNSTask
         {
             this._jmDNSImpl.ioUnlock();
         }
-    }
-
-    private static final DNSOutgoing newDNSOutgoing(boolean isUnicast, int id, int senderUDPPayload)
-    {
-        DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, !isUnicast, senderUDPPayload);
-        out.setId(id);
-        return out;
     }
 
 }

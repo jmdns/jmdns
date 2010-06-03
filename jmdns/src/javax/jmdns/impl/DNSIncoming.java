@@ -28,8 +28,7 @@ public final class DNSIncoming extends DNSMessage
     private static Logger logger = Logger.getLogger(DNSIncoming.class.getName());
 
     // This is a hack to handle a bug in the BonjourConformanceTest
-    // It is sending out target strings that don't follow the "domain name"
-    // format.
+    // It is sending out target strings that don't follow the "domain name" format.
     public static boolean USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET = true;
 
     private DatagramPacket _packet;
@@ -175,8 +174,7 @@ public final class DNSIncoming extends DNSMessage
                 try
                 {
                     // This is a hack to handle a bug in the BonjourConformanceTest
-                    // It is sending out target strings that don't follow the "domain name"
-                    // format.
+                    // It is sending out target strings that don't follow the "domain name" format.
 
                     if (USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET)
                     {
@@ -401,7 +399,7 @@ public final class DNSIncoming extends DNSMessage
      */
     String print(boolean dump)
     {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append(this.print());
         if (dump)
         {
@@ -427,7 +425,19 @@ public final class DNSIncoming extends DNSMessage
                     buf.append(Integer.toHexString((_data[off + i] & 0xF0) >> 4));
                     buf.append(Integer.toHexString((_data[off + i] & 0x0F) >> 0));
                 }
-                buf.append("\n");
+                // for incomplete lines
+                if (n < 32)
+                {
+                    int remain = 32 - n;
+                    for (int i = 0; i < remain; i++)
+                    {
+                        if ((i % 8) == 0)
+                        {
+                            buf.append(' ');
+                        }
+                        buf.append("  ");
+                    }
+                }
                 buf.append("    ");
                 for (int i = 0; i < n; i++)
                 {
@@ -435,7 +445,6 @@ public final class DNSIncoming extends DNSMessage
                     {
                         buf.append(' ');
                     }
-                    buf.append(' ');
                     int ch = _data[off + i] & 0xFF;
                     buf.append(((ch > ' ') && (ch < 127)) ? (char) ch : '.');
                 }
@@ -463,7 +472,7 @@ public final class DNSIncoming extends DNSMessage
         }
         buf.append(':');
         buf.append(_packet.getPort());
-        buf.append(", len=");
+        buf.append(", length=");
         buf.append(_packet.getLength());
         buf.append(", id=0x");
         buf.append(Integer.toHexString(_id));
@@ -486,22 +495,22 @@ public final class DNSIncoming extends DNSMessage
         }
         if (this.getNumberOfQuestions() > 0)
         {
-            buf.append(",questions=");
+            buf.append(", questions=");
             buf.append(this.getNumberOfQuestions());
         }
         if (this.getNumberOfAnswers() > 0)
         {
-            buf.append(",answers=");
+            buf.append(", answers=");
             buf.append(this.getNumberOfAnswers());
         }
         if (this.getNumberOfAuthorities() > 0)
         {
-            buf.append(",authorities=");
+            buf.append(", authorities=");
             buf.append(this.getNumberOfAuthorities());
         }
         if (this.getNumberOfAdditionals() > 0)
         {
-            buf.append(",additionals=");
+            buf.append(", additionals=");
             buf.append(this.getNumberOfAdditionals());
         }
         buf.append("]");

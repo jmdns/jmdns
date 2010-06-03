@@ -6,6 +6,7 @@ import static junit.framework.Assert.assertNotSame;
 import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
@@ -22,6 +23,7 @@ import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
 
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,7 +40,7 @@ public class JmDNSTest
     {
         service = ServiceInfo.create("_html._http._tcp.local.", "apache-someuniqueid", 80, "Test hypothetical web server");
         typeListenerMock = createMock(ServiceTypeListener.class);
-        serviceListenerMock = createMock(ServiceListener.class);
+        serviceListenerMock = createNiceMock("ServiceListener", ServiceListener.class);
     }
 
     @Test
@@ -120,10 +122,13 @@ public class JmDNSTest
             // Add an expectation that the listener interface will be called once capture the object so I can verify it separately.
             serviceListenerMock.serviceAdded(capture(capServiceAddedEvent));
             serviceListenerMock.serviceResolved(capture(capServiceResolvedEvent));
-            replay(serviceListenerMock);
+            EasyMock.replay(serviceListenerMock);
+            // EasyMock.makeThreadSafe(serviceListenerMock, false);
 
             registry = JmDNS.create();
+
             registry.addServiceListener(service.getType(), serviceListenerMock);
+
             registry.registerService(service);
 
             // We get the service added event when we register the service. However the service has not been resolved at this point.
@@ -145,6 +150,8 @@ public class JmDNSTest
             assertEquals("We should not get the TextString for the added service:", null, info.getTextString());
             assertEquals("We should not get the Weight for the added service:", 0, info.getWeight());
             assertNotSame("We should not get the URL for the added service:", "", info.getURL());
+
+            registry.requestServiceInfo(service.getType(), service.getName());
 
             assertTrue("We did not get the service resolved event.", capServiceResolvedEvent.hasCaptured());
             verify(serviceListenerMock);
@@ -270,17 +277,15 @@ public class JmDNSTest
     }
 
     @Test
-    public void testRegisterAndListServiceOnOtherRegistry() throws IOException, InterruptedException
+    public void testRegisterAndListServiceOnOtherRegistry() throws IOException
     {
         JmDNS registry = null;
         JmDNS newServiceRegistry = null;
         try
         {
             registry = JmDNS.create("Registry");
-
-            Thread.sleep(4000);
-
             registry.registerService(service);
+
             newServiceRegistry = JmDNS.create("Listener");
             ServiceInfo[] fetchedServices = newServiceRegistry.list(service.getType());
 

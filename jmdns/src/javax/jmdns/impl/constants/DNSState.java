@@ -40,11 +40,23 @@ public enum DNSState
     /**
     *
     */
+    CANCELING_1("canceling 1", StateClass.canceling),
+    /**
+    *
+    */
+    CANCELING_2("canceling 2", StateClass.canceling),
+    /**
+    *
+    */
+    CANCELING_3("canceling 3", StateClass.canceling),
+    /**
+    *
+    */
     CANCELED("canceled", StateClass.canceled);
 
     private enum StateClass
     {
-        probing, announcing, announced, canceled
+        probing, announcing, announced, canceling, canceled
     }
 
     // private static Logger logger = Logger.getLogger(DNSState.class.getName());
@@ -66,8 +78,9 @@ public enum DNSState
     }
 
     /**
-     * Returns the next advanced state. In general, this advances one step in the following sequence: PROBING_1,
-     * PROBING_2, PROBING_3, ANNOUNCING_1, ANNOUNCING_2, ANNOUNCED. Does not advance for ANNOUNCED and CANCELED state.
+     * Returns the next advanced state.<br/>
+     * In general, this advances one step in the following sequence: PROBING_1, PROBING_2, PROBING_3, ANNOUNCING_1, ANNOUNCING_2, ANNOUNCED.<br/>
+     * or CANCELING_1, CANCELING_2, CANCELING_3, CANCELED Does not advance for ANNOUNCED and CANCELED state.
      *
      * @return next state
      */
@@ -87,6 +100,12 @@ public enum DNSState
                 return ANNOUNCED;
             case ANNOUNCED:
                 return ANNOUNCED;
+            case CANCELING_1:
+                return CANCELING_2;
+            case CANCELING_2:
+                return CANCELING_3;
+            case CANCELING_3:
+                return CANCELED;
             case CANCELED:
                 return CANCELED;
         }
@@ -95,14 +114,30 @@ public enum DNSState
     }
 
     /**
-     * Returns to the next reverted state. All states except CANCELED revert to PROBING_1. Status CANCELED does not
-     * revert.
+     * Returns to the next reverted state. All states except CANCELED revert to PROBING_1. Status CANCELED does not revert.
      *
      * @return reverted state
      */
     public final DNSState revert()
     {
-        return _state == StateClass.canceled ? CANCELED : PROBING_1;
+        switch (this)
+        {
+            case PROBING_1:
+            case PROBING_2:
+            case PROBING_3:
+            case ANNOUNCING_1:
+            case ANNOUNCING_2:
+            case ANNOUNCED:
+                return PROBING_1;
+            case CANCELING_1:
+            case CANCELING_2:
+            case CANCELING_3:
+                return CANCELING_1;
+            case CANCELED:
+                return CANCELED;
+        }
+        // This is just to keep the compiler happy as we have covered all cases before.
+        return this;
     }
 
     /**
@@ -133,6 +168,16 @@ public enum DNSState
     public final boolean isAnnounced()
     {
         return _state == StateClass.announced;
+    }
+
+    /**
+     * Returns true, if this is a canceling state.
+     *
+     * @return <code>true</code> if canceling state, <code>false</code> otherwise
+     */
+    public final boolean isCanceling()
+    {
+        return _state == StateClass.canceling;
     }
 
     /**

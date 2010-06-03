@@ -10,7 +10,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.jmdns.impl.constants.DNSConstants;
-import javax.jmdns.impl.constants.DNSState;
 
 /**
  * Listen for multicast packets.
@@ -29,6 +28,7 @@ class SocketListener implements Runnable
      */
     SocketListener(JmDNSImpl jmDNSImpl)
     {
+        super();
         this._jmDNSImpl = jmDNSImpl;
     }
 
@@ -38,11 +38,11 @@ class SocketListener implements Runnable
         {
             byte buf[] = new byte[DNSConstants.MAX_MSG_ABSOLUTE];
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
-            while (this._jmDNSImpl.getState() != DNSState.CANCELED)
+            while (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled())
             {
                 packet.setLength(buf.length);
                 this._jmDNSImpl.getSocket().receive(packet);
-                if (this._jmDNSImpl.getState() == DNSState.CANCELED)
+                if (this._jmDNSImpl.isCanceling() || this._jmDNSImpl.isCanceled())
                 {
                     break;
                 }
@@ -54,6 +54,7 @@ class SocketListener implements Runnable
                     }
 
                     DNSIncoming msg = new DNSIncoming(packet);
+                    System.err.println("SocketListener.run() JmDNS in:" + msg.print(true));
                     if (logger.isLoggable(Level.FINEST))
                     {
                         logger.finest("SocketListener.run() JmDNS in:" + msg.print(true));
@@ -88,7 +89,7 @@ class SocketListener implements Runnable
         }
         catch (IOException e)
         {
-            if (this._jmDNSImpl.getState() != DNSState.CANCELED)
+            if (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled())
             {
                 logger.log(Level.WARNING, "run() exception ", e);
                 this._jmDNSImpl.recover();

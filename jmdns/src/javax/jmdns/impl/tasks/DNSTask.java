@@ -3,12 +3,16 @@
  */
 package javax.jmdns.impl.tasks;
 
+import java.io.IOException;
+import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.jmdns.ServiceInfo;
+import javax.jmdns.impl.DNSIncoming;
+import javax.jmdns.impl.DNSOutgoing;
+import javax.jmdns.impl.DNSQuestion;
+import javax.jmdns.impl.DNSRecord;
 import javax.jmdns.impl.JmDNSImpl;
-import javax.jmdns.impl.ServiceInfoImpl;
-import javax.jmdns.impl.constants.DNSState;
+import javax.jmdns.impl.constants.DNSConstants;
 
 /**
  *
@@ -31,59 +35,204 @@ public abstract class DNSTask extends TimerTask
     }
 
     /**
-     * Associate the DNS host and the service infos with this task if not already associated and in the same state.
+     * Start this task.
      *
-     * @param state
-     *            target state
+     * @param timer
+     *            task timer.
      */
-    protected void associate(DNSState state)
+    public abstract void start(Timer timer);
+
+    /**
+     * Return this task name.
+     *
+     * @return task name
+     */
+    public abstract String getName();
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString()
     {
-        synchronized (_jmDNSImpl)
-        {
-            if ((this._jmDNSImpl.getTask() == null) && (this._jmDNSImpl.getState() == state))
-            {
-                this._jmDNSImpl.setTask(this);
-            }
-        }
-        for (ServiceInfo serviceInfo : this._jmDNSImpl.getServices().values())
-        {
-            ServiceInfoImpl info = (ServiceInfoImpl) serviceInfo;
-            synchronized (info)
-            {
-                if ((info.getTask() == null) && (info.getState() == state))
-                {
-                    info.setTask(this);
-                }
-            }
-        }
+        return this.getName();
     }
 
     /**
-     * Remove the DNS host and service info association with this task.
+     * Add a question to the message.
+     *
+     * @param out
+     *            outgoing message
+     * @param rec
+     *            DNS question
+     * @return outgoing message for the next question
+     * @throws IOException
      */
-    protected void removeAssociation()
+    public DNSOutgoing addQuestion(DNSOutgoing out, DNSQuestion rec) throws IOException
     {
-        // Remove association from host to this
-        synchronized (_jmDNSImpl)
+        DNSOutgoing newOut = out;
+        try
         {
-            if (this._jmDNSImpl.getTask() == this)
-            {
-                this._jmDNSImpl.setTask(null);
-            }
+            newOut.addQuestion(rec);
         }
+        catch (final IOException e)
+        {
+            int flags = newOut.getFlags();
+            boolean multicast = newOut.isMulticast();
+            int maxUDPPayload = newOut.getMaxUDPPayload();
+            int id = newOut.getId();
 
-        // Remove associations from services to this
-        for (ServiceInfo serviceInfo : this._jmDNSImpl.getServices().values())
-        {
-            ServiceInfoImpl info = (ServiceInfoImpl) serviceInfo;
-            synchronized (info)
-            {
-                if (info.getTask() == this)
-                {
-                    info.setTask(null);
-                }
-            }
+            newOut.setFlags(flags | DNSConstants.FLAGS_TC);
+            newOut.setId(id);
+            this._jmDNSImpl.send(newOut);
+
+            newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
+            newOut.addQuestion(rec);
         }
+        return newOut;
+    }
+
+    /**
+     * Add an answer if it is not suppressed.
+     *
+     * @param out
+     *            outgoing message
+     * @param in
+     *            incoming request
+     * @param rec
+     *            DNS record answer
+     * @return outgoing message for the next answer
+     * @throws IOException
+     */
+    public DNSOutgoing addAnswer(DNSOutgoing out, DNSIncoming in, DNSRecord rec) throws IOException
+    {
+        DNSOutgoing newOut = out;
+        try
+        {
+            newOut.addAnswer(in, rec);
+        }
+        catch (final IOException e)
+        {
+            int flags = newOut.getFlags();
+            boolean multicast = newOut.isMulticast();
+            int maxUDPPayload = newOut.getMaxUDPPayload();
+            int id = newOut.getId();
+
+            newOut.setFlags(flags | DNSConstants.FLAGS_TC);
+            newOut.setId(id);
+            this._jmDNSImpl.send(newOut);
+
+            newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
+            newOut.addAnswer(in, rec);
+        }
+        return newOut;
+    }
+
+    /**
+     * Add an answer to the message.
+     *
+     * @param out
+     *            outgoing message
+     * @param rec
+     *            DNS record answer
+     * @param now
+     * @return outgoing message for the next answer
+     * @throws IOException
+     */
+    public DNSOutgoing addAnswer(DNSOutgoing out, DNSRecord rec, long now) throws IOException
+    {
+        DNSOutgoing newOut = out;
+        try
+        {
+            newOut.addAnswer(rec, now);
+        }
+        catch (final IOException e)
+        {
+            int flags = newOut.getFlags();
+            boolean multicast = newOut.isMulticast();
+            int maxUDPPayload = newOut.getMaxUDPPayload();
+            int id = newOut.getId();
+
+            newOut.setFlags(flags | DNSConstants.FLAGS_TC);
+            newOut.setId(id);
+            this._jmDNSImpl.send(newOut);
+
+            newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
+            newOut.addAnswer(rec, now);
+        }
+        return newOut;
+    }
+
+    /**
+     * Add an authoritative answer to the message.
+     *
+     * @param out
+     *            outgoing message
+     * @param rec
+     *            DNS record answer
+     * @return outgoing message for the next answer
+     * @throws IOException
+     */
+    public DNSOutgoing addAuthorativeAnswer(DNSOutgoing out, DNSRecord rec) throws IOException
+    {
+        DNSOutgoing newOut = out;
+        try
+        {
+            newOut.addAuthorativeAnswer(rec);
+        }
+        catch (final IOException e)
+        {
+            int flags = newOut.getFlags();
+            boolean multicast = newOut.isMulticast();
+            int maxUDPPayload = newOut.getMaxUDPPayload();
+            int id = newOut.getId();
+
+            newOut.setFlags(flags | DNSConstants.FLAGS_TC);
+            newOut.setId(id);
+            this._jmDNSImpl.send(newOut);
+
+            newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
+            newOut.addAuthorativeAnswer(rec);
+        }
+        return newOut;
+    }
+
+    /**
+     * Add an additional answer to the record. Omit if there is no room.
+     *
+     * @param out
+     *            outgoing message
+     * @param in
+     *            incoming request
+     * @param rec
+     *            DNS record answer
+     * @return outgoing message for the next answer
+     * @throws IOException
+     */
+    public DNSOutgoing addAdditionalAnswer(DNSOutgoing out, DNSIncoming in, DNSRecord rec) throws IOException
+    {
+        DNSOutgoing newOut = out;
+        try
+        {
+            newOut.addAdditionalAnswer(in, rec);
+        }
+        catch (final IOException e)
+        {
+            int flags = newOut.getFlags();
+            boolean multicast = newOut.isMulticast();
+            int maxUDPPayload = newOut.getMaxUDPPayload();
+            int id = newOut.getId();
+
+            newOut.setFlags(flags | DNSConstants.FLAGS_TC);
+            newOut.setId(id);
+            this._jmDNSImpl.send(newOut);
+
+            newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
+            newOut.addAdditionalAnswer(in, rec);
+        }
+        return newOut;
     }
 
 }

@@ -45,6 +45,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
  */
 public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
 {
+
     // private static Logger logger = Logger.getLogger(DNSCache.class.getName());
 
     private transient Set<Map.Entry<String, List<? extends DNSEntry>>> _entrySet = null;

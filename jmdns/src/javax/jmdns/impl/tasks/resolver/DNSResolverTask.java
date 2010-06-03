@@ -1,8 +1,9 @@
 /**
  *
  */
-package javax.jmdns.impl.tasks;
+package javax.jmdns.impl.tasks.resolver;
 
+import java.io.IOException;
 import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -10,14 +11,14 @@ import java.util.logging.Logger;
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.constants.DNSConstants;
-import javax.jmdns.impl.constants.DNSState;
+import javax.jmdns.impl.tasks.DNSTask;
 
 /**
  *
  */
-public abstract class Resolver extends DNSTask
+public abstract class DNSResolverTask extends DNSTask
 {
-    private static Logger logger = Logger.getLogger(Resolver.class.getName());
+    private static Logger logger = Logger.getLogger(DNSResolverTask.class.getName());
 
     /**
      * Counts the number of queries being sent.
@@ -27,14 +28,31 @@ public abstract class Resolver extends DNSTask
     /**
      * @param jmDNSImpl
      */
-    public Resolver(JmDNSImpl jmDNSImpl)
+    public DNSResolverTask(JmDNSImpl jmDNSImpl)
     {
         super(jmDNSImpl);
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString()
+    {
+        return super.toString() + " count: " + _count;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.DNSTask#start(java.util.Timer)
+     */
+    @Override
     public void start(Timer timer)
     {
-        if (this._jmDNSImpl.getState() != DNSState.CANCELED)
+        if (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled())
         {
             timer.schedule(this, DNSConstants.QUERY_WAIT_INTERVAL, DNSConstants.QUERY_WAIT_INTERVAL);
         }
@@ -50,7 +68,7 @@ public abstract class Resolver extends DNSTask
     {
         try
         {
-            if (this._jmDNSImpl.getState() == DNSState.CANCELED)
+            if (this._jmDNSImpl.isCanceling() || this._jmDNSImpl.isCanceled())
             {
                 this.cancel();
             }
@@ -60,10 +78,10 @@ public abstract class Resolver extends DNSTask
                 {
                     logger.finer("run() JmDNS " + this.description());
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-                    this.addQuestions(out);
-                    if (this._jmDNSImpl.getState() == DNSState.ANNOUNCED)
+                    out = this.addQuestions(out);
+                    if (this._jmDNSImpl.isAnnounced())
                     {
-                        this.addAnswers(out);
+                        out = this.addAnswers(out);
                     }
                     if (!out.isEmpty())
                         this._jmDNSImpl.send(out);
@@ -83,22 +101,26 @@ public abstract class Resolver extends DNSTask
     }
 
     /**
-     * Overridden by subclasses to add questions to the message
+     * Overridden by subclasses to add questions to the message.<br/>
+     * <b>Note:</b> Because of message size limitation the returned message may be different than the message parameter.
      *
      * @param out
      *            outgoing message
-     * @return <code>true</code> if questions where added to the message, <code>false</code> otherwise.
+     * @return the outgoing message.
+     * @throws IOException
      */
-    protected abstract boolean addQuestions(DNSOutgoing out);
+    protected abstract DNSOutgoing addQuestions(DNSOutgoing out) throws IOException;
 
     /**
-     * Overridden by subclasses to add questions to the message
+     * Overridden by subclasses to add questions to the message.<br/>
+     * <b>Note:</b> Because of message size limitation the returned message may be different than the message parameter.
      *
      * @param out
      *            outgoing message
-     * @return <code>true</code> if answers where added to the message, <code>false</code> otherwise.
+     * @return the outgoing message.
+     * @throws IOException
      */
-    protected abstract boolean addAnswers(DNSOutgoing out);
+    protected abstract DNSOutgoing addAnswers(DNSOutgoing out) throws IOException;
 
     /**
      * Returns a description of the resolver for debugging

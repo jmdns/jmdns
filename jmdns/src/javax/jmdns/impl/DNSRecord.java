@@ -11,12 +11,12 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.jmdns.ServiceInfo;
+import javax.jmdns.impl.DNSOutgoing.MessageStream;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
@@ -186,7 +186,7 @@ public abstract class DNSRecord extends DNSEntry
     /**
      * Write this record into an outgoing message.
      */
-    abstract void write(DNSOutgoing out) throws IOException;
+    abstract void write(MessageStream out);
 
     /**
      * Address record.
@@ -216,7 +216,7 @@ public abstract class DNSRecord extends DNSEntry
         }
 
         @Override
-        void write(DNSOutgoing out) throws IOException
+        void write(MessageStream out)
         {
             if (_addr != null)
             {
@@ -307,16 +307,16 @@ public abstract class DNSRecord extends DNSEntry
             {
                 if (dnsAddress.sameType(this) && dnsAddress.sameName(this) && (!dnsAddress.sameValue(this)))
                 {
-                    logger1.finer("handleQuery() Conflicting probe detected. dns state " + dns.getState() + " lex compare " + compareTo(dnsAddress));
+                    logger1.finer("handleQuery() Conflicting probe detected. lex compare " + compareTo(dnsAddress));
                     // Tie-breaker test
-                    if (dns.getState().isProbing() && compareTo(dnsAddress) >= 0)
+                    if (dns.isProbing() && compareTo(dnsAddress) >= 0)
                     {
                         // We lost the tie-break. We have to choose a different name.
                         dns.getLocalHost().incrementHostName();
                         dns.getCache().clear();
-                        for (Iterator<ServiceInfo> i = dns.getServices().values().iterator(); i.hasNext();)
+                        for (ServiceInfo serviceInfo : dns.getServices().values())
                         {
-                            ServiceInfoImpl info = (ServiceInfoImpl) i.next();
+                            ServiceInfoImpl info = (ServiceInfoImpl) serviceInfo;
                             info.revertState();
                         }
                     }
@@ -340,13 +340,13 @@ public abstract class DNSRecord extends DNSEntry
                 {
                     logger1.finer("handleResponse() Denial detected");
 
-                    if (dns.getState().isProbing())
+                    if (dns.isProbing())
                     {
                         dns.getLocalHost().incrementHostName();
                         dns.getCache().clear();
-                        for (Iterator<ServiceInfo> i = dns.getServices().values().iterator(); i.hasNext();)
+                        for (ServiceInfo serviceInfo : dns.getServices().values())
                         {
-                            ServiceInfoImpl info = (ServiceInfoImpl) i.next();
+                            ServiceInfoImpl info = (ServiceInfoImpl) serviceInfo;
                             info.revertState();
                         }
                     }
@@ -393,8 +393,9 @@ public abstract class DNSRecord extends DNSEntry
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
-        public void toString(StringBuilder aLog)
+        protected void toString(StringBuilder aLog)
         {
+            super.toString(aLog);
             aLog.append(" address: '" + (_addr != null ? _addr.getHostAddress() : "null") + "'");
         }
 
@@ -415,9 +416,9 @@ public abstract class DNSRecord extends DNSEntry
         }
 
         @Override
-        void write(DNSOutgoing out) throws IOException
+        void write(MessageStream out)
         {
-            out.writeName(_alias);
+            out.writeName(_alias, false);
         }
 
         @Override
@@ -470,8 +471,9 @@ public abstract class DNSRecord extends DNSEntry
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
-        public void toString(StringBuilder aLog)
+        protected void toString(StringBuilder aLog)
         {
+            super.toString(aLog);
             aLog.append(" alias: '" + (_alias != null ? _alias.toString() : "null") + "'");
         }
 
@@ -489,7 +491,7 @@ public abstract class DNSRecord extends DNSEntry
         }
 
         @Override
-        void write(DNSOutgoing out) throws IOException
+        void write(MessageStream out)
         {
             out.writeBytes(_text, 0, _text.length);
         }
@@ -565,8 +567,9 @@ public abstract class DNSRecord extends DNSEntry
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
-        public void toString(StringBuilder aLog)
+        protected void toString(StringBuilder aLog)
         {
+            super.toString(aLog);
             aLog.append(" text: '" + ((_text.length > 10) ? new String(_text, 0, 7) + "..." : new String(_text)) + "'");
         }
 
@@ -593,7 +596,7 @@ public abstract class DNSRecord extends DNSEntry
         }
 
         @Override
-        void write(DNSOutgoing out) throws IOException
+        void write(MessageStream out)
         {
             out.writeShort(_priority);
             out.writeShort(_weight);
@@ -677,7 +680,7 @@ public abstract class DNSRecord extends DNSEntry
                 }
 
                 // Tie breaker test
-                if (info.getState().isProbing() && comparison > 0)
+                if (info.isProbing() && comparison > 0)
                 {
                     // We lost the tie break
                     String oldName = info.getQualifiedName().toLowerCase();
@@ -710,7 +713,7 @@ public abstract class DNSRecord extends DNSEntry
             {
                 logger1.finer("handleResponse() Denial detected");
 
-                if (info.getState().isProbing())
+                if (info.isProbing())
                 {
                     String oldName = info.getQualifiedName().toLowerCase();
                     info.setName(dns.incrementName(info.getName()));
@@ -768,8 +771,9 @@ public abstract class DNSRecord extends DNSEntry
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
-        public void toString(StringBuilder aLog)
+        protected void toString(StringBuilder aLog)
         {
+            super.toString(aLog);
             aLog.append(" server: '" + _server + ":" + _port + "'");
         }
     }
@@ -848,7 +852,7 @@ public abstract class DNSRecord extends DNSEntry
          * @see javax.jmdns.impl.DNSRecord#write(javax.jmdns.impl.DNSOutgoing)
          */
         @Override
-        void write(DNSOutgoing out) throws IOException
+        void write(MessageStream out)
         {
             String hostInfo = _cpu + " " + _os;
             out.writeUTF(hostInfo, 0, hostInfo.length());
@@ -886,8 +890,9 @@ public abstract class DNSRecord extends DNSEntry
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
-        public void toString(StringBuilder aLog)
+        protected void toString(StringBuilder aLog)
         {
+            super.toString(aLog);
             aLog.append(" cpu: '" + _cpu + "' os: '" + _os + "'");
         }
 
@@ -911,9 +916,16 @@ public abstract class DNSRecord extends DNSEntry
         return _source;
     }
 
-    public String toString(String other)
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
+     */
+    @Override
+    protected void toString(StringBuilder aLog)
     {
-        return toString("record", _ttl + "/" + getRemainingTTL(System.currentTimeMillis()) + ", " + other);
+        super.toString(aLog);
+        aLog.append(" ttl: '" + getRemainingTTL(System.currentTimeMillis()) + "/" + _ttl + "'");
     }
 
     public void setTTL(int ttl)

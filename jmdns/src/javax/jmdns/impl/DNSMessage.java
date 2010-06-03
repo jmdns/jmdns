@@ -247,19 +247,19 @@ public abstract class DNSMessage
         buf.append(this.toString() + "\n");
         for (DNSQuestion question : _questions)
         {
-            buf.append("    ques:" + question + "\n");
+            buf.append("\tquestion:      " + question + "\n");
         }
         for (DNSRecord answer : _answers)
         {
-            buf.append("    answ:" + answer + "\n");
+            buf.append("\tanswer:        " + answer + "\n");
         }
         for (DNSRecord answer : _authoritativeAnswers)
         {
-            buf.append("    auth:" + answer + "\n");
+            buf.append("\tauthoritative: " + answer + "\n");
         }
         for (DNSRecord answer : _additionals)
         {
-            buf.append("    addi:" + answer + "\n");
+            buf.append("\tadditional:    " + answer + "\n");
         }
         return buf.toString();
     }

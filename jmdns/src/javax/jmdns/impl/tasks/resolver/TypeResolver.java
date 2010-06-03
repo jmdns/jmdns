@@ -2,11 +2,9 @@
 //Licensed under Apache License version 2.0
 //Original license LGPL
 
-package javax.jmdns.impl.tasks;
+package javax.jmdns.impl.tasks.resolver;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSQuestion;
@@ -23,9 +21,8 @@ import javax.jmdns.impl.constants.DNSRecordType;
  * <p/>
  * The TypeResolver will run only if JmDNS is in state ANNOUNCED.
  */
-public class TypeResolver extends Resolver
+public class TypeResolver extends DNSResolverTask
 {
-    private static Logger logger = Logger.getLogger(TypeResolver.class.getName());
 
     /**
      * @param jmDNSImpl
@@ -38,27 +35,29 @@ public class TypeResolver extends Resolver
     /*
      * (non-Javadoc)
      *
+     * @see javax.jmdns.impl.tasks.DNSTask#getName()
+     */
+    @Override
+    public String getName()
+    {
+        return "TypeResolver";
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see javax.jmdns.impl.tasks.Resolver#addAnswers(javax.jmdns.impl.DNSOutgoing)
      */
     @Override
-    protected boolean addAnswers(DNSOutgoing out)
+    protected DNSOutgoing addAnswers(DNSOutgoing out) throws IOException
     {
-        boolean result = false;
+        DNSOutgoing newOut = out;
         long now = System.currentTimeMillis();
         for (String type : this._jmDNSImpl.getServiceTypes().values())
         {
-            try
-            {
-                out.addAnswer(new DNSRecord.Pointer("_services" + DNSConstants.DNS_META_QUERY + "local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, type), now);
-                result = true;
-            }
-            catch (IOException exception)
-            {
-                logger.log(Level.WARNING, "addAnswers() exception ", exception);
-                break;
-            }
+            newOut = this.addAnswer(newOut, new DNSRecord.Pointer("_services" + DNSConstants.DNS_META_QUERY + "local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, type), now);
         }
-        return result;
+        return newOut;
     }
 
     /*
@@ -67,18 +66,9 @@ public class TypeResolver extends Resolver
      * @see javax.jmdns.impl.tasks.Resolver#addQuestions(javax.jmdns.impl.DNSOutgoing)
      */
     @Override
-    protected boolean addQuestions(DNSOutgoing out)
+    protected DNSOutgoing addQuestions(DNSOutgoing out) throws IOException
     {
-        try
-        {
-            out.addQuestion(DNSQuestion.newQuestion("_services" + DNSConstants.DNS_META_QUERY + "local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-        }
-        catch (IOException exception)
-        {
-            logger.log(Level.WARNING, "addQuestions() exception ", exception);
-            return false;
-        }
-        return true;
+        return this.addQuestion(out, DNSQuestion.newQuestion("_services" + DNSConstants.DNS_META_QUERY + "local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
     }
 
     /*
