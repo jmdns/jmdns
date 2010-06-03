@@ -286,7 +286,7 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
                 {
                     System.out.println(this + " valueChanged() type:" + type + " name:" + name);
                     System.out.flush();
-                    ServiceInfo service = jmdns.getServiceInfo(type, name);
+                    ServiceInfo service = jmdns.getServiceInfo(type, name, 10 * 1000);
                     if (service == null)
                     {
                         info.setText("service not found");

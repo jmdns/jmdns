@@ -2,8 +2,6 @@
 //Licensed under Apache License version 2.0
 //Original license LGPL
 
-
-
 package javax.jmdns.impl;
 
 import java.io.IOException;
@@ -18,27 +16,50 @@ import java.util.logging.Logger;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
+import javax.jmdns.impl.constants.DNSState;
+import javax.jmdns.impl.tasks.DNSTask;
 
 /**
  * HostInfo information on the local host to be able to cope with change of addresses.
  *
  * @version %I%, %G%
- * @author	Pierre Frisch, Werner Randelshofer
+ * @author Pierre Frisch, Werner Randelshofer
  */
-public class HostInfo
+public class HostInfo implements DNSStatefulObject
 {
     private static Logger logger = Logger.getLogger(HostInfo.class.getName());
+
     protected String _name;
+
     protected InetAddress _address;
+
     protected NetworkInterface _interfaze;
+
+    private final HostInfoState _state;
+
+    private final static class HostInfoState extends DNSStatefulObject.DefaultImplementation
+    {
+
+        /**
+         * @param dns
+         */
+        public HostInfoState(JmDNSImpl dns)
+        {
+            super();
+            this.setDns(dns);
+        }
+
+    }
+
     /**
      * This is used to create a unique name for the host name.
      */
     private int hostNameCount;
 
-    public HostInfo(InetAddress address, String name)
+    public HostInfo(InetAddress address, String name, JmDNSImpl dns)
     {
         super();
+        this._state = new HostInfoState(dns);
         this._address = address;
         this._name = name;
         if (address != null)
@@ -113,7 +134,8 @@ public class HostInfo
 
     public DNSRecord.Address getDNS4AddressRecord()
     {
-        if ((this.getAddress() instanceof Inet4Address) || ((this.getAddress() instanceof Inet6Address) && (((Inet6Address) this.getAddress()).isIPv4CompatibleAddress()))) {
+        if ((this.getAddress() instanceof Inet4Address) || ((this.getAddress() instanceof Inet6Address) && (((Inet6Address) this.getAddress()).isIPv4CompatibleAddress())))
+        {
             return new DNSRecord.Address(this.getName(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, this.getAddress());
         }
         return null;
@@ -121,9 +143,9 @@ public class HostInfo
 
     public DNSRecord.Address getDNS6AddressRecord()
     {
-        if (this.getAddress() instanceof Inet6Address) {
-            return new DNSRecord.Address(this.getName(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN,
-                    DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, this.getAddress());
+        if (this.getAddress() instanceof Inet6Address)
+        {
+            return new DNSRecord.Address(this.getName(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, this.getAddress());
         }
         return null;
     }
@@ -131,13 +153,15 @@ public class HostInfo
     @Override
     public String toString()
     {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder(1024);
         buf.append("local host info[");
         buf.append(getName() != null ? getName() : "no name");
         buf.append(", ");
         buf.append(getInterface() != null ? getInterface().getDisplayName() : "???");
         buf.append(":");
         buf.append(getAddress() != null ? getAddress().getHostAddress() : "no address");
+        buf.append(", ");
+        buf.append(_state);
         buf.append("]");
         return buf.toString();
     }
@@ -169,6 +193,171 @@ public class HostInfo
                 out.addAnswer(answer, 0);
             }
         }
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#getDns()
+     */
+    @Override
+    public JmDNSImpl getDns()
+    {
+        return this._state.getDns();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#advanceState()
+     */
+    @Override
+    public boolean advanceState()
+    {
+        return this._state.advanceState();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#removeAssociationWithTask(javax.jmdns.impl.tasks.DNSTask)
+     */
+    @Override
+    public void removeAssociationWithTask(DNSTask task)
+    {
+        this._state.removeAssociationWithTask(task);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#revertState()
+     */
+    @Override
+    public boolean revertState()
+    {
+        return this._state.revertState();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#associateWithTask(javax.jmdns.impl.tasks.DNSTask, javax.jmdns.impl.constants.DNSState)
+     */
+    @Override
+    public void associateWithTask(DNSTask task, DNSState state)
+    {
+        this._state.associateWithTask(task, state);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#isAssociatedWithTask(javax.jmdns.impl.tasks.DNSTask, javax.jmdns.impl.constants.DNSState)
+     */
+    @Override
+    public boolean isAssociatedWithTask(DNSTask task, DNSState state)
+    {
+        return this._state.isAssociatedWithTask(task, state);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#cancel()
+     */
+    @Override
+    public boolean cancelState()
+    {
+        return this._state.cancelState();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#recover()
+     */
+    @Override
+    public boolean recoverState()
+    {
+        return this._state.recoverState();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#isProbing()
+     */
+    @Override
+    public boolean isProbing()
+    {
+        return this._state.isProbing();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#isAnnouncing()
+     */
+    @Override
+    public boolean isAnnouncing()
+    {
+        return this._state.isAnnouncing();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#isAnnounced()
+     */
+    @Override
+    public boolean isAnnounced()
+    {
+        return this._state.isAnnounced();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#isCanceling()
+     */
+    @Override
+    public boolean isCanceling()
+    {
+        return this._state.isCanceling();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#isCanceled()
+     */
+    @Override
+    public boolean isCanceled()
+    {
+        return this._state.isCanceled();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#waitForAnnounced(long)
+     */
+    @Override
+    public boolean waitForAnnounced(long timeout)
+    {
+        return _state.waitForAnnounced(timeout);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#waitForCanceled(long)
+     */
+    @Override
+    public boolean waitForCanceled(long timeout)
+    {
+        return _state.waitForCanceled(timeout);
     }
 
 }

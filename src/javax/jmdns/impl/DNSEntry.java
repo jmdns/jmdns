@@ -58,7 +58,7 @@ public abstract class DNSEntry
     }
 
     /**
-     * Returns teh name of this entry
+     * Returns the name of this entry
      *
      * @return name of this entry
      */
@@ -202,26 +202,22 @@ public abstract class DNSEntry
     public String toString()
     {
         StringBuilder aLog = new StringBuilder();
-        aLog.append("[ " + this.getClass().getName());
+        aLog.append("[" + this.getClass().getSimpleName() + "@" + System.identityHashCode(this));
         aLog.append(" type: " + this.getRecordType());
         aLog.append(", class: " + this.getRecordClass());
         aLog.append((_unique ? "-unique," : ","));
         aLog.append(" name: " + _name);
         this.toString(aLog);
-        aLog.append(" ]");
+        aLog.append("]");
         return aLog.toString();
     }
 
     /**
      * @param aLog
      */
-    public void toString(StringBuilder aLog)
+    protected void toString(StringBuilder aLog)
     {
-        aLog.append(super.toString());
+        // Stub
     }
 
-    public String toString(String hdr, String other)
-    {
-        return hdr + "[" + this.getRecordType() + "," + this.getRecordClass() + (_unique ? "-unique," : ",") + _name + ((other != null) ? "," + other + "]" : "]");
-    }
 }

@@ -4,15 +4,14 @@
 
 package javax.jmdns.impl.tasks;
 
-import java.util.Collection;
 import java.util.Timer;
 import java.util.logging.Logger;
 
 import javax.jmdns.impl.DNSEntry;
 import javax.jmdns.impl.DNSRecord;
 import javax.jmdns.impl.JmDNSImpl;
+import javax.jmdns.impl.JmDNSImpl.Operation;
 import javax.jmdns.impl.constants.DNSConstants;
-import javax.jmdns.impl.constants.DNSState;
 
 /**
  * Periodically removes expired entries from the cache.
@@ -29,9 +28,26 @@ public class RecordReaper extends DNSTask
         super(jmDNSImpl);
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.DNSTask#getName()
+     */
+    @Override
+    public String getName()
+    {
+        return "RecordReaper";
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.DNSTask#start(java.util.Timer)
+     */
+    @Override
     public void start(Timer timer)
     {
-        if (this._jmDNSImpl.getState() != DNSState.CANCELED)
+        if (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled())
         {
             timer.schedule(this, DNSConstants.RECORD_REAPER_INTERVAL, DNSConstants.RECORD_REAPER_INTERVAL);
         }
@@ -40,30 +56,26 @@ public class RecordReaper extends DNSTask
     @Override
     public void run()
     {
-        synchronized (this._jmDNSImpl)
+        // synchronized (this._jmDNSImpl)
+        // {
+        if (this._jmDNSImpl.isCanceling() || this._jmDNSImpl.isCanceled())
         {
-            if (this._jmDNSImpl.getState() == DNSState.CANCELED)
-            {
-                return;
-            }
-            logger.finest("run() JmDNS reaping cache");
+            return;
+        }
+        logger.finest("run() JmDNS reaping cache");
 
-            // Remove expired answers from the cache
-            // -------------------------------------
-            // To prevent race conditions, we defensively copy all cache
-            // entries into a list.
-            Collection<? extends DNSEntry> dnsEntryLits = this._jmDNSImpl.getCache().allValues();
-            // Now, we remove them.
-            long now = System.currentTimeMillis();
-            for (DNSEntry entry : dnsEntryLits)
+        // Remove expired answers from the cache
+        // -------------------------------------
+        long now = System.currentTimeMillis();
+        for (DNSEntry entry : this._jmDNSImpl.getCache().allValues())
+        {
+            DNSRecord record = (DNSRecord) entry;
+            if (record.isExpired(now))
             {
-                DNSRecord record = (DNSRecord) entry;
-                if (record.isExpired(now))
-                {
-                    this._jmDNSImpl.updateRecord(now, record);
-                    this._jmDNSImpl.getCache().removeDNSEntry(record);
-                }
+                this._jmDNSImpl.updateRecord(now, record, Operation.Remove);
+                this._jmDNSImpl.getCache().removeDNSEntry(record);
             }
         }
+        // }
     }
 }

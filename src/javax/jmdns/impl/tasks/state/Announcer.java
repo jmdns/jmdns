@@ -2,7 +2,7 @@
 //Licensed under Apache License version 2.0
 //Original license LGPL
 
-package javax.jmdns.impl.tasks;
+package javax.jmdns.impl.tasks.state;
 
 import java.util.Timer;
 import java.util.logging.Level;
@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSOutgoing;
+import javax.jmdns.impl.DNSRecord;
 import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.ServiceInfoImpl;
 import javax.jmdns.impl.constants.DNSConstants;
@@ -20,7 +21,7 @@ import javax.jmdns.impl.constants.DNSState;
  * <p/>
  * When the announcer has run two times, it finishes.
  */
-public class Announcer extends DNSTask
+public class Announcer extends DNSStateTask
 {
     static Logger logger = Logger.getLogger(Announcer.class.getName());
 
@@ -36,9 +37,37 @@ public class Announcer extends DNSTask
         this.associate(DNSState.ANNOUNCING_1);
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.DNSTask#getName()
+     */
+    @Override
+    public String getName()
+    {
+        return "Announcer";
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString()
+    {
+        return super.toString() + " state: " + taskState;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.DNSTask#start(java.util.Timer)
+     */
+    @Override
     public void start(Timer timer)
     {
-        if (this._jmDNSImpl.getState() != DNSState.CANCELED)
+        if (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled())
         {
             timer.schedule(this, DNSConstants.ANNOUNCE_WAIT_INTERVAL, DNSConstants.ANNOUNCE_WAIT_INTERVAL);
         }
@@ -61,7 +90,7 @@ public class Announcer extends DNSTask
             // send probes for JmDNS itself
             synchronized (_jmDNSImpl)
             {
-                if ((this._jmDNSImpl.getTask() == this) && this._jmDNSImpl.getState() == taskState)
+                if (this._jmDNSImpl.isAssociatedWithTask(this, taskState))
                 {
                     this._jmDNSImpl.getLocalHost().addAddressRecords(out, false);
                     this._jmDNSImpl.advanceState();
@@ -73,11 +102,14 @@ public class Announcer extends DNSTask
                 ServiceInfoImpl info = (ServiceInfoImpl) serviceInfo;
                 synchronized (info)
                 {
-                    if ((info.getTask() == this) && info.getState().isAnnouncing())
+                    if (info.isAssociatedWithTask(this, taskState))
                     {
+                        logger.finer("run() JmDNS announcing " + info.getQualifiedName());
+                        for (DNSRecord answer : info.answers(DNSConstants.DNS_TTL, this._jmDNSImpl.getLocalHost()))
+                        {
+                            out = this.addAnswer(out, null, answer);
+                        }
                         info.advanceState();
-                        logger.finer("run() JmDNS announcing " + info.getQualifiedName() + " state " + info.getState());
-                        info.addAnswers(out, DNSConstants.DNS_TTL, this._jmDNSImpl.getLocalHost());
                     }
                 }
             }

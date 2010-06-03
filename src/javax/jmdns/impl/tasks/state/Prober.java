@@ -2,7 +2,7 @@
 //Licensed under Apache License version 2.0
 //Original license LGPL
 
-package javax.jmdns.impl.tasks;
+package javax.jmdns.impl.tasks.state;
 
 import java.util.Timer;
 import java.util.logging.Level;
@@ -25,7 +25,7 @@ import javax.jmdns.impl.constants.DNSState;
  * <p/>
  * If a conflict during probes occurs, the affected service infos (and affected host name) are taken away from the prober. This eventually causes the prober to cancel itself.
  */
-public class Prober extends DNSTask
+public class Prober extends DNSStateTask
 {
     static Logger logger = Logger.getLogger(Prober.class.getName());
 
@@ -41,6 +41,34 @@ public class Prober extends DNSTask
         this.associate(DNSState.PROBING_1);
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.DNSTask#getName()
+     */
+    @Override
+    public String getName()
+    {
+        return "Prober";
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString()
+    {
+        return super.toString() + " state: " + taskState;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.DNSTask#start(java.util.Timer)
+     */
+    @Override
     public void start(Timer timer)
     {
         long now = System.currentTimeMillis();
@@ -54,11 +82,11 @@ public class Prober extends DNSTask
         }
         this._jmDNSImpl.setLastThrottleIncrement(now);
 
-        if (this._jmDNSImpl.getState() == DNSState.ANNOUNCED && this._jmDNSImpl.getThrottle() < DNSConstants.PROBE_THROTTLE_COUNT)
+        if (this._jmDNSImpl.isAnnounced() && this._jmDNSImpl.getThrottle() < DNSConstants.PROBE_THROTTLE_COUNT)
         {
             timer.schedule(this, JmDNSImpl.getRandom().nextInt(1 + DNSConstants.PROBE_WAIT_INTERVAL), DNSConstants.PROBE_WAIT_INTERVAL);
         }
-        else if (this._jmDNSImpl.getState() != DNSState.CANCELED)
+        else if (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled())
         {
             timer.schedule(this, DNSConstants.PROBE_CONFLICT_INTERVAL, DNSConstants.PROBE_CONFLICT_INTERVAL);
         }
@@ -81,7 +109,7 @@ public class Prober extends DNSTask
             // send probes for JmDNS itself
             synchronized (_jmDNSImpl)
             {
-                if ((this._jmDNSImpl.getTask() == this) && this._jmDNSImpl.getState() == taskState)
+                if (this._jmDNSImpl.isAssociatedWithTask(this, taskState))
                 {
                     out.addQuestion(DNSQuestion.newQuestion(this._jmDNSImpl.getLocalHost().getName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
                     this._jmDNSImpl.getLocalHost().addAddressRecords(out, true);
@@ -95,19 +123,15 @@ public class Prober extends DNSTask
 
                 synchronized (info)
                 {
-                    if (info.getState() == taskState && info.getTask() == this)
+                    if (info.isAssociatedWithTask(this, taskState))
                     {
-                        info.advanceState();
-                        logger.fine("run() JmDNS probing " + info.getQualifiedName() + " state " + info.getState());
-                        if (out.isEmpty())
-                        {
-                            // FIXME [PJYF May 12 2010] This is wrong we should add this question but we cannot because of the way the outgoing is encoded. We should fix this when the outgoing is encoding is deferred.
-                            out.addQuestion(DNSQuestion.newQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-                        }
+                        logger.fine("run() JmDNS probing " + info.getQualifiedName());
+                        out = this.addQuestion(out, DNSQuestion.newQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
                         // the "unique" flag should be not set here because these answers haven't been proven unique
                         // yet this means the record will not exactly match the announcement record
-                        out.addAuthorativeAnswer(new DNSRecord.Service(info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(),
-                                this._jmDNSImpl.getLocalHost().getName()));
+                        out = this.addAuthorativeAnswer(out, new DNSRecord.Service(info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info
+                                .getPort(), this._jmDNSImpl.getLocalHost().getName()));
+                        info.advanceState();
                     }
                 }
             }

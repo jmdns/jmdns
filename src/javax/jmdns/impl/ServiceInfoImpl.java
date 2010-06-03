@@ -8,14 +8,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
-import java.util.TimerTask;
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSRecord.Pointer;
@@ -24,6 +24,7 @@ import javax.jmdns.impl.DNSRecord.Text;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSState;
+import javax.jmdns.impl.tasks.DNSTask;
 
 /**
  * JmDNS service information.
@@ -31,23 +32,9 @@ import javax.jmdns.impl.constants.DNSState;
  * @version %I%, %G%
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer
  */
-public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneable
+public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneable, DNSStatefulObject
 {
     // private static Logger logger = Logger.getLogger(ServiceInfoImpl.class.getName());
-    private AtomicReference<JmDNSImpl> _dns = new AtomicReference<JmDNSImpl>(null);
-
-    // State machine
-    /**
-     * The state of this service info. This is used only for services announced by JmDNS.
-     * <p/>
-     * For proper handling of concurrency, this variable must be changed only using methods advanceState(), revertState() and cancel().
-     */
-    private volatile DNSState _state = DNSState.PROBING_1;
-
-    /**
-     * Task associated to this service info. Possible tasks are JmDNS.Prober, JmDNS.Announcer, JmDNS.Responder, JmDNS.Canceler.
-     */
-    private TimerTask _task;
 
     private String _type;
     private String _name;
@@ -61,6 +48,67 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
 
     private boolean _persistent;
     private boolean _needTextAnnouncing;
+
+    private final ServiceInfoState _state;
+
+    private final static class ServiceInfoState extends DNSStatefulObject.DefaultImplementation
+    {
+
+        private final ServiceInfoImpl _info;
+
+        /**
+         * @param info
+         */
+        public ServiceInfoState(ServiceInfoImpl info)
+        {
+            super();
+            _info = info;
+        }
+
+        @Override
+        protected void setTask(DNSTask task)
+        {
+            super.setTask(task);
+            if ((this._task == null) && _info.needTextAnnouncing())
+            {
+                synchronized (this)
+                {
+                    if ((this._task == null) && _info.needTextAnnouncing())
+                    {
+                        if (this._state.isAnnounced())
+                        {
+                            this._state = DNSState.ANNOUNCING_1;
+                            if (this.getDns() != null)
+                            {
+                                this.getDns().startAnnouncer();
+                            }
+                        }
+                        else
+                        {
+                            _info.setNeedTextAnnouncing(false);
+                        }
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void setDns(JmDNSImpl dns)
+        {
+            super.setDns(dns);
+        }
+
+        @Override
+        public boolean advanceState()
+        {
+            if (this._state.isAnnounced() && _info.needTextAnnouncing())
+            {
+                this.setTask(null);
+             }
+            return super.advanceState();
+        }
+
+    }
 
     /**
      * @param type
@@ -121,7 +169,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         this._weight = weight;
         this._priority = priority;
         this._text = text;
-        this._needTextAnnouncing = false;
+        this.setNeedTextAnnouncing(false);
+        this._state = new ServiceInfoState(this);
     }
 
     /**
@@ -138,6 +187,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
             this._priority = info.getPriority();
             this._text = info.getTextBytes();
         }
+        this._state = new ServiceInfoState(this);
     }
 
     /**
@@ -175,7 +225,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     @Override
     public String getQualifiedName()
     {
-        return (_name != null ? _name.toLowerCase() : "") + "." + (_type != null ? _type.toLowerCase() : "");
+        return (_name != null ? _name.toLowerCase() + "." : "") + (_type != null ? _type.toLowerCase() : "");
     }
 
     /**
@@ -555,6 +605,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                         _text = txt._text;
                     }
                     break;
+                case TYPE_PTR:
+                    break;
                 default:
                     break;
             }
@@ -562,7 +614,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
             // This is done, to notify the wait loop in method JmDNS.getServiceInfo(type, name, timeout);
             if (this.hasData())
             {
-                JmDNSImpl dns = _dns.getAndSet(null);
+                JmDNSImpl dns = this.getDns();
                 if (dns != null)
                 {
                     dns.handleServiceResolved(this);
@@ -572,6 +624,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
             {
                 this.notifyAll();
             }
+            System.err.println("Update service info: " + this + "\n\t record: " + rec);
         }
     }
 
@@ -588,41 +641,159 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     }
 
     // State machine
-    /**
-     * Sets the state and notifies all objects that wait on the ServiceInfo.
-     */
-    public synchronized void advanceState()
-    {
-        _state = _state.advance();
-        notifyAll();
-    }
 
-    /**
-     * Sets the state and notifies all objects that wait on the ServiceInfo.
-     */
-    synchronized void revertState()
-    {
-        _state = _state.revert();
-        notifyAll();
-    }
-
-    /**
-     * Sets the state and notifies all objects that wait on the ServiceInfo.
-     */
-    synchronized void cancel()
-    {
-        _state = DNSState.CANCELED;
-        notifyAll();
-    }
-
-    /**
-     * Returns the current state of this info.
+    /*
+     * (non-Javadoc)
      *
-     * @return current state
+     * @see javax.jmdns.impl.DNSStatefulObject#advanceState()
      */
-    public DNSState getState()
+    @Override
+    public boolean advanceState()
     {
-        return _state;
+        return _state.advanceState();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#revertState()
+     */
+    @Override
+    public boolean revertState()
+    {
+        return _state.revertState();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#cancel()
+     */
+    @Override
+    public boolean cancelState()
+    {
+        return _state.cancelState();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#recover()
+     */
+    @Override
+    public boolean recoverState()
+    {
+        return this._state.recoverState();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#removeAssociationWithTask(javax.jmdns.impl.tasks.DNSTask)
+     */
+    @Override
+    public void removeAssociationWithTask(DNSTask task)
+    {
+        _state.removeAssociationWithTask(task);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#associateWithTask(javax.jmdns.impl.tasks.DNSTask, javax.jmdns.impl.constants.DNSState)
+     */
+    @Override
+    public void associateWithTask(DNSTask task, DNSState state)
+    {
+        _state.associateWithTask(task, state);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#isAssociatedWithTask(javax.jmdns.impl.tasks.DNSTask, javax.jmdns.impl.constants.DNSState)
+     */
+    @Override
+    public boolean isAssociatedWithTask(DNSTask task, DNSState state)
+    {
+        return _state.isAssociatedWithTask(task, state);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#isProbing()
+     */
+    @Override
+    public boolean isProbing()
+    {
+        return _state.isProbing();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#isAnnouncing()
+     */
+    @Override
+    public boolean isAnnouncing()
+    {
+        return _state.isAnnouncing();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#isAnnounced()
+     */
+    @Override
+    public boolean isAnnounced()
+    {
+        return _state.isAnnounced();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#isCanceling()
+     */
+    @Override
+    public boolean isCanceling()
+    {
+        return this._state.isCanceling();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#isCanceled()
+     */
+    @Override
+    public boolean isCanceled()
+    {
+        return _state.isCanceled();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#waitForAnnounced(long)
+     */
+    @Override
+    public boolean waitForAnnounced(long timeout)
+    {
+        return _state.waitForAnnounced(timeout);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSStatefulObject#waitForCanceled(long)
+     */
+    @Override
+    public boolean waitForCanceled(long timeout)
+    {
+        return _state.waitForCanceled(timeout);
     }
 
     /*
@@ -697,14 +868,15 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     public String toString()
     {
         StringBuilder buf = new StringBuilder();
-        buf.append("[" + this.getClass().getName() + "@" + System.identityHashCode(this) + " ");
+        buf.append("[" + this.getClass().getSimpleName() + "@" + System.identityHashCode(this) + " ");
         buf.append("name: '");
         buf.append(this.getQualifiedName());
         buf.append("' address: '");
         buf.append(this.getAddress());
         buf.append(':');
         buf.append(this.getPort());
-        buf.append("'");
+        buf.append("' status: '");
+        buf.append(_state.toString());
         buf.append("' has ");
         buf.append(this.hasData() ? "" : "NO ");
         buf.append("data");
@@ -717,42 +889,13 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return buf.toString();
     }
 
-    public void addAnswers(DNSOutgoing out, int ttl, HostInfo localHost) throws IOException
+    public Collection<DNSRecord> answers(int ttl, HostInfo localHost)
     {
-        out.addAnswer(new Pointer(_type, DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()), 0);
-        out.addAnswer(new Service(this.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, _priority, _weight, _port, localHost.getName()), 0);
-        out.addAnswer(new Text(this.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, this.getText()), 0);
-    }
-
-    public void setTask(TimerTask task)
-    {
-        this._task = task;
-        if ((this._task == null) && (this._needTextAnnouncing))
-        {
-            synchronized (this)
-            {
-                if ((this._task == null) && (this._needTextAnnouncing))
-                {
-                    if (this.getState().isAnnounced())
-                    {
-                        this._state = DNSState.ANNOUNCING_1;
-                        if (this.getDns() != null)
-                        {
-                            this.getDns().startAnnouncer();
-                        }
-                    }
-                    else
-                    {
-                        this._needTextAnnouncing = false;
-                    }
-                }
-            }
-        }
-    }
-
-    public TimerTask getTask()
-    {
-        return _task;
+        List<DNSRecord> list = new ArrayList<DNSRecord>();
+        list.add(new Pointer(this.getType(), DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
+        list.add(new Service(this.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, _priority, _weight, _port, localHost.getName()));
+        list.add(new Text(this.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, this.getText()));
+        return list;
     }
 
     /*
@@ -764,7 +907,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     public void setText(byte[] text) throws IllegalStateException
     {
         this._text = text;
-        this._needTextAnnouncing = true;
+        this.setNeedTextAnnouncing(true);
     }
 
     /*
@@ -776,7 +919,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     public void setText(Map<String, ?> props) throws IllegalStateException
     {
         this._text = textFromProperties(props);
-        this._needTextAnnouncing = true;
+        this.setNeedTextAnnouncing(true);
     }
 
     /**
@@ -843,12 +986,12 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
 
     public void setDns(JmDNSImpl dns)
     {
-        this._dns.set(dns);
+        this._state.setDns(dns);
     }
 
     public JmDNSImpl getDns()
     {
-        return this._dns.get();
+        return this._state.getDns();
     }
 
     /*
@@ -861,4 +1004,22 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     {
         return _persistent;
     }
+
+    /**
+     * @param needTextAnnouncing
+     *            the needTextAnnouncing to set
+     */
+    public void setNeedTextAnnouncing(boolean needTextAnnouncing)
+    {
+        this._needTextAnnouncing = needTextAnnouncing;
+    }
+
+    /**
+     * @return the needTextAnnouncing
+     */
+    public boolean needTextAnnouncing()
+    {
+        return _needTextAnnouncing;
+    }
+
 }

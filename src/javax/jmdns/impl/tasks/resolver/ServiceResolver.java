@@ -2,11 +2,9 @@
 //Licensed under Apache License version 2.0
 //Original license LGPL
 
-package javax.jmdns.impl.tasks;
+package javax.jmdns.impl.tasks.resolver;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSOutgoing;
@@ -22,9 +20,8 @@ import javax.jmdns.impl.constants.DNSRecordType;
  * <p/>
  * The ServiceResolver will run only if JmDNS is in state ANNOUNCED. REMIND: Prevent having multiple service resolvers for the same type in the timer queue.
  */
-public class ServiceResolver extends Resolver
+public class ServiceResolver extends DNSResolverTask
 {
-    private static Logger logger = Logger.getLogger(ServiceResolver.class.getName());
 
     private String _type;
 
@@ -37,27 +34,29 @@ public class ServiceResolver extends Resolver
     /*
      * (non-Javadoc)
      *
+     * @see javax.jmdns.impl.tasks.DNSTask#getName()
+     */
+    @Override
+    public String getName()
+    {
+        return "ServiceResolver";
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see javax.jmdns.impl.tasks.Resolver#addAnswers(javax.jmdns.impl.DNSOutgoing)
      */
     @Override
-    protected boolean addAnswers(DNSOutgoing out)
+    protected DNSOutgoing addAnswers(DNSOutgoing out) throws IOException
     {
-        boolean result = false;
+        DNSOutgoing newOut = out;
         long now = System.currentTimeMillis();
         for (ServiceInfo info : this._jmDNSImpl.getServices().values())
         {
-            try
-            {
-                out.addAnswer(new DNSRecord.Pointer(info.getType(), DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info.getQualifiedName()), now);
-                result = true;
-            }
-            catch (IOException exception)
-            {
-                logger.log(Level.WARNING, "addAnswers() exception ", exception);
-                break;
-            }
+            newOut = this.addAnswer(newOut, new DNSRecord.Pointer(info.getType(), DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info.getQualifiedName()), now);
         }
-        return result;
+        return newOut;
     }
 
     /*
@@ -66,18 +65,9 @@ public class ServiceResolver extends Resolver
      * @see javax.jmdns.impl.tasks.Resolver#addQuestions(javax.jmdns.impl.DNSOutgoing)
      */
     @Override
-    protected boolean addQuestions(DNSOutgoing out)
+    protected DNSOutgoing addQuestions(DNSOutgoing out) throws IOException
     {
-        try
-        {
-            out.addQuestion(DNSQuestion.newQuestion(_type, DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-        }
-        catch (IOException exception)
-        {
-            logger.log(Level.WARNING, "addQuestions() exception ", exception);
-            return false;
-        }
-        return true;
+        return this.addQuestion(out, DNSQuestion.newQuestion(_type, DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
     }
 
     /*
