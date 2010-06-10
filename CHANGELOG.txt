@@ -10,6 +10,7 @@ Update text field and receive text updates. - ID: 2349331
 Make listening interface and port configurable - ID: 3000610
 Add extra API to read protocol and domain - ID: 3000616
 Replace outdated/inofficial "._mdns._udp." meta query with o - ID: 3000618
+Build OSGi bundle as part of ANT build - ID: 3000972
 
 CHANGELOG 5 April 2010 Pierre Frisch
 Rev the source code to 3.1.6
