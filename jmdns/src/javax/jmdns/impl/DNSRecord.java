@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSOutgoing.MessageStream;
 import javax.jmdns.impl.constants.DNSConstants;
@@ -48,21 +49,15 @@ public abstract class DNSRecord extends DNSEntry
         this._created = System.currentTimeMillis();
     }
 
-    /**
-     * True if this record is the same as some other record.
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.DNSEntry#equals(java.lang.Object)
      */
     @Override
     public boolean equals(Object other)
     {
-        return (other instanceof DNSRecord) && sameAs((DNSRecord) other);
-    }
-
-    /**
-     * True if this record is the same as some other record.
-     */
-    boolean sameAs(DNSRecord other)
-    {
-        return super.equals(other) && sameValue(other);
+        return (other instanceof DNSRecord) && super.equals(other) && sameValue((DNSRecord) other);
     }
 
     /**
@@ -122,11 +117,11 @@ public abstract class DNSRecord extends DNSEntry
     }
 
     /**
-     * True if this record would be supressed by an answer. This is the case if this record would not have a significantly longer TTL.
+     * True if this record would be suppressed by an answer. This is the case if this record would not have a significantly longer TTL.
      */
     boolean suppressedBy(DNSRecord other)
     {
-        if (sameAs(other) && (other._ttl > _ttl / 2))
+        if (this.equals(other) && (other._ttl > _ttl / 2))
         {
             return true;
         }
@@ -302,7 +297,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         boolean handleQuery(JmDNSImpl dns, long expirationTime)
         {
-            DNSRecord.Address dnsAddress = dns.getLocalHost().getDNSAddressRecord(this);
+            DNSRecord.Address dnsAddress = dns.getLocalHost().getDNSAddressRecord(this, DNSConstants.DNS_TTL);
             if (dnsAddress != null)
             {
                 if (dnsAddress.sameType(this) && dnsAddress.sameName(this) && (!dnsAddress.sameValue(this)))
@@ -333,7 +328,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         boolean handleResponse(JmDNSImpl dns)
         {
-            DNSRecord.Address dnsAddress = dns.getLocalHost().getDNSAddressRecord(this);
+            DNSRecord.Address dnsAddress = dns.getLocalHost().getDNSAddressRecord(this, DNSConstants.DNS_TTL);
             if (dnsAddress != null)
             {
                 if (dnsAddress.sameType(this) && dnsAddress.sameName(this) && (!dnsAddress.sameValue(this)))
@@ -366,10 +361,10 @@ public abstract class DNSRecord extends DNSEntry
         /*
          * (non-Javadoc)
          *
-         * @see javax.jmdns.impl.DNSRecord#getServiceInfo()
+         * @see javax.jmdns.impl.DNSRecord#getServiceInfo(boolean)
          */
         @Override
-        public ServiceInfo getServiceInfo()
+        public ServiceInfo getServiceInfo(boolean persistent)
         {
             // We need to split the name as this is the fully qualified name.
             int index = this.getName().indexOf('.');
@@ -382,9 +377,22 @@ public abstract class DNSRecord extends DNSEntry
                     domainName = this.getName().substring(index + 1);
             }
 
-            ServiceInfoImpl info = new ServiceInfoImpl(domainName, serviceName, 0, 0, 0, false, (byte[]) null);
+            ServiceInfoImpl info = new ServiceInfoImpl(domainName, serviceName, 0, 0, 0, persistent, (byte[]) null);
             info.setAddress(_addr);
             return info;
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.jmdns.impl.DNSRecord#getServiceEvent(javax.jmdns.impl.JmDNSImpl)
+         */
+        @Override
+        public ServiceEvent getServiceEvent(JmDNSImpl dns)
+        {
+            ServiceInfo info = this.getServiceInfo(false);
+            ((ServiceInfoImpl) info).setDns(dns);
+            return new ServiceEventImpl(dns, info.getType(), info.getName(), info);
         }
 
         /*
@@ -409,9 +417,9 @@ public abstract class DNSRecord extends DNSEntry
         // private static Logger logger = Logger.getLogger(Pointer.class.getName());
         String _alias;
 
-        public Pointer(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl, String alias)
+        public Pointer(String name, DNSRecordClass recordClass, boolean unique, int ttl, String alias)
         {
-            super(name, type, recordClass, unique, ttl);
+            super(name, DNSRecordType.TYPE_PTR, recordClass, unique, ttl);
             this._alias = alias;
         }
 
@@ -457,12 +465,27 @@ public abstract class DNSRecord extends DNSEntry
         /*
          * (non-Javadoc)
          *
-         * @see javax.jmdns.impl.DNSRecord#getServiceInfo()
+         * @see javax.jmdns.impl.DNSRecord#getServiceInfo(boolean)
          */
         @Override
-        public ServiceInfo getServiceInfo()
+        public ServiceInfo getServiceInfo(boolean persistent)
         {
-            return new ServiceInfoImpl(this.getName(), JmDNSImpl.toUnqualifiedName(this.getName(), this.getAlias()), 0, 0, 0, false, (byte[]) null);
+            return new ServiceInfoImpl(this.getName(), JmDNSImpl.toUnqualifiedName(this.getName(), this.getAlias()), 0, 0, 0, persistent, (byte[]) null);
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.jmdns.impl.DNSRecord#getServiceEvent(javax.jmdns.impl.JmDNSImpl)
+         */
+        @Override
+        public ServiceEvent getServiceEvent(JmDNSImpl dns)
+        {
+            ServiceInfo info = this.getServiceInfo(false);
+            ((ServiceInfoImpl) info).setDns(dns);
+            String domainName = info.getType();
+            String serviceName = JmDNSImpl.toUnqualifiedName(domainName, this.getAlias());
+            return new ServiceEventImpl(dns, domainName, serviceName, info);
         }
 
         /*
@@ -484,9 +507,9 @@ public abstract class DNSRecord extends DNSEntry
         // private static Logger logger = Logger.getLogger(Text.class.getName());
         byte[] _text;
 
-        public Text(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl, byte text[])
+        public Text(String name, DNSRecordClass recordClass, boolean unique, int ttl, byte text[])
         {
-            super(name, type, recordClass, unique, ttl);
+            super(name, DNSRecordType.TYPE_TXT, recordClass, unique, ttl);
             this._text = text;
         }
 
@@ -542,10 +565,10 @@ public abstract class DNSRecord extends DNSEntry
         /*
          * (non-Javadoc)
          *
-         * @see javax.jmdns.impl.DNSRecord#getServiceInfo()
+         * @see javax.jmdns.impl.DNSRecord#getServiceInfo(boolean)
          */
         @Override
-        public ServiceInfo getServiceInfo()
+        public ServiceInfo getServiceInfo(boolean persistent)
         {
             // We need to split the name as this is the fully qualified name.
             int index = this.getName().indexOf('.');
@@ -558,7 +581,20 @@ public abstract class DNSRecord extends DNSEntry
                     domainName = this.getName().substring(index + 1);
             }
 
-            return new ServiceInfoImpl(domainName, serviceName, 0, 0, 0, false, _text);
+            return new ServiceInfoImpl(domainName, serviceName, 0, 0, 0, persistent, _text);
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.jmdns.impl.DNSRecord#getServiceEvent(javax.jmdns.impl.JmDNSImpl)
+         */
+        @Override
+        public ServiceEvent getServiceEvent(JmDNSImpl dns)
+        {
+            ServiceInfo info = this.getServiceInfo(false);
+            ((ServiceInfoImpl) info).setDns(dns);
+            return new ServiceEventImpl(dns, info.getType(), info.getName(), info);
         }
 
         /*
@@ -570,7 +606,7 @@ public abstract class DNSRecord extends DNSEntry
         protected void toString(StringBuilder aLog)
         {
             super.toString(aLog);
-            aLog.append(" text: '" + ((_text.length > 10) ? new String(_text, 0, 7) + "..." : new String(_text)) + "'");
+            aLog.append(" text: '" + ((_text.length > 20) ? new String(_text, 0, 17) + "..." : new String(_text)) + "'");
         }
 
     }
@@ -586,9 +622,9 @@ public abstract class DNSRecord extends DNSEntry
         int _port;
         String _server;
 
-        public Service(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl, int priority, int weight, int port, String server)
+        public Service(String name, DNSRecordClass recordClass, boolean unique, int ttl, int priority, int weight, int port, String server)
         {
-            super(name, type, recordClass, unique, ttl);
+            super(name, DNSRecordType.TYPE_SRV, recordClass, unique, ttl);
             this._priority = priority;
             this._weight = weight;
             this._port = port;
@@ -651,8 +687,7 @@ public abstract class DNSRecord extends DNSEntry
             if (info != null && (_port != info.getPort() || !_server.equalsIgnoreCase(dns.getLocalHost().getName())))
             {
                 logger1.finer("handleQuery() Conflicting probe detected from: " + getRecordSource());
-                DNSRecord.Service localService = new DNSRecord.Service(info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(), dns
-                        .getLocalHost().getName());
+                DNSRecord.Service localService = new DNSRecord.Service(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(), dns.getLocalHost().getName());
 
                 // This block is useful for debugging race conditions when jmdns is responding to itself.
                 try
@@ -736,8 +771,8 @@ public abstract class DNSRecord extends DNSEntry
             {
                 if (this._port == info.getPort() != _server.equals(dns.getLocalHost().getName()))
                 {
-                    return dns.addAnswer(in, addr, port, out, new DNSRecord.Service(info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info
-                            .getPort(), dns.getLocalHost().getName()));
+                    return dns.addAnswer(in, addr, port, out, new DNSRecord.Service(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(), dns
+                            .getLocalHost().getName()));
                 }
             }
             return out;
@@ -746,10 +781,10 @@ public abstract class DNSRecord extends DNSEntry
         /*
          * (non-Javadoc)
          *
-         * @see javax.jmdns.impl.DNSRecord#getServiceInfo()
+         * @see javax.jmdns.impl.DNSRecord#getServiceInfo(boolean)
          */
         @Override
-        public ServiceInfo getServiceInfo()
+        public ServiceInfo getServiceInfo(boolean persistent)
         {
             // We need to split the name as this is the fully qualified name.
             int index = this.getName().indexOf('.');
@@ -762,7 +797,29 @@ public abstract class DNSRecord extends DNSEntry
                     domainName = this.getName().substring(index + 1);
             }
 
-            return new ServiceInfoImpl(domainName, serviceName, _port, _weight, _priority, false, _server);
+            return new ServiceInfoImpl(domainName, serviceName, _port, _weight, _priority, persistent, _server);
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.jmdns.impl.DNSRecord#getServiceEvent(javax.jmdns.impl.JmDNSImpl)
+         */
+        @Override
+        public ServiceEvent getServiceEvent(JmDNSImpl dns)
+        {
+            ServiceInfo info = this.getServiceInfo(false);
+            ((ServiceInfoImpl) info).setDns(dns);
+            String domainName = "";
+            String serviceName = this.getServer();
+            int index = serviceName.indexOf('.');
+            if (index > 0)
+            {
+                serviceName = this.getServer().substring(0, index);
+                if (index + 1 < this.getServer().length())
+                    domainName = this.getServer().substring(index + 1);
+            }
+            return new ServiceEventImpl(dns, domainName, serviceName, info);
         }
 
         /*
@@ -776,6 +833,7 @@ public abstract class DNSRecord extends DNSEntry
             super.toString(aLog);
             aLog.append(" server: '" + _server + ":" + _port + "'");
         }
+
     }
 
     public static class HostInformation extends DNSRecord
@@ -785,16 +843,15 @@ public abstract class DNSRecord extends DNSEntry
 
         /**
          * @param name
-         * @param type
          * @param recordClass
          * @param unique
          * @param ttl
          * @param cpu
          * @param os
          */
-        public HostInformation(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl, String cpu, String os)
+        public HostInformation(String name, DNSRecordClass recordClass, boolean unique, int ttl, String cpu, String os)
         {
-            super(name, type, recordClass, unique, ttl);
+            super(name, DNSRecordType.TYPE_HINFO, recordClass, unique, ttl);
             _cpu = cpu;
             _os = os;
         }
@@ -861,10 +918,10 @@ public abstract class DNSRecord extends DNSEntry
         /*
          * (non-Javadoc)
          *
-         * @see javax.jmdns.impl.DNSRecord#getServiceInfo()
+         * @see javax.jmdns.impl.DNSRecord#getServiceInfo(boolean)
          */
         @Override
-        public ServiceInfo getServiceInfo()
+        public ServiceInfo getServiceInfo(boolean persistent)
         {
             // We need to split the name as this is the fully qualified name.
             int index = this.getName().indexOf('.');
@@ -880,8 +937,21 @@ public abstract class DNSRecord extends DNSEntry
             Map<String, String> hinfo = new HashMap<String, String>(2);
             hinfo.put("cpu", _cpu);
             hinfo.put("os", _os);
-            ServiceInfoImpl info = new ServiceInfoImpl(domainName, serviceName, 0, 0, 0, false, hinfo);
+            ServiceInfoImpl info = new ServiceInfoImpl(domainName, serviceName, 0, 0, 0, persistent, hinfo);
             return info;
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.jmdns.impl.DNSRecord#getServiceEvent(javax.jmdns.impl.JmDNSImpl)
+         */
+        @Override
+        public ServiceEvent getServiceEvent(JmDNSImpl dns)
+        {
+            ServiceInfo info = this.getServiceInfo(false);
+            ((ServiceInfoImpl) info).setDns(dns);
+            return new ServiceEventImpl(dns, info.getType(), info.getName(), info);
         }
 
         /*
@@ -904,7 +974,29 @@ public abstract class DNSRecord extends DNSEntry
      *
      * @return service information
      */
-    public abstract ServiceInfo getServiceInfo();
+    public ServiceInfo getServiceInfo()
+    {
+        return this.getServiceInfo(false);
+    }
+
+    /**
+     *
+     * Return a service information associated with that record if appropriate.
+     *
+     * @param persistent
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     * @return service information
+     */
+    public abstract ServiceInfo getServiceInfo(boolean persistent);
+
+    /**
+     * Creates and return a service event for this record.
+     *
+     * @param dns
+     *            DNS serviced by this event
+     * @return service event
+     */
+    public abstract ServiceEvent getServiceEvent(JmDNSImpl dns);
 
     public void setRecordSource(InetAddress source)
     {

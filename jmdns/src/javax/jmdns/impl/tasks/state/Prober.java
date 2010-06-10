@@ -49,7 +49,7 @@ public class Prober extends DNSStateTask
     @Override
     public String getName()
     {
-        return "Prober";
+        return "Prober(" + (this.getDns() != null ? this.getDns().getName() : "") + ")";
     }
 
     /*
@@ -72,21 +72,21 @@ public class Prober extends DNSStateTask
     public void start(Timer timer)
     {
         long now = System.currentTimeMillis();
-        if (now - this._jmDNSImpl.getLastThrottleIncrement() < DNSConstants.PROBE_THROTTLE_COUNT_INTERVAL)
+        if (now - this.getDns().getLastThrottleIncrement() < DNSConstants.PROBE_THROTTLE_COUNT_INTERVAL)
         {
-            this._jmDNSImpl.setThrottle(this._jmDNSImpl.getThrottle() + 1);
+            this.getDns().setThrottle(this.getDns().getThrottle() + 1);
         }
         else
         {
-            this._jmDNSImpl.setThrottle(1);
+            this.getDns().setThrottle(1);
         }
-        this._jmDNSImpl.setLastThrottleIncrement(now);
+        this.getDns().setLastThrottleIncrement(now);
 
-        if (this._jmDNSImpl.isAnnounced() && this._jmDNSImpl.getThrottle() < DNSConstants.PROBE_THROTTLE_COUNT)
+        if (this.getDns().isAnnounced() && this.getDns().getThrottle() < DNSConstants.PROBE_THROTTLE_COUNT)
         {
             timer.schedule(this, JmDNSImpl.getRandom().nextInt(1 + DNSConstants.PROBE_WAIT_INTERVAL), DNSConstants.PROBE_WAIT_INTERVAL);
         }
-        else if (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled())
+        else if (!this.getDns().isCanceling() && !this.getDns().isCanceled())
         {
             timer.schedule(this, DNSConstants.PROBE_CONFLICT_INTERVAL, DNSConstants.PROBE_CONFLICT_INTERVAL);
         }
@@ -107,17 +107,17 @@ public class Prober extends DNSStateTask
         try
         {
             // send probes for JmDNS itself
-            synchronized (_jmDNSImpl)
+            synchronized (this.getDns())
             {
-                if (this._jmDNSImpl.isAssociatedWithTask(this, taskState))
+                if (this.getDns().isAssociatedWithTask(this, taskState))
                 {
-                    out.addQuestion(DNSQuestion.newQuestion(this._jmDNSImpl.getLocalHost().getName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-                    this._jmDNSImpl.getLocalHost().addAddressRecords(out, true);
-                    this._jmDNSImpl.advanceState();
+                    out.addQuestion(DNSQuestion.newQuestion(this.getDns().getLocalHost().getName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                    this.getDns().getLocalHost().addAddressRecords(out, DNSConstants.DNS_TTL, true);
+                    this.getDns().advanceState();
                 }
             }
             // send probes for services
-            for (ServiceInfo serviceInfo : this._jmDNSImpl.getServices().values())
+            for (ServiceInfo serviceInfo : this.getDns().getServices().values())
             {
                 ServiceInfoImpl info = (ServiceInfoImpl) serviceInfo;
 
@@ -129,8 +129,8 @@ public class Prober extends DNSStateTask
                         out = this.addQuestion(out, DNSQuestion.newQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
                         // the "unique" flag should be not set here because these answers haven't been proven unique
                         // yet this means the record will not exactly match the announcement record
-                        out = this.addAuthorativeAnswer(out, new DNSRecord.Service(info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info
-                                .getPort(), this._jmDNSImpl.getLocalHost().getName()));
+                        out = this.addAuthorativeAnswer(out, new DNSRecord.Service(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(), this.getDns()
+                                .getLocalHost().getName()));
                         info.advanceState();
                     }
                 }
@@ -138,7 +138,7 @@ public class Prober extends DNSStateTask
             if (!out.isEmpty())
             {
                 logger.finer("run() JmDNS probing #" + taskState);
-                this._jmDNSImpl.send(out);
+                this.getDns().send(out);
             }
             else
             {
@@ -150,7 +150,7 @@ public class Prober extends DNSStateTask
         catch (Throwable e)
         {
             logger.log(Level.WARNING, "run() exception ", e);
-            this._jmDNSImpl.recover();
+            this.getDns().recover();
         }
 
         taskState = taskState.advance();
@@ -158,7 +158,7 @@ public class Prober extends DNSStateTask
         {
             cancel();
 
-            this._jmDNSImpl.startAnnouncer();
+            this.getDns().startAnnouncer();
         }
     }
 

@@ -30,8 +30,7 @@ public class ServiceEventImpl extends ServiceEvent
      */
     private String _name;
     /**
-     * The service info record, or null if the service could be be resolved. This is also null, if the event was fired
-     * to a service type listener.
+     * The service info record, or null if the service could be be resolved. This is also null, if the event was fired to a service type listener.
      */
     private ServiceInfo _info;
 
@@ -96,9 +95,10 @@ public class ServiceEventImpl extends ServiceEvent
         buf.append(this.getType());
         buf.append("' info: '");
         buf.append(this.getInfo());
-        buf.append("' source: ");
-        buf.append("\n\t" + source + "");
-        buf.append("\n]");
+        buf.append("']");
+        // buf.append("' source: ");
+        // buf.append("\n\t" + source + "");
+        // buf.append("\n]");
         return buf.toString();
     }
 
@@ -106,6 +106,18 @@ public class ServiceEventImpl extends ServiceEvent
     public ServiceInfo getInfo()
     {
         return _info;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        ServiceInfoImpl newInfo = new ServiceInfoImpl(this.getInfo());
+        return new ServiceEventImpl((JmDNSImpl) this.getDNS(), this.getType(), this.getName(), newInfo);
     }
 
 }

@@ -42,8 +42,10 @@ public abstract class DNSEntry
         _unique = unique;
     }
 
-    /**
-     * Check if two entries have exactly the same name, type, and class.
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
     public boolean equals(Object obj)
@@ -55,6 +57,18 @@ public abstract class DNSEntry
             result = this.getKey().equals(other.getKey()) && this.getRecordType().equals(other.getRecordType()) && _dnsClass == other.getRecordClass();
         }
         return result;
+    }
+
+    /**
+     * Check if two entries have exactly the same name, type, and class.
+     *
+     * @param entry
+     *
+     * @return <code>true</code> if the two entries have are for the same record, <code>false</code> otherwise
+     */
+    public boolean isSameEntry(DNSEntry entry)
+    {
+        return this.getKey().equals(entry.getKey()) && this.getRecordType().equals(entry.getRecordType()) && _dnsClass == entry.getRecordClass();
     }
 
     /**

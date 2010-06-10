@@ -52,7 +52,7 @@ public abstract class DNSResolverTask extends DNSTask
     @Override
     public void start(Timer timer)
     {
-        if (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled())
+        if (!this.getDns().isCanceling() && !this.getDns().isCanceled())
         {
             timer.schedule(this, DNSConstants.QUERY_WAIT_INTERVAL, DNSConstants.QUERY_WAIT_INTERVAL);
         }
@@ -68,7 +68,7 @@ public abstract class DNSResolverTask extends DNSTask
     {
         try
         {
-            if (this._jmDNSImpl.isCanceling() || this._jmDNSImpl.isCanceled())
+            if (this.getDns().isCanceling() || this.getDns().isCanceled())
             {
                 this.cancel();
             }
@@ -79,12 +79,12 @@ public abstract class DNSResolverTask extends DNSTask
                     logger.finer("run() JmDNS " + this.description());
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
                     out = this.addQuestions(out);
-                    if (this._jmDNSImpl.isAnnounced())
+                    if (this.getDns().isAnnounced())
                     {
                         out = this.addAnswers(out);
                     }
                     if (!out.isEmpty())
-                        this._jmDNSImpl.send(out);
+                        this.getDns().send(out);
                 }
                 else
                 {
@@ -96,7 +96,7 @@ public abstract class DNSResolverTask extends DNSTask
         catch (Throwable e)
         {
             logger.log(Level.WARNING, "run() exception ", e);
-            this._jmDNSImpl.recover();
+            this.getDns().recover();
         }
     }
 

@@ -13,7 +13,6 @@ import java.net.NetworkInterface;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSState;
@@ -127,25 +126,25 @@ public class HostInfo implements DNSStatefulObject
         return result;
     }
 
-    DNSRecord.Address getDNSAddressRecord(DNSRecord.Address address)
+    DNSRecord.Address getDNSAddressRecord(DNSRecord.Address address, int ttl)
     {
-        return (DNSRecordType.TYPE_AAAA.equals(address.getRecordType()) ? this.getDNS6AddressRecord() : this.getDNS4AddressRecord());
+        return (DNSRecordType.TYPE_AAAA.equals(address.getRecordType()) ? this.getDNS6AddressRecord(ttl) : this.getDNS4AddressRecord(ttl));
     }
 
-    public DNSRecord.Address getDNS4AddressRecord()
+    public DNSRecord.Address getDNS4AddressRecord(int ttl)
     {
         if ((this.getAddress() instanceof Inet4Address) || ((this.getAddress() instanceof Inet6Address) && (((Inet6Address) this.getAddress()).isIPv4CompatibleAddress())))
         {
-            return new DNSRecord.Address(this.getName(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, this.getAddress());
+            return new DNSRecord.Address(this.getName(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getAddress());
         }
         return null;
     }
 
-    public DNSRecord.Address getDNS6AddressRecord()
+    public DNSRecord.Address getDNS6AddressRecord(int ttl)
     {
         if (this.getAddress() instanceof Inet6Address)
         {
-            return new DNSRecord.Address(this.getName(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, this.getAddress());
+            return new DNSRecord.Address(this.getName(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getAddress());
         }
         return null;
     }
@@ -166,9 +165,9 @@ public class HostInfo implements DNSStatefulObject
         return buf.toString();
     }
 
-    public void addAddressRecords(DNSOutgoing out, boolean authoritative) throws IOException
+    public void addAddressRecords(DNSOutgoing out, int ttl, boolean authoritative) throws IOException
     {
-        DNSRecord answer = this.getDNS4AddressRecord();
+        DNSRecord answer = this.getDNS4AddressRecord(ttl);
         if (answer != null)
         {
             if (authoritative)
@@ -181,7 +180,7 @@ public class HostInfo implements DNSStatefulObject
             }
         }
 
-        answer = this.getDNS6AddressRecord();
+        answer = this.getDNS6AddressRecord(ttl);
         if (answer != null)
         {
             if (authoritative)

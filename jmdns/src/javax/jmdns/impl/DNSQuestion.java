@@ -34,7 +34,7 @@ public class DNSQuestion extends DNSEntry
         @Override
         public void addAnswers(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers)
         {
-            DNSRecord answer = jmDNSImpl.getLocalHost().getDNS4AddressRecord();
+            DNSRecord answer = jmDNSImpl.getLocalHost().getDNS4AddressRecord(DNSConstants.DNS_TTL);
             if (answer != null)
             {
                 answers.add(answer);
@@ -63,7 +63,7 @@ public class DNSQuestion extends DNSEntry
         @Override
         public void addAnswers(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers)
         {
-            DNSRecord answer = jmDNSImpl.getLocalHost().getDNS6AddressRecord();
+            DNSRecord answer = jmDNSImpl.getLocalHost().getDNS6AddressRecord(DNSConstants.DNS_TTL);
             if (answer != null)
             {
                 answers.add(answer);
@@ -112,7 +112,7 @@ public class DNSQuestion extends DNSEntry
             {
                 for (String serviceType : jmDNSImpl.getServiceTypes().values())
                 {
-                    answers.add(new DNSRecord.Pointer("_services" + DNSConstants.DNS_META_QUERY + "local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, serviceType));
+                    answers.add(new DNSRecord.Pointer("_services" + DNSConstants.DNS_META_QUERY + "local.", DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, serviceType));
                 }
             }
         }
@@ -136,12 +136,12 @@ public class DNSQuestion extends DNSEntry
             if (jmDNSImpl.getLocalHost().getName().equalsIgnoreCase(name))
             {
                 // type = DNSConstants.TYPE_A;
-                DNSRecord answer = jmDNSImpl.getLocalHost().getDNS4AddressRecord();
+                DNSRecord answer = jmDNSImpl.getLocalHost().getDNS4AddressRecord(DNSConstants.DNS_TTL);
                 if (answer != null)
                 {
                     answers.add(answer);
                 }
-                answer = jmDNSImpl.getLocalHost().getDNS6AddressRecord();
+                answer = jmDNSImpl.getLocalHost().getDNS6AddressRecord(DNSConstants.DNS_TTL);
                 if (answer != null)
                 {
                     answers.add(answer);
@@ -213,19 +213,16 @@ public class DNSQuestion extends DNSEntry
         @Override
         public void addAnswers(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers)
         {
-            System.err.println("DNSQuestion.AllRecords() name: " + this.getName());
             String name = this.getName().toLowerCase();
             if (jmDNSImpl.getLocalHost().getName().equalsIgnoreCase(name))
             {
                 // type = DNSConstants.TYPE_A;
-                DNSRecord answer = jmDNSImpl.getLocalHost().getDNS4AddressRecord();
-                System.err.println("DNSQuestion.AllRecords() TYPE_A answer: " + answer);
+                DNSRecord answer = jmDNSImpl.getLocalHost().getDNS4AddressRecord(DNSConstants.DNS_TTL);
                 if (answer != null)
                 {
                     answers.add(answer);
                 }
-                answer = jmDNSImpl.getLocalHost().getDNS6AddressRecord();
-                System.err.println("DNSQuestion.AllRecords() TYPE_AAAA answer: " + answer);
+                answer = jmDNSImpl.getLocalHost().getDNS6AddressRecord(DNSConstants.DNS_TTL);
                 if (answer != null)
                 {
                     answers.add(answer);
@@ -314,25 +311,23 @@ public class DNSQuestion extends DNSEntry
 
     protected void addAnswersForServiceInfo(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers, ServiceInfoImpl info)
     {
-        System.err.println("addAnswersForServiceInfo() info: " + info);
         if ((info != null) && info.isAnnounced())
         {
             if (this.getName().equalsIgnoreCase(info.getType()))
             {
-                DNSRecord answer = jmDNSImpl.getLocalHost().getDNS4AddressRecord();
+                DNSRecord answer = jmDNSImpl.getLocalHost().getDNS4AddressRecord(DNSConstants.DNS_TTL);
                 if (answer != null)
                 {
                     answers.add(answer);
                 }
-                answer = jmDNSImpl.getLocalHost().getDNS6AddressRecord();
+                answer = jmDNSImpl.getLocalHost().getDNS6AddressRecord(DNSConstants.DNS_TTL);
                 if (answer != null)
                 {
                     answers.add(answer);
                 }
-                answers.add(new DNSRecord.Pointer(info.getType(), DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info.getQualifiedName()));
-                answers.add(new DNSRecord.Service(info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(), jmDNSImpl.getLocalHost()
-                        .getName()));
-                answers.add(new DNSRecord.Text(info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getText()));
+                answers.add(new DNSRecord.Pointer(info.getType(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info.getQualifiedName()));
+                answers.add(new DNSRecord.Service(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(), jmDNSImpl.getLocalHost().getName()));
+                answers.add(new DNSRecord.Text(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getText()));
             }
         }
     }

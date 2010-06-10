@@ -43,7 +43,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     private int _weight;
     private int _priority;
     private byte _text[];
-    private Map<String, Object> _props;
+    private Map<String, byte[]> _props;
     private InetAddress _addr;
 
     private boolean _persistent;
@@ -96,16 +96,6 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         public void setDns(JmDNSImpl dns)
         {
             super.setDns(dns);
-        }
-
-        @Override
-        public boolean advanceState()
-        {
-            if (this._state.isAnnounced() && _info.needTextAnnouncing())
-            {
-                this.setTask(null);
-             }
-            return super.advanceState();
         }
 
     }
@@ -171,12 +161,15 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         this._text = text;
         this.setNeedTextAnnouncing(false);
         this._state = new ServiceInfoState(this);
+        this._persistent = persistent;
     }
 
     /**
      * During recovery we need to duplicate service info to reregister them
+     *
+     * @param info
      */
-    ServiceInfoImpl(ServiceInfo info)
+    public ServiceInfoImpl(ServiceInfo info)
     {
         if (info != null)
         {
@@ -186,6 +179,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
             this._weight = info.getWeight();
             this._priority = info.getPriority();
             this._text = info.getTextBytes();
+            this._persistent = info.isPersistent();
+            this._addr = info.getAddress();
         }
         this._state = new ServiceInfoState(this);
     }
@@ -322,17 +317,26 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return getText();
     }
 
-    /**
+    /*
+     * (non-Javadoc)
+     *
      * @see javax.jmdns.ServiceInfo#getTextString()
      */
+    @Deprecated
     @Override
     public String getTextString()
     {
-        if ((getText() == null) || (getText().length == 0) || ((getText().length == 1) && (getText()[0] == 0)))
+        Map<String, byte[]> properties = this.getProperties();
+        for (String key : properties.keySet())
         {
-            return null;
+            byte[] value = properties.get(key);
+            if ((value != null) && (value.length > 0))
+            {
+                return key + "=" + new String(value);
+            }
+            return key;
         }
-        return readUTF(getText(), 0, getText().length);
+        return "";
     }
 
     /**
@@ -374,7 +378,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     @Override
     public synchronized byte[] getPropertyBytes(String name)
     {
-        return (byte[]) getProperties().get(name);
+        return this.getProperties().get(name);
     }
 
     /*
@@ -385,7 +389,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     @Override
     public synchronized String getPropertyString(String name)
     {
-        byte data[] = (byte[]) getProperties().get(name);
+        byte data[] = this.getProperties().get(name);
         if (data == null)
         {
             return null;
@@ -405,7 +409,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     @Override
     public Enumeration<String> getPropertyNames()
     {
-        Map<String, Object> properties = getProperties();
+        Map<String, byte[]> properties = getProperties();
         Collection<String> names = (properties != null ? properties.keySet() : Collections.<String> emptySet());
         return new Vector<String>(names).elements();
     }
@@ -519,11 +523,11 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return buf.toString();
     }
 
-    synchronized Map<String, Object> getProperties()
+    synchronized Map<String, byte[]> getProperties()
     {
         if ((_props == null) && (getText() != null))
         {
-            Hashtable<String, Object> properties = new Hashtable<String, Object>();
+            Hashtable<String, byte[]> properties = new Hashtable<String, byte[]>();
             int off = 0;
             while (off < getText().length)
             {
@@ -562,7 +566,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
             }
             this._props = properties;
         }
-        return (_props != null ? _props : Collections.<String, Object> emptyMap());
+        return (_props != null ? _props : Collections.<String, byte[]> emptyMap());
     }
 
     /**
@@ -574,8 +578,9 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
      */
     public void updateRecord(DNSCache dnsCache, long now, DNSEntry rec)
     {
-        if ((rec != null) && !rec.isExpired(now))
+        if ((rec instanceof DNSRecord) && !rec.isExpired(now))
         {
+            boolean serviceUpdated = false;
             switch (rec.getRecordType())
             {
                 case TYPE_A: // IPv4
@@ -583,7 +588,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                     if (rec.getName().equalsIgnoreCase(this.getServer()))
                     {
                         _addr = ((DNSRecord.Address) rec).getAddress();
-
+                        serviceUpdated = true;
                     }
                     break;
                 case TYPE_SRV:
@@ -596,6 +601,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                         _priority = srv._priority;
                         _addr = null;
                         this.updateRecord(dnsCache, now, dnsCache.getDNSEntry(_server, DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN));
+                        serviceUpdated = true;
                     }
                     break;
                 case TYPE_TXT:
@@ -603,28 +609,28 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                     {
                         DNSRecord.Text txt = (DNSRecord.Text) rec;
                         _text = txt._text;
+                        serviceUpdated = true;
                     }
                     break;
                 case TYPE_PTR:
+                    // FIXME [PJYF June 9 2010] We need to do something here
                     break;
                 default:
                     break;
             }
-            // Future Design Pattern
-            // This is done, to notify the wait loop in method JmDNS.getServiceInfo(type, name, timeout);
-            if (this.hasData())
+            if (serviceUpdated && this.hasData())
             {
                 JmDNSImpl dns = this.getDns();
                 if (dns != null)
                 {
-                    dns.handleServiceResolved(this);
+                    dns.handleServiceResolved(((DNSRecord) rec).getServiceEvent(dns));
                 }
             }
+            // This is done, to notify the wait loop in method JmDNS.waitForInfoData(ServiceInfo info, int timeout);
             synchronized (this)
             {
                 this.notifyAll();
             }
-            System.err.println("Update service info: " + this + "\n\t record: " + rec);
         }
     }
 
@@ -827,7 +833,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     public String getNiceTextString()
     {
         StringBuffer buf = new StringBuffer();
-        for (int i = 0, len = getText().length; i < len; i++)
+        for (int i = 0, len = this.getText().length; i < len; i++)
         {
             if (i >= 200)
             {
@@ -877,7 +883,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         buf.append(this.getPort());
         buf.append("' status: '");
         buf.append(_state.toString());
-        buf.append("' has ");
+        buf.append(this.isPersistent() ? "' is persistent," : "',");
+        buf.append(" has ");
         buf.append(this.hasData() ? "" : "NO ");
         buf.append("data");
         if (this.getText().length > 0)
@@ -892,9 +899,9 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     public Collection<DNSRecord> answers(int ttl, HostInfo localHost)
     {
         List<DNSRecord> list = new ArrayList<DNSRecord>();
-        list.add(new Pointer(this.getType(), DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
-        list.add(new Service(this.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, _priority, _weight, _port, localHost.getName()));
-        list.add(new Text(this.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, this.getText()));
+        list.add(new Pointer(this.getType(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
+        list.add(new Service(this.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, _priority, _weight, _port, localHost.getName()));
+        list.add(new Text(this.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, this.getText()));
         return list;
     }
 
@@ -906,8 +913,11 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     @Override
     public void setText(byte[] text) throws IllegalStateException
     {
-        this._text = text;
-        this.setNeedTextAnnouncing(true);
+        synchronized (this)
+        {
+            this._text = text;
+            this.setNeedTextAnnouncing(true);
+        }
     }
 
     /*
@@ -918,8 +928,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     @Override
     public void setText(Map<String, ?> props) throws IllegalStateException
     {
-        this._text = textFromProperties(props);
-        this.setNeedTextAnnouncing(true);
+        this.setText(textFromProperties(props));
     }
 
     /**
@@ -944,29 +953,31 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                     Object val = props.get(key);
                     ByteArrayOutputStream out2 = new ByteArrayOutputStream(100);
                     writeUTF(out2, key);
-                    if (val instanceof String)
+                    if (val == NO_VALUE)
+                    {
+                        // Skip
+                    }
+                    else if (val instanceof String)
                     {
                         out2.write('=');
                         writeUTF(out2, (String) val);
                     }
-                    else
+                    else if ((val instanceof byte[]) && (((byte[]) val).length > 0))
                     {
-                        if (val instanceof byte[])
-                        {
-                            out2.write('=');
-                            byte[] bval = (byte[]) val;
-                            out2.write(bval, 0, bval.length);
-                        }
-                        else
-                        {
-                            if (val != NO_VALUE)
-                            {
-                                throw new IllegalArgumentException("invalid property value: " + val);
-                            }
-                        }
+                        out2.write('=');
+                        byte[] bval = (byte[]) val;
+                        out2.write(bval, 0, bval.length);
+                    }
+                    else if (val != NO_VALUE)
+                    {
+                        throw new IllegalArgumentException("invalid property value: " + val);
                     }
                     byte data[] = out2.toByteArray();
-                    out.write(data.length);
+                    if (data.length > 255)
+                    {
+                        new IOException("Cannot have individual values larger that 255 chars. Offending value: " + key + (val != NO_VALUE ? "=" + val : ""));
+                    }
+                    out.write((byte) data.length);
                     out.write(data, 0, data.length);
                 }
                 return out.toByteArray();
@@ -1012,6 +1023,10 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     public void setNeedTextAnnouncing(boolean needTextAnnouncing)
     {
         this._needTextAnnouncing = needTextAnnouncing;
+        if (this._needTextAnnouncing)
+        {
+            _state.setTask(null);
+        }
     }
 
     /**

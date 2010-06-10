@@ -54,12 +54,10 @@ class SocketListener implements Runnable
                     }
 
                     DNSIncoming msg = new DNSIncoming(packet);
-                    System.err.println("SocketListener.run() JmDNS in:" + msg.print(true));
                     if (logger.isLoggable(Level.FINEST))
                     {
                         logger.finest("SocketListener.run() JmDNS in:" + msg.print(true));
                     }
-
                     this._jmDNSImpl.ioLock();
                     try
                     {
@@ -106,4 +104,15 @@ class SocketListener implements Runnable
             this._jmDNSImpl.notifyAll();
         }
     }
+
+    public String getName()
+    {
+        return "SocketListener(" + (this.getDns() != null ? this.getDns().getName() : "") + ")";
+    }
+
+    public JmDNSImpl getDns()
+    {
+        return _jmDNSImpl;
+    }
+
 }

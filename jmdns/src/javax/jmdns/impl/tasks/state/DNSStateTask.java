@@ -31,11 +31,11 @@ public abstract class DNSStateTask extends DNSTask
      */
     protected void associate(DNSState state)
     {
-        synchronized (_jmDNSImpl)
+        synchronized (this.getDns())
         {
-            this._jmDNSImpl.associateWithTask(this, state);
+            this.getDns().associateWithTask(this, state);
         }
-        for (ServiceInfo serviceInfo : this._jmDNSImpl.getServices().values())
+        for (ServiceInfo serviceInfo : this.getDns().getServices().values())
         {
             ((ServiceInfoImpl) serviceInfo).associateWithTask(this, state);
         }
@@ -47,13 +47,13 @@ public abstract class DNSStateTask extends DNSTask
     protected void removeAssociation()
     {
         // Remove association from host to this
-        synchronized (_jmDNSImpl)
+        synchronized (this.getDns())
         {
-            this._jmDNSImpl.removeAssociationWithTask(this);
+            this.getDns().removeAssociationWithTask(this);
         }
 
         // Remove associations from services to this
-        for (ServiceInfo serviceInfo : this._jmDNSImpl.getServices().values())
+        for (ServiceInfo serviceInfo : this.getDns().getServices().values())
         {
             ((ServiceInfoImpl) serviceInfo).removeAssociationWithTask(this);
         }

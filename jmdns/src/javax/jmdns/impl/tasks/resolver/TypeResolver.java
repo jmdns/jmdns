@@ -40,7 +40,7 @@ public class TypeResolver extends DNSResolverTask
     @Override
     public String getName()
     {
-        return "TypeResolver";
+        return "TypeResolver(" + (this.getDns() != null ? this.getDns().getName() : "") + ")";
     }
 
     /*
@@ -53,9 +53,9 @@ public class TypeResolver extends DNSResolverTask
     {
         DNSOutgoing newOut = out;
         long now = System.currentTimeMillis();
-        for (String type : this._jmDNSImpl.getServiceTypes().values())
+        for (String type : this.getDns().getServiceTypes().values())
         {
-            newOut = this.addAnswer(newOut, new DNSRecord.Pointer("_services" + DNSConstants.DNS_META_QUERY + "local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, type), now);
+            newOut = this.addAnswer(newOut, new DNSRecord.Pointer("_services" + DNSConstants.DNS_META_QUERY + "local.", DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, type), now);
         }
         return newOut;
     }

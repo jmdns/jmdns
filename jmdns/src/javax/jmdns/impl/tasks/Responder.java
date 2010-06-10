@@ -49,7 +49,7 @@ public class Responder extends DNSTask
     @Override
     public String getName()
     {
-        return "Responder";
+        return "Responder(" + (this.getDns() != null ? this.getDns().getName() : "") + ")";
     }
 
     /*
@@ -81,9 +81,8 @@ public class Responder extends DNSTask
         boolean iAmTheOnlyOne = true;
         for (DNSQuestion question : _in.getQuestions())
         {
-            System.err.println("Responder() Incomming question: " + question);
-            logger.finest("start() question=" + question);
-            iAmTheOnlyOne = question.iAmTheOnlyOne(this._jmDNSImpl);
+            logger.finest(this.getName() + "start() question=" + question);
+            iAmTheOnlyOne = question.iAmTheOnlyOne(this.getDns());
             if (!iAmTheOnlyOne)
             {
                 break;
@@ -94,9 +93,8 @@ public class Responder extends DNSTask
         {
             delay = 0;
         }
-        System.err.println("Responder() chosen delay=" + delay);
-        logger.finest("start() Responder chosen delay=" + delay);
-        if (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled())
+        logger.finest(this.getName() + "start() Responder chosen delay=" + delay);
+        if (!this.getDns().isCanceling() && !this.getDns().isCanceled())
         {
             timer.schedule(this, delay);
         }
@@ -105,21 +103,20 @@ public class Responder extends DNSTask
     @Override
     public void run()
     {
-        this._jmDNSImpl.ioLock();
+        this.getDns().ioLock();
         try
         {
-            if (this._jmDNSImpl.getPlannedAnswer() == _in)
+            if (this.getDns().getPlannedAnswer() == _in)
             {
-                this._jmDNSImpl.setPlannedAnswer(null);
+                this.getDns().setPlannedAnswer(null);
             }
 
-            System.err.println("Responder() Incomming: " + _in);
             // We use these sets to prevent duplicate records
             // FIXME - This should be moved into DNSOutgoing
             Set<DNSQuestion> questions = new HashSet<DNSQuestion>();
             Set<DNSRecord> answers = new HashSet<DNSRecord>();
 
-            if (this._jmDNSImpl.isAnnounced())
+            if (this.getDns().isAnnounced())
             {
                 try
                 {
@@ -133,8 +130,7 @@ public class Responder extends DNSTask
                             questions.add(question);
                         }
 
-                        question.addAnswers(_jmDNSImpl, answers);
-                        System.err.println("Responder() Incomming question: " + question + "\n\tanswers: " + answers);
+                        question.addAnswers(this.getDns(), answers);
                     }
 
                     // remove known answers, if the ttl is at least half of the correct value. (See Draft Cheshire chapter 7.1.).
@@ -142,16 +138,14 @@ public class Responder extends DNSTask
                     {
                         if (knownAnswer.getTTL() > DNSConstants.DNS_TTL / 2 && answers.remove(knownAnswer))
                         {
-                            System.err.println("JmDNS Responder Known Answer Removed: " + knownAnswer);
-                            logger.log(Level.FINER, "JmDNS Responder Known Answer Removed");
+                            logger.log(Level.FINER, this.getName() + "JmDNS Responder Known Answer Removed");
                         }
                     }
 
                     // respond if we have answers
                     if (answers.size() != 0)
                     {
-                        System.err.println("Responder() Responding &&&&&&&&&&&&&&&&&&&&");
-                        logger.finer("run() JmDNS responding");
+                        logger.finer(this.getName() + "run() JmDNS responding");
                         DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, !_unicast, _in.getSenderUDPPayload());
                         out.setId(_in.getId());
                         for (DNSQuestion question : questions)
@@ -162,22 +156,21 @@ public class Responder extends DNSTask
                         {
                             out = this.addAnswer(out, _in, answer);
                         }
-                        System.err.println("Responder() Outgoing: " + out);
                         if (!out.isEmpty())
-                            this._jmDNSImpl.send(out);
+                            this.getDns().send(out);
                     }
-                    this.cancel();
+                    // this.cancel();
                 }
                 catch (Throwable e)
                 {
                     logger.log(Level.WARNING, "run() exception ", e);
-                    this._jmDNSImpl.close();
+                    this.getDns().close();
                 }
             }
         }
         finally
         {
-            this._jmDNSImpl.ioUnlock();
+            this.getDns().ioUnlock();
         }
     }
 

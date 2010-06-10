@@ -52,11 +52,16 @@ public abstract class ServiceEvent extends EventObject
     public abstract String getName();
 
     /**
-     * Returns the service info record, or null if the service could not be resolved. Always returns null, if the event
-     * is sent to a service type listener.
+     * Returns the service info record, or null if the service could not be resolved. Always returns null, if the event is sent to a service type listener.
      *
      * @return service info record
      * @see javax.jmdns.ServiceEvent#getInfo()
      */
     public abstract ServiceInfo getInfo();
+
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        return super.clone();
+    }
 }

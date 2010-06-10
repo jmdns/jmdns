@@ -433,7 +433,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
     }
 
     /**
-     * Get a matching DNS entry from the table (using equals). Returns the entry that was found.
+     * Get a matching DNS entry from the table (using isSameEntry). Returns the entry that was found.
      *
      * @param dnsEntry
      * @return DNSEntry
@@ -448,7 +448,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             {
                 for (DNSEntry testDNSEntry : entryList)
                 {
-                    if (dnsEntry.equals(testDNSEntry))
+                    if (dnsEntry.isSameEntry(testDNSEntry))
                     {
                         result = testDNSEntry;
                         break;
@@ -538,8 +538,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             if (entry != null)
             {
                 result = entry.remove(dnsEntry);
-                // If we just removed the last one we need to get rid of the
-                // entry
+                // If we just removed the last one we need to get rid of the entry
                 if (entry.size() == 0)
                     this.remove(dnsEntry.getKey());
             }
