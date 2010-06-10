@@ -161,10 +161,10 @@ public final class DNSIncoming extends DNSMessage
                     // there was a problem reading the service name
                     logger.log(Level.WARNING, "There was a problem reading the service name of the answer.", e);
                 }
-                rec = new DNSRecord.Pointer(domain, type, recordClass, unique, ttl, service);
+                rec = new DNSRecord.Pointer(domain, recordClass, unique, ttl, service);
                 break;
             case TYPE_TXT:
-                rec = new DNSRecord.Text(domain, type, recordClass, unique, ttl, readBytes(_off, len));
+                rec = new DNSRecord.Text(domain, recordClass, unique, ttl, readBytes(_off, len));
                 break;
             case TYPE_SRV:
                 int priority = readUnsignedShort();
@@ -191,7 +191,7 @@ public final class DNSIncoming extends DNSMessage
                     // down below the offset gets advanced to the end of the record
                     logger.log(Level.WARNING, "There was a problem reading the label of the answer. This can happen if the type of the label  cannot be handled.", e);
                 }
-                rec = new DNSRecord.Service(domain, type, recordClass, unique, ttl, priority, weight, port, target);
+                rec = new DNSRecord.Service(domain, recordClass, unique, ttl, priority, weight, port, target);
                 break;
             case TYPE_HINFO:
                 StringBuffer buf = new StringBuffer();
@@ -199,7 +199,7 @@ public final class DNSIncoming extends DNSMessage
                 int index = buf.indexOf(" ");
                 String cpu = (index > 0 ? buf.substring(0, index) : buf.toString()).trim();
                 String os = (index > 0 ? buf.substring(index + 1) : "").trim();
-                rec = new DNSRecord.HostInformation(domain, type, recordClass, unique, ttl, cpu, os);
+                rec = new DNSRecord.HostInformation(domain, recordClass, unique, ttl, cpu, os);
                 break;
             case TYPE_OPT:
                 DNSResultCode extendedResultCode = DNSResultCode.resultCodeForFlags(_flags, ttl);
@@ -416,20 +416,20 @@ public final class DNSIncoming extends DNSMessage
                 }
                 buf.append(off);
                 buf.append(':');
-                for (int i = 0; i < n; i++)
+                int index = 0;
+                for (index = 0; index < n; index++)
                 {
-                    if ((i % 8) == 0)
+                    if ((index % 8) == 0)
                     {
                         buf.append(' ');
                     }
-                    buf.append(Integer.toHexString((_data[off + i] & 0xF0) >> 4));
-                    buf.append(Integer.toHexString((_data[off + i] & 0x0F) >> 0));
+                    buf.append(Integer.toHexString((_data[off + index] & 0xF0) >> 4));
+                    buf.append(Integer.toHexString((_data[off + index] & 0x0F) >> 0));
                 }
                 // for incomplete lines
-                if (n < 32)
+                if (index < 32)
                 {
-                    int remain = 32 - n;
-                    for (int i = 0; i < remain; i++)
+                    for (int i = index; i < 32; i++)
                     {
                         if ((i % 8) == 0)
                         {
@@ -439,13 +439,13 @@ public final class DNSIncoming extends DNSMessage
                     }
                 }
                 buf.append("    ");
-                for (int i = 0; i < n; i++)
+                for (index = 0; index < n; index++)
                 {
-                    if ((i % 8) == 0)
+                    if ((index % 8) == 0)
                     {
                         buf.append(' ');
                     }
-                    int ch = _data[off + i] & 0xFF;
+                    int ch = _data[off + index] & 0xFF;
                     buf.append(((ch > ' ') && (ch < 127)) ? (char) ch : '.');
                 }
                 buf.append("\n");
@@ -512,6 +512,38 @@ public final class DNSIncoming extends DNSMessage
         {
             buf.append(", additionals=");
             buf.append(this.getNumberOfAdditionals());
+        }
+        if (this.getNumberOfQuestions() > 0)
+        {
+            buf.append("\nquestions:");
+            for (DNSQuestion question : _questions)
+            {
+                buf.append("\n\t" + question);
+            }
+        }
+        if (this.getNumberOfAnswers() > 0)
+        {
+            buf.append("\nanswers:");
+            for (DNSRecord record : _answers)
+            {
+                buf.append("\n\t" + record);
+            }
+        }
+        if (this.getNumberOfAuthorities() > 0)
+        {
+            buf.append("\nauthorities:");
+            for (DNSRecord record : _authoritativeAnswers)
+            {
+                buf.append("\n\t" + record);
+            }
+        }
+        if (this.getNumberOfAdditionals() > 0)
+        {
+            buf.append("\nadditionals:");
+            for (DNSRecord record : _additionals)
+            {
+                buf.append("\n\t" + record);
+            }
         }
         buf.append("]");
         return buf.toString();

@@ -69,7 +69,7 @@ public class Main {
             intf = InetAddress.getLocalHost();
         }
 
-        JmDNS jmdns = JmDNS.create(intf);
+        JmDNS jmdns = JmDNS.create(intf, "Browser");
 
         if ((argc == 0) || ((argc >= 1) && "-browse".equals(argv[0]))) {
             new Browser(jmdns);

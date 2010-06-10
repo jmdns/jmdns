@@ -23,7 +23,7 @@ public abstract class DNSTask extends TimerTask
     /**
      *
      */
-    protected final JmDNSImpl _jmDNSImpl;
+    private final JmDNSImpl _jmDNSImpl;
 
     /**
      * @param jmDNSImpl
@@ -32,6 +32,16 @@ public abstract class DNSTask extends TimerTask
     {
         super();
         this._jmDNSImpl = jmDNSImpl;
+    }
+
+    /**
+     * Return the DNS associated with this task.
+     *
+     * @return associated DNS
+     */
+    public JmDNSImpl getDns()
+    {
+        return _jmDNSImpl;
     }
 
     /**

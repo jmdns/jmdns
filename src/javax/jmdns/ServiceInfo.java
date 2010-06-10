@@ -257,10 +257,16 @@ public abstract class ServiceInfo
     public abstract byte[] getTextBytes();
 
     /**
-     * Get the text for the service. This will interpret the text bytes as a UTF8 encoded string. Will return null if the bytes are not a valid UTF8 encoded string.
+     * Get the text for the service. This will interpret the text bytes as a UTF8 encoded string. Will return null if the bytes are not a valid UTF8 encoded string.<br/>
+     * <b>Note:</b> Do not use. This method make the assumption that the TXT record is one string. This is false. The TXT record is a series of key value pairs.
      *
      * @return service text
+     * @see #getPropertyNames()
+     * @see #getPropertyBytes(String)
+     * @see #getPropertyString(String)
+     * @deprecated since 3.1.7
      */
+    @Deprecated
     public abstract String getTextString();
 
     /**

@@ -36,7 +36,7 @@ public class RecordReaper extends DNSTask
     @Override
     public String getName()
     {
-        return "RecordReaper";
+        return "RecordReaper(" + (this.getDns() != null ? this.getDns().getName() : "") + ")";
     }
 
     /*
@@ -47,7 +47,7 @@ public class RecordReaper extends DNSTask
     @Override
     public void start(Timer timer)
     {
-        if (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled())
+        if (!this.getDns().isCanceling() && !this.getDns().isCanceled())
         {
             timer.schedule(this, DNSConstants.RECORD_REAPER_INTERVAL, DNSConstants.RECORD_REAPER_INTERVAL);
         }
@@ -58,7 +58,7 @@ public class RecordReaper extends DNSTask
     {
         // synchronized (this._jmDNSImpl)
         // {
-        if (this._jmDNSImpl.isCanceling() || this._jmDNSImpl.isCanceled())
+        if (this.getDns().isCanceling() || this.getDns().isCanceled())
         {
             return;
         }
@@ -67,13 +67,13 @@ public class RecordReaper extends DNSTask
         // Remove expired answers from the cache
         // -------------------------------------
         long now = System.currentTimeMillis();
-        for (DNSEntry entry : this._jmDNSImpl.getCache().allValues())
+        for (DNSEntry entry : this.getDns().getCache().allValues())
         {
             DNSRecord record = (DNSRecord) entry;
             if (record.isExpired(now))
             {
-                this._jmDNSImpl.updateRecord(now, record, Operation.Remove);
-                this._jmDNSImpl.getCache().removeDNSEntry(record);
+                this.getDns().updateRecord(now, record, Operation.Remove);
+                this.getDns().getCache().removeDNSEntry(record);
             }
         }
         // }

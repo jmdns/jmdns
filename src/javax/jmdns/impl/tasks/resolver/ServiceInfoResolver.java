@@ -28,8 +28,8 @@ public class ServiceInfoResolver extends DNSResolverTask
     {
         super(jmDNSImpl);
         this._info = info;
-        info.setDns(this._jmDNSImpl);
-        this._jmDNSImpl.addListener(info, DNSQuestion.newQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+        info.setDns(this.getDns());
+        this.getDns().addListener(info, DNSQuestion.newQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
     }
 
     /*
@@ -40,7 +40,7 @@ public class ServiceInfoResolver extends DNSResolverTask
     @Override
     public String getName()
     {
-        return "ServiceInfoResolver";
+        return "ServiceInfoResolver(" + (this.getDns() != null ? this.getDns().getName() : "") + ")";
     }
 
     /*
@@ -55,7 +55,7 @@ public class ServiceInfoResolver extends DNSResolverTask
         boolean result = super.cancel();
         if (!_info.isPersistent())
         {
-            this._jmDNSImpl.removeListener(_info);
+            this.getDns().removeListener(_info);
         }
         return result;
     }
@@ -72,12 +72,12 @@ public class ServiceInfoResolver extends DNSResolverTask
         if (!_info.hasData())
         {
             long now = System.currentTimeMillis();
-            newOut = this.addAnswer(newOut, (DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN), now);
-            newOut = this.addAnswer(newOut, (DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN), now);
+            newOut = this.addAnswer(newOut, (DNSRecord) this.getDns().getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN), now);
+            newOut = this.addAnswer(newOut, (DNSRecord) this.getDns().getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN), now);
             if (_info.getServer().length() > 0)
             {
-                newOut = this.addAnswer(newOut, (DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN), now);
-                newOut = this.addAnswer(newOut, (DNSRecord) this._jmDNSImpl.getCache().getDNSEntry(_info.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN), now);
+                newOut = this.addAnswer(newOut, (DNSRecord) this.getDns().getCache().getDNSEntry(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN), now);
+                newOut = this.addAnswer(newOut, (DNSRecord) this.getDns().getCache().getDNSEntry(_info.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN), now);
             }
         }
         return newOut;

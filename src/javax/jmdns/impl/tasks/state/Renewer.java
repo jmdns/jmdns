@@ -43,7 +43,7 @@ public class Renewer extends DNSStateTask
     @Override
     public String getName()
     {
-        return "Renewer";
+        return "Renewer(" + (this.getDns() != null ? this.getDns().getName() : "") + ")";
     }
 
     /*
@@ -65,7 +65,7 @@ public class Renewer extends DNSStateTask
     @Override
     public void start(Timer timer)
     {
-        if (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled())
+        if (!this.getDns().isCanceling() && !this.getDns().isCanceled())
         {
             timer.schedule(this, DNSConstants.ANNOUNCED_RENEWAL_TTL_INTERVAL, DNSConstants.ANNOUNCED_RENEWAL_TTL_INTERVAL);
         }
@@ -86,16 +86,16 @@ public class Renewer extends DNSStateTask
         try
         {
             // send probes for JmDNS itself
-            synchronized (_jmDNSImpl)
+            synchronized (this.getDns())
             {
-                if (this._jmDNSImpl.isAssociatedWithTask(this, taskState))
+                if (this.getDns().isAssociatedWithTask(this, taskState))
                 {
-                    this._jmDNSImpl.getLocalHost().addAddressRecords(out, false);
-                    this._jmDNSImpl.advanceState();
+                    this.getDns().getLocalHost().addAddressRecords(out, DNSConstants.DNS_TTL, false);
+                    this.getDns().advanceState();
                 }
             }
             // send announces for services
-            for (ServiceInfo serviceInfo : this._jmDNSImpl.getServices().values())
+            for (ServiceInfo serviceInfo : this.getDns().getServices().values())
             {
                 ServiceInfoImpl info = (ServiceInfoImpl) serviceInfo;
                 synchronized (info)
@@ -103,7 +103,7 @@ public class Renewer extends DNSStateTask
                     if (info.isAssociatedWithTask(this, taskState))
                     {
                         logger.finer("run() JmDNS announcing " + info.getQualifiedName());
-                        for (DNSRecord answer : info.answers(DNSConstants.DNS_TTL, this._jmDNSImpl.getLocalHost()))
+                        for (DNSRecord answer : info.answers(DNSConstants.DNS_TTL, this.getDns().getLocalHost()))
                         {
                             out = this.addAnswer(out, null, answer);
                         }
@@ -114,7 +114,7 @@ public class Renewer extends DNSStateTask
             if (!out.isEmpty())
             {
                 logger.finer("run() JmDNS announced");
-                this._jmDNSImpl.send(out);
+                this.getDns().send(out);
             }
             else
             {
@@ -125,7 +125,7 @@ public class Renewer extends DNSStateTask
         catch (Throwable e)
         {
             logger.log(Level.WARNING, "run() exception ", e);
-            this._jmDNSImpl.recover();
+            this.getDns().recover();
         }
 
         taskState = taskState.advance();
