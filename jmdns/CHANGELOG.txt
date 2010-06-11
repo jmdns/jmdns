@@ -1,3 +1,6 @@
+CHANGELOG XX XXXX 2010 Pierre Frisch
+Rev the source code to 3.1.8
+
 CHANGELOG 10 June 2010 Pierre Frisch
 Rev the source code to 3.1.7
 ********* Reorganization of the locking  / timer strategy. Hopefully it should be less deadlock prone. *********
