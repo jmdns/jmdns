@@ -1009,9 +1009,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                     if (DNSRecordType.TYPE_SRV.equals(dnsEntry.getRecordType()) && !dnsEntry.isExpired(now))
                     {
                         final DNSRecord.Service s = (DNSRecord.Service) dnsEntry;
-                        if (s._port != info.getPort() || !s._server.equals(_localHost.getName()))
+                        if (s.getPort() != info.getPort() || !s.getServer().equals(_localHost.getName()))
                         {
-                            logger.finer("makeServiceNameUnique() JmDNS.makeServiceNameUnique srv collision:" + dnsEntry + " s.server=" + s._server + " " + _localHost.getName() + " equals:" + (s._server.equals(_localHost.getName())));
+                            logger.finer("makeServiceNameUnique() JmDNS.makeServiceNameUnique srv collision:" + dnsEntry + " s.server=" + s.getServer() + " " + _localHost.getName() + " equals:" + (s.getServer().equals(_localHost.getName())));
                             info.setName(incrementName(info.getName()));
                             collision = true;
                             break;
@@ -1584,13 +1584,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         String aType = type.toLowerCase();
 
         boolean newCollectorCreated = false;
-        //
-        // 2009-09-16 ldeck: adding docbug patch with slight ammendments
-        // 'Fixes two deadlock conditions involving JmDNS.close() - ID: 1473279'
-        //
-        // synchronized (this) // to avoid possible deadlock with a close() in another thread
-        // {
-        // If we've been cancelled but got the lock, we're about to die anyway, so just return an empty array.
         if (this.isCanceling() || this.isCanceled())
         {
             return new ServiceInfo[0];
@@ -1606,7 +1599,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                 this.addServiceListener(aType, collector);
             }
         }
-        // }
         return collector.list(timeout);
     }
 

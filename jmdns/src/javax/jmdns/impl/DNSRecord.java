@@ -617,10 +617,10 @@ public abstract class DNSRecord extends DNSEntry
     public static class Service extends DNSRecord
     {
         private static Logger logger1 = Logger.getLogger(Service.class.getName());
-        int _priority;
-        int _weight;
-        int _port;
-        String _server;
+        private int _priority;
+        private int _weight;
+        private int _port;
+        private String _server;
 
         public Service(String name, DNSRecordClass recordClass, boolean unique, int ttl, int priority, int weight, int port, String server)
         {
@@ -671,6 +671,30 @@ public abstract class DNSRecord extends DNSEntry
         String getServer()
         {
             return _server;
+        }
+
+        /**
+         * @return the priority
+         */
+        public int getPriority()
+        {
+            return this._priority;
+        }
+
+        /**
+         * @return the weight
+         */
+        public int getWeight()
+        {
+            return this._weight;
+        }
+
+        /**
+         * @return the port
+         */
+        public int getPort()
+        {
+            return this._port;
         }
 
         @Override

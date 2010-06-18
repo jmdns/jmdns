@@ -584,7 +584,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
             switch (rec.getRecordType())
             {
                 case TYPE_A: // IPv4
-                case TYPE_AAAA: // IPv6 FIXME [PJYF Oct 14 2004] This has not been tested
+                case TYPE_AAAA: // IPv6
                     if (rec.getName().equalsIgnoreCase(this.getServer()))
                     {
                         _addr = ((DNSRecord.Address) rec).getAddress();
@@ -595,12 +595,17 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                     if (rec.getName().equalsIgnoreCase(this.getQualifiedName()))
                     {
                         DNSRecord.Service srv = (DNSRecord.Service) rec;
-                        _server = srv._server;
-                        _port = srv._port;
-                        _weight = srv._weight;
-                        _priority = srv._priority;
-                        _addr = null;
-                        this.updateRecord(dnsCache, now, dnsCache.getDNSEntry(_server, DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN));
+                        boolean serverChanged = _server.equalsIgnoreCase(srv.getServer());
+                        _server = srv.getServer();
+                        _port = srv.getPort();
+                        _weight = srv.getWeight();
+                        _priority = srv.getPriority();
+                        if (serverChanged)
+                        {
+                            _addr = null;
+                            this.updateRecord(dnsCache, now, dnsCache.getDNSEntry(_server, DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN));
+                            this.updateRecord(dnsCache, now, dnsCache.getDNSEntry(_server, DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN));
+                        }
                         serviceUpdated = true;
                     }
                     break;
