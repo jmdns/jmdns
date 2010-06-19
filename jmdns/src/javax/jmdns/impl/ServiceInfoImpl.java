@@ -595,7 +595,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                     if (rec.getName().equalsIgnoreCase(this.getQualifiedName()))
                     {
                         DNSRecord.Service srv = (DNSRecord.Service) rec;
-                        boolean serverChanged = _server.equalsIgnoreCase(srv.getServer());
+                        boolean serverChanged = (_server == null) || !_server.equalsIgnoreCase(srv.getServer());
                         _server = srv.getServer();
                         _port = srv.getPort();
                         _weight = srv.getWeight();
@@ -605,8 +605,12 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                             _addr = null;
                             this.updateRecord(dnsCache, now, dnsCache.getDNSEntry(_server, DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN));
                             this.updateRecord(dnsCache, now, dnsCache.getDNSEntry(_server, DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN));
+                            // We do not want to trigger the listener in this case as it will be triggered if the
                         }
-                        serviceUpdated = true;
+                        else
+                        {
+                            serviceUpdated = true;
+                        }
                     }
                     break;
                 case TYPE_TXT:
