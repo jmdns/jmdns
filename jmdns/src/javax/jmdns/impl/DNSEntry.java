@@ -116,9 +116,22 @@ public abstract class DNSEntry
     }
 
     /**
-     * Check if the record is expired.
+     * Check if the record is stale, i.e. it has outlived more than half of its TTL.
+     *
+     * @param now
+     *            update date
+     * @return <code>true</code> is the record is stale, <code>false</code> otherwise.
      */
-    abstract boolean isExpired(long now);
+    public abstract boolean isStale(long now);
+
+    /**
+     * Check if the record is expired.
+     *
+     * @param now
+     *            update date
+     * @return <code>true</code> is the record is expired, <code>false</code> otherwise.
+     */
+    public abstract boolean isExpired(long now);
 
     /**
      * Check that 2 entries are of the same class.

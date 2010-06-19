@@ -18,6 +18,8 @@ import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
+import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.impl.tasks.state.DNSStateTask;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -212,6 +214,48 @@ public class TextUpdateTest
                 registry.close();
             if (newServiceRegistry != null)
                 newServiceRegistry.close();
+        }
+    }
+
+    @Test
+    public void testRenewExpiringRequests() throws IOException, InterruptedException
+    {
+        JmDNS registry = null;
+        JmDNS newServiceRegistry = null;
+        try
+        {
+
+            // To test for expiring TTL
+            DNSStateTask.setDefaultTTL(1 * 60);
+
+            registry = JmDNS.create("Listener");
+            registry.addServiceListener(service.getType(), serviceListenerMock);
+            //
+            newServiceRegistry = JmDNS.create("Registry");
+            newServiceRegistry.registerService(service);
+
+            List<ServiceEvent> servicesAdded = serviceListenerMock.servicesAdded();
+            assertTrue("We did not get the service added event.", servicesAdded.size() == 1);
+
+            ServiceInfo[] services = registry.list(service.getType());
+            assertEquals("We should see the service we just registered: ", 1, services.length);
+            assertEquals(service, services[0]);
+
+            // wait for the TTL
+            Thread.sleep(2 * 60 * 1000);
+
+            services = registry.list(service.getType());
+            assertEquals("We should see the service after the renewal: ", 1, services.length);
+            assertEquals(service, services[0]);
+
+        }
+        finally
+        {
+            if (registry != null)
+                registry.close();
+            if (newServiceRegistry != null)
+                newServiceRegistry.close();
+            DNSStateTask.setDefaultTTL(DNSConstants.DNS_TTL);
         }
     }
 

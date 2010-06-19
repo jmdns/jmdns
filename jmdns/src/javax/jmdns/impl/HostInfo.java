@@ -4,12 +4,14 @@
 
 package javax.jmdns.impl;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -165,33 +167,20 @@ public class HostInfo implements DNSStatefulObject
         return buf.toString();
     }
 
-    public void addAddressRecords(DNSOutgoing out, int ttl, boolean authoritative) throws IOException
+    public Collection<DNSRecord> answers(int ttl)
     {
+        List<DNSRecord> list = new ArrayList<DNSRecord>();
         DNSRecord answer = this.getDNS4AddressRecord(ttl);
         if (answer != null)
         {
-            if (authoritative)
-            {
-                out.addAuthorativeAnswer(answer);
-            }
-            else
-            {
-                out.addAnswer(answer, 0);
-            }
+            list.add(answer);
         }
-
         answer = this.getDNS6AddressRecord(ttl);
         if (answer != null)
         {
-            if (authoritative)
-            {
-                out.addAuthorativeAnswer(answer);
-            }
-            else
-            {
-                out.addAnswer(answer, 0);
-            }
+            list.add(answer);
         }
+        return list;
     }
 
     /*

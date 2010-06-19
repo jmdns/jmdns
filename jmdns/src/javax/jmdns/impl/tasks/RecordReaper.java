@@ -70,6 +70,11 @@ public class RecordReaper extends DNSTask
         for (DNSEntry entry : this.getDns().getCache().allValues())
         {
             DNSRecord record = (DNSRecord) entry;
+            if (record.isStale(now))
+            {
+                // we should query for the record we care about i.e. those in the service collectors
+                this.getDns().renewServiceCollector(record);
+            }
             if (record.isExpired(now))
             {
                 this.getDns().updateRecord(now, record, Operation.Remove);

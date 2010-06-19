@@ -30,7 +30,7 @@ public class Renewer extends DNSStateTask
 
     public Renewer(JmDNSImpl jmDNSImpl)
     {
-        super(jmDNSImpl);
+        super(jmDNSImpl, defaultTTL());
 
         this.associate(DNSState.ANNOUNCED);
     }
@@ -90,7 +90,10 @@ public class Renewer extends DNSStateTask
             {
                 if (this.getDns().isAssociatedWithTask(this, taskState))
                 {
-                    this.getDns().getLocalHost().addAddressRecords(out, DNSConstants.DNS_TTL, false);
+                    for (DNSRecord answer : this.getDns().getLocalHost().answers(this.getTTL()))
+                    {
+                        out = this.addAnswer(out, null, answer);
+                    }
                     this.getDns().advanceState();
                 }
             }
@@ -103,7 +106,7 @@ public class Renewer extends DNSStateTask
                     if (info.isAssociatedWithTask(this, taskState))
                     {
                         logger.finer("run() JmDNS announcing " + info.getQualifiedName());
-                        for (DNSRecord answer : info.answers(DNSConstants.DNS_TTL, this.getDns().getLocalHost()))
+                        for (DNSRecord answer : info.answers(this.getTTL(), this.getDns().getLocalHost()))
                         {
                             out = this.addAnswer(out, null, answer);
                         }

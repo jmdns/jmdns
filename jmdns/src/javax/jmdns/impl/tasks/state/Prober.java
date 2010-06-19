@@ -36,7 +36,7 @@ public class Prober extends DNSStateTask
 
     public Prober(JmDNSImpl jmDNSImpl)
     {
-        super(jmDNSImpl);
+        super(jmDNSImpl, defaultTTL());
 
         this.associate(DNSState.PROBING_1);
     }
@@ -112,7 +112,10 @@ public class Prober extends DNSStateTask
                 if (this.getDns().isAssociatedWithTask(this, taskState))
                 {
                     out.addQuestion(DNSQuestion.newQuestion(this.getDns().getLocalHost().getName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-                    this.getDns().getLocalHost().addAddressRecords(out, DNSConstants.DNS_TTL, true);
+                    for (DNSRecord answer : this.getDns().getLocalHost().answers(this.getTTL()))
+                    {
+                        out = this.addAuthorativeAnswer(out, answer);
+                    }
                     this.getDns().advanceState();
                 }
             }
@@ -129,7 +132,7 @@ public class Prober extends DNSStateTask
                         out = this.addQuestion(out, DNSQuestion.newQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
                         // the "unique" flag should be not set here because these answers haven't been proven unique
                         // yet this means the record will not exactly match the announcement record
-                        out = this.addAuthorativeAnswer(out, new DNSRecord.Service(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(), this.getDns()
+                        out = this.addAuthorativeAnswer(out, new DNSRecord.Service(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, this.getTTL(), info.getPriority(), info.getWeight(), info.getPort(), this.getDns()
                                 .getLocalHost().getName()));
                         info.advanceState();
                     }

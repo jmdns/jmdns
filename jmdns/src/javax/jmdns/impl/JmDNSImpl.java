@@ -316,7 +316,14 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             // close socket
             try
             {
-                _socket.leaveGroup(_group);
+                try
+                {
+                    _socket.leaveGroup(_group);
+                }
+                catch (SocketException exception)
+                {
+                    //
+                }
                 _socket.close();
                 // jP: 20010-01-18. It isn't safe to join() on the listener
                 // thread - it attempts to lock the IoLock object, and deadlock
@@ -1101,6 +1108,22 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     public void removeListener(DNSListener listener)
     {
         _listeners.remove(listener);
+    }
+
+    /**
+     * Renew a service when the record become stale. If there is no service collector for the type this method does nothing.
+     *
+     * @param record
+     *            DNS record
+     */
+    public void renewServiceCollector(DNSRecord record)
+    {
+        ServiceInfo info = record.getServiceInfo();
+        if (_serviceCollectors.containsKey(info.getType().toLowerCase()))
+        {
+            // Create/start ServiceResolver
+            new ServiceResolver(this, info.getType()).start(_timer);
+        }
     }
 
     // Remind: Method updateRecord should receive a better name.

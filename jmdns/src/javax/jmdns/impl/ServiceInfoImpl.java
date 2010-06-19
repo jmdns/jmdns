@@ -423,9 +423,17 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     public String getDomain()
     {
         String protocol = getProtocol();
-        int start = _type.indexOf(protocol) + protocol.length() + 1;
-        int end = _type.length() - 1;
-        return _type.substring(start, end);
+        if (protocol.length() > 0)
+        {
+            int index = _type.indexOf(protocol);
+            if (index > 0)
+            {
+                int start = index + protocol.length() + 1;
+                int end = _type.length() - 1;
+                return _type.substring(start, end);
+            }
+        }
+        return _type;
     }
 
     /*
@@ -436,9 +444,14 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     @Override
     public String getProtocol()
     {
-        int start = _type.lastIndexOf("._") + 2;
-        int end = _type.indexOf('.', start);
-        return _type.substring(start, end);
+        int index = _type.lastIndexOf("._");
+        if (index > 0)
+        {
+            int start = index + 2;
+            int end = _type.indexOf('.', start);
+            return _type.substring(start, end);
+        }
+        return "";
     }
 
     /**
