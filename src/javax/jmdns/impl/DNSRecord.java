@@ -144,12 +144,10 @@ public abstract class DNSRecord extends DNSEntry
         return (int) Math.max(0, (getExpirationTime(100) - now) / 1000);
     }
 
-    /**
-     * Check if the record is expired.
+    /*
+     * (non-Javadoc)
      *
-     * @param now
-     *            update date
-     * @return <code>true</code> is the record is expired, <code>false</code> otherwise.
+     * @see javax.jmdns.impl.DNSEntry#isExpired(long)
      */
     @Override
     public boolean isExpired(long now)
@@ -157,14 +155,13 @@ public abstract class DNSRecord extends DNSEntry
         return getExpirationTime(100) <= now;
     }
 
-    /**
-     * Check if the record is stale, i.e. it has outlived more than half of its TTL.
+    /*
+     * (non-Javadoc)
      *
-     * @param now
-     *            update date
-     * @return <code>true</code> is the record is stale, <code>false</code> otherwise.
+     * @see javax.jmdns.impl.DNSEntry#isStale(long)
      */
-    boolean isStale(long now)
+    @Override
+    public boolean isStale(long now)
     {
         return getExpirationTime(50) <= now;
     }

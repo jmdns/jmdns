@@ -335,10 +335,21 @@ public class DNSQuestion extends DNSEntry
     /*
      * (non-Javadoc)
      *
+     * @see javax.jmdns.impl.DNSEntry#isStale(long)
+     */
+    @Override
+    public boolean isStale(long now)
+    {
+        return false;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see javax.jmdns.impl.DNSEntry#isExpired(long)
      */
     @Override
-    boolean isExpired(long now)
+    public boolean isExpired(long now)
     {
         return false;
     }

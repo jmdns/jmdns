@@ -28,14 +28,9 @@ public class Canceler extends DNSStateTask
      */
     DNSState taskState = DNSState.CANCELING_1;
 
-    /**
-     * By setting a 0 ttl we effectively expire the record.
-     */
-    private final int _ttl = 0;
-
     public Canceler(JmDNSImpl jmDNSImpl)
     {
-        super(jmDNSImpl);
+        super(jmDNSImpl, 0);
 
         this.associate(DNSState.CANCELING_1);
     }
@@ -98,7 +93,10 @@ public class Canceler extends DNSStateTask
             {
                 if (this.getDns().isAssociatedWithTask(this, taskState))
                 {
-                    this.getDns().getLocalHost().addAddressRecords(out, _ttl, true);
+                    for (DNSRecord answer : this.getDns().getLocalHost().answers(this.getTTL()))
+                    {
+                        out = this.addAnswer(out, null, answer);
+                    }
                     this.getDns().advanceState();
                 }
             }
@@ -111,7 +109,7 @@ public class Canceler extends DNSStateTask
                     if (info.isAssociatedWithTask(this, taskState))
                     {
                         logger.finer("run() JmDNS announcing " + info.getQualifiedName());
-                        for (DNSRecord answer : info.answers(_ttl, this.getDns().getLocalHost()))
+                        for (DNSRecord answer : info.answers(this.getTTL(), this.getDns().getLocalHost()))
                         {
                             out = this.addAnswer(out, null, answer);
                         }

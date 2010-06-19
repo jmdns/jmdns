@@ -6,6 +6,7 @@ package javax.jmdns.impl.tasks.state;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.ServiceInfoImpl;
+import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSState;
 import javax.jmdns.impl.tasks.DNSTask;
 
@@ -16,11 +17,43 @@ public abstract class DNSStateTask extends DNSTask
 {
 
     /**
-     * @param jmDNSImpl
+     * By setting a 0 ttl we effectively expire the record.
      */
-    public DNSStateTask(JmDNSImpl jmDNSImpl)
+    private final int _ttl;
+
+    private static int _defaultTTL = DNSConstants.DNS_TTL;
+
+    public static int defaultTTL()
+    {
+        return _defaultTTL;
+    }
+
+    /**
+     * For testing only do not use in production.
+     *
+     * @param value
+     */
+    public static void setDefaultTTL(int value)
+    {
+        _defaultTTL = value;
+    }
+
+    /**
+     * @param jmDNSImpl
+     * @param ttl
+     */
+    public DNSStateTask(JmDNSImpl jmDNSImpl, int ttl)
     {
         super(jmDNSImpl);
+        _ttl = ttl;
+    }
+
+    /**
+     * @return the ttl
+     */
+    public int getTTL()
+    {
+        return _ttl;
     }
 
     /**
