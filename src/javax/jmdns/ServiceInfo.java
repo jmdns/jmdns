@@ -210,35 +210,43 @@ public abstract class ServiceInfo
     public abstract String getServer();
 
     /**
-     * Get the host address of the service (ie X.X.X.X).
+     * Returns the host IP address string in textual presentation.<br/>
+     * <b>Note:</b> This can be either an IPv4 or an IPv6 representation.
      *
-     * @return host IP address
+     * @return the host raw IP address in a string format.
      */
     public abstract String getHostAddress();
 
     /**
-     * Get the host address of the service.
+     * Get the host address of the service.<br/>
+     *
      *
      * @return host Internet address
+     * @deprecated since 3.1.8
+     * @see #getInetAddress()
      */
+    @Deprecated
     public abstract InetAddress getAddress();
 
     /**
-     * Get the InetAddress of the service.
+     * Get the InetAddress of the service. This will return the IPv4 if it exist, otherwise it return the IPv6 if set.<br/>
+     * <b>Note:</b> This return null if the service IP address cannot be resolved.
      *
      * @return Internet address
      */
     public abstract InetAddress getInetAddress();
 
     /**
-     * Get the InetAddress of the service.
+     * Get the IPv4 InetAddress of the service.<br/>
+     * <b>Note:</b> This return null if the service IPv4 address cannot be resolved.
      *
      * @return Internet address
      */
     public abstract Inet4Address getInet4Address();
 
     /**
-     * Get the InetAddress of the service.
+     * Get the IPv6 InetAddress of the service.<br/>
+     * <b>Note:</b> This return null if the service IPv6 address cannot be resolved.
      *
      * @return Internet address
      */

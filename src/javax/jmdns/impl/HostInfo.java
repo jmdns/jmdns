@@ -84,14 +84,14 @@ public class HostInfo implements DNSStatefulObject
         return _name;
     }
 
-    public InetAddress getAddress()
+    public InetAddress getInetAddress()
     {
         return _address;
     }
 
     Inet4Address getInet4Address()
     {
-        if (this.getAddress() instanceof Inet4Address)
+        if (this.getInetAddress() instanceof Inet4Address)
         {
             return (Inet4Address) _address;
         }
@@ -100,7 +100,7 @@ public class HostInfo implements DNSStatefulObject
 
     Inet6Address getInet6Address()
     {
-        if (this.getAddress() instanceof Inet6Address)
+        if (this.getInetAddress() instanceof Inet6Address)
         {
             return (Inet6Address) _address;
         }
@@ -124,12 +124,12 @@ public class HostInfo implements DNSStatefulObject
     boolean shouldIgnorePacket(DatagramPacket packet)
     {
         boolean result = false;
-        if (getAddress() != null)
+        if (getInetAddress() != null)
         {
             InetAddress from = packet.getAddress();
             if (from != null)
             {
-                if (from.isLinkLocalAddress() && (!getAddress().isLinkLocalAddress()))
+                if (from.isLinkLocalAddress() && (!getInetAddress().isLinkLocalAddress()))
                 {
                     // Ignore linklocal packets on regular interfaces, unless this is
                     // also a linklocal interface. This is to avoid duplicates. This is
@@ -137,7 +137,7 @@ public class HostInfo implements DNSStatefulObject
                     // of the interface on which the packet was received.
                     result = true;
                 }
-                if (from.isLoopbackAddress() && (!getAddress().isLoopbackAddress()))
+                if (from.isLoopbackAddress() && (!getInetAddress().isLoopbackAddress()))
                 {
                     // Ignore loopback packets on a regular interface unless this is
                     // also a loopback interface.
@@ -163,18 +163,18 @@ public class HostInfo implements DNSStatefulObject
 
     private DNSRecord.Address getDNS4AddressRecord(int ttl)
     {
-        if ((this.getAddress() instanceof Inet4Address) || ((this.getAddress() instanceof Inet6Address) && (((Inet6Address) this.getAddress()).isIPv4CompatibleAddress())))
+        if ((this.getInetAddress() instanceof Inet4Address) || ((this.getInetAddress() instanceof Inet6Address) && (((Inet6Address) this.getInetAddress()).isIPv4CompatibleAddress())))
         {
-            return new DNSRecord.IPv4Address(this.getName(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getAddress());
+            return new DNSRecord.IPv4Address(this.getName(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getInetAddress());
         }
         return null;
     }
 
     private DNSRecord.Address getDNS6AddressRecord(int ttl)
     {
-        if (this.getAddress() instanceof Inet6Address)
+        if (this.getInetAddress() instanceof Inet6Address)
         {
-            return new DNSRecord.IPv6Address(this.getName(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getAddress());
+            return new DNSRecord.IPv6Address(this.getName(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getInetAddress());
         }
         return null;
     }
@@ -188,7 +188,7 @@ public class HostInfo implements DNSStatefulObject
         buf.append(", ");
         buf.append(getInterface() != null ? getInterface().getDisplayName() : "???");
         buf.append(":");
-        buf.append(getAddress() != null ? getAddress().getHostAddress() : "no address");
+        buf.append(getInetAddress() != null ? getInetAddress().getHostAddress() : "no address");
         buf.append(", ");
         buf.append(_state);
         buf.append("]");

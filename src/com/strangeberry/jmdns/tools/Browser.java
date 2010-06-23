@@ -237,7 +237,7 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
                 buf.append(':');
                 buf.append(anInfo.getPort());
                 buf.append('\n');
-                buf.append(anInfo.getAddress());
+                buf.append(anInfo.getInetAddress());
                 buf.append(':');
                 buf.append(anInfo.getPort());
                 buf.append('\n');
