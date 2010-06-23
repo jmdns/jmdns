@@ -247,7 +247,9 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         this._server = server;
     }
 
-    /**
+    /*
+     * (non-Javadoc)
+     *
      * @see javax.jmdns.ServiceInfo#getHostAddress()
      */
     @Override
@@ -708,7 +710,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     @Override
     public synchronized boolean hasData()
     {
-        return this.getServer() != null && this.getAddress() != null && this.getTextBytes() != null && this.getTextBytes().length > 0;
+        return this.getServer() != null && this.getInetAddress() != null && this.getTextBytes() != null && this.getTextBytes().length > 0;
         // return this.getServer() != null && (this.getAddress() != null || (this.getTextBytes() != null && this.getTextBytes().length > 0));
     }
 
@@ -944,7 +946,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         buf.append("name: '");
         buf.append(this.getQualifiedName());
         buf.append("' address: '");
-        buf.append(this.getAddress());
+        buf.append(this.getInetAddress());
         buf.append(':');
         buf.append(this.getPort());
         buf.append("' status: '");
