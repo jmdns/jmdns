@@ -3,6 +3,8 @@
 //Original license LGPL
 package javax.jmdns;
 
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.util.Enumeration;
 import java.util.Map;
@@ -227,6 +229,20 @@ public abstract class ServiceInfo
      * @return Internet address
      */
     public abstract InetAddress getInetAddress();
+
+    /**
+     * Get the InetAddress of the service.
+     *
+     * @return Internet address
+     */
+    public abstract Inet4Address getInet4Address();
+
+    /**
+     * Get the InetAddress of the service.
+     *
+     * @return Internet address
+     */
+    public abstract Inet6Address getInet6Address();
 
     /**
      * Get the port for the service.

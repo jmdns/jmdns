@@ -146,8 +146,10 @@ public final class DNSIncoming extends DNSMessage
         switch (type)
         {
             case TYPE_A: // IPv4
-            case TYPE_AAAA: // IPv6 FIXME [PJYF Oct 14 2004] This has not been tested
-                rec = new DNSRecord.Address(domain, type, recordClass, unique, ttl, readBytes(_off, len));
+                rec = new DNSRecord.IPv4Address(domain, recordClass, unique, ttl, readBytes(_off, len));
+                break;
+            case TYPE_AAAA: // IPv6
+                rec = new DNSRecord.IPv6Address(domain, recordClass, unique, ttl, readBytes(_off, len));
                 break;
             case TYPE_CNAME:
             case TYPE_PTR:

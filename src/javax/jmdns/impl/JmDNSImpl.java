@@ -654,16 +654,22 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                 byte[] srvBytes = cachedInfoImp.getText();
                 cachedInfoImp._setText((byte[]) null);
                 DNSEntry addressEntry = this.getCache().getDNSEntry(cachedInfo.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_ANY);
-                if (addressEntry == null)
-                {
-                    addressEntry = this.getCache().getDNSEntry(cachedInfo.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_ANY);
-                }
                 if (addressEntry instanceof DNSRecord)
                 {
                     ServiceInfo cachedAddressInfo = ((DNSRecord) addressEntry).getServiceInfo(persistent);
                     if (cachedAddressInfo != null)
                     {
-                        cachedInfoImp.setAddress(cachedAddressInfo.getAddress());
+                        cachedInfoImp.setAddress(cachedAddressInfo.getInet4Address());
+                        cachedInfoImp._setText(cachedAddressInfo.getTextBytes());
+                    }
+                }
+                addressEntry = this.getCache().getDNSEntry(cachedInfo.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_ANY);
+                if (addressEntry instanceof DNSRecord)
+                {
+                    ServiceInfo cachedAddressInfo = ((DNSRecord) addressEntry).getServiceInfo(persistent);
+                    if (cachedAddressInfo != null)
+                    {
+                        cachedInfoImp.setAddress(cachedAddressInfo.getInet6Address());
                         cachedInfoImp._setText(cachedAddressInfo.getTextBytes());
                     }
                 }
@@ -902,7 +908,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
 
         // bind the service to this address
         info.setServer(_localHost.getName());
-        info.setAddress(_localHost.getAddress());
+        info.setAddress(_localHost.getInet4Address());
+        info.setAddress(_localHost.getInet6Address());
 
         this.waitForAnnounced(0);
 
