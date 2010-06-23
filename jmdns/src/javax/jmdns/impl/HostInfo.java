@@ -89,6 +89,24 @@ public class HostInfo implements DNSStatefulObject
         return _address;
     }
 
+    Inet4Address getInet4Address()
+    {
+        if (this.getAddress() instanceof Inet4Address)
+        {
+            return (Inet4Address) _address;
+        }
+        return null;
+    }
+
+    Inet6Address getInet6Address()
+    {
+        if (this.getAddress() instanceof Inet6Address)
+        {
+            return (Inet6Address) _address;
+        }
+        return null;
+    }
+
     public NetworkInterface getInterface()
     {
         return _interfaze;
@@ -130,25 +148,33 @@ public class HostInfo implements DNSStatefulObject
         return result;
     }
 
-    DNSRecord.Address getDNSAddressRecord(DNSRecord.Address address, int ttl)
+    DNSRecord.Address getDNSAddressRecord(DNSRecordType type, int ttl)
     {
-        return (DNSRecordType.TYPE_AAAA.equals(address.getRecordType()) ? this.getDNS6AddressRecord(ttl) : this.getDNS4AddressRecord(ttl));
-    }
-
-    public DNSRecord.Address getDNS4AddressRecord(int ttl)
-    {
-        if ((this.getAddress() instanceof Inet4Address) || ((this.getAddress() instanceof Inet6Address) && (((Inet6Address) this.getAddress()).isIPv4CompatibleAddress())))
+        switch (type)
         {
-            return new DNSRecord.Address(this.getName(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getAddress());
+            case TYPE_A:
+                return this.getDNS4AddressRecord(ttl);
+            case TYPE_AAAA:
+                return this.getDNS6AddressRecord(ttl);
+            default:
         }
         return null;
     }
 
-    public DNSRecord.Address getDNS6AddressRecord(int ttl)
+    private DNSRecord.Address getDNS4AddressRecord(int ttl)
+    {
+        if ((this.getAddress() instanceof Inet4Address) || ((this.getAddress() instanceof Inet6Address) && (((Inet6Address) this.getAddress()).isIPv4CompatibleAddress())))
+        {
+            return new DNSRecord.IPv4Address(this.getName(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getAddress());
+        }
+        return null;
+    }
+
+    private DNSRecord.Address getDNS6AddressRecord(int ttl)
     {
         if (this.getAddress() instanceof Inet6Address)
         {
-            return new DNSRecord.Address(this.getName(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getAddress());
+            return new DNSRecord.IPv6Address(this.getName(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getAddress());
         }
         return null;
     }

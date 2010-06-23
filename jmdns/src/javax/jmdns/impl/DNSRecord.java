@@ -8,6 +8,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -180,21 +181,131 @@ public abstract class DNSRecord extends DNSEntry
      */
     abstract void write(MessageStream out);
 
+    public static class IPv4Address extends Address
+    {
+
+        IPv4Address(String name, DNSRecordClass recordClass, boolean unique, int ttl, InetAddress addr)
+        {
+            super(name, DNSRecordType.TYPE_A, recordClass, unique, ttl, addr);
+        }
+
+        IPv4Address(String name, DNSRecordClass recordClass, boolean unique, int ttl, byte[] rawAddress)
+        {
+            super(name, DNSRecordType.TYPE_A, recordClass, unique, ttl, rawAddress);
+        }
+
+        @Override
+        void write(MessageStream out)
+        {
+            if (_addr != null)
+            {
+                byte[] buffer = _addr.getAddress();
+                // If we have a type A records we should answer with a IPv4 address
+                if (_addr instanceof Inet4Address)
+                {
+                    // All is good
+                }
+                else
+                {
+                    // Get the last four bytes
+                    byte[] tempbuffer = buffer;
+                    buffer = new byte[4];
+                    System.arraycopy(tempbuffer, 12, buffer, 0, 4);
+                }
+                int length = buffer.length;
+                out.writeBytes(buffer, 0, length);
+            }
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.jmdns.impl.DNSRecord#getServiceInfo(boolean)
+         */
+        @Override
+        public ServiceInfo getServiceInfo(boolean persistent)
+        {
+
+            ServiceInfoImpl info = (ServiceInfoImpl) super.getServiceInfo(persistent);
+            info.setAddress((Inet4Address) _addr);
+            return info;
+        }
+
+    }
+
+    public static class IPv6Address extends Address
+    {
+
+        IPv6Address(String name, DNSRecordClass recordClass, boolean unique, int ttl, InetAddress addr)
+        {
+            super(name, DNSRecordType.TYPE_AAAA, recordClass, unique, ttl, addr);
+        }
+
+        IPv6Address(String name, DNSRecordClass recordClass, boolean unique, int ttl, byte[] rawAddress)
+        {
+            super(name, DNSRecordType.TYPE_AAAA, recordClass, unique, ttl, rawAddress);
+        }
+
+        @Override
+        void write(MessageStream out)
+        {
+            if (_addr != null)
+            {
+                byte[] buffer = _addr.getAddress();
+                // If we have a type AAAA records we should answer with a IPv6 address
+                if (_addr instanceof Inet4Address)
+                {
+                    byte[] tempbuffer = buffer;
+                    buffer = new byte[16];
+                    for (int i = 0; i < 16; i++)
+                    {
+                        if (i < 11)
+                        {
+                            buffer[i] = tempbuffer[i - 12];
+                        }
+                        else
+                        {
+                            buffer[i] = 0;
+                        }
+                    }
+                }
+                int length = buffer.length;
+                out.writeBytes(buffer, 0, length);
+            }
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.jmdns.impl.DNSRecord#getServiceInfo(boolean)
+         */
+        @Override
+        public ServiceInfo getServiceInfo(boolean persistent)
+        {
+
+            ServiceInfoImpl info = (ServiceInfoImpl) super.getServiceInfo(persistent);
+            info.setAddress((Inet6Address) _addr);
+            return info;
+        }
+
+    }
+
     /**
      * Address record.
      */
-    public static class Address extends DNSRecord
+    public static abstract class Address extends DNSRecord
     {
         private static Logger logger1 = Logger.getLogger(Address.class.getName());
+
         InetAddress _addr;
 
-        Address(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl, InetAddress addr)
+        protected Address(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl, InetAddress addr)
         {
             super(name, type, recordClass, unique, ttl);
             this._addr = addr;
         }
 
-        Address(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl, byte[] rawAddress)
+        protected Address(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl, byte[] rawAddress)
         {
             super(name, type, recordClass, unique, ttl);
             try
@@ -204,52 +315,6 @@ public abstract class DNSRecord extends DNSEntry
             catch (UnknownHostException exception)
             {
                 logger1.log(Level.WARNING, "Address() exception ", exception);
-            }
-        }
-
-        @Override
-        void write(MessageStream out)
-        {
-            if (_addr != null)
-            {
-                byte[] buffer = _addr.getAddress();
-                if (DNSRecordType.TYPE_A.equals(this.getRecordType()))
-                {
-                    // If we have a type A records we should answer with a IPv4 address
-                    if (_addr instanceof Inet4Address)
-                    {
-                        // All is good
-                    }
-                    else
-                    {
-                        // Get the last four bytes
-                        byte[] tempbuffer = buffer;
-                        buffer = new byte[4];
-                        System.arraycopy(tempbuffer, 12, buffer, 0, 4);
-                    }
-                }
-                else
-                {
-                    // If we have a type AAAA records we should answer with a IPv6 address
-                    if (_addr instanceof Inet4Address)
-                    {
-                        byte[] tempbuffer = buffer;
-                        buffer = new byte[16];
-                        for (int i = 0; i < 16; i++)
-                        {
-                            if (i < 11)
-                            {
-                                buffer[i] = tempbuffer[i - 12];
-                            }
-                            else
-                            {
-                                buffer[i] = 0;
-                            }
-                        }
-                    }
-                }
-                int length = buffer.length;
-                out.writeBytes(buffer, 0, length);
             }
         }
 
@@ -266,7 +331,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         boolean sameValue(DNSRecord other)
         {
-            return _addr.equals(((Address) other).getAddress());
+            return this.getAddress().equals(((Address) other).getAddress());
         }
 
         InetAddress getAddress()
@@ -281,7 +346,7 @@ public abstract class DNSRecord extends DNSEntry
         protected void toByteArray(DataOutputStream dout) throws IOException
         {
             super.toByteArray(dout);
-            byte[] buffer = _addr.getAddress();
+            byte[] buffer = this.getAddress().getAddress();
             for (int i = 0; i < buffer.length; i++)
             {
                 dout.writeByte(buffer[i]);
@@ -294,7 +359,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         boolean handleQuery(JmDNSImpl dns, long expirationTime)
         {
-            DNSRecord.Address dnsAddress = dns.getLocalHost().getDNSAddressRecord(this, DNSConstants.DNS_TTL);
+            DNSRecord.Address dnsAddress = dns.getLocalHost().getDNSAddressRecord(this.getRecordType(), DNSConstants.DNS_TTL);
             if (dnsAddress != null)
             {
                 if (dnsAddress.sameType(this) && dnsAddress.sameName(this) && (!dnsAddress.sameValue(this)))
@@ -325,7 +390,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         boolean handleResponse(JmDNSImpl dns)
         {
-            DNSRecord.Address dnsAddress = dns.getLocalHost().getDNSAddressRecord(this, DNSConstants.DNS_TTL);
+            DNSRecord.Address dnsAddress = dns.getLocalHost().getDNSAddressRecord(this.getRecordType(), DNSConstants.DNS_TTL);
             if (dnsAddress != null)
             {
                 if (dnsAddress.sameType(this) && dnsAddress.sameName(this) && (!dnsAddress.sameValue(this)))
@@ -375,7 +440,7 @@ public abstract class DNSRecord extends DNSEntry
             }
 
             ServiceInfoImpl info = new ServiceInfoImpl(domainName, serviceName, 0, 0, 0, persistent, (byte[]) null);
-            info.setAddress(_addr);
+            // info.setAddress(_addr); This is done in the sub class so we don't have to test for class type
             return info;
         }
 
@@ -401,7 +466,7 @@ public abstract class DNSRecord extends DNSEntry
         protected void toString(StringBuilder aLog)
         {
             super.toString(aLog);
-            aLog.append(" address: '" + (_addr != null ? _addr.getHostAddress() : "null") + "'");
+            aLog.append(" address: '" + (this.getAddress() != null ? this.getAddress().getHostAddress() : "null") + "'");
         }
 
     }

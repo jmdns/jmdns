@@ -7,6 +7,8 @@ package javax.jmdns.impl;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,7 +46,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     private int _priority;
     private byte _text[];
     private Map<String, byte[]> _props;
-    private InetAddress _addr;
+    private Inet4Address _ipv4Addr;
+    private Inet6Address _ipv6Addr;
 
     private boolean _persistent;
     private boolean _needTextAnnouncing;
@@ -182,7 +185,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
             this._priority = info.getPriority();
             this._text = info.getTextBytes();
             this._persistent = info.isPersistent();
-            this._addr = info.getAddress();
+            this._ipv4Addr = info.getInet4Address();
+            this._ipv6Addr = info.getInet6Address();
         }
         this._state = new ServiceInfoState(this);
     }
@@ -249,7 +253,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     @Override
     public String getHostAddress()
     {
-        return (_addr != null ? _addr.getHostAddress() : "");
+        return (this.getInetAddress() != null ? this.getInetAddress().getHostAddress() : "");
     }
 
     /*
@@ -260,16 +264,25 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     @Override
     public InetAddress getAddress()
     {
-        return _addr;
+        return this.getInetAddress();
     }
 
     /**
      * @param addr
      *            the addr to set
      */
-    void setAddress(InetAddress addr)
+    void setAddress(Inet4Address addr)
     {
-        this._addr = addr;
+        this._ipv4Addr = addr;
+    }
+
+    /**
+     * @param addr
+     *            the addr to set
+     */
+    void setAddress(Inet6Address addr)
+    {
+        this._ipv6Addr = addr;
     }
 
     /*
@@ -280,7 +293,29 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     @Override
     public InetAddress getInetAddress()
     {
-        return _addr;
+        return (_ipv4Addr != null ? _ipv4Addr : _ipv6Addr);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.ServiceInfo#getInet4Address()
+     */
+    @Override
+    public Inet4Address getInet4Address()
+    {
+        return _ipv4Addr;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.ServiceInfo#getInet6Address()
+     */
+    @Override
+    public Inet6Address getInet6Address()
+    {
+        return _ipv6Addr;
     }
 
     /**
@@ -599,10 +634,16 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
             switch (rec.getRecordType())
             {
                 case TYPE_A: // IPv4
+                    if (rec.getName().equalsIgnoreCase(this.getServer()))
+                    {
+                        _ipv4Addr = (Inet4Address) ((DNSRecord.Address) rec).getAddress();
+                        serviceUpdated = true;
+                    }
+                    break;
                 case TYPE_AAAA: // IPv6
                     if (rec.getName().equalsIgnoreCase(this.getServer()))
                     {
-                        _addr = ((DNSRecord.Address) rec).getAddress();
+                        _ipv6Addr = (Inet6Address) ((DNSRecord.Address) rec).getAddress();
                         serviceUpdated = true;
                     }
                     break;
@@ -617,7 +658,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                         _priority = srv.getPriority();
                         if (serverChanged)
                         {
-                            _addr = null;
+                            _ipv4Addr = null;
+                            _ipv6Addr = null;
                             this.updateRecord(dnsCache, now, dnsCache.getDNSEntry(_server, DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN));
                             this.updateRecord(dnsCache, now, dnsCache.getDNSEntry(_server, DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN));
                             // We do not want to trigger the listener in this case as it will be triggered if the
