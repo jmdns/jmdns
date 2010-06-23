@@ -47,8 +47,7 @@ public final class DNSConstants
     public final static int RESPONSE_MAX_WAIT_INTERVAL = 115; // maximal wait interval for response
     public final static int PROBE_CONFLICT_INTERVAL = 1000; // milliseconds to wait after conflict.
     public final static int PROBE_THROTTLE_COUNT = 10; // After x tries go 1 time a sec. on probes.
-    public final static int PROBE_THROTTLE_COUNT_INTERVAL = 5000; // We only increment the throttle count, if
-    // the previous increment is inside this interval.
+    public final static int PROBE_THROTTLE_COUNT_INTERVAL = 5000; // We only increment the throttle count, if the previous increment is inside this interval.
     public final static int ANNOUNCE_WAIT_INTERVAL = 1000; // milliseconds between Announce loops.
     public final static int RECORD_REAPER_INTERVAL = 10000; // milliseconds between cache cleanups.
     public final static int KNOWN_ANSWER_TTL = 120;

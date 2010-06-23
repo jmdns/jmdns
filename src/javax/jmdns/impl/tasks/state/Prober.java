@@ -116,7 +116,7 @@ public class Prober extends DNSStateTask
                     {
                         out = this.addAuthorativeAnswer(out, answer);
                     }
-                    this.getDns().advanceState();
+                    this.getDns().advanceState(this);
                 }
             }
             // send probes for services
@@ -134,7 +134,7 @@ public class Prober extends DNSStateTask
                         // yet this means the record will not exactly match the announcement record
                         out = this.addAuthorativeAnswer(out, new DNSRecord.Service(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, this.getTTL(), info.getPriority(), info.getWeight(), info.getPort(), this.getDns()
                                 .getLocalHost().getName()));
-                        info.advanceState();
+                        info.advanceState(this);
                     }
                 }
             }
