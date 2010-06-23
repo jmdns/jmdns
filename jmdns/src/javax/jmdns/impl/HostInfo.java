@@ -41,6 +41,8 @@ public class HostInfo implements DNSStatefulObject
     private final static class HostInfoState extends DNSStatefulObject.DefaultImplementation
     {
 
+        private static final long serialVersionUID = -8191476803620402088L;
+
         /**
          * @param dns
          */
@@ -197,12 +199,12 @@ public class HostInfo implements DNSStatefulObject
     /*
      * (non-Javadoc)
      *
-     * @see javax.jmdns.impl.DNSStatefulObject#advanceState()
+     * @see javax.jmdns.impl.DNSStatefulObject#advanceState(javax.jmdns.impl.tasks.DNSTask)
      */
     @Override
-    public boolean advanceState()
+    public boolean advanceState(DNSTask task)
     {
-        return this._state.advanceState();
+        return this._state.advanceState(task);
     }
 
     /*

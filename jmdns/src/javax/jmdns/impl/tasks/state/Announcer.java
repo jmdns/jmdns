@@ -96,7 +96,7 @@ public class Announcer extends DNSStateTask
                     {
                         out = this.addAnswer(out, null, answer);
                     }
-                    this.getDns().advanceState();
+                    this.getDns().advanceState(this);
                 }
             }
             // send announces for services
@@ -112,7 +112,7 @@ public class Announcer extends DNSStateTask
                         {
                             out = this.addAnswer(out, null, answer);
                         }
-                        info.advanceState();
+                        info.advanceState(this);
                     }
                 }
             }

@@ -360,12 +360,12 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     /*
      * (non-Javadoc)
      *
-     * @see javax.jmdns.impl.DNSStatefulObject#advanceState()
+     * @see javax.jmdns.impl.DNSStatefulObject#advanceState(javax.jmdns.impl.tasks.DNSTask)
      */
     @Override
-    public boolean advanceState()
+    public boolean advanceState(DNSTask task)
     {
-        return this._localHost.advanceState();
+        return this._localHost.advanceState(task);
     }
 
     /*

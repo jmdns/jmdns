@@ -54,6 +54,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     private final static class ServiceInfoState extends DNSStatefulObject.DefaultImplementation
     {
 
+        private static final long serialVersionUID = 1104131034952196820L;
+
         private final ServiceInfoImpl _info;
 
         /**
@@ -673,12 +675,12 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     /*
      * (non-Javadoc)
      *
-     * @see javax.jmdns.impl.DNSStatefulObject#advanceState()
+     * @see javax.jmdns.impl.DNSStatefulObject#advanceState(javax.jmdns.impl.tasks.DNSTask)
      */
     @Override
-    public boolean advanceState()
+    public boolean advanceState(DNSTask task)
     {
-        return _state.advanceState();
+        return _state.advanceState(task);
     }
 
     /*

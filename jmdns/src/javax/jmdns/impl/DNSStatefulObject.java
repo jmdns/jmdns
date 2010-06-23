@@ -3,6 +3,10 @@
  */
 package javax.jmdns.impl;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
+
+import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSState;
 import javax.jmdns.impl.tasks.DNSTask;
 
@@ -13,8 +17,10 @@ import javax.jmdns.impl.tasks.DNSTask;
 public interface DNSStatefulObject
 {
 
-    public static class DefaultImplementation implements DNSStatefulObject
+    public static class DefaultImplementation extends ReentrantLock implements DNSStatefulObject
     {
+
+        private static final long serialVersionUID = -3264781576883412227L;
 
         private volatile JmDNSImpl _dns;
 
@@ -55,12 +61,17 @@ public interface DNSStatefulObject
         {
             if (this._task == null && this._state == state)
             {
-                synchronized (this)
+                this.lock();
+                try
                 {
                     if (this._task == null && this._state == state)
                     {
                         this.setTask(task);
                     }
+                }
+                finally
+                {
+                    this.unlock();
                 }
             }
         }
@@ -75,12 +86,17 @@ public interface DNSStatefulObject
         {
             if (this._task == task)
             {
-                synchronized (this)
+                this.lock();
+                try
                 {
                     if (this._task == task)
                     {
                         this.setTask(null);
                     }
+                }
+                finally
+                {
+                    this.unlock();
                 }
             }
         }
@@ -93,9 +109,14 @@ public interface DNSStatefulObject
         @Override
         public boolean isAssociatedWithTask(DNSTask task, DNSState state)
         {
-            synchronized (this)
+            this.lock();
+            try
             {
                 return this._task == task && this._state == state;
+            }
+            finally
+            {
+                this.unlock();
             }
         }
 
@@ -107,16 +128,26 @@ public interface DNSStatefulObject
         /*
          * (non-Javadoc)
          *
-         * @see javax.jmdns.impl.DNSStatefullObject#advanceState()
+         * @see javax.jmdns.impl.DNSStatefulObject#advanceState(javax.jmdns.impl.tasks.DNSTask)
          */
         @Override
-        public boolean advanceState()
+        public boolean advanceState(DNSTask task)
         {
             boolean result = true;
-            synchronized (this)
+            if (this._task == task)
             {
-                this._state = this._state.advance();
-                this.notifyAll();
+                this.lock();
+                try
+                {
+                    if (this._task == task)
+                    {
+                        this._state = this._state.advance();
+                    }
+                }
+                finally
+                {
+                    this.unlock();
+                }
             }
             return result;
         }
@@ -130,11 +161,15 @@ public interface DNSStatefulObject
         public boolean revertState()
         {
             boolean result = true;
-            synchronized (this)
+            this.lock();
+            try
             {
                 this._state = this._state.revert();
                 this.setTask(null);
-                this.notifyAll();
+            }
+            finally
+            {
+                this.unlock();
             }
             return result;
         }
@@ -150,15 +185,19 @@ public interface DNSStatefulObject
             boolean result = false;
             if (!this.isCanceling())
             {
-                synchronized (this)
+                this.lock();
+                try
                 {
                     if (!this.isCanceling())
                     {
                         this._state = DNSState.CANCELING_1;
                         this.setTask(null);
-                        this.notifyAll();
                         result = true;
                     }
+                }
+                finally
+                {
+                    this.unlock();
                 }
             }
             return result;
@@ -173,11 +212,15 @@ public interface DNSStatefulObject
         public boolean recoverState()
         {
             boolean result = false;
-            synchronized (this)
+            this.lock();
+            try
             {
                 this._state = DNSState.PROBING_1;
                 this.setTask(null);
-                this.notifyAll();
+            }
+            finally
+            {
+                this.unlock();
             }
             return result;
         }
@@ -245,22 +288,29 @@ public interface DNSStatefulObject
         @Override
         public boolean waitForAnnounced(long timeout)
         {
-            try
+            if (!this.isAnnounced())
             {
-                synchronized (this)
+                try
                 {
                     boolean finished = false;
                     long end = (timeout > 0 ? System.currentTimeMillis() + timeout : Long.MAX_VALUE);
                     while (!this.isAnnounced() && !finished)
                     {
-                        this.wait(timeout);
-                        finished = end <= System.currentTimeMillis();
+                        this.tryLock(DNSConstants.ANNOUNCE_WAIT_INTERVAL, TimeUnit.MILLISECONDS);
+                        try
+                        {
+                            finished = end <= System.currentTimeMillis();
+                        }
+                        finally
+                        {
+                            this.unlock();
+                        }
                     }
                 }
-            }
-            catch (final InterruptedException e)
-            {
-                // empty
+                catch (final InterruptedException e)
+                {
+                    // empty
+                }
             }
             return this.isAnnounced();
         }
@@ -273,22 +323,29 @@ public interface DNSStatefulObject
         @Override
         public boolean waitForCanceled(long timeout)
         {
-            try
+            if (!this.isCanceled())
             {
-                synchronized (this)
+                try
                 {
                     boolean finished = false;
                     long end = (timeout > 0 ? System.currentTimeMillis() + timeout : Long.MAX_VALUE);
                     while (!this.isCanceled() && !finished)
                     {
-                        this.wait(timeout);
-                        finished = end <= System.currentTimeMillis();
+                        this.tryLock(DNSConstants.ANNOUNCE_WAIT_INTERVAL, TimeUnit.MILLISECONDS);
+                        try
+                        {
+                            finished = end <= System.currentTimeMillis();
+                        }
+                        finally
+                        {
+                            this.unlock();
+                        }
                     }
                 }
-            }
-            catch (final InterruptedException e)
-            {
-                // empty
+                catch (final InterruptedException e)
+                {
+                    // empty
+                }
             }
             return this.isCanceled();
         }
@@ -345,11 +402,13 @@ public interface DNSStatefulObject
     /**
      * Sets the state and notifies all objects that wait on the ServiceInfo.
      *
+     * @param task
+     *            associated task
      * @return <code>true</code if the state was changed by this thread, <code>false</code> otherwise.
      *
      * @see DNSState#advance()
      */
-    public boolean advanceState();
+    public boolean advanceState(DNSTask task);
 
     /**
      * Sets the state and notifies all objects that wait on the ServiceInfo.
