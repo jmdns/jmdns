@@ -87,6 +87,12 @@ public class Announcer extends DNSStateTask
         DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
         try
         {
+            if (this.getDns().isCanceling() || this.getDns().isCanceled())
+            {
+                this.cancel();
+                return;
+            }
+
             // send probes for JmDNS itself
             synchronized (this.getDns())
             {

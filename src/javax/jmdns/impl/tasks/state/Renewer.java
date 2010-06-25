@@ -37,7 +37,7 @@ public class Renewer extends DNSStateTask
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see javax.jmdns.impl.tasks.DNSTask#getName()
      */
     @Override
@@ -48,7 +48,7 @@ public class Renewer extends DNSStateTask
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see java.lang.Object#toString()
      */
     @Override
@@ -59,7 +59,7 @@ public class Renewer extends DNSStateTask
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see javax.jmdns.impl.tasks.DNSTask#start(java.util.Timer)
      */
     @Override
@@ -85,6 +85,12 @@ public class Renewer extends DNSStateTask
         DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
         try
         {
+            if (this.getDns().isCanceling() || this.getDns().isCanceled())
+            {
+                this.cancel();
+                return;
+            }
+
             // send probes for JmDNS itself
             synchronized (this.getDns())
             {

@@ -958,6 +958,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             ServiceInfoImpl info = (ServiceInfoImpl) _services.get(name);
             if (info != null)
             {
+                logger.warning("Cancelling service info: " + info);
                 info.cancelState();
             }
         }
@@ -968,7 +969,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             ServiceInfoImpl info = (ServiceInfoImpl) _services.get(name);
             if (info != null)
             {
-                info.waitForCanceled(0);
+                logger.warning("Wait for service info cancel: " + info);
+                info.waitForCanceled(DNSConstants.CLOSE_TIMEOUT);
                 _services.remove(name, info);
             }
         }
@@ -1370,8 +1372,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             byte[] message = out.data();
             final DatagramPacket packet = new DatagramPacket(message, message.length, _group, DNSConstants.MDNS_PORT);
 
-            // if (logger.isLoggable(Level.FINEST))
-            if (true)
+            if (logger.isLoggable(Level.FINEST))
             {
                 try
                 {
@@ -1502,7 +1503,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         if (this.isCanceling() || this.isCanceled())
             return;
 
-        // Stop JmDNS
+        logger.warning("Cancelling JmDNS: " + this);
+       // Stop JmDNS
         // This protects against recursive calls
         if (this.cancelState())
         {
@@ -1515,7 +1517,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             this.unregisterAllServices();
             this.disposeServiceCollectors();
 
-            this.waitForCanceled(0);
+            logger.warning("Wait for JmDNS cancel: " + this);
+            this.waitForCanceled(DNSConstants.CLOSE_TIMEOUT);
 
             // Stop the canceler timer
             _stateTimer.cancel();

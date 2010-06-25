@@ -5,6 +5,7 @@ package javax.jmdns.impl;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Logger;
 
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSState;
@@ -19,6 +20,7 @@ public interface DNSStatefulObject
 
     public static class DefaultImplementation extends ReentrantLock implements DNSStatefulObject
     {
+        private static Logger logger = Logger.getLogger(DefaultImplementation.class.getName());
 
         private static final long serialVersionUID = -3264781576883412227L;
 
@@ -143,6 +145,10 @@ public interface DNSStatefulObject
                     {
                         this._state = this._state.advance();
                     }
+                    else
+                    {
+                        logger.warning("Trying to advance state whhen not the owner. owner: " + this._task + " perpetrator: " + task);
+                    }
                 }
                 finally
                 {
@@ -161,15 +167,21 @@ public interface DNSStatefulObject
         public boolean revertState()
         {
             boolean result = true;
-            this.lock();
-            try
+            if (!this.isCanceling() && !this.isCanceled())
             {
-                this._state = this._state.revert();
-                this.setTask(null);
-            }
-            finally
-            {
-                this.unlock();
+                this.lock();
+                try
+                {
+                    if (!this.isCanceling() && !this.isCanceled())
+                    {
+                        this._state = this._state.revert();
+                        this.setTask(null);
+                    }
+                }
+                finally
+                {
+                    this.unlock();
+                }
             }
             return result;
         }
@@ -183,12 +195,12 @@ public interface DNSStatefulObject
         public boolean cancelState()
         {
             boolean result = false;
-            if (!this.isCanceling())
+            if (!this.isCanceling() && !this.isCanceled())
             {
                 this.lock();
                 try
                 {
-                    if (!this.isCanceling())
+                    if (!this.isCanceling() && !this.isCanceled())
                     {
                         this._state = DNSState.CANCELING_1;
                         this.setTask(null);
@@ -294,12 +306,12 @@ public interface DNSStatefulObject
                 {
                     boolean finished = false;
                     long end = (timeout > 0 ? System.currentTimeMillis() + timeout : Long.MAX_VALUE);
-                    while (!this.isAnnounced() && !finished)
+                    while (!finished)
                     {
                         this.tryLock(DNSConstants.ANNOUNCE_WAIT_INTERVAL, TimeUnit.MILLISECONDS);
                         try
                         {
-                            finished = end <= System.currentTimeMillis();
+                            finished = (this.isAnnounced() ? true : end <= System.currentTimeMillis());
                         }
                         finally
                         {
@@ -311,6 +323,10 @@ public interface DNSStatefulObject
                 {
                     // empty
                 }
+            }
+            if (!this.isAnnounced())
+            {
+                logger.warning("Wait for announced timed out: " + this);
             }
             return this.isAnnounced();
         }
@@ -329,12 +345,12 @@ public interface DNSStatefulObject
                 {
                     boolean finished = false;
                     long end = (timeout > 0 ? System.currentTimeMillis() + timeout : Long.MAX_VALUE);
-                    while (!this.isCanceled() && !finished)
+                    while (!finished)
                     {
                         this.tryLock(DNSConstants.ANNOUNCE_WAIT_INTERVAL, TimeUnit.MILLISECONDS);
                         try
                         {
-                            finished = end <= System.currentTimeMillis();
+                            finished = (this.isCanceled() ? true : end <= System.currentTimeMillis());
                         }
                         finally
                         {
@@ -346,6 +362,10 @@ public interface DNSStatefulObject
                 {
                     // empty
                 }
+            }
+            if (!this.isCanceled())
+            {
+                logger.warning("Wait for canceled timed out: " + this);
             }
             return this.isCanceled();
         }
