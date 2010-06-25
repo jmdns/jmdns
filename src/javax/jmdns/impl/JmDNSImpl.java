@@ -220,6 +220,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                 // [PJYF Oct 14 2004] Why do we disallow the loopback address ?
                 if (addr.isLoopbackAddress())
                 {
+                    logger.warning("Could not find any address beside the loopback.");
                     addr = null;
                 }
             }
@@ -238,6 +239,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         }
         catch (final IOException e)
         {
+            logger.warning("Could not intialize the host network interface because of an error: " + e.getMessage());
             // FIXME [PJYF Dec 17 2009] This looks really bizarre why not fail and throw an exception. What good will this provide?
             _localHost = new HostInfo(null, "computer", this);
         }
@@ -1504,7 +1506,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             return;
 
         logger.warning("Cancelling JmDNS: " + this);
-       // Stop JmDNS
+        // Stop JmDNS
         // This protects against recursive calls
         if (this.cancelState())
         {
