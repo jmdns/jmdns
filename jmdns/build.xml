@@ -12,6 +12,7 @@
 	<property name="dest" value="./classes" />
 	<property name="reports" value="./reports" />
 	<property name="doc" value="./docs" />
+	<property name="jdk" value="1.5" />
 	<property name="version" value="3.1.8" />
 
 	<!-- Configure custom Ant tasks for the Manager application -->
@@ -39,7 +40,7 @@
 	<!-- Executable Targets -->
 
 	<target name="build" depends="init" description="compile the generated source">
-		<javac target="1.5" srcdir="${src}" destdir="${dest}" debug="true">
+		<javac target="${jdk}" srcdir="${src}" destdir="${dest}" debug="true">
 			<compilerarg value="-Xlint" />
 			<include name="javax/**/*.java" />
 			<classpath refid="jmdns.classpath" />
@@ -47,7 +48,7 @@
 	</target>
 
 	<target name="tools" depends="build" description="Main program">
-		<javac target="1.5" srcdir="${src}" destdir="${dest}">
+		<javac target="${jdk}" srcdir="${src}" destdir="${dest}">
 			<compilerarg value="-Xlint" />
 			<include name="com/**/tools/*.java" />
 			<classpath refid="jmdns.classpath" />
@@ -55,7 +56,7 @@
 	</target>
 
 	<target name="samples" depends="build" description="Sample programs">
-		<javac target="1.5" srcdir="${src}" destdir="${dest}">
+		<javac target="${jdk}" srcdir="${src}" destdir="${dest}">
 			<compilerarg value="-Xlint" />
 			<include name="samples/*.java" />
 			<classpath refid="jmdns.classpath" />
@@ -74,13 +75,13 @@
 				Bundle-Name: JmDNS is a java implementation of the IETF draft RFP multicast extensions for DNS
 				Bundle-SymbolicName: javax.jmdns
 				Bundle-Vendor: jmdns.sourceforge.net
-				Bundle-RequiredExecutionEnvironment: J2SE-1.5
+				Bundle-RequiredExecutionEnvironment: J2SE-${jdk}
 				<!-- Hide non API packages -->
 				Private-Package: com.strangeberry.jmdns.tools,samples
 				<!-- Do not import anything -->
 				Import-Package:
 				<!-- whenever API is changed, increment this version number according to OSGi spec: -->
-			<!-- API breakage: incr major, Feature addition: incr: minor -->
+				<!-- API breakage: incr major, Feature addition: incr: minor -->
 				Export-Package: javax.jmdns;version="3.1.0"
 			</echo>
 		<bndwrap definitions="." jars="${lib}/jmdns.jar" output="${lib}/javax.jmdns_${version}.jar" />
@@ -139,7 +140,7 @@
 		<get src="http://repo2.maven.org/maven2/org/easymock/easymock/2.5.2/easymock-2.5.2.jar" usetimestamp="yes" dest="${lib}/easymock-2.5.2.jar" />
 		<get src="http://repo2.maven.org/maven2/junit/junit/4.8.1/junit-4.8.1.jar" usetimestamp="yes" dest="${lib}/junit-4.8.1.jar" />
 
-		<javac target="1.5" srcdir="${test}" destdir="${dest}">
+		<javac target="${jdk}" srcdir="${test}" destdir="${dest}">
 			<compilerarg value="-Xlint" />
 			<classpath refid="jmdns.classpath" />
 		</javac>
