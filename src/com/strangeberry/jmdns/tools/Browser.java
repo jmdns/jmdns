@@ -90,8 +90,7 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
         JPanel typePanel = new JPanel();
         typePanel.setLayout(new BorderLayout());
         typePanel.add("North", new JLabel("Types"));
-        typePanel.add("Center", new JScrollPane(typeList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+        typePanel.add("Center", new JScrollPane(typeList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
         content.add(typePanel);
 
         services = new DefaultListModel();
@@ -104,8 +103,7 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
         JPanel servicePanel = new JPanel();
         servicePanel.setLayout(new BorderLayout());
         servicePanel.add("North", new JLabel("Services"));
-        servicePanel.add("Center", new JScrollPane(serviceList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+        servicePanel.add("Center", new JScrollPane(serviceList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
         content.add(servicePanel);
 
         info = new JTextArea();
@@ -117,8 +115,7 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BorderLayout());
         infoPanel.add("North", new JLabel("Details"));
-        infoPanel.add("Center", new JScrollPane(info, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+        infoPanel.add("Center", new JScrollPane(info, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
         content.add(infoPanel);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -128,10 +125,8 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
         mDNS.addServiceTypeListener(this);
 
         // register some well known types
-        String list[] = new String[] { "_http._tcp.local.", "_ftp._tcp.local.", "_tftp._tcp.local.",
-                "_ssh._tcp.local.", "_smb._tcp.local.", "_printer._tcp.local.", "_airport._tcp.local.",
-                "_afpovertcp._tcp.local.", "_ichat._tcp.local.", "_eppc._tcp.local.", "_presence._tcp.local.",
-                "_rfb._tcp.local.", "_daap._tcp.local.", "_touchcs._tcp.local." };
+        String list[] = new String[] { "_http._tcp.local.", "_ftp._tcp.local.", "_tftp._tcp.local.", "_ssh._tcp.local.", "_smb._tcp.local.", "_printer._tcp.local.", "_airport._tcp.local.", "_afpovertcp._tcp.local.", "_ichat._tcp.local.",
+                "_eppc._tcp.local.", "_presence._tcp.local.", "_rfb._tcp.local.", "_daap._tcp.local.", "_touchcs._tcp.local." };
 
         for (int i = 0; i < list.length; i++)
         {
@@ -215,43 +210,9 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
      */
     public void serviceResolved(ServiceEvent event)
     {
-        String aName = event.getName();
-        String aType = event.getType();
-        ServiceInfo anInfo = event.getInfo();
-
-        if (aName.equals(serviceList.getSelectedValue()))
+        if (event.getName().equals(serviceList.getSelectedValue()))
         {
-            if (anInfo == null)
-            {
-                this.info.setText("service not found");
-            }
-            else
-            {
-
-                StringBuffer buf = new StringBuffer();
-                buf.append(aName);
-                buf.append('.');
-                buf.append(aType);
-                buf.append('\n');
-                buf.append(anInfo.getServer());
-                buf.append(':');
-                buf.append(anInfo.getPort());
-                buf.append('\n');
-                buf.append(anInfo.getInetAddress());
-                buf.append(':');
-                buf.append(anInfo.getPort());
-                buf.append('\n');
-                for (Enumeration<String> names = anInfo.getPropertyNames(); names.hasMoreElements();)
-                {
-                    String prop = names.nextElement();
-                    buf.append(prop);
-                    buf.append('=');
-                    buf.append(anInfo.getPropertyString(prop));
-                    buf.append('\n');
-                }
-
-                this.info.setText(buf.toString());
-            }
+            this.dislayInfo(event.getInfo());
         }
     }
 
@@ -267,6 +228,7 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
             if (e.getSource() == typeList)
             {
                 type = (String) typeList.getSelectedValue();
+                System.out.println("VALUE CHANGED: type: " + type);
                 jmdns.removeServiceListener(type, this);
                 services.setSize(0);
                 info.setText("");
@@ -278,25 +240,51 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
             else if (e.getSource() == serviceList)
             {
                 String name = (String) serviceList.getSelectedValue();
+                System.out.println("VALUE CHANGED: type: " + type + " service: " + name);
                 if (name == null)
                 {
                     info.setText("");
                 }
                 else
                 {
-                    System.out.println(this + " valueChanged() type:" + type + " name:" + name);
-                    System.out.flush();
-                    ServiceInfo service = jmdns.getServiceInfo(type, name, 10 * 1000);
-                    if (service == null)
-                    {
-                        info.setText("service not found");
-                    }
-                    else
-                    {
-                        jmdns.requestServiceInfo(type, name);
-                    }
+                    ServiceInfo service = jmdns.getServiceInfo(type, name, 1000);
+                    this.dislayInfo(service);
                 }
             }
+        }
+    }
+
+    private void dislayInfo(ServiceInfo service)
+    {
+        if (service == null)
+        {
+            info.setText("service not found");
+        }
+        else
+        {
+            StringBuffer buf = new StringBuffer();
+            buf.append(service.getName());
+            buf.append('.');
+            buf.append(service.getType());
+            buf.append('\n');
+            buf.append(service.getServer());
+            buf.append(':');
+            buf.append(service.getPort());
+            buf.append('\n');
+            buf.append(service.getInetAddress());
+            buf.append(':');
+            buf.append(service.getPort());
+            buf.append('\n');
+            for (Enumeration<String> names = service.getPropertyNames(); names.hasMoreElements();)
+            {
+                String prop = names.nextElement();
+                buf.append(prop);
+                buf.append('=');
+                buf.append(service.getPropertyString(prop));
+                buf.append('\n');
+            }
+
+            this.info.setText(buf.toString());
         }
     }
 
