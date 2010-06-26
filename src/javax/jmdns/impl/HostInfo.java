@@ -373,6 +373,10 @@ public class HostInfo implements DNSStatefulObject
     @Override
     public boolean waitForCanceled(long timeout)
     {
+        if (_address == null) {
+            // No need to wait this was never announced.
+            return true;
+        }
         return _state.waitForCanceled(timeout);
     }
 

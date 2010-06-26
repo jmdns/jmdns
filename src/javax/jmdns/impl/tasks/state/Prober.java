@@ -116,6 +116,7 @@ public class Prober extends DNSStateTask
             {
                 if (this.getDns().isAssociatedWithTask(this, taskState))
                 {
+                    logger.finer(this.getName() + ".run() JmDNS probing " + this.getDns().getName());
                     out.addQuestion(DNSQuestion.newQuestion(this.getDns().getLocalHost().getName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
                     for (DNSRecord answer : this.getDns().getLocalHost().answers(this.getTTL()))
                     {
@@ -133,7 +134,7 @@ public class Prober extends DNSStateTask
                 {
                     if (info.isAssociatedWithTask(this, taskState))
                     {
-                        logger.fine("run() JmDNS probing " + info.getQualifiedName());
+                        logger.fine(this.getName() + ".run() JmDNS probing " + info.getQualifiedName());
                         out = this.addQuestion(out, DNSQuestion.newQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
                         // the "unique" flag should be not set here because these answers haven't been proven unique
                         // yet this means the record will not exactly match the announcement record
@@ -145,7 +146,7 @@ public class Prober extends DNSStateTask
             }
             if (!out.isEmpty())
             {
-                logger.finer("run() JmDNS probing #" + taskState);
+                logger.finer(this.getName() + ".run() JmDNS probing #" + taskState);
                 this.getDns().send(out);
             }
             else
@@ -157,7 +158,7 @@ public class Prober extends DNSStateTask
         }
         catch (Throwable e)
         {
-            logger.log(Level.WARNING, "run() exception ", e);
+            logger.log(Level.WARNING, this.getName() + ".run() exception ", e);
             this.getDns().recover();
         }
 
