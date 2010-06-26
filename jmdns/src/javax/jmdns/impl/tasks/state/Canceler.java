@@ -87,12 +87,13 @@ public class Canceler extends DNSStateTask
         DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
         try
         {
-            logger.finer("run() JmDNS canceling service");
+            logger.finer(this.getName() + ".run() JmDNS canceling service");
             // send probes for JmDNS itself
             synchronized (this.getDns())
             {
                 if (this.getDns().isAssociatedWithTask(this, taskState))
                 {
+                    logger.finer(this.getName() + ".run() JmDNS canceling " + this.getDns().getName());
                     for (DNSRecord answer : this.getDns().getLocalHost().answers(this.getTTL()))
                     {
                         out = this.addAnswer(out, null, answer);
@@ -108,7 +109,7 @@ public class Canceler extends DNSStateTask
                 {
                     if (info.isAssociatedWithTask(this, taskState))
                     {
-                        logger.finer("run() JmDNS announcing " + info.getQualifiedName());
+                        logger.finer(this.getName() + ".run() JmDNS canceling " + info.getQualifiedName());
                         for (DNSRecord answer : info.answers(this.getTTL(), this.getDns().getLocalHost()))
                         {
                             out = this.addAnswer(out, null, answer);
@@ -119,7 +120,7 @@ public class Canceler extends DNSStateTask
             }
             if (!out.isEmpty())
             {
-                logger.finer("run() JmDNS announced");
+                logger.finer(this.getName() + ".run() JmDNS canceling #" + taskState);
                 this.getDns().send(out);
             }
             else
@@ -130,7 +131,7 @@ public class Canceler extends DNSStateTask
         }
         catch (Throwable e)
         {
-            logger.log(Level.WARNING, "run() exception ", e);
+            logger.log(Level.WARNING, this.getName() + ".run() exception ", e);
             this.getDns().recover();
         }
 

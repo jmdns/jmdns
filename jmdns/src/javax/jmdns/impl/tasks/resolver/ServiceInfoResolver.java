@@ -113,7 +113,7 @@ public class ServiceInfoResolver extends DNSResolverTask
     @Override
     protected String description()
     {
-        return "querying service info";
+        return "querying service info: " + (_info != null ? _info.getQualifiedName() : "null");
     }
 
 }

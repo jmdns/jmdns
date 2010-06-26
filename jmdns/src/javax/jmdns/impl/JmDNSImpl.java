@@ -623,7 +623,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return (info.hasData()) ? info : null;
     }
 
-    private ServiceInfoImpl resolveServiceInfo(String type, String name, boolean persistent)
+    ServiceInfoImpl resolveServiceInfo(String type, String name, boolean persistent)
     {
         String lotype = type.toLowerCase();
         this.registerServiceType(lotype);
@@ -640,7 +640,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return info;
     }
 
-    private ServiceInfoImpl getServiceInfoFromCache(String type, String name, boolean persistent)
+    ServiceInfoImpl getServiceInfoFromCache(String type, String name, boolean persistent)
     {
         // Check if the answer is in the cache.
         ServiceInfoImpl info = new ServiceInfoImpl(type, name, 0, 0, 0, persistent, (byte[]) null);
@@ -775,13 +775,19 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         List<ServiceListener> listCopy = Collections.emptyList();
         if ((list != null) && (!list.isEmpty()))
         {
+            ServiceEvent resovledEvent = event;
+            ServiceInfo info = this.getServiceInfoFromCache(event.getType(), event.getName(), (event.getInfo() != null ? event.getInfo().isPersistent() : false));
+            if (info != null)
+            {
+                resovledEvent = new ServiceEventImpl(this, event.getType(), event.getName(), info);
+            }
             synchronized (list)
             {
                 listCopy = new ArrayList<ServiceListener>(list);
             }
             for (ServiceListener listener : listCopy)
             {
-                listener.serviceResolved(event);
+                listener.serviceResolved(resovledEvent);
             }
         }
     }
@@ -960,7 +966,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             ServiceInfoImpl info = (ServiceInfoImpl) _services.get(name);
             if (info != null)
             {
-                logger.warning("Cancelling service info: " + info);
+                logger.finer("Cancelling service info: " + info);
                 info.cancelState();
             }
         }
@@ -971,7 +977,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             ServiceInfoImpl info = (ServiceInfoImpl) _services.get(name);
             if (info != null)
             {
-                logger.warning("Wait for service info cancel: " + info);
+                logger.finer("Wait for service info cancel: " + info);
                 info.waitForCanceled(DNSConstants.CLOSE_TIMEOUT);
                 _services.remove(name, info);
             }
@@ -988,6 +994,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     public void registerServiceType(String type)
     {
         final String name = type.toLowerCase();
+        logger.fine("registering service type: " + name);
         if (!_serviceTypes.containsKey(name) && (name.indexOf(DNSConstants.DNS_META_QUERY) < 0) && !name.endsWith(".in-addr.arpa.") && !name.endsWith(".ip6.arpa."))
         {
             boolean typeAdded = _serviceTypes.putIfAbsent(name, type) == null;
@@ -1175,6 +1182,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                     serviceListenerList = new ArrayList<ServiceListener>(list);
                 }
             }
+            logger.finest("updating record for type: " + event.getType() + " list " + serviceListenerList + " operation: " + operation);
             if (!serviceListenerList.isEmpty())
             {
                 switch (operation)
@@ -1212,6 +1220,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
 
         for (DNSRecord newRecord : msg.getAllAnswers())
         {
+            logger.finest("handle response: " + newRecord);
             Operation cacheOperation = Operation.Noop;
             final boolean expired = newRecord.isExpired(now);
 
@@ -1258,7 +1267,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                     {
                         if (!expired && newRecord.getName().startsWith("_services" + DNSConstants.DNS_META_QUERY))
                         {
-                            this.registerServiceType(((DNSRecord.Pointer) newRecord)._alias);
+                            this.registerServiceType(((DNSRecord.Pointer) newRecord).getAlias());
                         }
                         continue;
                     }
@@ -1505,7 +1514,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         if (this.isCanceling() || this.isCanceled())
             return;
 
-        logger.warning("Cancelling JmDNS: " + this);
+        logger.finer("Cancelling JmDNS: " + this);
         // Stop JmDNS
         // This protects against recursive calls
         if (this.cancelState())
@@ -1519,7 +1528,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             this.unregisterAllServices();
             this.disposeServiceCollectors();
 
-            logger.warning("Wait for JmDNS cancel: " + this);
+            logger.finer("Wait for JmDNS cancel: " + this);
             this.waitForCanceled(DNSConstants.CLOSE_TIMEOUT);
 
             // Stop the canceler timer
@@ -1634,6 +1643,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                 this.addServiceListener(aType, collector);
             }
         }
+        logger.finer("collector: " + collector);
         return collector.list(timeout);
     }
 
@@ -1701,7 +1711,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         {
             synchronized (this)
             {
-                ServiceInfo info = event.getDNS().getServiceInfo(event.getType(), event.getName(), true, 0);
+                ServiceInfo info = ((JmDNSImpl) event.getDNS()).resolveServiceInfo(event.getType(), event.getName(), true);
                 if (info != null)
                 {
                     _infos.put(event.getName(), info);
@@ -1791,6 +1801,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             }
             else
             {
+                aLog.append("\n\tServices");
                 for (String key : _infos.keySet())
                 {
                     aLog.append("\n\t\tService: " + key + ": " + _infos.get(key));
@@ -1802,6 +1813,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             }
             else
             {
+                aLog.append("\n\tEvents");
                 for (String key : _events.keySet())
                 {
                     aLog.append("\n\t\tEvent: " + key + ": " + _events.get(key));

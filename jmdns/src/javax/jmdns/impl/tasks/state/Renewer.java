@@ -37,7 +37,7 @@ public class Renewer extends DNSStateTask
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.impl.tasks.DNSTask#getName()
      */
     @Override
@@ -48,7 +48,7 @@ public class Renewer extends DNSStateTask
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#toString()
      */
     @Override
@@ -59,7 +59,7 @@ public class Renewer extends DNSStateTask
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.jmdns.impl.tasks.DNSTask#start(java.util.Timer)
      */
     @Override
@@ -96,6 +96,7 @@ public class Renewer extends DNSStateTask
             {
                 if (this.getDns().isAssociatedWithTask(this, taskState))
                 {
+                    logger.finer(this.getName() + ".run() JmDNS renewing " + this.getDns().getName());
                     for (DNSRecord answer : this.getDns().getLocalHost().answers(this.getTTL()))
                     {
                         out = this.addAnswer(out, null, answer);
@@ -111,7 +112,7 @@ public class Renewer extends DNSStateTask
                 {
                     if (info.isAssociatedWithTask(this, taskState))
                     {
-                        logger.finer("run() JmDNS announcing " + info.getQualifiedName());
+                        logger.finer(this.getName() + ".run() JmDNS renewing " + info.getQualifiedName());
                         for (DNSRecord answer : info.answers(this.getTTL(), this.getDns().getLocalHost()))
                         {
                             out = this.addAnswer(out, null, answer);
@@ -122,7 +123,7 @@ public class Renewer extends DNSStateTask
             }
             if (!out.isEmpty())
             {
-                logger.finer("run() JmDNS announced");
+                logger.finer(this.getName() + ".run() JmDNS renewing #" + taskState);
                 this.getDns().send(out);
             }
             else
@@ -133,7 +134,7 @@ public class Renewer extends DNSStateTask
         }
         catch (Throwable e)
         {
-            logger.log(Level.WARNING, "run() exception ", e);
+            logger.log(Level.WARNING, this.getName() + ".run() exception ", e);
             this.getDns().recover();
         }
 

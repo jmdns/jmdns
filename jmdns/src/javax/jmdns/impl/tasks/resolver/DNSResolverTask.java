@@ -76,7 +76,7 @@ public abstract class DNSResolverTask extends DNSTask
             {
                 if (_count++ < 3)
                 {
-                    logger.finer("run() JmDNS " + this.description());
+                    logger.finer(this.getName() + ".run() JmDNS " + this.description());
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
                     out = this.addQuestions(out);
                     if (this.getDns().isAnnounced())
@@ -95,7 +95,7 @@ public abstract class DNSResolverTask extends DNSTask
         }
         catch (Throwable e)
         {
-            logger.log(Level.WARNING, "run() exception ", e);
+            logger.log(Level.WARNING, this.getName() + ".run() exception ", e);
             this.getDns().recover();
         }
     }

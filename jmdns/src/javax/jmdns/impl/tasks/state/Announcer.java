@@ -98,6 +98,7 @@ public class Announcer extends DNSStateTask
             {
                 if (this.getDns().isAssociatedWithTask(this, taskState))
                 {
+                    logger.finer(this.getName() + ".run() JmDNS announcing " + this.getDns().getName());
                     for (DNSRecord answer : this.getDns().getLocalHost().answers(this.getTTL()))
                     {
                         out = this.addAnswer(out, null, answer);
@@ -113,7 +114,7 @@ public class Announcer extends DNSStateTask
                 {
                     if (info.isAssociatedWithTask(this, taskState))
                     {
-                        logger.finer("run() JmDNS announcing " + info.getQualifiedName());
+                        logger.finer(this.getName() + ".run() JmDNS announcing " + info.getQualifiedName());
                         for (DNSRecord answer : info.answers(this.getTTL(), this.getDns().getLocalHost()))
                         {
                             out = this.addAnswer(out, null, answer);
@@ -124,7 +125,7 @@ public class Announcer extends DNSStateTask
             }
             if (!out.isEmpty())
             {
-                logger.finer("run() JmDNS announcing #" + taskState);
+                logger.finer(this.getName() + ".run() JmDNS announcing #" + taskState);
                 this.getDns().send(out);
             }
             else
@@ -135,7 +136,7 @@ public class Announcer extends DNSStateTask
         }
         catch (Throwable e)
         {
-            logger.log(Level.WARNING, "run() exception ", e);
+            logger.log(Level.WARNING, this.getName() + ".run() exception ", e);
             this.getDns().recover();
         }
 

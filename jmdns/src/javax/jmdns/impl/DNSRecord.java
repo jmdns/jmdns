@@ -485,6 +485,17 @@ public abstract class DNSRecord extends DNSEntry
             this._alias = alias;
         }
 
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.jmdns.impl.DNSEntry#isSameEntry(javax.jmdns.impl.DNSEntry)
+         */
+        @Override
+        public boolean isSameEntry(DNSEntry entry)
+        {
+            return super.isSameEntry(entry) && (entry instanceof Pointer) && (((Pointer) entry).sameValue(this));
+        }
+
         @Override
         void write(MessageStream out)
         {
