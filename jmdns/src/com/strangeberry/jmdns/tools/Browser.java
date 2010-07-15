@@ -125,8 +125,9 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
         mDNS.addServiceTypeListener(this);
 
         // register some well known types
-        String list[] = new String[] { "_http._tcp.local.", "_ftp._tcp.local.", "_tftp._tcp.local.", "_ssh._tcp.local.", "_smb._tcp.local.", "_printer._tcp.local.", "_airport._tcp.local.", "_afpovertcp._tcp.local.", "_ichat._tcp.local.",
-                "_eppc._tcp.local.", "_presence._tcp.local.", "_rfb._tcp.local.", "_daap._tcp.local.", "_touchcs._tcp.local." };
+        // String list[] = new String[] { "_http._tcp.local.", "_ftp._tcp.local.", "_tftp._tcp.local.", "_ssh._tcp.local.", "_smb._tcp.local.", "_printer._tcp.local.", "_airport._tcp.local.", "_afpovertcp._tcp.local.", "_ichat._tcp.local.",
+        // "_eppc._tcp.local.", "_presence._tcp.local.", "_rfb._tcp.local.", "_daap._tcp.local.", "_touchcs._tcp.local." };
+        String[] list = new String[] {};
 
         for (int i = 0; i < list.length; i++)
         {
@@ -136,11 +137,12 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
         this.setVisible(true);
     }
 
-    /**
-     * Add a service.
+    /*
+     * (non-Javadoc)
      *
-     * @param event
+     * @see javax.jmdns.ServiceListener#serviceAdded(javax.jmdns.ServiceEvent)
      */
+    @Override
     public void serviceAdded(ServiceEvent event)
     {
         final String name = event.getName();
@@ -154,11 +156,12 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
         });
     }
 
-    /**
-     * Remove a service.
+    /*
+     * (non-Javadoc)
      *
-     * @param event
+     * @see javax.jmdns.ServiceListener#serviceRemoved(javax.jmdns.ServiceEvent)
      */
+    @Override
     public void serviceRemoved(ServiceEvent event)
     {
         final String name = event.getName();
@@ -172,11 +175,24 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
         });
     }
 
-    /**
-     * A new service type was <discovered.
+    @Override
+    public void serviceResolved(ServiceEvent event)
+    {
+        final String name = event.getName();
+
+        System.out.println("RESOLVED: " + name);
+        if (name.equals(serviceList.getSelectedValue()))
+        {
+            this.dislayInfo(event.getInfo());
+        }
+    }
+
+    /*
+     * (non-Javadoc)
      *
-     * @param event
+     * @see javax.jmdns.ServiceTypeListener#serviceTypeAdded(javax.jmdns.ServiceEvent)
      */
+    @Override
     public void serviceTypeAdded(ServiceEvent event)
     {
         final String aType = event.getType();
@@ -190,6 +206,17 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
         });
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.ServiceTypeListener#subTypeForServiceTypeAdded(javax.jmdns.ServiceEvent)
+     */
+    @Override
+    public void subTypeForServiceTypeAdded(ServiceEvent event)
+    {
+        System.out.println("SUBTYPE: " + event.getType());
+    }
+
     void insertSorted(DefaultListModel model, String value)
     {
         for (int i = 0, n = model.getSize(); i < n; i++)
@@ -201,19 +228,6 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
             }
         }
         model.addElement(value);
-    }
-
-    /**
-     * Resolve a service.
-     *
-     * @param event
-     */
-    public void serviceResolved(ServiceEvent event)
-    {
-        if (event.getName().equals(serviceList.getSelectedValue()))
-        {
-            this.dislayInfo(event.getInfo());
-        }
     }
 
     /**
@@ -247,7 +261,8 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
                 }
                 else
                 {
-                    ServiceInfo service = jmdns.getServiceInfo(type, name, 1000);
+                    ServiceInfo service = jmdns.getServiceInfo(type, name);
+                    // This is actually redundant. getServiceInfo will force the resolution of the service and call serviceResolved
                     this.dislayInfo(service);
                 }
             }
@@ -256,6 +271,7 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
 
     private void dislayInfo(ServiceInfo service)
     {
+        System.out.println("INFO: " + service);
         if (service == null)
         {
             info.setText("service not found");
@@ -265,7 +281,7 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
             StringBuffer buf = new StringBuffer();
             buf.append(service.getName());
             buf.append('.');
-            buf.append(service.getType());
+            buf.append(service.getTypeWithSubtype());
             buf.append('\n');
             buf.append(service.getServer());
             buf.append(':');

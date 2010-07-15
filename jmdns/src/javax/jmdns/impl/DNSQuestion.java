@@ -5,6 +5,7 @@
 package javax.jmdns.impl;
 
 import java.util.Set;
+import java.util.logging.Logger;
 
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.constants.DNSConstants;
@@ -19,7 +20,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
  */
 public class DNSQuestion extends DNSEntry
 {
-    // private static Logger logger = Logger.getLogger(DNSQuestion.class.getName());
+    private static Logger logger = Logger.getLogger(DNSQuestion.class.getName());
 
     /**
      * Address question.
@@ -108,11 +109,11 @@ public class DNSQuestion extends DNSEntry
             {
                 this.addAnswersForServiceInfo(jmDNSImpl, answers, (ServiceInfoImpl) serviceInfo);
             }
-            if (this.getName().equalsIgnoreCase("_services" + DNSConstants.DNS_META_QUERY + "local."))
+            if (this.isServicesDiscoveryMetaQuery())
             {
-                for (String serviceType : jmDNSImpl.getServiceTypes().values())
+                for (String serviceType : jmDNSImpl.getServiceTypes().keySet())
                 {
-                    answers.add(new DNSRecord.Pointer("_services" + DNSConstants.DNS_META_QUERY + "local.", DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, serviceType));
+                    answers.add(new DNSRecord.Pointer("_services._dns-sd._udp.local.", DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, serviceType));
                 }
             }
         }
@@ -295,13 +296,12 @@ public class DNSQuestion extends DNSEntry
     {
         if ((info != null) && info.isAnnounced())
         {
-            if (this.getName().equalsIgnoreCase(info.getType()))
+            if (this.getName().equalsIgnoreCase(info.getQualifiedName()) || this.getName().equalsIgnoreCase(info.getType()))
             {
                 answers.addAll(jmDNSImpl.getLocalHost().answers(DNSConstants.DNS_TTL));
-                answers.add(new DNSRecord.Pointer(info.getType(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info.getQualifiedName()));
-                answers.add(new DNSRecord.Service(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(), jmDNSImpl.getLocalHost().getName()));
-                answers.add(new DNSRecord.Text(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getText()));
+                answers.addAll(info.answers(DNSConstants.DNS_TTL, jmDNSImpl.getLocalHost()));
             }
+            logger.finer(jmDNSImpl.getName() + " DNSQuestion(" + this.getName() + ").addAnswersForServiceInfo(): info: " + info + "\n" + answers);
         }
     }
 

@@ -14,11 +14,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSRecord.Pointer;
 import javax.jmdns.impl.DNSRecord.Service;
@@ -38,8 +40,11 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
 {
     // private static Logger logger = Logger.getLogger(ServiceInfoImpl.class.getName());
 
-    private String _type;
+    private String _domain;
+    private String _protocol;
+    private String _application;
     private String _name;
+    private String _subtype;
     private String _server;
     private int _port;
     private int _weight;
@@ -108,6 +113,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     /**
      * @param type
      * @param name
+     * @param subtype
      * @param port
      * @param weight
      * @param priority
@@ -115,9 +121,9 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
      * @param text
      * @see javax.jmdns.ServiceInfo#create(String, String, int, int, int, String)
      */
-    public ServiceInfoImpl(String type, String name, int port, int weight, int priority, boolean persistent, String text)
+    public ServiceInfoImpl(String type, String name, String subtype, int port, int weight, int priority, boolean persistent, String text)
     {
-        this(type, name, port, weight, priority, persistent, (byte[]) null);
+        this(ServiceInfoImpl.decodeQualifiedNameMap(type, name, subtype), port, weight, priority, persistent, (byte[]) null);
         _server = text;
         try
         {
@@ -134,6 +140,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     /**
      * @param type
      * @param name
+     * @param subtype
      * @param port
      * @param weight
      * @param priority
@@ -141,14 +148,15 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
      * @param props
      * @see javax.jmdns.ServiceInfo#create(String, String, int, int, int, Map)
      */
-    public ServiceInfoImpl(String type, String name, int port, int weight, int priority, boolean persistent, Map<String, ?> props)
+    public ServiceInfoImpl(String type, String name, String subtype, int port, int weight, int priority, boolean persistent, Map<String, ?> props)
     {
-        this(type, name, port, weight, priority, persistent, textFromProperties(props));
+        this(ServiceInfoImpl.decodeQualifiedNameMap(type, name, subtype), port, weight, priority, persistent, textFromProperties(props));
     }
 
     /**
      * @param type
      * @param name
+     * @param subtype
      * @param port
      * @param weight
      * @param priority
@@ -156,10 +164,42 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
      * @param text
      * @see javax.jmdns.ServiceInfo#create(String, String, int, int, int, byte[])
      */
-    public ServiceInfoImpl(String type, String name, int port, int weight, int priority, boolean persistent, byte text[])
+    public ServiceInfoImpl(String type, String name, String subtype, int port, int weight, int priority, boolean persistent, byte text[])
     {
-        this._type = type;
-        this._name = name;
+        this(ServiceInfoImpl.decodeQualifiedNameMap(type, name, subtype), port, weight, priority, persistent, text);
+    }
+
+    public ServiceInfoImpl(Map<Fields, String> qualifiedNameMap, int port, int weight, int priority, boolean persistent, Map<String, ?> props)
+    {
+        this(qualifiedNameMap, port, weight, priority, persistent, textFromProperties(props));
+    }
+
+    ServiceInfoImpl(Map<Fields, String> qualifiedNameMap, int port, int weight, int priority, boolean persistent, String text)
+    {
+        this(qualifiedNameMap, port, weight, priority, persistent, (byte[]) null);
+        _server = text;
+        try
+        {
+            ByteArrayOutputStream out = new ByteArrayOutputStream(text.length());
+            writeUTF(out, text);
+            this._text = out.toByteArray();
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException("unexpected exception: " + e);
+        }
+    }
+
+    ServiceInfoImpl(Map<Fields, String> qualifiedNameMap, int port, int weight, int priority, boolean persistent, byte text[])
+    {
+        Map<Fields, String> map = ServiceInfoImpl.checkQualifiedNameMap(qualifiedNameMap);
+
+        this._domain = map.get(Fields.Domain);
+        this._protocol = map.get(Fields.Protocol);
+        this._application = map.get(Fields.Application);
+        this._name = map.get(Fields.Instance);
+        this._subtype = map.get(Fields.Subtype);
+
         this._port = port;
         this._weight = weight;
         this._priority = priority;
@@ -178,8 +218,11 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     {
         if (info != null)
         {
-            this._type = info.getType();
+            this._domain = info.getDomain();
+            this._protocol = info.getProtocol();
+            this._application = info.getApplication();
             this._name = info.getName();
+            this._subtype = info.getSubtype();
             this._port = info.getPort();
             this._weight = info.getWeight();
             this._priority = info.getPriority();
@@ -191,22 +234,189 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         this._state = new ServiceInfoState(this);
     }
 
-    /**
+    public static Map<Fields, String> decodeQualifiedNameMap(String type, String name, String subtype)
+    {
+        Map<Fields, String> qualifiedNameMap = decodeQualifiedNameMapForType(type);
+
+        qualifiedNameMap.put(Fields.Instance, name);
+        qualifiedNameMap.put(Fields.Subtype, subtype);
+
+        return checkQualifiedNameMap(qualifiedNameMap);
+    }
+
+    public static Map<Fields, String> decodeQualifiedNameMapForType(String type)
+    {
+        String aType = type.toLowerCase();
+        Map<Fields, String> qualifiedNameMap = new HashMap<Fields, String>(5);
+
+        String domain = "";
+        String protocol = "";
+        String application = aType;
+        String name = "";
+        String subtype = "";
+        if (aType.contains("in-addr.arpa") || aType.contains("ip6.arpa"))
+        {
+            int index = (aType.contains("in-addr.arpa") ? aType.indexOf("in-addr.arpa") : aType.indexOf("ip6.arpa"));
+            name = removeSeparators(aType.substring(0, index));
+            domain = removeSeparators(aType.substring(index));
+            protocol = "";
+            application = "";
+        }
+        else if ((!aType.contains("_")) && aType.contains("."))
+        {
+            int index = aType.indexOf('.');
+            name = removeSeparators(aType.substring(0, index));
+            domain = removeSeparators(aType.substring(index));
+            protocol = "";
+            application = "";
+        }
+        else
+        {
+            {
+                // First remove the name if it there.
+                if (!aType.startsWith("_") || aType.startsWith("_services"))
+                {
+                    int index = aType.indexOf('.');
+                    if (index > 0)
+                    {
+                        // We need to preserve the case for the user readable name.
+                        name = type.substring(0, index);
+                        if (index + 1 < aType.length())
+                            aType = aType.substring(index + 1);
+                    }
+                }
+            }
+
+            {
+                int index = aType.lastIndexOf("._");
+                if (index > 0)
+                {
+                    int start = index + 2;
+                    int end = aType.indexOf('.', start);
+                    protocol = aType.substring(start, end);
+                }
+            }
+            if (protocol.length() > 0)
+            {
+                int index = aType.indexOf(protocol);
+                {
+                    int start = index + protocol.length() + 1;
+                    int end = aType.length() - 1;
+                    domain = aType.substring(start, end);
+                    application = aType.substring(0, index - 2);
+                }
+            }
+            {
+                int index = application.indexOf("._sub");
+                if (index > 0)
+                {
+                    int start = index + 5;
+                    subtype = removeSeparators(application.substring(0, index));
+                    application = removeSeparators(application.substring(start));
+                }
+                application = removeSeparators(application);
+            }
+        }
+        qualifiedNameMap.put(Fields.Domain, domain);
+        qualifiedNameMap.put(Fields.Protocol, protocol);
+        qualifiedNameMap.put(Fields.Application, application);
+        qualifiedNameMap.put(Fields.Instance, name);
+        qualifiedNameMap.put(Fields.Subtype, subtype);
+
+        return qualifiedNameMap;
+    }
+
+    protected static Map<Fields, String> checkQualifiedNameMap(Map<Fields, String> qualifiedNameMap)
+    {
+        Map<Fields, String> checkedQualifiedNameMap = new HashMap<Fields, String>(5);
+
+        // Optional domain
+        String domain = (qualifiedNameMap.containsKey(Fields.Domain) ? qualifiedNameMap.get(Fields.Domain) : "local");
+        if ((domain == null) || (domain.length() == 0))
+            domain = "local";
+        domain = removeSeparators(domain);
+        checkedQualifiedNameMap.put(Fields.Domain, domain);
+        // Optional protocol
+        String protocol = (qualifiedNameMap.containsKey(Fields.Protocol) ? qualifiedNameMap.get(Fields.Protocol) : "tcp");
+        if ((protocol == null) || (protocol.length() == 0))
+            protocol = "tcp";
+        protocol = removeSeparators(protocol);
+        checkedQualifiedNameMap.put(Fields.Protocol, protocol);
+        // Application
+        String application = (qualifiedNameMap.containsKey(Fields.Application) ? qualifiedNameMap.get(Fields.Application) : "");
+        if ((application == null) || (application.length() == 0))
+            application = "";
+        application = removeSeparators(application);
+        checkedQualifiedNameMap.put(Fields.Application, application);
+        // Instance
+        String instance = (qualifiedNameMap.containsKey(Fields.Instance) ? qualifiedNameMap.get(Fields.Instance) : "");
+        if ((instance == null) || (instance.length() == 0))
+            throw new IllegalArgumentException("The instance name component of a fully qualified service cannot be empty.");
+        instance = removeSeparators(instance);
+        checkedQualifiedNameMap.put(Fields.Instance, instance);
+        // Optional Subtype
+        String subtype = (qualifiedNameMap.containsKey(Fields.Subtype) ? qualifiedNameMap.get(Fields.Subtype) : "");
+        if ((instance == null) || (instance.length() == 0))
+            instance = "";
+        subtype = removeSeparators(subtype);
+        checkedQualifiedNameMap.put(Fields.Subtype, subtype);
+
+        return checkedQualifiedNameMap;
+    }
+
+    private static String removeSeparators(String name)
+    {
+        String newName = name.trim();
+        if (newName.startsWith("."))
+        {
+            newName = newName.substring(1);
+        }
+        if (newName.startsWith("_"))
+        {
+            newName = newName.substring(1);
+        }
+        if (newName.endsWith("."))
+        {
+            newName = newName.substring(0, newName.length() - 1);
+        }
+        return newName;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see javax.jmdns.ServiceInfo#getType()
      */
     @Override
     public String getType()
     {
-        return _type;
+        String domain = this.getDomain();
+        String protocol = this.getProtocol();
+        String application = this.getApplication();
+        return (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + "." : "") + domain + ".";
     }
 
-    /**
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.ServiceInfo#getTypeWithSubtype()
+     */
+    @Override
+    public String getTypeWithSubtype()
+    {
+        String subtype = this.getSubtype();
+        return (subtype.length() > 0 ? "_" + subtype.toLowerCase() + "._sub." : "") + this.getType();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see javax.jmdns.ServiceInfo#getName()
      */
     @Override
     public String getName()
     {
-        return _name;
+        return (_name != null ? _name : "");
     }
 
     /**
@@ -220,13 +430,22 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         this._name = name;
     }
 
-    /**
+    /*
+     * (non-Javadoc)
+     *
      * @see javax.jmdns.ServiceInfo#getQualifiedName()
      */
     @Override
     public String getQualifiedName()
     {
-        return (_name != null ? _name.toLowerCase() + "." : "") + (_type != null ? _type.toLowerCase() : "");
+        String domain = this.getDomain();
+        String protocol = this.getProtocol();
+        String application = this.getApplication();
+        String instance = this.getName();
+        // String subtype = this.getSubtype();
+        // return (instance.length() > 0 ? instance + "." : "") + (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + (subtype.length() > 0 ? ",_" + subtype.toLowerCase() + "." : ".") : "") + domain
+        // + ".";
+        return (instance.length() > 0 ? instance + "." : "") + (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + "." : "") + domain + ".";
     }
 
     /**
@@ -456,23 +675,23 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     /*
      * (non-Javadoc)
      *
+     * @see javax.jmdns.ServiceInfo#getApplication()
+     */
+    @Override
+    public String getApplication()
+    {
+        return (_application != null ? _application : "");
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see javax.jmdns.ServiceInfo#getDomain()
      */
     @Override
     public String getDomain()
     {
-        String protocol = getProtocol();
-        if (protocol.length() > 0)
-        {
-            int index = _type.indexOf(protocol);
-            if (index > 0)
-            {
-                int start = index + protocol.length() + 1;
-                int end = _type.length() - 1;
-                return _type.substring(start, end);
-            }
-        }
-        return _type;
+        return (_domain != null ? _domain : "local");
     }
 
     /*
@@ -483,14 +702,36 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     @Override
     public String getProtocol()
     {
-        int index = _type.lastIndexOf("._");
-        if (index > 0)
-        {
-            int start = index + 2;
-            int end = _type.indexOf('.', start);
-            return _type.substring(start, end);
-        }
-        return "";
+        return (_protocol != null ? _protocol : "tcp");
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.ServiceInfo#getSubtype()
+     */
+    @Override
+    public String getSubtype()
+    {
+        return (_subtype != null ? _subtype : "");
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.ServiceInfo#getQualifiedNameMap()
+     */
+    @Override
+    public Map<Fields, String> getQualifiedNameMap()
+    {
+        Map<Fields, String> map = new HashMap<Fields, String>(5);
+
+        map.put(Fields.Domain, this.getDomain());
+        map.put(Fields.Protocol, this.getProtocol());
+        map.put(Fields.Application, this.getApplication());
+        map.put(Fields.Instance, this.getName());
+        map.put(Fields.Subtype, this.getSubtype());
+        return map;
     }
 
     /**
@@ -664,7 +905,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                             _ipv6Addr = null;
                             this.updateRecord(dnsCache, now, dnsCache.getDNSEntry(_server, DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN));
                             this.updateRecord(dnsCache, now, dnsCache.getDNSEntry(_server, DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN));
-                            // We do not want to trigger the listener in this case as it will be triggered if the
+                            // We do not want to trigger the listener in this case as it will be triggered if the address resolves.
                         }
                         else
                         {
@@ -681,7 +922,11 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                     }
                     break;
                 case TYPE_PTR:
-                    // FIXME [PJYF June 9 2010] We need to do something here
+                    if ((this.getSubtype().length() == 0) && (rec.getSubtype().length() != 0))
+                    {
+                        _subtype = rec.getSubtype();
+                        serviceUpdated = true;
+                    }
                     break;
                 default:
                     break;
@@ -691,7 +936,9 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                 JmDNSImpl dns = this.getDns();
                 if (dns != null)
                 {
-                    dns.handleServiceResolved(((DNSRecord) rec).getServiceEvent(dns));
+                    ServiceEvent event = ((DNSRecord) rec).getServiceEvent(dns);
+                    event = new ServiceEventImpl(dns, event.getType(), event.getName(), this);
+                    dns.handleServiceResolved(event);
                 }
             }
             // This is done, to notify the wait loop in method JmDNS.waitForInfoData(ServiceInfo info, int timeout);
@@ -930,7 +1177,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     @Override
     public Object clone()
     {
-        return new ServiceInfoImpl(_type, _name, _port, _weight, _priority, _persistent, _text);
+        return new ServiceInfoImpl(this.getQualifiedNameMap(), _port, _weight, _priority, _persistent, _text);
     }
 
     /*
@@ -944,7 +1191,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         StringBuilder buf = new StringBuilder();
         buf.append("[" + this.getClass().getSimpleName() + "@" + System.identityHashCode(this) + " ");
         buf.append("name: '");
-        buf.append(this.getQualifiedName());
+        buf.append((this.getName().length() > 0 ? this.getName() + "." : "") + this.getTypeWithSubtype());
         buf.append("' address: '");
         buf.append(this.getInetAddress());
         buf.append(':');
@@ -967,6 +1214,10 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     public Collection<DNSRecord> answers(int ttl, HostInfo localHost)
     {
         List<DNSRecord> list = new ArrayList<DNSRecord>();
+        if (this.getSubtype().length() > 0)
+        {
+            list.add(new Pointer(this.getTypeWithSubtype(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
+        }
         list.add(new Pointer(this.getType(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
         list.add(new Service(this.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, _priority, _weight, _port, localHost.getName()));
         list.add(new Text(this.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, this.getText()));

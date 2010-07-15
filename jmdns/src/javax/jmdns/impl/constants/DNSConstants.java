@@ -53,7 +53,7 @@ public final class DNSConstants
     public final static int KNOWN_ANSWER_TTL = 120;
     public final static int ANNOUNCED_RENEWAL_TTL_INTERVAL = DNS_TTL * 500; // 50% of the TTL in milliseconds
 
-    public final static String DNS_META_QUERY = "._dns-sd._udp."; // PTR records, where the rdata of each PTR record is the two-label name of a service
-
     public final static long CLOSE_TIMEOUT = ANNOUNCE_WAIT_INTERVAL * 5L;
+    public final static long SERVICE_INFO_TIMEOUT = ANNOUNCE_WAIT_INTERVAL * 6L;
+
 }

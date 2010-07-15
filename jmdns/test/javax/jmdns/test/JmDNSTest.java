@@ -13,8 +13,13 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -40,6 +45,20 @@ public class JmDNSTest
     @Before
     public void setup()
     {
+        boolean log = false;
+        if (log)
+        {
+            ConsoleHandler handler = new ConsoleHandler();
+            handler.setLevel(Level.FINEST);
+            for (Enumeration<String> enumerator = LogManager.getLogManager().getLoggerNames(); enumerator.hasMoreElements();)
+            {
+                String loggerName = enumerator.nextElement();
+                Logger logger = Logger.getLogger(loggerName);
+                logger.addHandler(handler);
+                logger.setLevel(Level.FINEST);
+            }
+        }
+
         String text = "Test hypothetical web server";
         Map<String, byte[]> properties = new HashMap<String, byte[]>();
         properties.put(serviceKey, text.getBytes());

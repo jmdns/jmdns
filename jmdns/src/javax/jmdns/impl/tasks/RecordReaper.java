@@ -5,6 +5,7 @@
 package javax.jmdns.impl.tasks;
 
 import java.util.Timer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.jmdns.impl.DNSEntry;
@@ -56,31 +57,36 @@ public class RecordReaper extends DNSTask
     @Override
     public void run()
     {
-        // synchronized (this._jmDNSImpl)
-        // {
         if (this.getDns().isCanceling() || this.getDns().isCanceled())
         {
             return;
         }
-        logger.finest("run() JmDNS reaping cache");
+        logger.finest(this.getName() + ".run() JmDNS reaping cache");
 
         // Remove expired answers from the cache
         // -------------------------------------
         long now = System.currentTimeMillis();
         for (DNSEntry entry : this.getDns().getCache().allValues())
         {
-            DNSRecord record = (DNSRecord) entry;
-            if (record.isStale(now))
+            try
             {
-                // we should query for the record we care about i.e. those in the service collectors
-                this.getDns().renewServiceCollector(record);
+                DNSRecord record = (DNSRecord) entry;
+                if (record.isStale(now))
+                {
+                    // we should query for the record we care about i.e. those in the service collectors
+                    this.getDns().renewServiceCollector(record);
+                }
+                if (record.isExpired(now))
+                {
+                    this.getDns().updateRecord(now, record, Operation.Remove);
+                    this.getDns().getCache().removeDNSEntry(record);
+                }
             }
-            if (record.isExpired(now))
+            catch (Exception exception)
             {
-                this.getDns().updateRecord(now, record, Operation.Remove);
-                this.getDns().getCache().removeDNSEntry(record);
+                logger.log(Level.SEVERE, this.getName() + ".Error while reaping records: " + entry, exception);
+                logger.severe(this.getDns().toString());
             }
         }
-        // }
     }
 }

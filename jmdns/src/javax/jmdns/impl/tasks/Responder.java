@@ -123,6 +123,7 @@ public class Responder extends DNSTask
                     // Answer questions
                     for (DNSQuestion question : _in.getQuestions())
                     {
+                        logger.finer(this.getName() + "run() JmDNS responding to: " + question);
                         // for unicast responses the question must be included
                         if (_unicast)
                         {

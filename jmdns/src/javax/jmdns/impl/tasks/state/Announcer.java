@@ -98,7 +98,7 @@ public class Announcer extends DNSStateTask
             {
                 if (this.getDns().isAssociatedWithTask(this, taskState))
                 {
-                    logger.finer(this.getName() + ".run() JmDNS announcing " + this.getDns().getName());
+                    logger.finer(this.getName() + ".run() JmDNS announcing host");
                     for (DNSRecord answer : this.getDns().getLocalHost().answers(this.getTTL()))
                     {
                         out = this.addAnswer(out, null, answer);

@@ -448,7 +448,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             {
                 for (DNSEntry testDNSEntry : entryList)
                 {
-                    if (dnsEntry.isSameEntry(testDNSEntry))
+                    if (testDNSEntry.isSameEntry(dnsEntry))
                     {
                         result = testDNSEntry;
                         break;

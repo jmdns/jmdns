@@ -12,14 +12,35 @@ import java.util.Map;
 import javax.jmdns.impl.ServiceInfoImpl;
 
 /**
+ * <p>
+ * The fully qualified service name is build using up to 5 components with the following structure:
  *
+ * <pre>
+ *            &lt;app&gt;.&lt;protocol&gt;.&lt;servicedomain&gt;.&lt;parentdomain&gt;.<br/>
+ * &lt;Instance&gt;.&lt;app&gt;.&lt;protocol&gt;.&lt;servicedomain&gt;.&lt;parentdomain&gt;.<br/>
+ * &lt;sub&gt;._sub.&lt;app&gt;.&lt;protocol&gt;.&lt;servicedomain&gt;.&lt;parentdomain&gt;.
+ * </pre>
+ *
+ * <ol>
+ * <li>&lt;servicedomain&gt;.&lt;parentdomain&gt;: This is the domain scope of the service typically "local.", but this can also be something similar to "in-addr.arpa." or "ip6.arpa."</li>
+ * <li>&lt;protocol&gt;: This is either "_tcp" or "_udp"</li>
+ * <li>&lt;app&gt;: This define the application protocol. Typical example are "_http", "_ftp", etc.</li>
+ * <li>&lt;Instance&gt;: This is the service name</li>
+ * <li>&lt;sub&gt;: This is the subtype for the application protocol</li>
+ * </ol>
+ * </p>
  */
 public abstract class ServiceInfo
 {
     public final static byte[] NO_VALUE = new byte[0];
 
+    public enum Fields
+    {
+        Domain, Protocol, Application, Instance, Subtype
+    }
+
     /**
-     * Construct a service description for registrating with JmDNS.
+     * Construct a service description for registering with JmDNS.
      *
      * @param type
      *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
@@ -33,11 +54,31 @@ public abstract class ServiceInfo
      */
     public static ServiceInfo create(String type, String name, int port, String text)
     {
-        return new ServiceInfoImpl(type, name, port, 0, 0, false, text);
+        return new ServiceInfoImpl(type, name, "", port, 0, 0, false, text);
     }
 
     /**
-     * Construct a service description for registrating with JmDNS.
+     * Construct a service description for registering with JmDNS.
+     *
+     * @param type
+     *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
+     * @param name
+     *            unqualified service instance name, such as <code>foobar</code>
+     * @param subtype
+     *            service subtype see draft-cheshire-dnsext-dns-sd-06.txt chapter 7.1 Selective Instance Enumeration
+     * @param port
+     *            the local port on which the service runs
+     * @param text
+     *            string describing the service
+     * @return new service info
+     */
+    public static ServiceInfo create(String type, String name, String subtype, int port, String text)
+    {
+        return new ServiceInfoImpl(type, name, subtype, port, 0, 0, false, text);
+    }
+
+    /**
+     * Construct a service description for registering with JmDNS.
      *
      * @param type
      *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
@@ -55,11 +96,35 @@ public abstract class ServiceInfo
      */
     public static ServiceInfo create(String type, String name, int port, int weight, int priority, String text)
     {
-        return new ServiceInfoImpl(type, name, port, weight, priority, false, text);
+        return new ServiceInfoImpl(type, name, "", port, weight, priority, false, text);
     }
 
     /**
-     * Construct a service description for registrating with JmDNS. The properties hashtable must map property names to either Strings or byte arrays describing the property values.
+     * Construct a service description for registering with JmDNS.
+     *
+     * @param type
+     *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
+     * @param name
+     *            unqualified service instance name, such as <code>foobar</code>
+     * @param subtype
+     *            service subtype see draft-cheshire-dnsext-dns-sd-06.txt chapter 7.1 Selective Instance Enumeration
+     * @param port
+     *            the local port on which the service runs
+     * @param weight
+     *            weight of the service
+     * @param priority
+     *            priority of the service
+     * @param text
+     *            string describing the service
+     * @return new service info
+     */
+    public static ServiceInfo create(String type, String name, String subtype, int port, int weight, int priority, String text)
+    {
+        return new ServiceInfoImpl(type, name, subtype, port, weight, priority, false, text);
+    }
+
+    /**
+     * Construct a service description for registering with JmDNS. The properties hashtable must map property names to either Strings or byte arrays describing the property values.
      *
      * @param type
      *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
@@ -77,11 +142,35 @@ public abstract class ServiceInfo
      */
     public static ServiceInfo create(String type, String name, int port, int weight, int priority, Map<String, ?> props)
     {
-        return new ServiceInfoImpl(type, name, port, weight, priority, false, props);
+        return new ServiceInfoImpl(type, name, "", port, weight, priority, false, props);
     }
 
     /**
-     * Construct a service description for registrating with JmDNS.
+     * Construct a service description for registering with JmDNS. The properties hashtable must map property names to either Strings or byte arrays describing the property values.
+     *
+     * @param type
+     *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
+     * @param name
+     *            unqualified service instance name, such as <code>foobar</code>
+     * @param subtype
+     *            service subtype see draft-cheshire-dnsext-dns-sd-06.txt chapter 7.1 Selective Instance Enumeration
+     * @param port
+     *            the local port on which the service runs
+     * @param weight
+     *            weight of the service
+     * @param priority
+     *            priority of the service
+     * @param props
+     *            properties describing the service
+     * @return new service info
+     */
+    public static ServiceInfo create(String type, String name, String subtype, int port, int weight, int priority, Map<String, ?> props)
+    {
+        return new ServiceInfoImpl(type, name, subtype, port, weight, priority, false, props);
+    }
+
+    /**
+     * Construct a service description for registering with JmDNS.
      *
      * @param type
      *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
@@ -99,11 +188,35 @@ public abstract class ServiceInfo
      */
     public static ServiceInfo create(String type, String name, int port, int weight, int priority, byte text[])
     {
-        return new ServiceInfoImpl(type, name, port, weight, priority, false, text);
+        return new ServiceInfoImpl(type, name, "", port, weight, priority, false, text);
     }
 
     /**
-     * Construct a service description for registrating with JmDNS.
+     * Construct a service description for registering with JmDNS.
+     *
+     * @param type
+     *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
+     * @param name
+     *            unqualified service instance name, such as <code>foobar</code>
+     * @param subtype
+     *            service subtype see draft-cheshire-dnsext-dns-sd-06.txt chapter 7.1 Selective Instance Enumeration
+     * @param port
+     *            the local port on which the service runs
+     * @param weight
+     *            weight of the service
+     * @param priority
+     *            priority of the service
+     * @param text
+     *            bytes describing the service
+     * @return new service info
+     */
+    public static ServiceInfo create(String type, String name, String subtype, int port, int weight, int priority, byte text[])
+    {
+        return new ServiceInfoImpl(type, name, subtype, port, weight, priority, false, text);
+    }
+
+    /**
+     * Construct a service description for registering with JmDNS.
      *
      * @param type
      *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
@@ -123,11 +236,37 @@ public abstract class ServiceInfo
      */
     public static ServiceInfo create(String type, String name, int port, int weight, int priority, boolean persistent, String text)
     {
-        return new ServiceInfoImpl(type, name, port, weight, priority, persistent, text);
+        return new ServiceInfoImpl(type, name, "", port, weight, priority, persistent, text);
     }
 
     /**
-     * Construct a service description for registrating with JmDNS. The properties hashtable must map property names to either Strings or byte arrays describing the property values.
+     * Construct a service description for registering with JmDNS.
+     *
+     * @param type
+     *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
+     * @param name
+     *            unqualified service instance name, such as <code>foobar</code>
+     * @param subtype
+     *            service subtype see draft-cheshire-dnsext-dns-sd-06.txt chapter 7.1 Selective Instance Enumeration
+     * @param port
+     *            the local port on which the service runs
+     * @param weight
+     *            weight of the service
+     * @param priority
+     *            priority of the service
+     * @param persistent
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     * @param text
+     *            string describing the service
+     * @return new service info
+     */
+    public static ServiceInfo create(String type, String name, String subtype, int port, int weight, int priority, boolean persistent, String text)
+    {
+        return new ServiceInfoImpl(type, name, subtype, port, weight, priority, persistent, text);
+    }
+
+    /**
+     * Construct a service description for registering with JmDNS. The properties hashtable must map property names to either Strings or byte arrays describing the property values.
      *
      * @param type
      *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
@@ -147,11 +286,37 @@ public abstract class ServiceInfo
      */
     public static ServiceInfo create(String type, String name, int port, int weight, int priority, boolean persistent, Map<String, ?> props)
     {
-        return new ServiceInfoImpl(type, name, port, weight, priority, persistent, props);
+        return new ServiceInfoImpl(type, name, "", port, weight, priority, persistent, props);
     }
 
     /**
-     * Construct a service description for registrating with JmDNS.
+     * Construct a service description for registering with JmDNS. The properties hashtable must map property names to either Strings or byte arrays describing the property values.
+     *
+     * @param type
+     *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
+     * @param name
+     *            unqualified service instance name, such as <code>foobar</code>
+     * @param subtype
+     *            service subtype see draft-cheshire-dnsext-dns-sd-06.txt chapter 7.1 Selective Instance Enumeration
+     * @param port
+     *            the local port on which the service runs
+     * @param weight
+     *            weight of the service
+     * @param priority
+     *            priority of the service
+     * @param persistent
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     * @param props
+     *            properties describing the service
+     * @return new service info
+     */
+    public static ServiceInfo create(String type, String name, String subtype, int port, int weight, int priority, boolean persistent, Map<String, ?> props)
+    {
+        return new ServiceInfoImpl(type, name, subtype, port, weight, priority, persistent, props);
+    }
+
+    /**
+     * Construct a service description for registering with JmDNS.
      *
      * @param type
      *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
@@ -171,7 +336,55 @@ public abstract class ServiceInfo
      */
     public static ServiceInfo create(String type, String name, int port, int weight, int priority, boolean persistent, byte text[])
     {
-        return new ServiceInfoImpl(type, name, port, weight, priority, persistent, text);
+        return new ServiceInfoImpl(type, name, "", port, weight, priority, persistent, text);
+    }
+
+    /**
+     * Construct a service description for registering with JmDNS.
+     *
+     * @param type
+     *            fully qualified service type name, such as <code>_http._tcp.local.</code>.
+     * @param name
+     *            unqualified service instance name, such as <code>foobar</code>
+     * @param subtype
+     *            service subtype see draft-cheshire-dnsext-dns-sd-06.txt chapter 7.1 Selective Instance Enumeration
+     * @param port
+     *            the local port on which the service runs
+     * @param weight
+     *            weight of the service
+     * @param priority
+     *            priority of the service
+     * @param persistent
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     * @param text
+     *            bytes describing the service
+     * @return new service info
+     */
+    public static ServiceInfo create(String type, String name, String subtype, int port, int weight, int priority, boolean persistent, byte text[])
+    {
+        return new ServiceInfoImpl(type, name, subtype, port, weight, priority, persistent, text);
+    }
+
+    /**
+     * Construct a service description for registering with JmDNS. The properties hashtable must map property names to either Strings or byte arrays describing the property values.
+     *
+     * @param qualifiedNameMap
+     *            dictionary of values to build the fully qualified service name. Mandatory keys are Application and Instance. The Domain default is local, the Protocol default is tcp and the subtype default is none.
+     * @param port
+     *            the local port on which the service runs
+     * @param weight
+     *            weight of the service
+     * @param priority
+     *            priority of the service
+     * @param persistent
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     * @param props
+     *            properties describing the service
+     * @return new service info
+     */
+    public static ServiceInfo create(Map<Fields, String> qualifiedNameMap, int port, int weight, int priority, boolean persistent, Map<String, ?> props)
+    {
+        return new ServiceInfoImpl(qualifiedNameMap, port, weight, priority, persistent, props);
     }
 
     /**
@@ -187,6 +400,13 @@ public abstract class ServiceInfo
      * @return service type name
      */
     public abstract String getType();
+
+    /**
+     * Fully qualified service type name with the subtype if appropriate, such as <code>_printer._sub._http._tcp.local.</code>
+     *
+     * @return service type name
+     */
+    public abstract String getTypeWithSubtype();
 
     /**
      * Unqualified service instance name, such as <code>foobar</code> .
@@ -369,17 +589,38 @@ public abstract class ServiceInfo
     public abstract boolean isPersistent();
 
     /**
-     * Returns the raw protocol from of the service info suitable for printing.
+     * Returns the domain of the service info suitable for printing.
+     *
+     * @return service domain
+     */
+    public abstract String getDomain();
+
+    /**
+     * Returns the protocol of the service info suitable for printing.
      *
      * @return service protocol
      */
     public abstract String getProtocol();
 
     /**
-     * Returns the domain of the service info suitable for printing.
+     * Returns the application of the service info suitable for printing.
      *
-     * @return service domain
+     * @return service application
      */
-    public abstract String getDomain();
+    public abstract String getApplication();
+
+    /**
+     * Returns the sub type of the service info suitable for printing.
+     *
+     * @return service sub type
+     */
+    public abstract String getSubtype();
+
+    /**
+     * Returns a dictionary of the fully qualified name component of this service.
+     *
+     * @return dictionary of the fully qualified name components
+     */
+    public abstract Map<Fields, String> getQualifiedNameMap();
 
 }

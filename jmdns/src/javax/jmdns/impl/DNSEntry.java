@@ -7,7 +7,10 @@ package javax.jmdns.impl;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 
+import javax.jmdns.ServiceInfo.Fields;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 
@@ -30,16 +33,24 @@ public abstract class DNSEntry
 
     private final boolean _unique;
 
+    final Map<Fields, String> _qualifiedNameMap;
+
     /**
      * Create an entry.
      */
     DNSEntry(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique)
     {
         _name = name;
-        _key = (name != null ? name.trim().toLowerCase() : null);
+        // _key = (name != null ? name.trim().toLowerCase() : null);
         _type = type;
         _dnsClass = recordClass;
         _unique = unique;
+        _qualifiedNameMap = ServiceInfoImpl.decodeQualifiedNameMapForType(this.getName());
+        String domain = _qualifiedNameMap.get(Fields.Domain);
+        String protocol = _qualifiedNameMap.get(Fields.Protocol);
+        String application = _qualifiedNameMap.get(Fields.Application);
+        String instance = _qualifiedNameMap.get(Fields.Instance).toLowerCase();
+        _key = (instance.length() > 0 ? instance + "." : "") + (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + "." : "") + domain + ".";
     }
 
     /*
@@ -68,7 +79,23 @@ public abstract class DNSEntry
      */
     public boolean isSameEntry(DNSEntry entry)
     {
-        return this.getKey().equals(entry.getKey()) && this.getRecordType().equals(entry.getRecordType()) && _dnsClass == entry.getRecordClass();
+        return this.getKey().equals(entry.getKey()) && this.getRecordType().equals(entry.getRecordType()) && ((DNSRecordClass.CLASS_ANY == entry.getRecordClass()) || this.getRecordClass().equals(entry.getRecordClass()));
+    }
+
+    public boolean sameSubtype(DNSEntry other)
+    {
+        return this.getSubtype().equals(other.getSubtype());
+    }
+
+    /**
+     * Returns the subtype of this entry
+     *
+     * @return subtype of this entry
+     */
+    public String getSubtype()
+    {
+        String subtype = this.getQualifiedNameMap().get(Fields.Subtype);
+        return (subtype != null ? subtype : "");
     }
 
     /**
@@ -113,6 +140,37 @@ public abstract class DNSEntry
     public boolean isUnique()
     {
         return _unique;
+    }
+
+    public Map<Fields, String> getQualifiedNameMap()
+    {
+        return Collections.unmodifiableMap(_qualifiedNameMap);
+    }
+
+    public boolean isServicesDiscoveryMetaQuery()
+    {
+        return _qualifiedNameMap.get(Fields.Application).equals("dns-sd") && _qualifiedNameMap.get(Fields.Instance).equals("_services");
+    }
+
+    public boolean isDomainDiscoveryQuery()
+    {
+        // b._dns-sd._udp.<domain>.
+        // db._dns-sd._udp.<domain>.
+        // r._dns-sd._udp.<domain>.
+        // dr._dns-sd._udp.<domain>.
+        // lb._dns-sd._udp.<domain>.
+
+        if (_qualifiedNameMap.get(Fields.Application).equals("dns-sd"))
+        {
+            String name = _qualifiedNameMap.get(Fields.Instance);
+            return name.equals("b") || name.equals("db") || name.equals("r") || name.equals("dr") || name.equals("lb");
+        }
+        return false;
+    }
+
+    public boolean isReverseLookup()
+    {
+        return _qualifiedNameMap.get(Fields.Domain).endsWith("in-addr.arpa") || _qualifiedNameMap.get(Fields.Domain).endsWith("ip6.arpa");
     }
 
     /**

@@ -20,6 +20,11 @@
 package samples;
 
 import java.io.IOException;
+import java.util.Enumeration;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import javax.jmdns.JmDNS;
 
@@ -41,7 +46,21 @@ public class OpenJmDNS
     {
         try
         {
-            System.setProperty("jmdns.debug", "2");
+            /* Activate these lines to see log messages of JmDNS */
+            boolean log = true;
+            if (log)
+            {
+                ConsoleHandler handler = new ConsoleHandler();
+                handler.setLevel(Level.FINEST);
+                for (Enumeration<String> enumerator = LogManager.getLogManager().getLoggerNames(); enumerator.hasMoreElements();)
+                {
+                    String loggerName = enumerator.nextElement();
+                    Logger logger = Logger.getLogger(loggerName);
+                    logger.addHandler(handler);
+                    logger.setLevel(Level.FINEST);
+                }
+            }
+
             JmDNS jmdns = JmDNS.create();
 
             System.out.println("Press q and Enter, to quit");
