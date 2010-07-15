@@ -207,47 +207,49 @@ public class TextUpdateTest
             // We get the service added event when we register the service. However the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
             List<ServiceEvent> servicesAdded = serviceListenerMock.servicesAdded();
-            assertTrue("We did not get the service added event.", servicesAdded.size() == 1);
+            assertEquals("We did not get the service added event.", 1, servicesAdded.size());
             ServiceInfo info = servicesAdded.get(servicesAdded.size() - 1).getInfo();
             assertEquals("We did not get the right name for the resolved service:", service.getName(), info.getName());
             assertEquals("We did not get the right type for the resolved service:", service.getType(), info.getType());
             // We get the service added event when we register the service. However the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
             List<ServiceEvent> servicesResolved = serviceListenerMock.servicesResolved();
-            assertTrue("We did not get the service resolved event.", servicesResolved.size() == 1);
+            assertEquals("We did not get the service resolved event.", 1, servicesResolved.size());
             ServiceInfo result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
             assertNotNull("Did not get the expected service info: ", result);
             assertEquals("Did not get the expected service info: ", service, result);
             assertEquals("Did not get the expected service info text: ", service.getPropertyString(serviceKey), result.getPropertyString(serviceKey));
-            serviceListenerMock.reset();
 
+            serviceListenerMock.reset();
             String text = "Test improbable web server";
             Map<String, byte[]> properties = new HashMap<String, byte[]>();
             properties.put(serviceKey, text.getBytes());
             service.setText(properties);
             Thread.sleep(2000);
             servicesResolved = serviceListenerMock.servicesResolved();
-            assertTrue("We did not get the service text updated event.", servicesResolved.size() == 1);
+            assertEquals("We did not get the service text updated event.", 1, servicesResolved.size());
             result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
             assertEquals("Did not get the expected service info text: ", text, result.getPropertyString(serviceKey));
 
+            serviceListenerMock.reset();
             text = "Test more improbable web server";
             properties = new HashMap<String, byte[]>();
             properties.put(serviceKey, text.getBytes());
             service.setText(properties);
             Thread.sleep(2000);
             servicesResolved = serviceListenerMock.servicesResolved();
-            assertTrue("We did not get the service text updated event.", servicesResolved.size() == 1);
+            assertEquals("We did not get the service text updated event.", 1, servicesResolved.size());
             result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
             assertEquals("Did not get the expected service info text: ", text, result.getPropertyString(serviceKey));
 
+            serviceListenerMock.reset();
             text = "Test even more improbable web server";
             properties = new HashMap<String, byte[]>();
             properties.put(serviceKey, text.getBytes());
             service.setText(properties);
             Thread.sleep(2000);
             servicesResolved = serviceListenerMock.servicesResolved();
-            assertTrue("We did not get the service text updated event.", servicesResolved.size() == 1);
+            assertEquals("We did not get the service text updated event.", 1, servicesResolved.size());
             result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
             assertEquals("Did not get the expected service info text: ", text, result.getPropertyString(serviceKey));
 
