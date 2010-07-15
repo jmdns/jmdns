@@ -10,9 +10,14 @@ import static junit.framework.Assert.assertTrue;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -31,6 +36,7 @@ public class TextUpdateTest
 {
 
     private ServiceInfo service;
+    private ServiceInfo printer;
     private MockListener serviceListenerMock;
 
     private final static String serviceKey = "srvname"; // Max 9 chars
@@ -160,10 +166,28 @@ public class TextUpdateTest
     @Before
     public void setup()
     {
+        boolean log = false;
+        if (log)
+        {
+            ConsoleHandler handler = new ConsoleHandler();
+            handler.setLevel(Level.FINEST);
+            for (Enumeration<String> enumerator = LogManager.getLogManager().getLoggerNames(); enumerator.hasMoreElements();)
+            {
+                String loggerName = enumerator.nextElement();
+                Logger logger = Logger.getLogger(loggerName);
+                logger.addHandler(handler);
+                logger.setLevel(Level.FINEST);
+            }
+        }
+
         String text = "Test hypothetical web server";
         Map<String, byte[]> properties = new HashMap<String, byte[]>();
         properties.put(serviceKey, text.getBytes());
         service = ServiceInfo.create("_html._tcp.local.", "apache-someuniqueid", 80, 0, 0, true, properties);
+        text = "Test hypothetical print server";
+        properties.clear();
+        properties.put(serviceKey, text.getBytes());
+        printer = ServiceInfo.create("_html._tcp.local.", "printer-someuniqueid", "_printer", 80, 0, 0, true, properties);
         serviceListenerMock = new MockListener();
     }
 
@@ -191,7 +215,7 @@ public class TextUpdateTest
             // The info associated with the event only has the minimum information i.e. name and type.
             List<ServiceEvent> servicesResolved = serviceListenerMock.servicesResolved();
             assertTrue("We did not get the service resolved event.", servicesResolved.size() == 1);
-            ServiceInfo result = servicesResolved.get(servicesAdded.size() - 1).getInfo();
+            ServiceInfo result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
             assertNotNull("Did not get the expected service info: ", result);
             assertEquals("Did not get the expected service info: ", service, result);
             assertEquals("Did not get the expected service info text: ", service.getPropertyString(serviceKey), result.getPropertyString(serviceKey));
@@ -199,6 +223,26 @@ public class TextUpdateTest
 
             String text = "Test improbable web server";
             Map<String, byte[]> properties = new HashMap<String, byte[]>();
+            properties.put(serviceKey, text.getBytes());
+            service.setText(properties);
+            Thread.sleep(2000);
+            servicesResolved = serviceListenerMock.servicesResolved();
+            assertTrue("We did not get the service text updated event.", servicesResolved.size() == 1);
+            result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
+            assertEquals("Did not get the expected service info text: ", text, result.getPropertyString(serviceKey));
+
+            text = "Test more improbable web server";
+            properties = new HashMap<String, byte[]>();
+            properties.put(serviceKey, text.getBytes());
+            service.setText(properties);
+            Thread.sleep(2000);
+            servicesResolved = serviceListenerMock.servicesResolved();
+            assertTrue("We did not get the service text updated event.", servicesResolved.size() == 1);
+            result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
+            assertEquals("Did not get the expected service info text: ", text, result.getPropertyString(serviceKey));
+
+            text = "Test even more improbable web server";
+            properties = new HashMap<String, byte[]>();
             properties.put(serviceKey, text.getBytes());
             service.setText(properties);
             Thread.sleep(2000);
@@ -257,6 +301,47 @@ public class TextUpdateTest
                 newServiceRegistry.close();
             DNSStateTask.setDefaultTTL(DNSConstants.DNS_TTL);
         }
+    }
+
+    @Test
+    public void testSubtype() throws IOException
+    {
+        JmDNS registry = null;
+        JmDNS newServiceRegistry = null;
+        try
+        {
+            registry = JmDNS.create("Listener");
+            registry.addServiceListener(service.getType(), serviceListenerMock);
+            //
+            newServiceRegistry = JmDNS.create("Registry");
+            newServiceRegistry.registerService(printer);
+
+            // We get the service added event when we register the service. However the service has not been resolved at this point.
+            // The info associated with the event only has the minimum information i.e. name and type.
+            List<ServiceEvent> servicesAdded = serviceListenerMock.servicesAdded();
+            assertEquals("We did not get the service added event.", 1, servicesAdded.size());
+            ServiceInfo info = servicesAdded.get(servicesAdded.size() - 1).getInfo();
+            assertEquals("We did not get the right name for the resolved service:", printer.getName(), info.getName());
+            assertEquals("We did not get the right type for the resolved service:", printer.getType(), info.getType());
+            // We get the service added event when we register the service. However the service has not been resolved at this point.
+            // The info associated with the event only has the minimum information i.e. name and type.
+            List<ServiceEvent> servicesResolved = serviceListenerMock.servicesResolved();
+            assertEquals("We did not get the service resolved event.", 1, servicesResolved.size());
+            ServiceInfo result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
+            assertNotNull("Did not get the expected service info: ", result);
+            assertEquals("Did not get the expected service info: ", printer, result);
+            assertEquals("Did not get the expected service info subtype: ", printer.getSubtype(), result.getSubtype());
+            assertEquals("Did not get the expected service info text: ", printer.getPropertyString(serviceKey), result.getPropertyString(serviceKey));
+            serviceListenerMock.reset();
+        }
+        finally
+        {
+            if (registry != null)
+                registry.close();
+            if (newServiceRegistry != null)
+                newServiceRegistry.close();
+        }
+
     }
 
 }

@@ -56,7 +56,7 @@ class SocketListener implements Runnable
                     DNSIncoming msg = new DNSIncoming(packet);
                     if (logger.isLoggable(Level.FINEST))
                     {
-                        logger.finest("SocketListener.run() JmDNS in:" + msg.print(true));
+                        logger.finest(this.getName() + ".run() JmDNS in:" + msg.print(true));
                     }
                     this._jmDNSImpl.ioLock();
                     try
@@ -81,7 +81,7 @@ class SocketListener implements Runnable
                 }
                 catch (IOException e)
                 {
-                    logger.log(Level.WARNING, "run() exception ", e);
+                    logger.log(Level.WARNING, this.getName() + ".run() exception ", e);
                 }
             }
         }
@@ -89,7 +89,7 @@ class SocketListener implements Runnable
         {
             if (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled())
             {
-                logger.log(Level.WARNING, "run() exception ", e);
+                logger.log(Level.WARNING, this.getName() + ".run() exception ", e);
                 this._jmDNSImpl.recover();
             }
         }

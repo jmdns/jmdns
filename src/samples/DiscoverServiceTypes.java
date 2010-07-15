@@ -43,6 +43,17 @@ public class DiscoverServiceTypes
         {
             System.out.println("Service type added: " + event.getType());
         }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.jmdns.ServiceTypeListener#subTypeForServiceTypeAdded(javax.jmdns.ServiceEvent)
+         */
+        @Override
+        public void subTypeForServiceTypeAdded(ServiceEvent event)
+        {
+            System.out.println("SubType for service type added: " + event.getType());
+        }
     }
 
     /**
@@ -52,8 +63,7 @@ public class DiscoverServiceTypes
     public static void main(String[] args)
     {
         /*
-         * Activate these lines to see log messages of JmDNS Logger logger = Logger.getLogger(JmDNS.class.getName());
-         * ConsoleHandler handler = new ConsoleHandler(); logger.addHandler(handler); logger.setLevel(Level.FINER);
+         * Activate these lines to see log messages of JmDNS Logger logger = Logger.getLogger(JmDNS.class.getName()); ConsoleHandler handler = new ConsoleHandler(); logger.addHandler(handler); logger.setLevel(Level.FINER);
          * handler.setLevel(Level.FINER);
          */
 

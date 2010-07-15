@@ -4,6 +4,7 @@
 
 package javax.jmdns.impl;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -52,6 +53,54 @@ public class HostInfo implements DNSStatefulObject
             this.setDns(dns);
         }
 
+    }
+
+    public static HostInfo newHostInfo(InetAddress address, JmDNSImpl dns)
+    {
+        HostInfo localhost = null;
+        try
+        {
+            InetAddress addr = address;
+            String aName = "";
+            if (addr == null)
+            {
+                String ip = System.getProperty("net.mdns.interface");
+                if (ip != null)
+                {
+                    addr = InetAddress.getByName(ip);
+                }
+                else
+                {
+                    addr = InetAddress.getLocalHost();
+                }
+                aName = addr.getHostName();
+                // [PJYF Oct 14 2004] Why do we disallow the loopback address ?
+                if (addr.isLoopbackAddress())
+                {
+                    logger.warning("Could not find any address beside the loopback.");
+                    addr = null;
+                }
+            }
+            else
+            {
+                aName = addr.getHostName();
+            }
+            // A host name with "." is illegal. so strip off everything and append .local.
+            final int idx = aName.indexOf(".");
+            if (idx > 0)
+            {
+                aName = aName.substring(0, idx);
+            }
+            aName += ".local.";
+            localhost = new HostInfo(addr, aName, dns);
+        }
+        catch (final IOException e)
+        {
+            logger.warning("Could not intialize the host network interface because of an error: " + e.getMessage());
+            // FIXME [PJYF Dec 17 2009] This looks really bizarre why not fail and throw an exception. What good will this provide?
+            localhost = new HostInfo(null, "computer", dns);
+        }
+        return localhost;
     }
 
     /**
@@ -124,12 +173,12 @@ public class HostInfo implements DNSStatefulObject
     boolean shouldIgnorePacket(DatagramPacket packet)
     {
         boolean result = false;
-        if (getInetAddress() != null)
+        if (this.getInetAddress() != null)
         {
             InetAddress from = packet.getAddress();
             if (from != null)
             {
-                if (from.isLinkLocalAddress() && (!getInetAddress().isLinkLocalAddress()))
+                if (from.isLinkLocalAddress() && (!this.getInetAddress().isLinkLocalAddress()))
                 {
                     // Ignore linklocal packets on regular interfaces, unless this is
                     // also a linklocal interface. This is to avoid duplicates. This is
@@ -137,10 +186,9 @@ public class HostInfo implements DNSStatefulObject
                     // of the interface on which the packet was received.
                     result = true;
                 }
-                if (from.isLoopbackAddress() && (!getInetAddress().isLoopbackAddress()))
+                if (from.isLoopbackAddress() && (!this.getInetAddress().isLoopbackAddress()))
                 {
-                    // Ignore loopback packets on a regular interface unless this is
-                    // also a loopback interface.
+                    // Ignore loopback packets on a regular interface unless this is also a loopback interface.
                     result = true;
                 }
             }
@@ -373,7 +421,8 @@ public class HostInfo implements DNSStatefulObject
     @Override
     public boolean waitForCanceled(long timeout)
     {
-        if (_address == null) {
+        if (_address == null)
+        {
             // No need to wait this was never announced.
             return true;
         }

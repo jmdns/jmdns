@@ -53,9 +53,9 @@ public class TypeResolver extends DNSResolverTask
     {
         DNSOutgoing newOut = out;
         long now = System.currentTimeMillis();
-        for (String type : this.getDns().getServiceTypes().values())
+        for (String type : this.getDns().getServiceTypes().keySet())
         {
-            newOut = this.addAnswer(newOut, new DNSRecord.Pointer("_services" + DNSConstants.DNS_META_QUERY + "local.", DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, type), now);
+            newOut = this.addAnswer(newOut, new DNSRecord.Pointer("_services._dns-sd._udp.local.", DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, type), now);
         }
         return newOut;
     }
@@ -68,7 +68,7 @@ public class TypeResolver extends DNSResolverTask
     @Override
     protected DNSOutgoing addQuestions(DNSOutgoing out) throws IOException
     {
-        return this.addQuestion(out, DNSQuestion.newQuestion("_services" + DNSConstants.DNS_META_QUERY + "local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+        return this.addQuestion(out, DNSQuestion.newQuestion("_services._dns-sd._udp.local.", DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
     }
 
     /*

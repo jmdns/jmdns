@@ -13,7 +13,7 @@
 	<property name="reports" value="./reports" />
 	<property name="doc" value="./docs" />
 	<property name="jdk" value="1.5" />
-	<property name="version" value="3.1.9" />
+	<property name="version" value="3.2.0" />
 
 	<!-- Configure custom Ant tasks for the Manager application -->
 	<path id="jmdns.classpath">
@@ -82,7 +82,7 @@
 				Import-Package:
 				<!-- whenever API is changed, increment this version number according to OSGi spec: -->
 				<!-- API breakage: incr major, Feature addition: incr: minor -->
-				Export-Package: javax.jmdns;version="3.1.0"
+				Export-Package: javax.jmdns;version=${version}"
 			</echo>
 		<bndwrap definitions="." jars="${lib}/jmdns.jar" output="${lib}/javax.jmdns_${version}.jar" />
 	</target>

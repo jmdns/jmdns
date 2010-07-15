@@ -6,6 +6,7 @@ package javax.jmdns;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.Map;
 
 import javax.jmdns.impl.JmDNSImpl;
 
@@ -20,7 +21,7 @@ public abstract class JmDNS
     /**
      * The version of JmDNS.
      */
-    public static String VERSION = "3.1.9";
+    public static String VERSION = "3.2.0";
 
     /**
      * Create an instance of JmDNS.
@@ -122,7 +123,7 @@ public abstract class JmDNS
      *            timeout in milliseconds. Typical timeout should be 5s.
      * @return null if the service information cannot be obtained
      */
-    public abstract ServiceInfo getServiceInfo(String type, String name, int timeout);
+    public abstract ServiceInfo getServiceInfo(String type, String name, long timeout);
 
     /**
      * Get service information. If the information is not cached, the method will block until updated information is received.
@@ -154,7 +155,7 @@ public abstract class JmDNS
      *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
      * @return null if the service information cannot be obtained
      */
-    public abstract ServiceInfo getServiceInfo(String type, String name, boolean persistent, int timeout);
+    public abstract ServiceInfo getServiceInfo(String type, String name, boolean persistent, long timeout);
 
     /**
      * Request service information. The information about the service is requested and the ServiceListener.resolveService method is called as soon as it is available.
@@ -192,7 +193,7 @@ public abstract class JmDNS
      * @param timeout
      *            timeout in milliseconds
      */
-    public abstract void requestServiceInfo(String type, String name, int timeout);
+    public abstract void requestServiceInfo(String type, String name, long timeout);
 
     /**
      * Request service information. The information about the service is requested and the ServiceListener.resolveService method is called as soon as it is available.
@@ -206,7 +207,7 @@ public abstract class JmDNS
      * @param timeout
      *            timeout in milliseconds
      */
-    public abstract void requestServiceInfo(String type, String name, boolean persistent, int timeout);
+    public abstract void requestServiceInfo(String type, String name, boolean persistent, long timeout);
 
     /**
      * Listen for service types.
@@ -272,8 +273,9 @@ public abstract class JmDNS
      *
      * @param type
      *            full qualified service type, such as <code>_http._tcp.local.</code>.
+     * @return <code>true</code> if the type or subtype was added, <code>false</code> if the type was already registered.
      */
-    public abstract void registerServiceType(String type);
+    public abstract boolean registerServiceType(String type);
 
     /**
      * Close down jmdns. Release all resources and unregister all services.
@@ -290,7 +292,7 @@ public abstract class JmDNS
      *
      * @param type
      *            Service type name, such as <code>_http._tcp.local.</code>.
-     * @return An array of service instance names.
+     * @return An array of service instance.
      */
     public abstract ServiceInfo[] list(String type);
 
@@ -301,8 +303,28 @@ public abstract class JmDNS
      *            Service type name, such as <code>_http._tcp.local.</code>.
      * @param timeout
      *            timeout in milliseconds. Typical timeout should be 6s.
-     * @return An array of service instance names.
+     * @return An array of service instance.
      */
-    public abstract ServiceInfo[] list(String type, int timeout);
+    public abstract ServiceInfo[] list(String type, long timeout);
+
+    /**
+     * Returns a list of service infos of the specified type sorted by subtype. Any service that do not register a subtype is listed in the empty subtype section.
+     *
+     * @param type
+     *            Service type name, such as <code>_http._tcp.local.</code>.
+     * @return A dictionary of service info by subtypes.
+     */
+    public abstract Map<String, ServiceInfo[]> listBySubtype(String type);
+
+    /**
+     * Returns a list of service infos of the specified type sorted by subtype. Any service that do not register a subtype is listed in the empty subtype section.
+     *
+     * @param type
+     *            Service type name, such as <code>_http._tcp.local.</code>.
+     * @param timeout
+     *            timeout in milliseconds. Typical timeout should be 6s.
+     * @return A dictionary of service info by subtypes.
+     */
+    public abstract Map<String, ServiceInfo[]> listBySubtype(String type, long timeout);
 
 }

@@ -4,6 +4,7 @@
 
 package javax.jmdns.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -30,6 +31,22 @@ public final class DNSIncoming extends DNSMessage
     // This is a hack to handle a bug in the BonjourConformanceTest
     // It is sending out target strings that don't follow the "domain name" format.
     public static boolean USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET = true;
+
+    public static class MessageInputStream extends ByteArrayInputStream
+    {
+
+        /**
+         * @param buffer
+         * @param offset
+         * @param length
+         */
+        public MessageInputStream(byte[] buffer, int offset, int length)
+        {
+            super(buffer, offset, length);
+            // TODO Auto-generated constructor stub
+        }
+
+    }
 
     private DatagramPacket _packet;
 
@@ -147,9 +164,11 @@ public final class DNSIncoming extends DNSMessage
         {
             case TYPE_A: // IPv4
                 rec = new DNSRecord.IPv4Address(domain, recordClass, unique, ttl, readBytes(_off, len));
+                _off = _off + len;
                 break;
             case TYPE_AAAA: // IPv6
                 rec = new DNSRecord.IPv6Address(domain, recordClass, unique, ttl, readBytes(_off, len));
+                _off = _off + len;
                 break;
             case TYPE_CNAME:
             case TYPE_PTR:
@@ -167,6 +186,7 @@ public final class DNSIncoming extends DNSMessage
                 break;
             case TYPE_TXT:
                 rec = new DNSRecord.Text(domain, recordClass, unique, ttl, readBytes(_off, len));
+                _off = _off + len;
                 break;
             case TYPE_SRV:
                 int priority = readUnsignedShort();
@@ -259,6 +279,7 @@ public final class DNSIncoming extends DNSMessage
                 break;
             default:
                 logger.finer("DNSIncoming() unknown type:" + type);
+                _off = end;
                 break;
         }
         if (rec != null)
@@ -345,6 +366,7 @@ public final class DNSIncoming extends DNSMessage
         int len = get(off++);
         readUTF(buf, off, len);
 
+        this._off = this._off + len + 1;
         return buf.toString();
     }
 

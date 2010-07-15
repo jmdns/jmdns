@@ -21,7 +21,7 @@ import javax.jmdns.impl.constants.DNSRecordClass;
 public final class DNSOutgoing extends DNSMessage
 {
 
-    public static class MessageStream extends ByteArrayOutputStream
+    public static class MessageOutputStream extends ByteArrayOutputStream
     {
         private DNSOutgoing _out;
 
@@ -33,7 +33,7 @@ public final class DNSOutgoing extends DNSMessage
          * @exception IllegalArgumentException
          *                if size is negative.
          */
-        MessageStream(int size, DNSOutgoing out)
+        MessageOutputStream(int size, DNSOutgoing out)
         {
             super(size);
             _out = out;
@@ -186,7 +186,7 @@ public final class DNSOutgoing extends DNSMessage
             writeShort(rec.getRecordClass().indexValue() | ((rec.isUnique() && _out.isMulticast()) ? DNSRecordClass.CLASS_UNIQUE : 0));
             writeInt((now == 0) ? rec.getTTL() : rec.getRemainingTTL(now));
 
-            MessageStream record = new MessageStream(512, _out);
+            MessageOutputStream record = new MessageOutputStream(512, _out);
             rec.write(record);
             byte[] byteArray = record.toByteArray();
 
@@ -205,13 +205,13 @@ public final class DNSOutgoing extends DNSMessage
 
     private int _maxUDPPayload;
 
-    private final MessageStream _questionsBytes;
+    private final MessageOutputStream _questionsBytes;
 
-    private final MessageStream _answersBytes;
+    private final MessageOutputStream _answersBytes;
 
-    private final MessageStream _authoritativeAnswersBytes;
+    private final MessageOutputStream _authoritativeAnswersBytes;
 
-    private final MessageStream _additionalsAnswersBytes;
+    private final MessageOutputStream _additionalsAnswersBytes;
 
     private final static int HEADER_SIZE = 12;
 
@@ -249,10 +249,10 @@ public final class DNSOutgoing extends DNSMessage
         super(flags, 0, multicast);
         _names = new HashMap<String, Integer>();
         _maxUDPPayload = (senderUDPPayload > 0 ? senderUDPPayload : DNSConstants.MAX_MSG_TYPICAL);
-        _questionsBytes = new MessageStream(senderUDPPayload, this);
-        _answersBytes = new MessageStream(senderUDPPayload, this);
-        _authoritativeAnswersBytes = new MessageStream(senderUDPPayload, this);
-        _additionalsAnswersBytes = new MessageStream(senderUDPPayload, this);
+        _questionsBytes = new MessageOutputStream(senderUDPPayload, this);
+        _answersBytes = new MessageOutputStream(senderUDPPayload, this);
+        _authoritativeAnswersBytes = new MessageOutputStream(senderUDPPayload, this);
+        _additionalsAnswersBytes = new MessageOutputStream(senderUDPPayload, this);
     }
 
     /**
@@ -273,7 +273,7 @@ public final class DNSOutgoing extends DNSMessage
      */
     public void addQuestion(DNSQuestion rec) throws IOException
     {
-        MessageStream record = new MessageStream(512, this);
+        MessageOutputStream record = new MessageOutputStream(512, this);
         record.writeQuestion(rec);
         byte[] byteArray = record.toByteArray();
         if (byteArray.length < this.availableSpace())
@@ -315,7 +315,7 @@ public final class DNSOutgoing extends DNSMessage
         {
             if ((now == 0) || !rec.isExpired(now))
             {
-                MessageStream record = new MessageStream(512, this);
+                MessageOutputStream record = new MessageOutputStream(512, this);
                 record.writeRecord(rec, now);
                 byte[] byteArray = record.toByteArray();
                 if (byteArray.length < this.availableSpace())
@@ -339,7 +339,7 @@ public final class DNSOutgoing extends DNSMessage
      */
     public void addAuthorativeAnswer(DNSRecord rec) throws IOException
     {
-        MessageStream record = new MessageStream(512, this);
+        MessageOutputStream record = new MessageOutputStream(512, this);
         record.writeRecord(rec, 0);
         byte[] byteArray = record.toByteArray();
         if (byteArray.length < this.availableSpace())
@@ -362,7 +362,7 @@ public final class DNSOutgoing extends DNSMessage
      */
     public void addAdditionalAnswer(DNSIncoming in, DNSRecord rec) throws IOException
     {
-        MessageStream record = new MessageStream(512, this);
+        MessageOutputStream record = new MessageOutputStream(512, this);
         record.writeRecord(rec, 0);
         byte[] byteArray = record.toByteArray();
         if (byteArray.length < this.availableSpace())
@@ -386,7 +386,7 @@ public final class DNSOutgoing extends DNSMessage
         long now = System.currentTimeMillis(); // System.currentTimeMillis()
         _names.clear();
 
-        MessageStream message = new MessageStream(_maxUDPPayload, this);
+        MessageOutputStream message = new MessageOutputStream(_maxUDPPayload, this);
         message.writeShort(_multicast ? 0 : _id);
         message.writeShort(_flags);
         message.writeShort(this.getNumberOfQuestions());

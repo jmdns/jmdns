@@ -18,7 +18,8 @@ import java.util.logging.Logger;
 
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
-import javax.jmdns.impl.DNSOutgoing.MessageStream;
+import javax.jmdns.ServiceInfo.Fields;
+import javax.jmdns.impl.DNSOutgoing.MessageOutputStream;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
@@ -179,7 +180,7 @@ public abstract class DNSRecord extends DNSEntry
     /**
      * Write this record into an outgoing message.
      */
-    abstract void write(MessageStream out);
+    abstract void write(MessageOutputStream out);
 
     public static class IPv4Address extends Address
     {
@@ -195,7 +196,7 @@ public abstract class DNSRecord extends DNSEntry
         }
 
         @Override
-        void write(MessageStream out)
+        void write(MessageOutputStream out)
         {
             if (_addr != null)
             {
@@ -247,7 +248,7 @@ public abstract class DNSRecord extends DNSEntry
         }
 
         @Override
-        void write(MessageStream out)
+        void write(MessageOutputStream out)
         {
             if (_addr != null)
             {
@@ -428,18 +429,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         public ServiceInfo getServiceInfo(boolean persistent)
         {
-            // We need to split the name as this is the fully qualified name.
-            int index = this.getName().indexOf('.');
-            String serviceName = this.getName();
-            String domainName = "";
-            if (index > 0)
-            {
-                serviceName = this.getName().substring(0, index);
-                if (index + 1 < this.getName().length())
-                    domainName = this.getName().substring(index + 1);
-            }
-
-            ServiceInfoImpl info = new ServiceInfoImpl(domainName, serviceName, 0, 0, 0, persistent, (byte[]) null);
+            ServiceInfoImpl info = new ServiceInfoImpl(this.getQualifiedNameMap(), 0, 0, 0, persistent, (byte[]) null);
             // info.setAddress(_addr); This is done in the sub class so we don't have to test for class type
             return info;
         }
@@ -493,11 +483,11 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         public boolean isSameEntry(DNSEntry entry)
         {
-            return super.isSameEntry(entry) && (entry instanceof Pointer) && (((Pointer) entry).sameValue(this));
+            return super.isSameEntry(entry) && (entry instanceof Pointer) && this.sameValue((Pointer) entry);
         }
 
         @Override
-        void write(MessageStream out)
+        void write(MessageOutputStream out)
         {
             out.writeName(_alias, false);
         }
@@ -543,7 +533,24 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         public ServiceInfo getServiceInfo(boolean persistent)
         {
-            return new ServiceInfoImpl(this.getName(), JmDNSImpl.toUnqualifiedName(this.getName(), this.getAlias()), 0, 0, 0, persistent, (byte[]) null);
+            if (this.isServicesDiscoveryMetaQuery())
+            {
+                // The service name is in the alias
+                Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(this.getAlias());
+                return new ServiceInfoImpl(map, 0, 0, 0, persistent, (byte[]) null);
+            }
+            else if (this.isDomainDiscoveryQuery())
+            {
+                // FIXME [PJYF July 3 2010] Not sure what to do with this at this point
+                return new ServiceInfoImpl(this.getQualifiedNameMap(), 0, 0, 0, persistent, (byte[]) null);
+            }
+            else if (this.isReverseLookup())
+            {
+                return new ServiceInfoImpl(this.getQualifiedNameMap(), 0, 0, 0, persistent, (byte[]) null);
+            }
+            Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(this.getAlias());
+            map.put(Fields.Subtype, this.getQualifiedNameMap().get(Fields.Subtype));
+            return new ServiceInfoImpl(map, 0, 0, 0, persistent, this.getAlias());
         }
 
         /*
@@ -587,7 +594,7 @@ public abstract class DNSRecord extends DNSEntry
         }
 
         @Override
-        void write(MessageStream out)
+        void write(MessageOutputStream out)
         {
             out.writeBytes(_text, 0, _text.length);
         }
@@ -643,18 +650,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         public ServiceInfo getServiceInfo(boolean persistent)
         {
-            // We need to split the name as this is the fully qualified name.
-            int index = this.getName().indexOf('.');
-            String serviceName = this.getName();
-            String domainName = "";
-            if (index > 0)
-            {
-                serviceName = this.getName().substring(0, index);
-                if (index + 1 < this.getName().length())
-                    domainName = this.getName().substring(index + 1);
-            }
-
-            return new ServiceInfoImpl(domainName, serviceName, 0, 0, 0, persistent, _text);
+            return new ServiceInfoImpl(this.getQualifiedNameMap(), 0, 0, 0, persistent, _text);
         }
 
         /*
@@ -705,7 +701,7 @@ public abstract class DNSRecord extends DNSEntry
         }
 
         @Override
-        void write(MessageStream out)
+        void write(MessageOutputStream out)
         {
             out.writeShort(_priority);
             out.writeShort(_weight);
@@ -883,18 +879,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         public ServiceInfo getServiceInfo(boolean persistent)
         {
-            // We need to split the name as this is the fully qualified name.
-            int index = this.getName().indexOf('.');
-            String serviceName = this.getName();
-            String domainName = "";
-            if (index > 0)
-            {
-                serviceName = this.getName().substring(0, index);
-                if (index + 1 < this.getName().length())
-                    domainName = this.getName().substring(index + 1);
-            }
-
-            return new ServiceInfoImpl(domainName, serviceName, _port, _weight, _priority, persistent, _server);
+            return new ServiceInfoImpl(this.getQualifiedNameMap(), _port, _weight, _priority, persistent, _server);
         }
 
         /*
@@ -907,16 +892,18 @@ public abstract class DNSRecord extends DNSEntry
         {
             ServiceInfo info = this.getServiceInfo(false);
             ((ServiceInfoImpl) info).setDns(dns);
-            String domainName = "";
-            String serviceName = this.getServer();
-            int index = serviceName.indexOf('.');
-            if (index > 0)
-            {
-                serviceName = this.getServer().substring(0, index);
-                if (index + 1 < this.getServer().length())
-                    domainName = this.getServer().substring(index + 1);
-            }
-            return new ServiceEventImpl(dns, domainName, serviceName, info);
+            // String domainName = "";
+            // String serviceName = this.getServer();
+            // int index = serviceName.indexOf('.');
+            // if (index > 0)
+            // {
+            // serviceName = this.getServer().substring(0, index);
+            // if (index + 1 < this.getServer().length())
+            // domainName = this.getServer().substring(index + 1);
+            // }
+            // return new ServiceEventImpl(dns, domainName, serviceName, info);
+            return new ServiceEventImpl(dns, info.getType(), info.getName(), info);
+
         }
 
         /*
@@ -1006,7 +993,7 @@ public abstract class DNSRecord extends DNSEntry
          * @see javax.jmdns.impl.DNSRecord#write(javax.jmdns.impl.DNSOutgoing)
          */
         @Override
-        void write(MessageStream out)
+        void write(MessageOutputStream out)
         {
             String hostInfo = _cpu + " " + _os;
             out.writeUTF(hostInfo, 0, hostInfo.length());
@@ -1020,22 +1007,10 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         public ServiceInfo getServiceInfo(boolean persistent)
         {
-            // We need to split the name as this is the fully qualified name.
-            int index = this.getName().indexOf('.');
-            String serviceName = this.getName();
-            String domainName = "";
-            if (index > 0)
-            {
-                serviceName = this.getName().substring(0, index);
-                if (index + 1 < this.getName().length())
-                    domainName = this.getName().substring(index + 1);
-            }
-
             Map<String, String> hinfo = new HashMap<String, String>(2);
             hinfo.put("cpu", _cpu);
             hinfo.put("os", _os);
-            ServiceInfoImpl info = new ServiceInfoImpl(domainName, serviceName, 0, 0, 0, persistent, hinfo);
-            return info;
+            return new ServiceInfoImpl(this.getQualifiedNameMap(), 0, 0, 0, persistent, hinfo);
         }
 
         /*
