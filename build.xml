@@ -13,7 +13,7 @@
 	<property name="reports" value="./reports" />
 	<property name="doc" value="./docs" />
 	<property name="jdk" value="1.5" />
-	<property name="version" value="3.2.0" />
+	<property name="version" value="3.2.1" />
 
 	<!-- Configure custom Ant tasks for the Manager application -->
 	<path id="jmdns.classpath">
