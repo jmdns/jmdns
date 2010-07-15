@@ -93,10 +93,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                                 this.getDns().startAnnouncer();
                             }
                         }
-                        else
-                        {
-                            _info.setNeedTextAnnouncing(false);
-                        }
+                        _info.setNeedTextAnnouncing(false);
                     }
                 }
             }
