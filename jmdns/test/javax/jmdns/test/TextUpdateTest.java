@@ -225,7 +225,7 @@ public class TextUpdateTest
             Map<String, byte[]> properties = new HashMap<String, byte[]>();
             properties.put(serviceKey, text.getBytes());
             service.setText(properties);
-            Thread.sleep(2000);
+            Thread.sleep(3000);
             servicesResolved = serviceListenerMock.servicesResolved();
             assertEquals("We did not get the service text updated event.", 1, servicesResolved.size());
             result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
@@ -236,7 +236,7 @@ public class TextUpdateTest
             properties = new HashMap<String, byte[]>();
             properties.put(serviceKey, text.getBytes());
             service.setText(properties);
-            Thread.sleep(2000);
+            Thread.sleep(3000);
             servicesResolved = serviceListenerMock.servicesResolved();
             assertEquals("We did not get the service text updated event.", 1, servicesResolved.size());
             result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
@@ -247,7 +247,7 @@ public class TextUpdateTest
             properties = new HashMap<String, byte[]>();
             properties.put(serviceKey, text.getBytes());
             service.setText(properties);
-            Thread.sleep(2000);
+            Thread.sleep(3000);
             servicesResolved = serviceListenerMock.servicesResolved();
             assertEquals("We did not get the service text updated event.", 1, servicesResolved.size());
             result = servicesResolved.get(servicesResolved.size() - 1).getInfo();

@@ -1,4 +1,4 @@
-CHANGELOG 08 July 2010 Pierre Frisch
+CHANGELOG XX XXXX 2010 Pierre Frisch
 Rev the source code to 3.2.1
 ServiceInfo.setText() reannounces updated service only once - ID: 3030016
 
