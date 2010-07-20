@@ -684,6 +684,10 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             }
             for (int i = 0; i < loops; i++)
             {
+                if (info.hasData())
+                {
+                    break;
+                }
                 try
                 {
                     info.wait(200);
@@ -691,10 +695,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                 catch (final InterruptedException e)
                 {
                     /* Stub */
-                }
-                if (info.hasData())
-                {
-                    break;
                 }
             }
         }
@@ -1442,6 +1442,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
      */
     protected class Shutdown implements Runnable
     {
+        @Override
         public void run()
         {
             try
@@ -1763,6 +1764,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
          * @param event
          *            service event
          */
+        @Override
         public void serviceAdded(ServiceEvent event)
         {
             synchronized (this)
@@ -1794,6 +1796,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
          * @param event
          *            service event
          */
+        @Override
         public void serviceRemoved(ServiceEvent event)
         {
             synchronized (this)
@@ -1809,6 +1812,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
          * @param event
          *            service event
          */
+        @Override
         public void serviceResolved(ServiceEvent event)
         {
             synchronized (this)
