@@ -6,9 +6,9 @@
 	</target>
 
 	<!-- Configure the context PATH for this application -->
-	<property name="src" value="./src" />
+	<property name="src" value="./src/main/java" />
 	<property name="lib" value="./lib" />
-	<property name="test" value="./test" />
+	<property name="test" value="./src/test/java" />
 	<property name="dest" value="./classes" />
 	<property name="reports" value="./reports" />
 	<property name="doc" value="./docs" />
@@ -82,7 +82,7 @@
 				Import-Package:
 				<!-- whenever API is changed, increment this version number according to OSGi spec: -->
 				<!-- API breakage: incr major, Feature addition: incr: minor -->
-				Export-Package: javax.jmdns;version=${version}"
+				Export-Package: javax.jmdns;version=${version}
 			</echo>
 		<bndwrap definitions="." jars="${lib}/jmdns.jar" output="${lib}/javax.jmdns_${version}.jar" />
 	</target>
