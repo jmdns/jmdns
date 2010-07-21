@@ -151,11 +151,10 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          *
          * @see java.util.AbstractMap#equals(java.lang.Object)
          */
-        @SuppressWarnings("unchecked")
         @Override
         public boolean equals(Object o)
         {
-            return (o instanceof Map) && ((Map) o).size() == 0;
+            return (o instanceof Map) && ((Map<?, ?>) o).size() == 0;
         }
 
         /*
@@ -221,6 +220,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          *
          * @see java.util.Map$Entry#getKey()
          */
+        @Override
         public String getKey()
         {
             return (_key != null ? _key : "");
@@ -231,6 +231,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          *
          * @see java.util.Map$Entry#getValue()
          */
+        @Override
         public List<? extends DNSEntry> getValue()
         {
             return _value;
@@ -241,6 +242,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          *
          * @see java.util.Map$Entry#setValue(java.lang.Object)
          */
+        @Override
         public List<? extends DNSEntry> setValue(List<? extends DNSEntry> value)
         {
             List<? extends DNSEntry> oldValue = _value;
@@ -253,13 +255,12 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          *
          * @see java.lang.Object#equals(java.lang.Object)
          */
-        @SuppressWarnings("unchecked")
         @Override
         public boolean equals(Object entry)
         {
             if (!(entry instanceof Map.Entry))
                 return false;
-            return this.getKey().equals(((Map.Entry) entry).getKey()) && this.getValue().equals(((Map.Entry) entry).getValue());
+            return this.getKey().equals(((Map.Entry<?, ?>) entry).getKey()) && this.getValue().equals(((Map.Entry<?, ?>) entry).getValue());
         }
 
         /*

@@ -39,6 +39,7 @@ public class DiscoverServiceTypes
     static class SampleListener implements ServiceTypeListener
     {
 
+        @Override
         public void serviceTypeAdded(ServiceEvent event)
         {
             System.out.println("Service type added: " + event.getType());

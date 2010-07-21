@@ -866,6 +866,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
      * @param now
      * @param rec
      */
+    @Override
     public void updateRecord(DNSCache dnsCache, long now, DNSEntry rec)
     {
         if ((rec instanceof DNSRecord) && !rec.isExpired(now))
@@ -1316,6 +1317,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         this._state.setDns(dns);
     }
 
+    @Override
     public JmDNSImpl getDns()
     {
         return this._state.getDns();

@@ -43,6 +43,7 @@ public interface DNSStatefulObject
          *
          * @see javax.jmdns.impl.DNSStatefullObject#getDns()
          */
+        @Override
         public JmDNSImpl getDns()
         {
             return this._dns;

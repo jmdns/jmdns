@@ -49,6 +49,7 @@ public class Main
          *
          * @see javax.jmdns.ServiceListener#serviceAdded(javax.jmdns.ServiceEvent)
          */
+        @Override
         public void serviceAdded(ServiceEvent event)
         {
             System.out.println("ADD: " + event.getDNS().getServiceInfo(event.getType(), event.getName()));
@@ -59,6 +60,7 @@ public class Main
          *
          * @see javax.jmdns.ServiceListener#serviceRemoved(javax.jmdns.ServiceEvent)
          */
+        @Override
         public void serviceRemoved(ServiceEvent event)
         {
             System.out.println("REMOVE: " + event.getName());
@@ -69,6 +71,7 @@ public class Main
          *
          * @see javax.jmdns.ServiceListener#serviceResolved(javax.jmdns.ServiceEvent)
          */
+        @Override
         public void serviceResolved(ServiceEvent event)
         {
             System.out.println("RESOLVED: " + event.getInfo());
@@ -79,6 +82,7 @@ public class Main
          *
          * @see javax.jmdns.ServiceTypeListener#serviceTypeAdded(javax.jmdns.ServiceEvent)
          */
+        @Override
         public void serviceTypeAdded(ServiceEvent event)
         {
             System.out.println("TYPE: " + event.getType());
