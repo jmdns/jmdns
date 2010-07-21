@@ -98,11 +98,13 @@ public enum DNSRecordClass
     /**
      * Checks if the class is unique
      *
+     * @param index
+     *
      * @return <code>true</code> is the class is unique, <code>false</code> otherwise.
      */
-    public boolean isUnique()
+    public boolean isUnique(int index)
     {
-        return (_index & CLASS_UNIQUE) != 0;
+        return (this != CLASS_UNKNOWN) && ((index & CLASS_UNIQUE) != 0);
     }
 
     /**
