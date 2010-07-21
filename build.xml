@@ -7,6 +7,8 @@
 
 	<!-- Configure the context PATH for this application -->
 	<property name="src" value="./src/main/java" />
+	<property name="tools" value="./src/main/java" />
+	<property name="samples" value="./src/main/java" />
 	<property name="lib" value="./lib" />
 	<property name="test" value="./src/test/java" />
 	<property name="dest" value="./classes" />
@@ -48,7 +50,7 @@
 	</target>
 
 	<target name="tools" depends="build" description="Main program">
-		<javac target="${jdk}" srcdir="${src}" destdir="${dest}">
+		<javac target="${jdk}" srcdir="${tools}" destdir="${dest}">
 			<compilerarg value="-Xlint" />
 			<include name="com/**/tools/*.java" />
 			<classpath refid="jmdns.classpath" />
@@ -56,7 +58,7 @@
 	</target>
 
 	<target name="samples" depends="build" description="Sample programs">
-		<javac target="${jdk}" srcdir="${src}" destdir="${dest}">
+		<javac target="${jdk}" srcdir="${samples}" destdir="${dest}">
 			<compilerarg value="-Xlint" />
 			<include name="samples/*.java" />
 			<classpath refid="jmdns.classpath" />

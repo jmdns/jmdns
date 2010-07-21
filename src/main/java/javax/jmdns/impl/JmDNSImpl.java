@@ -22,6 +22,8 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,9 +31,9 @@ import java.util.logging.Logger;
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
+import javax.jmdns.ServiceInfo.Fields;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
-import javax.jmdns.ServiceInfo.Fields;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
@@ -130,6 +132,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
      * Last throttle increment.
      */
     private long _lastThrottleIncrement;
+
+    private final ExecutorService _executor = Executors.newSingleThreadExecutor();
 
     //
     // 2009-09-16 ldeck: adding docbug patch with slight ammendments
@@ -748,18 +752,25 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     void handleServiceResolved(ServiceEvent event)
     {
         List<ServiceListener> list = _serviceListeners.get(event.getType().toLowerCase());
-        List<ServiceListener> listCopy = Collections.emptyList();
+        final List<ServiceListener> listCopy;
         if ((list != null) && (!list.isEmpty()))
         {
             if ((event.getInfo() != null) && event.getInfo().hasData())
             {
+                final ServiceEvent localEvent = event;
                 synchronized (list)
                 {
                     listCopy = new ArrayList<ServiceListener>(list);
                 }
-                for (ServiceListener listener : listCopy)
+                for (final ServiceListener listener : listCopy)
                 {
-                    listener.serviceResolved(event);
+                    _executor.submit(new Runnable() {
+                        @Override
+                        public void run()
+                        {
+                            listener.serviceResolved(localEvent);
+                        }
+                    });
                 }
             }
         }
@@ -982,9 +993,15 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             {
                 final ServiceTypeListener[] list = _typeListeners.toArray(new ServiceTypeListener[_typeListeners.size()]);
                 final ServiceEvent event = new ServiceEventImpl(this, name, "", null);
-                for (ServiceTypeListener listener : list)
+                for (final ServiceTypeListener listener : list)
                 {
-                    listener.serviceTypeAdded(event);
+                    _executor.submit(new Runnable() {
+                        @Override
+                        public void run()
+                        {
+                            listener.serviceTypeAdded(event);
+                        }
+                    });
                 }
             }
         }
@@ -1001,9 +1018,15 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                         subtypes.add(subtype);
                         final ServiceTypeListener[] list = _typeListeners.toArray(new ServiceTypeListener[_typeListeners.size()]);
                         final ServiceEvent event = new ServiceEventImpl(this, "_" + subtype + "._sub." + name, "", null);
-                        for (ServiceTypeListener listener : list)
+                        for (final ServiceTypeListener listener : list)
                         {
-                            listener.subTypeForServiceTypeAdded(event);
+                            _executor.submit(new Runnable() {
+                                @Override
+                                public void run()
+                                {
+                                    listener.subTypeForServiceTypeAdded(event);
+                                }
+                            });
                         }
                     }
                 }
@@ -1177,7 +1200,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             ServiceEvent event = rec.getServiceEvent(this);
             if ((event.getInfo() == null) || !event.getInfo().hasData())
             {
-                // We do not care about the subtype because teh info is only used if complete and the subtype will tehn be included.
+                // We do not care about the subtype because the info is only used if complete and the subtype will then be included.
                 ServiceInfo info = this.getServiceInfoFromCache(event.getType(), event.getName(), "", false);
                 if (info.hasData())
                 {
@@ -1186,7 +1209,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             }
 
             List<ServiceListener> list = _serviceListeners.get(event.getType());
-            List<ServiceListener> serviceListenerList = Collections.emptyList();
+            final List<ServiceListener> serviceListenerList;
             if (list != null)
             {
                 synchronized (list)
@@ -1194,21 +1217,39 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                     serviceListenerList = new ArrayList<ServiceListener>(list);
                 }
             }
+            else
+            {
+                serviceListenerList = Collections.emptyList();
+            }
             logger.finest(this.getName() + ".updating record for event: " + event + " list " + serviceListenerList + " operation: " + operation);
             if (!serviceListenerList.isEmpty())
             {
+                final ServiceEvent localEvent = event;
+
                 switch (operation)
                 {
                     case Add:
-                        for (ServiceListener listener : serviceListenerList)
+                        for (final ServiceListener listener : serviceListenerList)
                         {
-                            listener.serviceAdded(event);
+                            _executor.submit(new Runnable() {
+                                @Override
+                                public void run()
+                                {
+                                    listener.serviceAdded(localEvent);
+                                }
+                            });
                         }
                         break;
                     case Remove:
-                        for (ServiceListener listener : serviceListenerList)
+                        for (final ServiceListener listener : serviceListenerList)
                         {
-                            listener.serviceRemoved(event);
+                            _executor.submit(new Runnable() {
+                                @Override
+                                public void run()
+                                {
+                                    listener.serviceRemoved(localEvent);
+                                }
+                            });
                         }
                         break;
                     default:
