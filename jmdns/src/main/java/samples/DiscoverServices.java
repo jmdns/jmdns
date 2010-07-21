@@ -20,8 +20,6 @@
 package samples;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -68,7 +66,6 @@ public class DiscoverServices
      */
     public static void main(String[] args)
     {
-        final ExecutorService executor = Executors.newSingleThreadExecutor();
         try
         {
 
@@ -84,13 +81,7 @@ public class DiscoverServices
             }
 
             final JmDNS jmdns = JmDNS.create();
-            executor.submit(new Runnable() {
-                @Override
-                public void run()
-                {
-                    jmdns.addServiceListener("_http._tcp.local.", new SampleListener());
-                }
-            });
+            jmdns.addServiceListener("_http._tcp.local.", new SampleListener());
 
             System.out.println("Press q and Enter, to quit");
             int b;
