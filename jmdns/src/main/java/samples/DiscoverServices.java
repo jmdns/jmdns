@@ -20,6 +20,11 @@
 package samples;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -63,15 +68,29 @@ public class DiscoverServices
      */
     public static void main(String[] args)
     {
+        final ExecutorService executor = Executors.newSingleThreadExecutor();
         try
         {
-            /*
-             * Activate these lines to see log messages of JmDNS Logger logger =
-             * Logger.getLogger(JmDNS.class.getName()); ConsoleHandler handler = new ConsoleHandler();
-             * logger.addHandler(handler); logger.setLevel(Level.FINER); handler.setLevel(Level.FINER);
-             */
-            JmDNS jmdns = JmDNS.create();
-            jmdns.addServiceListener("_http._tcp.local.", new SampleListener());
+
+            // Activate these lines to see log messages of JmDNS
+            boolean log = false;
+            if (log)
+            {
+                Logger logger = Logger.getLogger(JmDNS.class.getName());
+                ConsoleHandler handler = new ConsoleHandler();
+                logger.addHandler(handler);
+                logger.setLevel(Level.FINER);
+                handler.setLevel(Level.FINER);
+            }
+
+            final JmDNS jmdns = JmDNS.create();
+            executor.submit(new Runnable() {
+                @Override
+                public void run()
+                {
+                    jmdns.addServiceListener("_http._tcp.local.", new SampleListener());
+                }
+            });
 
             System.out.println("Press q and Enter, to quit");
             int b;
