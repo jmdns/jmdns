@@ -38,16 +38,19 @@ public class DiscoverServices
 
     static class SampleListener implements ServiceListener
     {
+        @Override
         public void serviceAdded(ServiceEvent event)
         {
             System.out.println("Service added   : " + event.getName() + "." + event.getType());
         }
 
+        @Override
         public void serviceRemoved(ServiceEvent event)
         {
             System.out.println("Service removed : " + event.getName() + "." + event.getType());
         }
 
+        @Override
         public void serviceResolved(ServiceEvent event)
         {
             System.out.println("Service resolved: " + event.getInfo());

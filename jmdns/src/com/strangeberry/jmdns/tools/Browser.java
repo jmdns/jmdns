@@ -149,6 +149,7 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
 
         System.out.println("ADD: " + name);
         SwingUtilities.invokeLater(new Runnable() {
+            @Override
             public void run()
             {
                 insertSorted(services, name);
@@ -168,6 +169,7 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
 
         System.out.println("REMOVE: " + name);
         SwingUtilities.invokeLater(new Runnable() {
+            @Override
             public void run()
             {
                 services.removeElement(name);
@@ -199,6 +201,7 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
 
         System.out.println("TYPE: " + aType);
         SwingUtilities.invokeLater(new Runnable() {
+            @Override
             public void run()
             {
                 insertSorted(types, aType);
@@ -235,6 +238,7 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
      *
      * @param e
      */
+    @Override
     public void valueChanged(ListSelectionEvent e)
     {
         if (!e.getValueIsAdjusting())
@@ -327,20 +331,23 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
                     return "port";
                 case 3:
                     return "text";
-            }
+       }
             return null;
         }
 
+        @Override
         public int getColumnCount()
         {
             return 1;
         }
 
+        @Override
         public int getRowCount()
         {
             return services.size();
         }
 
+        @Override
         public Object getValueAt(int row, int col)
         {
             return services.elementAt(row);
