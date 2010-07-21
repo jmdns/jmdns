@@ -143,8 +143,9 @@ public final class DNSIncoming extends DNSMessage
     {
         String domain = this.readName();
         DNSRecordType type = DNSRecordType.typeForIndex(this.readUnsignedShort());
-        DNSRecordClass recordClass = DNSRecordClass.classForIndex(this.readUnsignedShort());
-        boolean unique = (recordClass != null ? recordClass.isUnique() : DNSRecordClass.NOT_UNIQUE);
+        int recordClassIndex = this.readUnsignedShort();
+        DNSRecordClass recordClass = DNSRecordClass.classForIndex(recordClassIndex);
+        boolean unique = recordClass.isUnique(recordClassIndex);
         return DNSQuestion.newQuestion(domain, type, recordClass, unique);
     }
 
@@ -154,7 +155,7 @@ public final class DNSIncoming extends DNSMessage
         DNSRecordType type = DNSRecordType.typeForIndex(this.readUnsignedShort());
         int recordClassIndex = this.readUnsignedShort();
         DNSRecordClass recordClass = (type == DNSRecordType.TYPE_OPT ? DNSRecordClass.CLASS_UNKNOWN : DNSRecordClass.classForIndex(recordClassIndex));
-        boolean unique = recordClass.isUnique();
+        boolean unique = recordClass.isUnique(recordClassIndex);
         int ttl = this.readInt();
         int len = this.readUnsignedShort();
         int end = _off + len;
