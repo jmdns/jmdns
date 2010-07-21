@@ -12,8 +12,8 @@ import javax.jmdns.impl.constants.DNSState;
 import javax.jmdns.impl.tasks.DNSTask;
 
 /**
- *Sets of methods to manage the state machine.<br/>
- *<b>Implementation note:</b> This interface is accessed from multiple threads. The implementation must be thread safe.
+ * Sets of methods to manage the state machine.<br/>
+ * <b>Implementation note:</b> This interface is accessed from multiple threads. The implementation must be thread safe.
  */
 public interface DNSStatefulObject
 {
@@ -168,12 +168,12 @@ public interface DNSStatefulObject
         public boolean revertState()
         {
             boolean result = true;
-            if (!this.isCanceling() && !this.isCanceled())
+            if (!this.willCancel())
             {
                 this.lock();
                 try
                 {
-                    if (!this.isCanceling() && !this.isCanceled())
+                    if (!this.willCancel())
                     {
                         this._state = this._state.revert();
                         this.setTask(null);
@@ -196,12 +196,12 @@ public interface DNSStatefulObject
         public boolean cancelState()
         {
             boolean result = false;
-            if (!this.isCanceling() && !this.isCanceled())
+            if (!this.willCancel())
             {
                 this.lock();
                 try
                 {
-                    if (!this.isCanceling() && !this.isCanceled())
+                    if (!this.willCancel())
                     {
                         this._state = DNSState.CANCELING_1;
                         this.setTask(null);
@@ -293,6 +293,11 @@ public interface DNSStatefulObject
             return this._state.isCanceled();
         }
 
+        private boolean willCancel()
+        {
+            return this._state.isCanceled() || this._state.isCanceling();
+        }
+
         /*
          * (non-Javadoc)
          *
@@ -301,7 +306,7 @@ public interface DNSStatefulObject
         @Override
         public boolean waitForAnnounced(long timeout)
         {
-            if (!this.isAnnounced())
+            if (!this.isAnnounced() && !this.willCancel())
             {
                 try
                 {
@@ -312,7 +317,7 @@ public interface DNSStatefulObject
                         this.tryLock(DNSConstants.ANNOUNCE_WAIT_INTERVAL, TimeUnit.MILLISECONDS);
                         try
                         {
-                            finished = (this.isAnnounced() ? true : end <= System.currentTimeMillis());
+                            finished = (this.isAnnounced() || this.willCancel() ? true : end <= System.currentTimeMillis());
                         }
                         finally
                         {
@@ -327,7 +332,14 @@ public interface DNSStatefulObject
             }
             if (!this.isAnnounced())
             {
-                logger.warning("Wait for announced timed out: " + this);
+                if (this.willCancel())
+                {
+                    logger.warning("Wait for announced cancelled: " + this);
+                }
+                else
+                {
+                    logger.warning("Wait for announced timed out: " + this);
+                }
             }
             return this.isAnnounced();
         }
