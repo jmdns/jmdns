@@ -10,6 +10,7 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -74,11 +75,9 @@ public class HostInfo implements DNSStatefulObject
                     addr = InetAddress.getLocalHost();
                 }
                 aName = addr.getHostName();
-                // [PJYF Oct 14 2004] Why do we disallow the loopback address ?
                 if (addr.isLoopbackAddress())
                 {
                     logger.warning("Could not find any address beside the loopback.");
-                    addr = null;
                 }
             }
             else
@@ -96,11 +95,23 @@ public class HostInfo implements DNSStatefulObject
         }
         catch (final IOException e)
         {
-            logger.warning("Could not intialize the host network interface because of an error: " + e.getMessage());
-            // FIXME [PJYF Dec 17 2009] This looks really bizarre why not fail and throw an exception. What good will this provide?
-            localhost = new HostInfo(null, "computer", dns);
+            logger.warning("Could not intialize the host network interface on " + address + "because of an error: " + e.getMessage());
+            // This is only used for running unit test on Debian / Ubuntu
+            localhost = new HostInfo(loopbackAddress(), "computer", dns);
         }
         return localhost;
+    }
+
+    private static InetAddress loopbackAddress()
+    {
+        try
+        {
+            return InetAddress.getByName(null);
+        }
+        catch (UnknownHostException exception)
+        {
+            return null;
+        }
     }
 
     /**

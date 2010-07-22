@@ -479,6 +479,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
      *
      * @see javax.jmdns.ServiceInfo#getAddress()
      */
+    @Deprecated
     @Override
     public InetAddress getAddress()
     {

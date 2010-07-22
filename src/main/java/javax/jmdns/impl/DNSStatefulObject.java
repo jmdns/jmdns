@@ -1,6 +1,4 @@
-/**
- *
- */
+//Licensed under Apache License version 2.0
 package javax.jmdns.impl;
 
 import java.util.concurrent.TimeUnit;
@@ -14,6 +12,9 @@ import javax.jmdns.impl.tasks.DNSTask;
 /**
  * Sets of methods to manage the state machine.<br/>
  * <b>Implementation note:</b> This interface is accessed from multiple threads. The implementation must be thread safe.
+ *
+ * @version %I%, %G%
+ * @author Pierre Frisch
  */
 public interface DNSStatefulObject
 {

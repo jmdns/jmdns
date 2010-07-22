@@ -1,6 +1,4 @@
-/**
- *
- */
+//Licensed under Apache License version 2.0
 package javax.jmdns.impl.tasks;
 
 import java.io.IOException;
@@ -15,7 +13,10 @@ import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.constants.DNSConstants;
 
 /**
+ * This is the root class for all task scheduled by the timer in JmDNS.
  *
+ * @version %I%, %G%
+ * @author Pierre Frisch
  */
 public abstract class DNSTask extends TimerTask
 {
