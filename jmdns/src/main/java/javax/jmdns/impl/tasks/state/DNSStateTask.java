@@ -1,6 +1,4 @@
-/**
- *
- */
+//Licensed under Apache License version 2.0
 package javax.jmdns.impl.tasks.state;
 
 import javax.jmdns.ServiceInfo;
@@ -11,7 +9,10 @@ import javax.jmdns.impl.constants.DNSState;
 import javax.jmdns.impl.tasks.DNSTask;
 
 /**
+ * This is the root class for all state tasks. These tasks work with objects that implements the {@link javax.jmdns.impl.DNSStatefulObject} interface and therefore participate in the state machine.
  *
+ * @version %I%, %G%
+ * @author Pierre Frisch
  */
 public abstract class DNSStateTask extends DNSTask
 {

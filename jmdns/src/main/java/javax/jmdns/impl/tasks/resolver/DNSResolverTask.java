@@ -1,6 +1,4 @@
-/**
- *
- */
+//Licensed under Apache License version 2.0
 package javax.jmdns.impl.tasks.resolver;
 
 import java.io.IOException;
@@ -14,7 +12,10 @@ import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.tasks.DNSTask;
 
 /**
+ * This is the root class for all resolver tasks.
  *
+ * @version %I%, %G%
+ * @author Pierre Frisch
  */
 public abstract class DNSResolverTask extends DNSTask
 {
