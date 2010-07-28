@@ -918,7 +918,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         info.waitForAnnounced(0);
 
         logger.fine("registerService() JmDNS registered service as " + info);
-        System.out.println("registered service: " + info);
     }
 
     /*
@@ -1199,7 +1198,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             }
         }
         if (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()))
-         // if (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()) || DNSRecordType.TYPE_SRV.equals(rec.getRecordType()))
+        // if (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()) || DNSRecordType.TYPE_SRV.equals(rec.getRecordType()))
         {
             ServiceEvent event = rec.getServiceEvent(this);
             if ((event.getInfo() == null) || !event.getInfo().hasData())
@@ -1341,7 +1340,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
      */
     void handleResponse(DNSIncoming msg) throws IOException
     {
-        System.out.println("handleResponse: " + msg);
         final long now = System.currentTimeMillis();
 
         boolean hostConflictDetected = false;
@@ -1378,7 +1376,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
      */
     void handleQuery(DNSIncoming in, InetAddress addr, int port) throws IOException
     {
-        System.out.println("handleQuery: " + in);
         logger.fine(this.getName() + ".handle query: " + in);
         // Track known answers
         boolean conflictDetected = false;
@@ -1481,7 +1478,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
      */
     public void send(DNSOutgoing out) throws IOException
     {
-        System.out.println("send: " + out);
         if (!out.isEmpty())
         {
             byte[] message = out.data();
@@ -1649,15 +1645,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             }
 
         }
-    }
-
-    /**
-     * List cache entries, for debugging only.
-     */
-    void print()
-    {
-        System.out.println(_cache.toString());
-        System.out.println();
     }
 
     /**
