@@ -23,23 +23,23 @@ public abstract class DNSMessage
     /**
      *
      */
-    public final boolean MULTICAST = true;
+    public static final boolean MULTICAST = true;
 
     /**
      *
      */
-    public final boolean UNICAST = false;
+    public static final boolean UNICAST = false;
 
     // protected DatagramPacket _packet;
     // protected int _off;
     // protected int _len;
     // protected byte[] _data;
 
-    int _id;
+    private int _id;
 
     boolean _multicast;
 
-    int _flags;
+    private int _flags;
 
     protected final List<DNSQuestion> _questions;
 

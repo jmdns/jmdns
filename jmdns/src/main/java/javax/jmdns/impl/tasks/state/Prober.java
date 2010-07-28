@@ -4,11 +4,10 @@
 
 package javax.jmdns.impl.tasks.state;
 
+import java.io.IOException;
 import java.util.Timer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSQuestion;
 import javax.jmdns.impl.DNSRecord;
@@ -29,15 +28,11 @@ public class Prober extends DNSStateTask
 {
     static Logger logger = Logger.getLogger(Prober.class.getName());
 
-    /**
-     * The state of the prober.
-     */
-    DNSState taskState = DNSState.PROBING_1;
-
     public Prober(JmDNSImpl jmDNSImpl)
     {
         super(jmDNSImpl, defaultTTL());
 
+        this.setTaskState(DNSState.PROBING_1);
         this.associate(DNSState.PROBING_1);
     }
 
@@ -60,7 +55,7 @@ public class Prober extends DNSStateTask
     @Override
     public String toString()
     {
-        return super.toString() + " state: " + taskState;
+        return super.toString() + " state: " + this.getTaskState();
     }
 
     /*
@@ -100,70 +95,82 @@ public class Prober extends DNSStateTask
         return super.cancel();
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.state.DNSStateTask#getTaskDescription()
+     */
     @Override
-    public void run()
+    public String getTaskDescription()
     {
-        DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
-        try
-        {
-            if (this.getDns().isCanceling() || this.getDns().isCanceled())
-            {
-                this.cancel();
-                return;
-            }
-            // send probes for JmDNS itself
-            synchronized (this.getDns())
-            {
-                if (this.getDns().isAssociatedWithTask(this, taskState))
-                {
-                    logger.finer(this.getName() + ".run() JmDNS probing " + this.getDns().getName());
-                    out.addQuestion(DNSQuestion.newQuestion(this.getDns().getLocalHost().getName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-                    for (DNSRecord answer : this.getDns().getLocalHost().answers(this.getTTL()))
-                    {
-                        out = this.addAuthorativeAnswer(out, answer);
-                    }
-                    this.getDns().advanceState(this);
-                }
-            }
-            // send probes for services
-            for (ServiceInfo serviceInfo : this.getDns().getServices().values())
-            {
-                ServiceInfoImpl info = (ServiceInfoImpl) serviceInfo;
+        return "probing";
+    }
 
-                synchronized (info)
-                {
-                    if (info.isAssociatedWithTask(this, taskState))
-                    {
-                        logger.fine(this.getName() + ".run() JmDNS probing " + info.getQualifiedName());
-                        out = this.addQuestion(out, DNSQuestion.newQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-                        // the "unique" flag should be not set here because these answers haven't been proven unique
-                        // yet this means the record will not exactly match the announcement record
-                        out = this.addAuthorativeAnswer(out, new DNSRecord.Service(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, this.getTTL(), info.getPriority(), info.getWeight(), info.getPort(), this.getDns()
-                                .getLocalHost().getName()));
-                        info.advanceState(this);
-                    }
-                }
-            }
-            if (!out.isEmpty())
-            {
-                logger.finer(this.getName() + ".run() JmDNS probing #" + taskState);
-                this.getDns().send(out);
-            }
-            else
-            {
-                // If we have nothing to send, another timer taskState ahead of us has done the job for us. We can cancel.
-                cancel();
-                return;
-            }
-        }
-        catch (Throwable e)
-        {
-            logger.log(Level.WARNING, this.getName() + ".run() exception ", e);
-            this.getDns().recover();
-        }
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.state.DNSStateTask#checkRunCondition()
+     */
+    @Override
+    protected boolean checkRunCondition()
+    {
+        return !this.getDns().isCanceling() && !this.getDns().isCanceled();
+    }
 
-        taskState = taskState.advance();
-        if (!taskState.isProbing())
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.state.DNSStateTask#buildOutgoingForDNS(javax.jmdns.impl.DNSOutgoing)
+     */
+    @Override
+    protected DNSOutgoing buildOutgoingForDNS(DNSOutgoing out) throws IOException
+    {
+        DNSOutgoing newOut = out;
+        newOut.addQuestion(DNSQuestion.newQuestion(this.getDns().getLocalHost().getName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+        for (DNSRecord answer : this.getDns().getLocalHost().answers(DNSRecordClass.NOT_UNIQUE, this.getTTL()))
+        {
+            newOut = this.addAuthoritativeAnswer(newOut, answer);
+        }
+        return newOut;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.state.DNSStateTask#buildOutgoingForInfo(javax.jmdns.impl.ServiceInfoImpl, javax.jmdns.impl.DNSOutgoing)
+     */
+    @Override
+    protected DNSOutgoing buildOutgoingForInfo(ServiceInfoImpl info, DNSOutgoing out) throws IOException
+    {
+        DNSOutgoing newOut = out;
+        newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+        // the "unique" flag should be not set here because these answers haven't been proven unique yet this means the record will not exactly match the announcement record
+        newOut = this.addAuthoritativeAnswer(newOut, new DNSRecord.Service(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, this.getTTL(), info.getPriority(), info.getWeight(), info.getPort(), this.getDns().getLocalHost()
+                .getName()));
+        return newOut;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.state.DNSStateTask#recoverTask(java.lang.Throwable)
+     */
+    @Override
+    protected void recoverTask(Throwable e)
+    {
+        this.getDns().recover();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.state.DNSStateTask#advanceTask()
+     */
+    @Override
+    protected void advanceTask()
+    {
+        this.setTaskState(this.getTaskState().advance());
+        if (!this.getTaskState().isProbing())
         {
             cancel();
 

@@ -360,7 +360,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         boolean handleQuery(JmDNSImpl dns, long expirationTime)
         {
-            DNSRecord.Address dnsAddress = dns.getLocalHost().getDNSAddressRecord(this.getRecordType(), DNSConstants.DNS_TTL);
+            DNSRecord.Address dnsAddress = dns.getLocalHost().getDNSAddressRecord(this.getRecordType(), this.isUnique(), DNSConstants.DNS_TTL);
             if (dnsAddress != null)
             {
                 if (dnsAddress.sameType(this) && dnsAddress.sameName(this) && (!dnsAddress.sameValue(this)))
@@ -391,7 +391,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         boolean handleResponse(JmDNSImpl dns)
         {
-            DNSRecord.Address dnsAddress = dns.getLocalHost().getDNSAddressRecord(this.getRecordType(), DNSConstants.DNS_TTL);
+            DNSRecord.Address dnsAddress = dns.getLocalHost().getDNSAddressRecord(this.getRecordType(), this.isUnique(), DNSConstants.DNS_TTL);
             if (dnsAddress != null)
             {
                 if (dnsAddress.sameType(this) && dnsAddress.sameName(this) && (!dnsAddress.sameValue(this)))

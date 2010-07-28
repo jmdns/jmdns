@@ -825,11 +825,14 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             }
             list = _serviceListeners.get(lotype);
         }
-        synchronized (list)
+        if (list != null)
         {
-            if (!list.contains(listener))
+            synchronized (list)
             {
-                list.add(listener);
+                if (!list.contains(listener))
+                {
+                    list.add(listener);
+                }
             }
         }
         // report cached service types
@@ -911,10 +914,11 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             this.makeServiceNameUnique(info);
         }
 
-        new /* Service */Prober(this).start(_stateTimer);
+        this.startProber();
         info.waitForAnnounced(0);
 
         logger.fine("registerService() JmDNS registered service as " + info);
+        System.out.println("registered service: " + info);
     }
 
     /*
@@ -1008,7 +1012,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         if (subtype.length() > 0)
         {
             Set<String> subtypes = _serviceTypes.get(name);
-            if (!subtypes.contains(subtype))
+            if ((subtypes != null) && (!subtypes.contains(subtype)))
             {
                 synchronized (subtypes)
                 {
@@ -1195,7 +1199,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             }
         }
         if (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()))
-        // if (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()) || DNSRecordType.TYPE_SRV.equals(rec.getRecordType()))
+         // if (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()) || DNSRecordType.TYPE_SRV.equals(rec.getRecordType()))
         {
             ServiceEvent event = rec.getServiceEvent(this);
             if ((event.getInfo() == null) || !event.getInfo().hasData())
@@ -1259,6 +1263,77 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         }
     }
 
+    void handleRecord(DNSRecord record, long now)
+    {
+        DNSRecord newRecord = record;
+
+        Operation cacheOperation = Operation.Noop;
+        final boolean expired = newRecord.isExpired(now);
+
+        // update the cache
+        final DNSRecord cachedRecord = (DNSRecord) this.getCache().getDNSEntry(newRecord);
+        logger.fine(this.getName() + ".handle response: " + newRecord + "\ncached record: " + cachedRecord);
+        if (cachedRecord != null)
+        {
+            if (expired)
+            {
+                cacheOperation = Operation.Remove;
+                this.getCache().removeDNSEntry(cachedRecord);
+            }
+            else
+            {
+                // If the record content has changed we need to inform our listeners.
+                if (!newRecord.sameValue(cachedRecord) || (!newRecord.sameSubtype(cachedRecord) && (newRecord.getSubtype().length() > 0)))
+                {
+                    cacheOperation = Operation.Update;
+                    this.getCache().replaceDNSEntry(newRecord, cachedRecord);
+                }
+                else
+                {
+                    cachedRecord.resetTTL(newRecord);
+                    newRecord = cachedRecord;
+                }
+            }
+        }
+        else
+        {
+            if (!expired)
+            {
+                cacheOperation = Operation.Add;
+                this.getCache().addDNSEntry(newRecord);
+            }
+        }
+
+        switch (newRecord.getRecordType())
+        {
+            case TYPE_PTR:
+                // handle DNSConstants.DNS_META_QUERY records
+                boolean typeAdded = false;
+                if (newRecord.isServicesDiscoveryMetaQuery())
+                {
+                    // The service names are in the alias.
+                    if (!expired)
+                    {
+                        typeAdded = this.registerServiceType(((DNSRecord.Pointer) newRecord).getAlias());
+                    }
+                    return;
+                }
+                typeAdded |= this.registerServiceType(newRecord.getName());
+                if (typeAdded && (cacheOperation == Operation.Noop))
+                    cacheOperation = Operation.RegisterServiceType;
+                break;
+            default:
+                break;
+        }
+
+        // notify the listeners
+        if (cacheOperation != Operation.Noop)
+        {
+            this.updateRecord(now, newRecord, cacheOperation);
+        }
+
+    }
+
     /**
      * Handle an incoming response. Cache answers, and pass them on to the appropriate questions.
      *
@@ -1266,6 +1341,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
      */
     void handleResponse(DNSIncoming msg) throws IOException
     {
+        System.out.println("handleResponse: " + msg);
         final long now = System.currentTimeMillis();
 
         boolean hostConflictDetected = false;
@@ -1273,64 +1349,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
 
         for (DNSRecord newRecord : msg.getAllAnswers())
         {
-            Operation cacheOperation = Operation.Noop;
-            final boolean expired = newRecord.isExpired(now);
-
-            // update the cache
-            final DNSRecord cachedRecord = (DNSRecord) this.getCache().getDNSEntry(newRecord);
-            logger.fine(this.getName() + ".handle response: " + newRecord + "\ncached recod: " + cachedRecord);
-            if (cachedRecord != null)
-            {
-                if (expired)
-                {
-                    cacheOperation = Operation.Remove;
-                    this.getCache().removeDNSEntry(cachedRecord);
-                }
-                else
-                {
-                    // If the record content has changed we need to inform our listeners.
-                    if (!newRecord.sameValue(cachedRecord) || (!newRecord.sameSubtype(cachedRecord) && (newRecord.getSubtype().length() > 0)))
-                    {
-                        cacheOperation = Operation.Update;
-                        this.getCache().replaceDNSEntry(newRecord, cachedRecord);
-                    }
-                    else
-                    {
-                        cachedRecord.resetTTL(newRecord);
-                        newRecord = cachedRecord;
-                    }
-                }
-            }
-            else
-            {
-                if (!expired)
-                {
-                    cacheOperation = Operation.Add;
-                    this.getCache().addDNSEntry(newRecord);
-                }
-            }
-
-            switch (newRecord.getRecordType())
-            {
-                case TYPE_PTR:
-                    // handle DNSConstants.DNS_META_QUERY records
-                    boolean typeAdded = false;
-                    if (newRecord.isServicesDiscoveryMetaQuery())
-                    {
-                        // The service names are in the alias.
-                        if (!expired)
-                        {
-                            typeAdded = this.registerServiceType(((DNSRecord.Pointer) newRecord).getAlias());
-                        }
-                        continue;
-                    }
-                    typeAdded |= this.registerServiceType(newRecord.getName());
-                    if (typeAdded && (cacheOperation == Operation.Noop))
-                        cacheOperation = Operation.RegisterServiceType;
-                    break;
-                default:
-                    break;
-            }
+            this.handleRecord(newRecord, now);
 
             if (DNSRecordType.TYPE_A.equals(newRecord.getRecordType()) || DNSRecordType.TYPE_AAAA.equals(newRecord.getRecordType()))
             {
@@ -1341,11 +1360,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                 serviceConflictDetected |= newRecord.handleResponse(this);
             }
 
-            // notify the listeners
-            if (cacheOperation != Operation.Noop)
-            {
-                this.updateRecord(now, newRecord, cacheOperation);
-            }
         }
 
         if (hostConflictDetected || serviceConflictDetected)
@@ -1364,6 +1378,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
      */
     void handleQuery(DNSIncoming in, InetAddress addr, int port) throws IOException
     {
+        System.out.println("handleQuery: " + in);
         logger.fine(this.getName() + ".handle query: " + in);
         // Track known answers
         boolean conflictDetected = false;
@@ -1373,22 +1388,54 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             conflictDetected |= answer.handleQuery(this, expirationTime);
         }
 
-        if (_plannedAnswer != null)
+        _ioLock.lock();
+        try
         {
-            _plannedAnswer.append(in);
-        }
-        else
-        {
-            if (in.isTruncated())
+
+            if (_plannedAnswer != null)
             {
-                _plannedAnswer = in;
+                _plannedAnswer.append(in);
             }
-            new Responder(this, in, port).start(_timer);
+            else
+            {
+                if (in.isTruncated())
+                {
+                    _plannedAnswer = in;
+                }
+                new Responder(this, in, port).start(_timer);
+            }
+
+        }
+        finally
+        {
+            _ioLock.unlock();
+        }
+
+        final long now = System.currentTimeMillis();
+        for (DNSRecord answer : in.getAnswers())
+        {
+            this.handleRecord(answer, now);
         }
 
         if (conflictDetected)
         {
             this.startProber();
+        }
+    }
+
+    public void respondToQuery(DNSIncoming in)
+    {
+        _ioLock.lock();
+        try
+        {
+            if (_plannedAnswer == in)
+            {
+                _plannedAnswer = null;
+            }
+        }
+        finally
+        {
+            _ioLock.unlock();
         }
     }
 
@@ -1434,6 +1481,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
      */
     public void send(DNSOutgoing out) throws IOException
     {
+        System.out.println("send: " + out);
         if (!out.isEmpty())
         {
             byte[] message = out.data();
@@ -1637,7 +1685,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         for (String key : _serviceTypes.keySet())
         {
             Set<String> subtypes = _serviceTypes.get(key);
-            aLog.append("\n\t\tType: " + key + ": " + (subtypes.isEmpty() ? "no subtypes" : subtypes));
+            aLog.append("\n\t\tType: " + key + ": " + ((subtypes == null) || subtypes.isEmpty() ? "no subtypes" : subtypes));
         }
         aLog.append("\n");
         aLog.append(_cache.toString());
@@ -1702,7 +1750,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             }
         }
         logger.finer(this.getName() + ".collector: " + collector);
-        return collector.list(timeout);
+        // At this stage the collector should never be null but it keeps findbugs happy.
+        return (collector != null ? collector.list(timeout) : new ServiceInfo[0]);
     }
 
     /*
@@ -1759,8 +1808,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             if (collector != null)
             {
                 this.removeServiceListener(type, collector);
+                _serviceCollectors.remove(type, collector);
             }
-            _serviceCollectors.remove(type, collector);
         }
     }
 

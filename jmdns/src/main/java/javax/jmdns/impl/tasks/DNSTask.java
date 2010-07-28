@@ -186,7 +186,7 @@ public abstract class DNSTask extends TimerTask
      * @return outgoing message for the next answer
      * @throws IOException
      */
-    public DNSOutgoing addAuthorativeAnswer(DNSOutgoing out, DNSRecord rec) throws IOException
+    public DNSOutgoing addAuthoritativeAnswer(DNSOutgoing out, DNSRecord rec) throws IOException
     {
         DNSOutgoing newOut = out;
         try

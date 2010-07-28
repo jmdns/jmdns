@@ -207,33 +207,33 @@ public class HostInfo implements DNSStatefulObject
         return result;
     }
 
-    DNSRecord.Address getDNSAddressRecord(DNSRecordType type, int ttl)
+    DNSRecord.Address getDNSAddressRecord(DNSRecordType type, boolean unique, int ttl)
     {
         switch (type)
         {
             case TYPE_A:
-                return this.getDNS4AddressRecord(ttl);
+                return this.getDNS4AddressRecord(unique, ttl);
             case TYPE_AAAA:
-                return this.getDNS6AddressRecord(ttl);
+                return this.getDNS6AddressRecord(unique, ttl);
             default:
         }
         return null;
     }
 
-    private DNSRecord.Address getDNS4AddressRecord(int ttl)
+    private DNSRecord.Address getDNS4AddressRecord(boolean unique, int ttl)
     {
         if ((this.getInetAddress() instanceof Inet4Address) || ((this.getInetAddress() instanceof Inet6Address) && (((Inet6Address) this.getInetAddress()).isIPv4CompatibleAddress())))
         {
-            return new DNSRecord.IPv4Address(this.getName(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getInetAddress());
+            return new DNSRecord.IPv4Address(this.getName(), DNSRecordClass.CLASS_IN, unique, ttl, this.getInetAddress());
         }
         return null;
     }
 
-    private DNSRecord.Address getDNS6AddressRecord(int ttl)
+    private DNSRecord.Address getDNS6AddressRecord(boolean unique, int ttl)
     {
         if (this.getInetAddress() instanceof Inet6Address)
         {
-            return new DNSRecord.IPv6Address(this.getName(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getInetAddress());
+            return new DNSRecord.IPv6Address(this.getName(), DNSRecordClass.CLASS_IN, unique, ttl, this.getInetAddress());
         }
         return null;
     }
@@ -254,15 +254,15 @@ public class HostInfo implements DNSStatefulObject
         return buf.toString();
     }
 
-    public Collection<DNSRecord> answers(int ttl)
+    public Collection<DNSRecord> answers(boolean unique, int ttl)
     {
         List<DNSRecord> list = new ArrayList<DNSRecord>();
-        DNSRecord answer = this.getDNS4AddressRecord(ttl);
+        DNSRecord answer = this.getDNS4AddressRecord(unique, ttl);
         if (answer != null)
         {
             list.add(answer);
         }
-        answer = this.getDNS6AddressRecord(ttl);
+        answer = this.getDNS6AddressRecord(unique, ttl);
         if (answer != null)
         {
             list.add(answer);

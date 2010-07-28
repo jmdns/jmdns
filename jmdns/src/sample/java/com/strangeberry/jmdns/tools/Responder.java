@@ -56,27 +56,26 @@ public class Responder
                 {
                     ln = in.readLine();
                 }
-                if (ln == null)
-                {
-                    break;
-                }
-                String name = ln;
-                String type = in.readLine();
-                String text = in.readLine();
-                int port = Integer.parseInt(in.readLine());
+                if (ln != null) {
+                    String name = ln;
+                    String type = in.readLine();
+                    String text = in.readLine();
+                    int port = Integer.parseInt(in.readLine());
 
-                // make sure the type is fully qualified and in the local.
-                // domain
-                if (!type.endsWith("."))
-                {
-                    type += ".";
-                }
-                if (!type.endsWith(".local."))
-                {
-                    type += "local.";
-                }
+                    // make sure the type is fully qualified and in the local. domain
+                    if (type != null) {
+                        if (!type.endsWith("."))
+                        {
+                            type += ".";
+                        }
+                        if (!type.endsWith(".local."))
+                        {
+                            type += "local.";
+                        }
 
-                jmdns.registerService(ServiceInfo.create(type, name, port, text));
+                        jmdns.registerService(ServiceInfo.create(type, name, port, text));
+                    }
+                }
             }
         }
         finally

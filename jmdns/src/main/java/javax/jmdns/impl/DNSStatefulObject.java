@@ -315,14 +315,17 @@ public interface DNSStatefulObject
                     long end = (timeout > 0 ? System.currentTimeMillis() + timeout : Long.MAX_VALUE);
                     while (!finished)
                     {
-                        this.tryLock(DNSConstants.ANNOUNCE_WAIT_INTERVAL, TimeUnit.MILLISECONDS);
+                        boolean lock = this.tryLock(DNSConstants.ANNOUNCE_WAIT_INTERVAL, TimeUnit.MILLISECONDS);
                         try
                         {
                             finished = (this.isAnnounced() || this.willCancel() ? true : end <= System.currentTimeMillis());
                         }
                         finally
                         {
-                            this.unlock();
+                            if (lock)
+                            {
+                                this.unlock();
+                            }
                         }
                     }
                 }
@@ -361,14 +364,17 @@ public interface DNSStatefulObject
                     long end = (timeout > 0 ? System.currentTimeMillis() + timeout : Long.MAX_VALUE);
                     while (!finished)
                     {
-                        this.tryLock(DNSConstants.ANNOUNCE_WAIT_INTERVAL, TimeUnit.MILLISECONDS);
+                        boolean lock = this.tryLock(DNSConstants.ANNOUNCE_WAIT_INTERVAL, TimeUnit.MILLISECONDS);
                         try
                         {
                             finished = (this.isCanceled() ? true : end <= System.currentTimeMillis());
                         }
                         finally
                         {
-                            this.unlock();
+                            if (lock)
+                            {
+                                this.unlock();
+                            }
                         }
                     }
                 }
