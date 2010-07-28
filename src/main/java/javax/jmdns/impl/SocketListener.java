@@ -59,25 +59,17 @@ class SocketListener implements Runnable
                     {
                         logger.finest(this.getName() + ".run() JmDNS in:" + msg.print(true));
                     }
-                    this._jmDNSImpl.ioLock();
-                    try
+                    if (msg.isQuery())
                     {
-                        if (msg.isQuery())
+                        if (packet.getPort() != DNSConstants.MDNS_PORT)
                         {
-                            if (packet.getPort() != DNSConstants.MDNS_PORT)
-                            {
-                                this._jmDNSImpl.handleQuery(msg, packet.getAddress(), packet.getPort());
-                            }
-                            this._jmDNSImpl.handleQuery(msg, this._jmDNSImpl.getGroup(), DNSConstants.MDNS_PORT);
+                            this._jmDNSImpl.handleQuery(msg, packet.getAddress(), packet.getPort());
                         }
-                        else
-                        {
-                            this._jmDNSImpl.handleResponse(msg);
-                        }
+                        this._jmDNSImpl.handleQuery(msg, this._jmDNSImpl.getGroup(), DNSConstants.MDNS_PORT);
                     }
-                    finally
+                    else
                     {
-                        this._jmDNSImpl.ioUnlock();
+                        this._jmDNSImpl.handleResponse(msg);
                     }
                 }
                 catch (IOException e)

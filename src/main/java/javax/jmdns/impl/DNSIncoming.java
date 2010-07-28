@@ -76,8 +76,8 @@ public final class DNSIncoming extends DNSMessage
 
         try
         {
-            _id = readUnsignedShort();
-            _flags = readUnsignedShort();
+            this.setId(this.readUnsignedShort());
+            this.setFlags(this.readUnsignedShort());
             int numQuestions = readUnsignedShort();
             int numAnswers = readUnsignedShort();
             int numAuthorities = readUnsignedShort();
@@ -225,7 +225,7 @@ public final class DNSIncoming extends DNSMessage
                 rec = new DNSRecord.HostInformation(domain, recordClass, unique, ttl, cpu, os);
                 break;
             case TYPE_OPT:
-                DNSResultCode extendedResultCode = DNSResultCode.resultCodeForFlags(_flags, ttl);
+                DNSResultCode extendedResultCode = DNSResultCode.resultCodeForFlags(this.getFlags(), ttl);
                 int version = (ttl & 0x00ff0000) >> 16;
                 if (version == 0)
                 {
@@ -500,20 +500,20 @@ public final class DNSIncoming extends DNSMessage
         buf.append(", length=");
         buf.append(_packet.getLength());
         buf.append(", id=0x");
-        buf.append(Integer.toHexString(_id));
-        if (_flags != 0)
+        buf.append(Integer.toHexString(this.getId()));
+        if (this.getFlags() != 0)
         {
             buf.append(", flags=0x");
-            buf.append(Integer.toHexString(_flags));
-            if ((_flags & DNSConstants.FLAGS_QR_RESPONSE) != 0)
+            buf.append(Integer.toHexString(this.getFlags()));
+            if ((this.getFlags() & DNSConstants.FLAGS_QR_RESPONSE) != 0)
             {
                 buf.append(":r");
             }
-            if ((_flags & DNSConstants.FLAGS_AA) != 0)
+            if ((this.getFlags() & DNSConstants.FLAGS_AA) != 0)
             {
                 buf.append(":aa");
             }
-            if ((_flags & DNSConstants.FLAGS_TC) != 0)
+            if ((this.getFlags() & DNSConstants.FLAGS_TC) != 0)
             {
                 buf.append(":tc");
             }

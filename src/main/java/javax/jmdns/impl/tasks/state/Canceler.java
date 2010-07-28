@@ -4,16 +4,16 @@
 
 package javax.jmdns.impl.tasks.state;
 
+import java.io.IOException;
 import java.util.Timer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSRecord;
 import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.ServiceInfoImpl;
 import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSState;
 
 /**
@@ -23,15 +23,11 @@ public class Canceler extends DNSStateTask
 {
     static Logger logger = Logger.getLogger(Canceler.class.getName());
 
-    /**
-     * The state of the canceler.
-     */
-    DNSState taskState = DNSState.CANCELING_1;
-
     public Canceler(JmDNSImpl jmDNSImpl)
     {
         super(jmDNSImpl, 0);
 
+        this.setTaskState(DNSState.CANCELING_1);
         this.associate(DNSState.CANCELING_1);
     }
 
@@ -54,7 +50,7 @@ public class Canceler extends DNSStateTask
     @Override
     public String toString()
     {
-        return super.toString() + " state: " + taskState;
+        return super.toString() + " state: " + this.getTaskState();
     }
 
     /*
@@ -81,62 +77,81 @@ public class Canceler extends DNSStateTask
         return super.cancel();
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.state.DNSStateTask#getTaskDescription()
+     */
     @Override
-    public void run()
+    public String getTaskDescription()
     {
-        DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
-        try
-        {
-            logger.finer(this.getName() + ".run() JmDNS canceling service");
-            // send probes for JmDNS itself
-            synchronized (this.getDns())
-            {
-                if (this.getDns().isAssociatedWithTask(this, taskState))
-                {
-                    logger.finer(this.getName() + ".run() JmDNS canceling " + this.getDns().getName());
-                    for (DNSRecord answer : this.getDns().getLocalHost().answers(this.getTTL()))
-                    {
-                        out = this.addAnswer(out, null, answer);
-                    }
-                    this.getDns().advanceState(this);
-                }
-            }
-            // send announces for services
-            for (ServiceInfo serviceInfo : this.getDns().getServices().values())
-            {
-                ServiceInfoImpl info = (ServiceInfoImpl) serviceInfo;
-                synchronized (info)
-                {
-                    if (info.isAssociatedWithTask(this, taskState))
-                    {
-                        logger.finer(this.getName() + ".run() JmDNS canceling " + info.getQualifiedName());
-                        for (DNSRecord answer : info.answers(this.getTTL(), this.getDns().getLocalHost()))
-                        {
-                            out = this.addAnswer(out, null, answer);
-                        }
-                        info.advanceState(this);
-                    }
-                }
-            }
-            if (!out.isEmpty())
-            {
-                logger.finer(this.getName() + ".run() JmDNS canceling #" + taskState);
-                this.getDns().send(out);
-            }
-            else
-            {
-                // If we have nothing to send, another timer taskState ahead of us has done the job for us. We can cancel.
-                cancel();
-            }
-        }
-        catch (Throwable e)
-        {
-            logger.log(Level.WARNING, this.getName() + ".run() exception ", e);
-            this.getDns().recover();
-        }
+        return "canceling";
+    }
 
-        taskState = taskState.advance();
-        if (!taskState.isCanceling())
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.state.DNSStateTask#checkRunCondition()
+     */
+    @Override
+    protected boolean checkRunCondition()
+    {
+        return true;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.state.DNSStateTask#buildOutgoingForDNS(javax.jmdns.impl.DNSOutgoing)
+     */
+    @Override
+    protected DNSOutgoing buildOutgoingForDNS(DNSOutgoing out) throws IOException
+    {
+        DNSOutgoing newOut = out;
+        for (DNSRecord answer : this.getDns().getLocalHost().answers(DNSRecordClass.UNIQUE, this.getTTL()))
+        {
+            newOut = this.addAnswer(newOut, null, answer);
+        }
+        return newOut;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.state.DNSStateTask#buildOutgoingForInfo(javax.jmdns.impl.ServiceInfoImpl, javax.jmdns.impl.DNSOutgoing)
+     */
+    @Override
+    protected DNSOutgoing buildOutgoingForInfo(ServiceInfoImpl info, DNSOutgoing out) throws IOException
+    {
+        DNSOutgoing newOut = out;
+        for (DNSRecord answer : info.answers(DNSRecordClass.UNIQUE, this.getTTL(), this.getDns().getLocalHost()))
+        {
+            newOut = this.addAnswer(newOut, null, answer);
+        }
+        return newOut;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.state.DNSStateTask#recoverTask(java.lang.Throwable)
+     */
+    @Override
+    protected void recoverTask(Throwable e)
+    {
+        this.getDns().recover();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see javax.jmdns.impl.tasks.state.DNSStateTask#advanceTask()
+     */
+    @Override
+    protected void advanceTask()
+    {
+        this.setTaskState(this.getTaskState().advance());
+        if (!this.getTaskState().isCanceling())
         {
             cancel();
         }

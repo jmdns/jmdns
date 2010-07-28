@@ -81,7 +81,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
             super.setTask(task);
             if ((this._task == null) && _info.needTextAnnouncing())
             {
-                synchronized (this)
+                this.lock();
+                try
                 {
                     if ((this._task == null) && _info.needTextAnnouncing())
                     {
@@ -95,6 +96,10 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                         }
                         _info.setNeedTextAnnouncing(false);
                     }
+                }
+                finally
+                {
+                    this.unlock();
                 }
             }
         }
@@ -1210,7 +1215,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return buf.toString();
     }
 
-    public Collection<DNSRecord> answers(int ttl, HostInfo localHost)
+    public Collection<DNSRecord> answers(boolean unique, int ttl, HostInfo localHost)
     {
         List<DNSRecord> list = new ArrayList<DNSRecord>();
         if (this.getSubtype().length() > 0)
@@ -1218,8 +1223,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
             list.add(new Pointer(this.getTypeWithSubtype(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
         }
         list.add(new Pointer(this.getType(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
-        list.add(new Service(this.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, _priority, _weight, _port, localHost.getName()));
-        list.add(new Text(this.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, ttl, this.getText()));
+        list.add(new Service(this.getQualifiedName(), DNSRecordClass.CLASS_IN, unique, ttl, _priority, _weight, _port, localHost.getName()));
+        list.add(new Text(this.getQualifiedName(), DNSRecordClass.CLASS_IN, unique, ttl, this.getText()));
         return list;
     }
 
@@ -1271,7 +1276,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                     Object val = props.get(key);
                     ByteArrayOutputStream out2 = new ByteArrayOutputStream(100);
                     writeUTF(out2, key);
-                    if (val == NO_VALUE)
+                    if (val == null)
                     {
                         // Skip
                     }
@@ -1280,20 +1285,27 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                         out2.write('=');
                         writeUTF(out2, (String) val);
                     }
-                    else if ((val instanceof byte[]) && (((byte[]) val).length > 0))
+                    else if (val instanceof byte[])
                     {
-                        out2.write('=');
                         byte[] bval = (byte[]) val;
-                        out2.write(bval, 0, bval.length);
+                        if (bval.length > 0)
+                        {
+                            out2.write('=');
+                            out2.write(bval, 0, bval.length);
+                        }
+                        else
+                        {
+                            val = null;
+                        }
                     }
-                    else if (val != NO_VALUE)
+                    else
                     {
                         throw new IllegalArgumentException("invalid property value: " + val);
                     }
                     byte data[] = out2.toByteArray();
                     if (data.length > 255)
                     {
-                        new IOException("Cannot have individual values larger that 255 chars. Offending value: " + key + (val != NO_VALUE ? "=" + val : ""));
+                        throw new IOException("Cannot have individual values larger that 255 chars. Offending value: " + key + (val != null ? "" : "=" + val));
                     }
                     out.write((byte) data.length);
                     out.write(data, 0, data.length);

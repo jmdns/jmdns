@@ -85,7 +85,9 @@ public abstract class DNSResolverTask extends DNSTask
                         out = this.addAnswers(out);
                     }
                     if (!out.isEmpty())
+                    {
                         this.getDns().send(out);
+                    }
                 }
                 else
                 {

@@ -139,7 +139,7 @@
 
 	<target name="test" depends="build, jar">
 		<mkdir dir="${reports}" />
-		<get src="http://repo2.maven.org/maven2/org/easymock/easymock/2.5.2/easymock-2.5.2.jar" usetimestamp="yes" dest="${lib}/easymock-2.5.2.jar" />
+		<get src="http://repo2.maven.org/maven2/org/easymock/easymock/3.0/easymock-3.0.jar" usetimestamp="yes" dest="${lib}/easymock-3.0.jar" />
 		<get src="http://repo2.maven.org/maven2/junit/junit/4.8.1/junit-4.8.1.jar" usetimestamp="yes" dest="${lib}/junit-4.8.1.jar" />
 
 		<javac target="${jdk}" srcdir="${test}" destdir="${dest}">

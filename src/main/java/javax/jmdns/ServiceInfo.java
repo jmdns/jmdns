@@ -32,7 +32,7 @@ import javax.jmdns.impl.ServiceInfoImpl;
  */
 public abstract class ServiceInfo
 {
-    public final static byte[] NO_VALUE = new byte[0];
+    public static final byte[] NO_VALUE = new byte[0];
 
     public enum Fields
     {

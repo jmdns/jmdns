@@ -313,6 +313,7 @@ public final class DNSOutgoing extends DNSMessage
     {
         if (rec != null)
         {
+            // FIXME [PJYF July 27 2010] This is wrong when adding answers to a query we should not include stale records.
             if ((now == 0) || !rec.isExpired(now))
             {
                 MessageOutputStream record = new MessageOutputStream(512, this);
@@ -387,8 +388,8 @@ public final class DNSOutgoing extends DNSMessage
         _names.clear();
 
         MessageOutputStream message = new MessageOutputStream(_maxUDPPayload, this);
-        message.writeShort(_multicast ? 0 : _id);
-        message.writeShort(_flags);
+        message.writeShort(_multicast ? 0 : this.getId());
+        message.writeShort(this.getFlags());
         message.writeShort(this.getNumberOfQuestions());
         message.writeShort(this.getNumberOfAnswers());
         message.writeShort(this.getNumberOfAuthorities());
@@ -415,7 +416,7 @@ public final class DNSOutgoing extends DNSMessage
     @Override
     public boolean isQuery()
     {
-        return (_flags & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_QUERY;
+        return (this.getFlags() & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_QUERY;
     }
 
     @Override
@@ -424,20 +425,20 @@ public final class DNSOutgoing extends DNSMessage
         StringBuffer buf = new StringBuffer();
         buf.append(isQuery() ? "dns[query:" : "dns[response:");
         buf.append(" id=0x");
-        buf.append(Integer.toHexString(_id));
-        if (_flags != 0)
+        buf.append(Integer.toHexString(this.getId()));
+        if (this.getFlags() != 0)
         {
             buf.append(", flags=0x");
-            buf.append(Integer.toHexString(_flags));
-            if ((_flags & DNSConstants.FLAGS_QR_RESPONSE) != 0)
+            buf.append(Integer.toHexString(this.getFlags()));
+            if ((this.getFlags() & DNSConstants.FLAGS_QR_RESPONSE) != 0)
             {
                 buf.append(":r");
             }
-            if ((_flags & DNSConstants.FLAGS_AA) != 0)
+            if ((this.getFlags() & DNSConstants.FLAGS_AA) != 0)
             {
                 buf.append(":aa");
             }
-            if ((_flags & DNSConstants.FLAGS_TC) != 0)
+            if ((this.getFlags() & DNSConstants.FLAGS_TC) != 0)
             {
                 buf.append(":tc");
             }
