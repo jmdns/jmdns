@@ -61,7 +61,10 @@ public class RecordReaper extends DNSTask
         {
             return;
         }
-        logger.finest(this.getName() + ".run() JmDNS reaping cache");
+        if (logger.isLoggable(Level.FINEST))
+        {
+            logger.finest(this.getName() + ".run() JmDNS reaping cache");
+        }
 
         // Remove expired answers from the cache
         // -------------------------------------

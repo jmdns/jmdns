@@ -279,7 +279,10 @@ public final class DNSIncoming extends DNSMessage
                 }
                 break;
             default:
-                logger.finer("DNSIncoming() unknown type:" + type);
+                if (logger.isLoggable(Level.FINER))
+                {
+                    logger.finer("DNSIncoming() unknown type:" + type);
+                }
                 _off = end;
                 break;
         }

@@ -5,6 +5,7 @@
 package javax.jmdns.impl;
 
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.jmdns.ServiceInfo;
@@ -301,7 +302,10 @@ public class DNSQuestion extends DNSEntry
                 answers.addAll(jmDNSImpl.getLocalHost().answers(this.isUnique(), DNSConstants.DNS_TTL));
                 answers.addAll(info.answers(this.isUnique(), DNSConstants.DNS_TTL, jmDNSImpl.getLocalHost()));
             }
-            logger.finer(jmDNSImpl.getName() + " DNSQuestion(" + this.getName() + ").addAnswersForServiceInfo(): info: " + info + "\n" + answers);
+            if (logger.isLoggable(Level.FINER))
+            {
+                logger.finer(jmDNSImpl.getName() + " DNSQuestion(" + this.getName() + ").addAnswersForServiceInfo(): info: " + info + "\n" + answers);
+            }
         }
     }
 

@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>jmdns</groupId>
-	<artifactId>javax.jmdns</artifactId>
+	<groupId>javax.jmdns</groupId>
+	<artifactId>jmdns</artifactId>
 	<version>3.2.1-SNAPSHOT</version>
 	<name>JmDNS</name>
 	<packaging>jar</packaging>
@@ -136,9 +136,13 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 						</manifest>
 						<manifestEntries>
 							<Implementation-Build>${buildNumber}</Implementation-Build>
+							<Implementation-Date>${maven.build.timestamp}</Implementation-Date>
 						</manifestEntries>
 					</archive>
 					<excludes>
+						<exclude>com/**/tools/*.java</exclude>
+						<exclude>samples/*.java</exclude>
+						<exclude>grover*/*</exclude>
 						<exclude>**.svn/*</exclude>
 						<exclude>**/.svn*</exclude>
 						<exclude>**/.svn-base/*</exclude>
@@ -199,6 +203,8 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 						<goals>
 							<goal>instrument</goal>
 							<goal>aggregate</goal>
+							<goal>clover</goal>
+							<goal>check</goal>
 						</goals>
 					</execution>
 				</executions>
@@ -208,6 +214,21 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 	<reporting>
 		<outputDirectory>site</outputDirectory>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jxr-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<linkJavadoc>true</linkJavadoc>
+					<includes>
+						<include>javax/**/*.java</include>
+					</includes>
+					<excludes>
+						<exclude>com/**/tools/*.java</exclude>
+						<exclude>samples/*.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>com.atlassian.maven.plugins</groupId>
 				<artifactId>maven-clover2-plugin</artifactId>
@@ -232,8 +253,8 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 				<artifactId>jdepend-maven-plugin</artifactId>
 				<version>2.0-beta-2</version>
 			</plugin>
-			<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>findbugs-maven-plugin</artifactId> <version>2.1</version> <configuration> <findbugsXmlOutput>true</findbugsXmlOutput> <xmlOutputDirectory>site</xmlOutputDirectory> <aggregate>true</aggregate> <enable>true</enable> <threshold>Normal</threshold>
-				<effort>Default</effort> <onlyAnalyze>javax.jmdns.*</onlyAnalyze> <visitors>FindDeadLocalStores,UnreadFields</visitors> <omitVisitors>FindDeadLocalStores,UnreadFields</omitVisitors> </configuration> </plugin> -->
+			<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>findbugs-maven-plugin</artifactId> <version>2.3.1</version> <configuration> <findbugsXmlOutput>true</findbugsXmlOutput> <xmlOutputDirectory>site</xmlOutputDirectory> <aggregate>true</aggregate> <enable>true</enable> <threshold>Normal</threshold>
+				<effort>Default</effort> <onlyAnalyze>javax.jmdns.*</onlyAnalyze> <includeTests>false</includeTests> <visitors>FindDeadLocalStores,UnreadFields</visitors> <omitVisitors>FindDeadLocalStores,UnreadFields</omitVisitors> </configuration> </plugin> -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-changelog-plugin</artifactId>
@@ -244,20 +265,22 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>2.7</version>
 				<configuration>
-					<aggregate>true</aggregate>
-					<!-- <code>javadoc:aggregate</code> -->
 					<links>
 						<link>http://java.sun.com/j2se/1.5.0/docs/api</link>
 						<link>http://java.sun.com/javase/6/docs/api</link>
 						<link>http://logging.apache.org/log4j/1.2/apidocs/</link>
 						<link>http://junit.sourceforge.net/javadoc/</link>
 					</links>
+					<excludes>
+						<exclude>com/**/tools/*.java</exclude>
+						<exclude>samples/*.java</exclude>
+					</excludes>
 					<!-- additionalJOption>-J-Xmx512m</additionalJOption -->
 					<splitindex>true</splitindex>
 					<quiet />
-					<use>false</use>
-					<author>false</author>
-					<version>false</version>
+					<use>true</use>
+					<author>true</author>
+					<version>true</version>
 					<show>protected</show>
 					<keywords>true</keywords>
 					<verbose>true</verbose>
