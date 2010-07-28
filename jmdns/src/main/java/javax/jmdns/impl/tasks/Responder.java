@@ -81,7 +81,10 @@ public class Responder extends DNSTask
         boolean iAmTheOnlyOne = true;
         for (DNSQuestion question : _in.getQuestions())
         {
-            logger.finest(this.getName() + "start() question=" + question);
+            if (logger.isLoggable(Level.FINEST))
+            {
+                logger.finest(this.getName() + "start() question=" + question);
+            }
             iAmTheOnlyOne = question.iAmTheOnlyOne(this.getDns());
             if (!iAmTheOnlyOne)
             {
@@ -93,7 +96,10 @@ public class Responder extends DNSTask
         {
             delay = 0;
         }
-        logger.finest(this.getName() + "start() Responder chosen delay=" + delay);
+        if (logger.isLoggable(Level.FINEST))
+        {
+            logger.finest(this.getName() + "start() Responder chosen delay=" + delay);
+        }
         if (!this.getDns().isCanceling() && !this.getDns().isCanceled())
         {
             timer.schedule(this, delay);
@@ -117,7 +123,10 @@ public class Responder extends DNSTask
                 // Answer questions
                 for (DNSQuestion question : _in.getQuestions())
                 {
-                    logger.finer(this.getName() + "run() JmDNS responding to: " + question);
+                    if (logger.isLoggable(Level.FINER))
+                    {
+                        logger.finer(this.getName() + "run() JmDNS responding to: " + question);
+                    }
                     // for unicast responses the question must be included
                     if (_unicast)
                     {
@@ -135,14 +144,20 @@ public class Responder extends DNSTask
                     if (knownAnswer.isStale(now))
                     {
                         answers.remove(knownAnswer);
-                        logger.log(Level.FINER, this.getName() + "JmDNS Responder Known Answer Removed");
+                        if (logger.isLoggable(Level.FINER))
+                        {
+                            logger.finer(this.getName() + "JmDNS Responder Known Answer Removed");
+                        }
                     }
                 }
 
                 // respond if we have answers
                 if (answers.size() != 0)
                 {
-                    logger.finer(this.getName() + "run() JmDNS responding");
+                    if (logger.isLoggable(Level.FINER))
+                    {
+                        logger.finer(this.getName() + "run() JmDNS responding");
+                    }
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, !_unicast, _in.getSenderUDPPayload());
                     out.setId(_in.getId());
                     for (DNSQuestion question : questions)
