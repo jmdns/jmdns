@@ -38,7 +38,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<name>Arthur van Hoff</name>
 			<email>javanator@users.sourceforge.net</email>
 			<roles>
-				<role>Architect</role>
+				<role>Creator</role>
 			</roles>
 		</developer>
 		<developer>
@@ -47,8 +47,9 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<email>rickblair@users.sourceforge.net</email>
 			<roles>
 				<role>Administrator</role>
+				<role>Developer</role>
 			</roles>
-			<timezone>-8</timezone>
+			<timezone>-9</timezone>
 		</developer>
 		<developer>
 			<id>spearway</id>
@@ -56,9 +57,10 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<email>spearway@users.sourceforge.net</email>
 			<roles>
 				<role>Architect</role>
+				<role>Developer</role>
 			</roles>
 			<organization>spearway.com</organization>
-			<timezone>PST</timezone>
+			<timezone>-9</timezone>
 		</developer>
 	</developers>
 	<contributors>
@@ -112,6 +114,9 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<attach>true</attach>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -140,13 +145,9 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 						</manifestEntries>
 					</archive>
 					<excludes>
-						<exclude>com/**/tools/*.java</exclude>
-						<exclude>samples/*.java</exclude>
-						<exclude>grover*/*</exclude>
-						<exclude>**.svn/*</exclude>
-						<exclude>**/.svn*</exclude>
-						<exclude>**/.svn-base/*</exclude>
-						<exclude>**/CVS/*</exclude>
+						<!-- This fixes a bug in clover where it writes some instrumentation files where it should not JIAR: Clover/CLOV-943 -->
+						<exclude>groverconfig*/*.ser</exclude>
+						<exclude>groverconfig*</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
@@ -184,20 +185,6 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 				</configuration>
 				<executions>
 					<execution>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>instrument</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>main</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>instrument</goal>
-							<goal>aggregate</goal>
-						</goals>
-					</execution>
-					<execution>
 						<id>site</id>
 						<phase>pre-site</phase>
 						<goals>
@@ -212,7 +199,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 		</plugins>
 	</build>
 	<reporting>
-		<outputDirectory>site</outputDirectory>
+		<outputDirectory>target/site</outputDirectory>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
