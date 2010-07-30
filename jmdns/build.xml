@@ -11,18 +11,14 @@
 	<property name="samples" value="./src/sample/java" />
 	<property name="lib" value="./lib" />
 	<property name="test" value="./src/test/java" />
-	<property name="dest" value="./classes" />
-	<property name="reports" value="./reports" />
-	<property name="doc" value="./docs" />
+	<property name="build" value="./build" />
+	<property name="dest" value="${build}/classes" />
+	<property name="reports" value="${build}/reports" />
+	<property name="buildlib" value="${build}/lib" />
+	<property name="doc" value="${build}/docs" />
 	<property name="jdk" value="1.5" />
 	<property name="version" value="3.2.1" />
-
-	<!-- Configure custom Ant tasks for the Manager application -->
-	<path id="jmdns.classpath">
-		<fileset dir="lib">
-			<include name="*.jar" />
-		</fileset>
-	</path>
+	<property name="release" value="${build}/jmdns-${version}" />
 
 	<target name="help" description="Prints brief help message to screen">
 		<echo message="usage:" />
@@ -45,7 +41,6 @@
 		<javac target="${jdk}" srcdir="${src}" destdir="${dest}" debug="true">
 			<compilerarg value="-Xlint" />
 			<include name="javax/**/*.java" />
-			<classpath refid="jmdns.classpath" />
 		</javac>
 	</target>
 
@@ -53,7 +48,6 @@
 		<javac target="${jdk}" srcdir="${tools}" destdir="${dest}">
 			<compilerarg value="-Xlint" />
 			<include name="com/**/tools/*.java" />
-			<classpath refid="jmdns.classpath" />
 		</javac>
 	</target>
 
@@ -61,18 +55,23 @@
 		<javac target="${jdk}" srcdir="${samples}" destdir="${dest}">
 			<compilerarg value="-Xlint" />
 			<include name="samples/*.java" />
-			<classpath refid="jmdns.classpath" />
 		</javac>
 	</target>
 
 	<target name="jar" depends="build,tools" description="Jar the files">
-		<jar destfile="${lib}/jmdns.jar" manifest="${lib}/jmdns.manifest" basedir="${dest}" includes="**/*.class" />
+		<mkdir dir="${buildlib}" />
+		<jar destfile="${buildlib}/jmdns.jar" manifest="${lib}/jmdns.manifest" basedir="${dest}">
+			<fileset dir="${dest}" defaultexcludes="yes">
+				<include name="**/*.class" />
+				<exclude name="**/test/*.class" />
+			</fileset>
+		</jar>
 	</target>
 
 	<target name="bundle" description="Creates an OSGi bundle" depends="jar">
-		<get src="http://www.aqute.biz/repo/biz/aQute/bnd/0.0.384/bnd-0.0.384.jar" dest="bnd.jar" />
-		<taskdef resource="aQute/bnd/ant/taskdef.properties" classpath="bnd.jar" />
-		<echo file="jmdns.bnd" append="false">
+		<get src="http://www.aqute.biz/repo/biz/aQute/bnd/0.0.401/bnd-0.0.401.jar" dest="${lib}/bnd.jar" ignoreerrors="true" />
+		<taskdef resource="aQute/bnd/ant/taskdef.properties" classpath="${lib}/bnd.jar" />
+		<echo file="${build}/jmdns.bnd" append="false">
 				Bundle-Version: ${version}
 				Bundle-Name: JmDNS is a java implementation of the IETF draft RFP multicast extensions for DNS
 				Bundle-SymbolicName: javax.jmdns
@@ -86,68 +85,82 @@
 				<!-- API breakage: incr major, Feature addition: incr: minor -->
 				Export-Package: javax.jmdns;version=${version}
 			</echo>
-		<bndwrap definitions="." jars="${lib}/jmdns.jar" output="${lib}/javax.jmdns_${version}.jar" />
+		<bndwrap definitions="${build}" jars="${buildlib}/jmdns.jar" output="${buildlib}/javax.jmdns_${version}.jar" />
 	</target>
 
 	<target name="javadoc" depends="build" description="Create the java doc">
+		<mkdir dir="${doc}" />
 		<javadoc destdir="${doc}" author="true" version="true" header="JmDNS ${version}" windowtitle="JmDNS">
 			<fileset dir="${src}" defaultexcludes="yes">
 				<include name="javax/**/*.java" />
+			</fileset>
+			<fileset dir="${samples}" defaultexcludes="yes">
 				<include name="com/**/*.java" />
 			</fileset>
-
-			<doctitle>
-				<![CDATA[<h1>JmDNS</h1>]]></doctitle>
-
+			<doctitle><![CDATA[<h1>JmDNS</h1>]]></doctitle>
 		</javadoc>
 	</target>
 
 	<target name="release" depends="build,tools,javadoc,jar,bundle" description="Create a release">
-		<delete dir="jmdns-${version}" />
-		<copy todir="jmdns-${version}">
-			<fileset dir="." includes="*.txt" />
-			<fileset dir="." includes="NOTICE" />
+		<delete dir="${release}" includeEmptyDirs="true"  failonerror="false" />
+		<mkdir dir="${release}" />
+		<copy todir="${release}">
+			<fileset dir="." includes="CHANGELOG.txt" />
+			<fileset dir="." includes="NOTICE.txt" />
 			<fileset dir="." includes="LICENSE" />
-			<fileset dir="." includes="lib/jmdns.jar" />
-			<fileset dir="." includes="lib/jmdns.manifest" />
-			<fileset dir="." includes="src/**/*.java" />
-			<fileset dir="." includes="test/**/*.java" />
-			<fileset dir="." includes="docs/**" />
 			<fileset dir="." includes="build.xml" />
 			<fileset dir="." includes="fulllogging.properties" />
 		</copy>
-		<zip destfile="jmdns-${version}.zip">
-			<fileset dir="." includes="jmdns-${version}/**" />
+		<mkdir dir="${release}/lib" />
+		<copy todir="${release}/lib">
+			<fileset dir="${buildlib}" includes="jmdns.jar" />
+		</copy>
+		<mkdir dir="${release}/src" />
+		<copy todir="${release}/src">
+			<fileset dir="${src}" includes="**/*.java" />
+			<fileset dir="${test}" includes="**/*.java" />
+			<fileset dir="${samples}" includes="**/*.java" />
+		</copy>
+		<mkdir dir="${release}/docs" />
+		<copy todir="${release}/docs">
+			<fileset dir="${doc}" includes="**/*" />
+		</copy>
+		<zip destfile="${release}.zip">
+			<fileset dir="${release}" includes="**/*" />
 		</zip>
-		<tar destfile="jmdns-${version}.tar">
-			<tarfileset dir="." includes="jmdns-${version}/**" />
+		<tar destfile="${release}.tar">
+			<tarfileset dir="${release}" includes="**/*" />
 		</tar>
-		<gzip destfile="jmdns-${version}.tgz" src="jmdns-${version}.tar" />
+		<gzip destfile="${release}.tgz" src="${release}.tar" />
 	</target>
 
 	<target name="clean">
-		<delete dir="jmdns-${version}" failonerror="false" />
-		<delete includeEmptyDirs="true" failonerror="false">
-			<fileset dir="classes" includes="**" />
-			<fileset dir="${reports}" includes="**" />
-			<fileset dir="${lib}" includes="*.jar" />
-			<fileset dir="." includes="jmdns-**" />
-			<fileset dir="." includes="*.bnd" />
-			<fileset dir="." includes="bnd.jar" />
-		</delete>
+		<delete dir="${build}" includeEmptyDirs="true"  failonerror="false" />
 	</target>
+
+	<!-- Configure custom Ant tasks for the Manager application -->
+	<path id="jmdns.classpath">
+		<fileset dir="${lib}">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${buildlib}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
 
 	<target name="test" depends="build, jar">
 		<mkdir dir="${reports}" />
-		<get src="http://repo2.maven.org/maven2/org/easymock/easymock/3.0/easymock-3.0.jar" usetimestamp="yes" dest="${lib}/easymock-3.0.jar" />
-		<get src="http://repo2.maven.org/maven2/junit/junit/4.8.1/junit-4.8.1.jar" usetimestamp="yes" dest="${lib}/junit-4.8.1.jar" />
+		<get src="http://repo2.maven.org/maven2/junit/junit/4.8.1/junit-4.8.1.jar" usetimestamp="yes" dest="${lib}/junit.jar" ignoreerrors="true" />
+		<get src="http://repo2.maven.org/maven2/org/easymock/easymock/3.0/easymock-3.0.jar" usetimestamp="yes" dest="${lib}/easymock.jar" ignoreerrors="true" />
+		<get src="http://repo2.maven.org/maven2/cglib/cglib-nodep/2.2/cglib-nodep-2.2.jar" usetimestamp="yes" dest="${lib}/cglib-nodep.jar" ignoreerrors="true" />
+		<get src="http://repo2.maven.org/maven2/org/objenesis/objenesis/1.2/objenesis-1.2.jar" usetimestamp="yes" dest="${lib}/objenesis.jar" ignoreerrors="true" />
 
 		<javac target="${jdk}" srcdir="${test}" destdir="${dest}">
 			<compilerarg value="-Xlint" />
 			<classpath refid="jmdns.classpath" />
 		</javac>
 
-		<junit printsummary="yes" haltonfailure="yes" showoutput="yes">
+		<junit printsummary="yes" haltonfailure="no" showoutput="yes">
 			<classpath>
 				<pathelement path="${dest}" />
 				<fileset dir="${lib}">
