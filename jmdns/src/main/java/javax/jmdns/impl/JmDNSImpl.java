@@ -944,13 +944,13 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     public void unregisterService(ServiceInfo infoAbstract)
     {
         final ServiceInfoImpl info = (ServiceInfoImpl) infoAbstract;
-        _services.remove(info.getQualifiedName().toLowerCase());
         info.cancelState();
         this.startCanceler();
 
         // Remind: We get a deadlock here, if the Canceler does not run!
         info.waitForCanceled(0);
 
+        _services.remove(info.getQualifiedName().toLowerCase());
     }
 
     /*
