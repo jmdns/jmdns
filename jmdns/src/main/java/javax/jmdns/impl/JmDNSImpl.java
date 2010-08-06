@@ -950,7 +950,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         // Remind: We get a deadlock here, if the Canceler does not run!
         info.waitForCanceled(0);
 
-        _services.remove(info.getQualifiedName().toLowerCase());
+        _services.remove(info.getQualifiedName().toLowerCase(), info);
     }
 
     /*
