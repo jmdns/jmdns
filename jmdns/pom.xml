@@ -64,6 +64,16 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 		</developer>
 	</developers>
 	<contributors>
+		<contributor>
+			<name>melloware</name>
+			<email>info@melloware.com</email>
+			<url>http://www.melloware.com</url>
+			<organization>Melloware Tean</organization>
+			<organizationUrl>http://www.melloware.com</organizationUrl>
+			<roles>
+				<role>Maven Contributor</role>
+			</roles>
+		</contributor>
 	</contributors>
 	<licenses>
 		<license>
@@ -253,7 +263,6 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 				<version>2.7</version>
 				<configuration>
 					<links>
-						<link>http://java.sun.com/j2se/1.5.0/docs/api</link>
 						<link>http://java.sun.com/javase/6/docs/api</link>
 						<link>http://logging.apache.org/log4j/1.2/apidocs/</link>
 						<link>http://junit.sourceforge.net/javadoc/</link>
@@ -278,6 +287,69 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 					<windowtitle>JmDNS ${project.version} Reference</windowtitle>
 					<footer><![CDATA[<i>Last updated ${maven.build.timestamp}</i>]]></footer>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<rulesets>
+						<ruleset>/rulesets/basic.xml</ruleset>
+						<ruleset>/rulesets/imports.xml</ruleset>
+						<ruleset>/rulesets/unusedcode.xml</ruleset>
+						<ruleset>/rulesets/finalizers.xml</ruleset>
+						<ruleset>/rulesets/logging-jakarta-commons.xml</ruleset>
+						<ruleset>/rulesets/logging-java.xml</ruleset>
+						<ruleset>/rulesets/migrating_to_15.xml</ruleset>
+						<ruleset>/rulesets/design.xml</ruleset>
+						<ruleset>/rulesets/strings.xml</ruleset>
+					</rulesets>
+					<minimumTokens>150</minimumTokens>
+					<linkXref>true</linkXref>
+					<sourceEncoding>utf-8</sourceEncoding>
+					<targetJdk>1.6</targetJdk>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>taglist-maven-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<tagListOptions>
+						<tagClasses>
+							<tagClass>
+								<displayName>To do</displayName>
+								<tags>
+									<tag>
+										<matchString>todo</matchString>
+										<matchType>ignoreCase</matchType>
+									</tag>
+								</tags>
+							</tagClass>
+							<tagClass>
+								<displayName>To be fixed</displayName>
+								<tags>
+									<tag>
+										<matchString>FIXME</matchString>
+										<matchType>exact</matchType>
+									</tag>
+								</tags>
+							</tagClass>
+						</tagClasses>
+					</tagListOptions>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-changes-plugin</artifactId>
+				<version>2.3</version>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>changes-report</report>
+						</reports>
+					</reportSet>
+				</reportSets>
 			</plugin>
 		</plugins>
 	</reporting>
