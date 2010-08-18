@@ -2,7 +2,8 @@ CHANGELOG XX XXXX 2010 Pierre Frisch
 Rev the source code to 3.2.1
 ServiceInfo.setText() reannounces updated service only once - ID: 3030016
 unregisterService - ID: 3040520
-
+Maven depository update - ID: 1432672
+Maven POM file - ID: 3047223
 
 CHANGELOG 08 July 2010 Pierre Frisch
 Rev the source code to 3.2.0

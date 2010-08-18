@@ -75,6 +75,21 @@ public class ServiceInfoTest
         assertEquals("We did not get the right application:", "home-sharing", map.get(Fields.Application));
         assertEquals("We did not get the right name:", "", map.get(Fields.Instance));
         assertEquals("We did not get the right subtype:", "", map.get(Fields.Subtype));
+
+    }
+
+    @Test
+    public void testDecodeServiceTCPType()
+    {
+        String type = "_afpovertcp._tcp.local.";
+
+        Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(type);
+
+        assertEquals("We did not get the right domain:", "local", map.get(Fields.Domain));
+        assertEquals("We did not get the right protocol:", "tcp", map.get(Fields.Protocol));
+        assertEquals("We did not get the right application:", "afpovertcp", map.get(Fields.Application));
+        assertEquals("We did not get the right name:", "", map.get(Fields.Instance));
+        assertEquals("We did not get the right subtype:", "", map.get(Fields.Subtype));
     }
 
     @Test

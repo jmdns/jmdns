@@ -176,14 +176,21 @@ public final class DNSIncoming extends DNSMessage
                 String service = "";
                 try
                 {
-                    service = readName();
+                    service = this.readName();
                 }
                 catch (IOException e)
                 {
                     // there was a problem reading the service name
-                    logger.log(Level.WARNING, "There was a problem reading the service name of the answer.", e);
+                    logger.log(Level.WARNING, "There was a problem reading the service name of the answer for domain:" + domain, e);
                 }
-                rec = new DNSRecord.Pointer(domain, recordClass, unique, ttl, service);
+                if (service.length() > 0)
+                {
+                    rec = new DNSRecord.Pointer(domain, recordClass, unique, ttl, service);
+                }
+                else
+                {
+                    logger.log(Level.WARNING, "There was a problem reading the service name of the answer for domain:" + domain);
+                }
                 break;
             case TYPE_TXT:
                 rec = new DNSRecord.Text(domain, recordClass, unique, ttl, readBytes(_off, len));
@@ -212,7 +219,7 @@ public final class DNSIncoming extends DNSMessage
                 {
                     // this can happen if the type of the label cannot be handled.
                     // down below the offset gets advanced to the end of the record
-                    logger.log(Level.WARNING, "There was a problem reading the label of the answer. This can happen if the type of the label  cannot be handled.", e);
+                    logger.log(Level.WARNING, "There was a problem reading the label of the answer. This can happen if the type of the label cannot be handled." + this, e);
                 }
                 rec = new DNSRecord.Service(domain, recordClass, unique, ttl, priority, weight, port, target);
                 break;
@@ -434,15 +441,19 @@ public final class DNSIncoming extends DNSMessage
             for (int off = 0, len = _packet.getLength(); off < len; off += 32)
             {
                 int n = Math.min(32, len - off);
-                if (off < 10)
+                if (off < 0x10)
                 {
                     buf.append(' ');
                 }
-                if (off < 100)
+                if (off < 0x100)
                 {
                     buf.append(' ');
                 }
-                buf.append(off);
+                if (off < 0x1000)
+                {
+                    buf.append(' ');
+                }
+                buf.append(Integer.toHexString(off));
                 buf.append(':');
                 int index = 0;
                 for (index = 0; index < n; index++)
@@ -479,7 +490,7 @@ public final class DNSIncoming extends DNSMessage
                 buf.append("\n");
 
                 // limit message size
-                if (off + 32 >= 256)
+                if (off + 32 >= 2048)
                 {
                     buf.append("....\n");
                     break;

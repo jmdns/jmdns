@@ -300,12 +300,12 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
             }
             if (protocol.length() > 0)
             {
-                int index = aType.indexOf(protocol);
+                int index = aType.indexOf("_" + protocol + ".");
                 {
-                    int start = index + protocol.length() + 1;
+                    int start = index + protocol.length() + 2;
                     int end = aType.length() - 1;
                     domain = aType.substring(start, end);
-                    application = aType.substring(0, index - 2);
+                    application = aType.substring(0, index - 1);
                 }
             }
             {
