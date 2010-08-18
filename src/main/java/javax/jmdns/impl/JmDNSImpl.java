@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.Timer;
@@ -183,6 +184,36 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     private final ConcurrentMap<String, ServiceCollector> _serviceCollectors;
 
     private final String _name;
+
+    /**
+     * Main method to display API information if run from java -jar
+     * <p>
+     *
+     * @param argv
+     *            the command line arguments
+     */
+    public static void main(String[] argv)
+    {
+        String version = null;
+        try
+        {
+            final Properties pomProperties = new Properties();
+            pomProperties.load(JmDNSImpl.class.getResourceAsStream("/META-INF/maven/javax.jmdns/jmdns/pom.properties"));
+            version = pomProperties.getProperty("version");
+        }
+        catch (Exception e)
+        {
+            version = "RUNNING.IN.IDE.FULL";
+        }
+        System.out.println("JmDNS version \"" + version + "\"");
+        System.out.println(" ");
+
+        System.out.println("Running on java version \"" + System.getProperty("java.version") + "\"" + " (build " + System.getProperty("java.runtime.version") + ")" + " from " + System.getProperty("java.vendor"));
+
+        System.out.println("Operating environment \"" + System.getProperty("os.name") + "\"" + " version " + System.getProperty("os.version") + " on " + System.getProperty("os.arch"));
+
+        System.out.println("For more information on JmDNS please visit https://sourceforge.net/projects/jmdns/");
+    }
 
     /**
      * Create an instance of JmDNS and bind it to a specific network interface given its IP-address.

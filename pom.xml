@@ -5,27 +5,15 @@
 	<version>3.2.1-SNAPSHOT</version>
 	<name>JmDNS</name>
 	<packaging>jar</packaging>
-	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.8.1</version>
-			<type>jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.easymock</groupId>
-			<artifactId>easymock</artifactId>
-			<version>3.0</version>
-			<type>jar</type>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
 	<description>JmDNS is a Java implementation of multi-cast DNS and can be used for service registration and discovery in local area networks. JmDNS is fully compatible with Apple's Bonjour.
 The project was originally started in December 2002 by Arthur van Hoff at Stangeberry. In November 2003 the project was moved to SourceForge, and the name was changed from JRendezvous to JmDNS for legal reasons.
 Many thanks to Stuart Cheshire for help and moral support.</description>
 	<url>http://sourceforge.net/projects/jmdns/</url>
 	<inceptionYear>2002</inceptionYear>
+	<organization>
+		<name>SourceForge</name>
+		<url>https://sourceforge.net/projects/jmdns/</url>
+	</organization>
 	<scm>
 		<connection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns</connection>
 		<developerConnection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns</developerConnection>
@@ -82,6 +70,22 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
 		</license>
 	</licenses>
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.1</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+			<version>3.0</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 	<build>
 		<plugins>
 			<plugin>
@@ -146,6 +150,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 						<forced>true</forced>
 						<index>true</index>
 						<manifest>
+							<mainClass>javax.jmdns.impl.JmDNSImpl</mainClass>
 							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
 						</manifest>
@@ -164,7 +169,6 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
-				<version>2.2-SNAPSHOT</version>
 				<configuration>
 					<locales>en</locales>
 				</configuration>
@@ -240,9 +244,8 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>2.6-SNAPSHOT</version>
 				<configuration>
-					<configLocation>checkstyle.xml</configLocation>
+					<configLocation>${basedir}/checkstyle.xml</configLocation>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -250,8 +253,6 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 				<artifactId>jdepend-maven-plugin</artifactId>
 				<version>2.0-beta-2</version>
 			</plugin>
-			<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>findbugs-maven-plugin</artifactId> <version>2.3.1</version> <configuration> <findbugsXmlOutput>true</findbugsXmlOutput> <xmlOutputDirectory>site</xmlOutputDirectory> <aggregate>true</aggregate> <enable>true</enable> <threshold>Normal</threshold>
-				<effort>Default</effort> <onlyAnalyze>javax.jmdns.*</onlyAnalyze> <includeTests>false</includeTests> <visitors>FindDeadLocalStores,UnreadFields</visitors> <omitVisitors>FindDeadLocalStores,UnreadFields</omitVisitors> </configuration> </plugin> -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-changelog-plugin</artifactId>
@@ -354,6 +355,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 		</plugins>
 	</reporting>
 	<properties>
+		<organization.logo>http://mirrorbrain.org/static/images/misc/sourceforge-logo.png</organization.logo>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
 	</properties>
