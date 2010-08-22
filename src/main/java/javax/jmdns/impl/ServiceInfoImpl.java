@@ -303,7 +303,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                 int index = aType.indexOf("_" + protocol + ".");
                 {
                     int start = index + protocol.length() + 2;
-                    int end = aType.length() - 1;
+                    int end = aType.length() - (aType.endsWith(".") ? 1 : 0);
                     domain = aType.substring(start, end);
                     application = aType.substring(0, index - 1);
                 }
