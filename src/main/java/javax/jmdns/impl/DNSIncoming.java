@@ -276,7 +276,56 @@ public final class DNSIncoming extends DNSMessage
                         else
                         {
                             // We should really do something with those options.
-                            logger.log(Level.INFO, "There was an OPT answer. Option code: " + optionCode + " data: " + this._hexString(optiondata));
+                            switch (optionCode)
+                            {
+                                case Owner:
+                                    // Valid length values are 8, 14, 18 and 20
+                                    // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                                    // |Opt|Len|V|S|Primary MAC|Wakeup MAC | Password |
+                                    // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                                    //
+                                    int ownerVersion = 0;
+                                    int ownerSequence = 0;
+                                    byte[] ownerPrimaryMacAddress = null;
+                                    byte[] ownerWakeupMacAddress = null;
+                                    byte[] ownerPassword = null;
+                                    try
+                                    {
+                                        ownerVersion = optiondata[0];
+                                        ownerSequence = optiondata[1];
+                                        ownerPrimaryMacAddress = new byte[] { optiondata[2], optiondata[3], optiondata[4], optiondata[5], optiondata[6], optiondata[7] };
+                                        ownerWakeupMacAddress = ownerPrimaryMacAddress;
+                                        if (optiondata.length > 8)
+                                        {
+                                            // We have a wakeupMacAddress.
+                                            ownerWakeupMacAddress = new byte[] { optiondata[8], optiondata[9], optiondata[10], optiondata[11], optiondata[12], optiondata[13] };
+                                        }
+                                        if (optiondata.length == 18)
+                                        {
+                                            // We have a short password.
+                                            ownerPassword = new byte[] { optiondata[14], optiondata[15], optiondata[16], optiondata[17] };
+                                        }
+                                        if (optiondata.length == 22)
+                                        {
+                                            // We have a long password.
+                                            ownerPassword = new byte[] { optiondata[14], optiondata[15], optiondata[16], optiondata[17], optiondata[18], optiondata[19], optiondata[20], optiondata[21] };
+                                        }
+                                    }
+                                    catch (Exception exception)
+                                    {
+                                        logger.warning("Malformed OPT answer. Option code: Owner data: " + this._hexString(optiondata));
+                                    }
+                                    logger.info("Unhandled Owner OPT version: " + ownerVersion + " sequence: " + ownerSequence + " MAC address: " + this._hexString(ownerPrimaryMacAddress)
+                                            + (ownerWakeupMacAddress != ownerPrimaryMacAddress ? " wakeup MAC address: " + this._hexString(ownerWakeupMacAddress) : "")
+                                            + (ownerPassword != null ? " password: " + this._hexString(ownerPassword) : ""));
+                                    break;
+                                case LLQ:
+                                case NSID:
+                                case UL:
+                                case Unknown:
+                                    logger.log(Level.INFO, "There was an OPT answer. Option code: " + optionCode + " data: " + this._hexString(optiondata));
+                                    break;
+                            }
                         }
                     }
                 }

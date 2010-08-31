@@ -1,9 +1,11 @@
-CHANGELOG XX XXXX 2010 Pierre Frisch
+CHANGELOG 31 August 2010 Pierre Frisch
 Rev the source code to 3.2.1
 ServiceInfo.setText() reannounces updated service only once - ID: 3030016
+ServiceListener doesn't see updated ServiceInfo - ID: 3010451
 unregisterService - ID: 3040520
 Maven depository update - ID: 1432672
 Maven POM file - ID: 3047223
+********* Call backs are now executed in a separate executor. This should make JmDNS more responsive but may have consequences in the client code. *********
 
 CHANGELOG 08 July 2010 Pierre Frisch
 Rev the source code to 3.2.0
