@@ -148,11 +148,11 @@ public enum DNSRecordType
     /**
      * Server Selection [RFC2782]
      */
-    TYPE_SRV("src", 33),
+    TYPE_SRV("srv", 33),
     /**
      * ATM Address [Dobrowski]
      */
-    TYPE_ATMA("", 34),
+    TYPE_ATMA("atma", 34),
     /**
      * Naming Authority Pointer [RFC2168, RFC2915]
      */
@@ -263,7 +263,7 @@ public enum DNSRecordType
     }
 
     /**
-     * Return the string represenation of this type
+     * Return the string representation of this type
      *
      * @return String
      */
