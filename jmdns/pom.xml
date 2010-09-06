@@ -16,12 +16,12 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 	<url>http://sourceforge.net/projects/jmdns/</url>
 	<inceptionYear>2002</inceptionYear>
 	<organization>
-		<name>SourceForge</name>
+		<name>JmDNS</name>
 		<url>https://sourceforge.net/projects/jmdns/</url>
 	</organization>
 	<scm>
 		<connection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns</connection>
-		<developerConnection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns</developerConnection>
+		<developerConnection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns/trunk</developerConnection>
 		<tag>HEAD</tag>
 		<url>https://jmdns.svn.sourceforge.net/svnroot/jmdns</url>
 	</scm>
@@ -240,6 +240,14 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.0</version>
+				<configuration>
+					<tagBase>https://jmdns.svn.sourceforge.net/svnroot/jmdns/tags/</tagBase>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
