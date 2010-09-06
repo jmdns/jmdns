@@ -1208,8 +1208,21 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         buf.append("data");
         if (this.getText().length > 0)
         {
-            buf.append("\n");
-            buf.append(this.getNiceTextString());
+            // buf.append("\n");
+            // buf.append(this.getNiceTextString());
+            Map<String, byte[]> properties = this.getProperties();
+            if (!properties.isEmpty())
+            {
+                buf.append("\n");
+                for (String key : properties.keySet())
+                {
+                    buf.append("\t" + key + ": " + new String(properties.get(key)) + "\n");
+                }
+            }
+            else
+            {
+                buf.append(" empty");
+            }
         }
         buf.append(']');
         return buf.toString();
