@@ -1720,6 +1720,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             // Stop the canceler timer
             _stateTimer.cancel();
 
+            // Stop the executor
+            _executor.shutdown();
+
             // close socket
             this.closeMulticastSocket();
 
