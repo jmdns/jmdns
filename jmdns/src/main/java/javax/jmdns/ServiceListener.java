@@ -40,10 +40,11 @@ public interface ServiceListener extends EventListener
     void serviceRemoved(ServiceEvent event);
 
     /**
-     * A service has been resolved. Its details are now available in the ServiceInfo record.
+     * A service has been resolved. Its details are now available in the ServiceInfo record.<br/>
+     * <b>Note:</b>This call back will never be called if the service does not resolve.<br/>
      *
      * @param event
-     *            The ServiceEvent providing the name, the fully qualified type of the service, and the service info record, or null if the service could not be resolved.
+     *            The ServiceEvent providing the name, the fully qualified type of the service, and the service info record.
      */
     void serviceResolved(ServiceEvent event);
 }
