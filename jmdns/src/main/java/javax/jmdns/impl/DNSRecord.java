@@ -959,7 +959,6 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         boolean handleQuery(JmDNSImpl dns, long expirationTime)
         {
-            // TODO Auto-generated method stub
             return false;
         }
 
@@ -971,7 +970,6 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         boolean handleResponse(JmDNSImpl dns)
         {
-            // TODO Auto-generated method stub
             return false;
         }
 
