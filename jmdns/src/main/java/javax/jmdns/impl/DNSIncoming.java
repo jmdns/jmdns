@@ -34,6 +34,7 @@ public final class DNSIncoming extends DNSMessage
 
     public static class MessageInputStream extends ByteArrayInputStream
     {
+        // FIXME [PJYF September 9 2010] Future design pattern convert this class to use a custom byte stream.
 
         /**
          * @param buffer
@@ -43,7 +44,6 @@ public final class DNSIncoming extends DNSMessage
         public MessageInputStream(byte[] buffer, int offset, int length)
         {
             super(buffer, offset, length);
-            // TODO Auto-generated constructor stub
         }
 
     }
