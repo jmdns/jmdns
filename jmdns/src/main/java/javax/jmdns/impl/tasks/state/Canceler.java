@@ -108,7 +108,7 @@ public class Canceler extends DNSStateTask
     protected DNSOutgoing buildOutgoingForDNS(DNSOutgoing out) throws IOException
     {
         DNSOutgoing newOut = out;
-        for (DNSRecord answer : this.getDns().getLocalHost().answers(DNSRecordClass.UNIQUE, this.getTTL()))
+        for (DNSRecord answer : this.getDns().getLocalHost().answers(DNSRecordClass.NOT_UNIQUE, this.getTTL()))
         {
             newOut = this.addAnswer(newOut, null, answer);
         }
@@ -124,7 +124,7 @@ public class Canceler extends DNSStateTask
     protected DNSOutgoing buildOutgoingForInfo(ServiceInfoImpl info, DNSOutgoing out) throws IOException
     {
         DNSOutgoing newOut = out;
-        for (DNSRecord answer : info.answers(DNSRecordClass.UNIQUE, this.getTTL(), this.getDns().getLocalHost()))
+        for (DNSRecord answer : info.answers(DNSRecordClass.NOT_UNIQUE, this.getTTL(), this.getDns().getLocalHost()))
         {
             newOut = this.addAnswer(newOut, null, answer);
         }
