@@ -283,6 +283,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>2.5</version>
 				<configuration>
 					<configLocation>${basedir}/checkstyle.xml</configLocation>
 				</configuration>
