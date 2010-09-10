@@ -35,6 +35,8 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceInfo.Fields;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
+import javax.jmdns.impl.ListenerStatus.ServiceListenerStatus;
+import javax.jmdns.impl.ListenerStatus.ServiceTypeListenerStatus;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
@@ -89,12 +91,12 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     /**
      * Holds instances of ServiceListener's. Keys are Strings holding a fully qualified service type. Values are LinkedList's of ServiceListener's.
      */
-    private final ConcurrentMap<String, List<ServiceListener>> _serviceListeners;
+    private final ConcurrentMap<String, List<ServiceListenerStatus>> _serviceListeners;
 
     /**
      * Holds instances of ServiceTypeListener's.
      */
-    private final Set<ServiceTypeListener> _typeListeners;
+    private final Set<ServiceTypeListenerStatus> _typeListeners;
 
     /**
      * Cache for DNSEntry's.
@@ -234,8 +236,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         _cache = new DNSCache(100);
 
         _listeners = Collections.synchronizedList(new ArrayList<DNSListener>());
-        _serviceListeners = new ConcurrentHashMap<String, List<ServiceListener>>();
-        _typeListeners = Collections.synchronizedSet(new HashSet<ServiceTypeListener>());
+        _serviceListeners = new ConcurrentHashMap<String, List<ServiceListenerStatus>>();
+        _typeListeners = Collections.synchronizedSet(new HashSet<ServiceTypeListenerStatus>());
         _serviceCollectors = new ConcurrentHashMap<String, ServiceCollector>();
 
         _services = new ConcurrentHashMap<String, ServiceInfo>(20);
@@ -794,8 +796,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
 
     void handleServiceResolved(ServiceEvent event)
     {
-        List<ServiceListener> list = _serviceListeners.get(event.getType().toLowerCase());
-        final List<ServiceListener> listCopy;
+        List<ServiceListenerStatus> list = _serviceListeners.get(event.getType().toLowerCase());
+        final List<ServiceListenerStatus> listCopy;
         if ((list != null) && (!list.isEmpty()))
         {
             if ((event.getInfo() != null) && event.getInfo().hasData())
@@ -803,9 +805,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                 final ServiceEvent localEvent = event;
                 synchronized (list)
                 {
-                    listCopy = new ArrayList<ServiceListener>(list);
+                    listCopy = new ArrayList<ServiceListenerStatus>(list);
                 }
-                for (final ServiceListener listener : listCopy)
+                for (final ServiceListenerStatus listener : listCopy)
                 {
                     _executor.submit(new Runnable() {
                         @Override
@@ -825,12 +827,13 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     @Override
     public void addServiceTypeListener(ServiceTypeListener listener) throws IOException
     {
-        _typeListeners.add(listener);
+        ServiceTypeListenerStatus status = new ServiceTypeListenerStatus(listener);
+        _typeListeners.add(status);
 
         // report cached service types
         for (String type : _serviceTypes.keySet())
         {
-            listener.serviceTypeAdded(new ServiceEventImpl(this, type, "", null));
+            status.serviceTypeAdded(new ServiceEventImpl(this, type, "", null));
         }
 
         new TypeResolver(this).start(_timer);
@@ -844,7 +847,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     @Override
     public void removeServiceTypeListener(ServiceTypeListener listener)
     {
-        _typeListeners.remove(listener);
+        ServiceTypeListenerStatus status = new ServiceTypeListenerStatus(listener);
+        _typeListeners.remove(status);
     }
 
     /*
@@ -855,11 +859,12 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     @Override
     public void addServiceListener(String type, ServiceListener listener)
     {
+        ServiceListenerStatus status = new ServiceListenerStatus(listener);
         final String lotype = type.toLowerCase();
-        List<ServiceListener> list = _serviceListeners.get(lotype);
+        List<ServiceListenerStatus> list = _serviceListeners.get(lotype);
         if (list == null)
         {
-            if (_serviceListeners.putIfAbsent(lotype, new LinkedList<ServiceListener>()) == null)
+            if (_serviceListeners.putIfAbsent(lotype, new LinkedList<ServiceListenerStatus>()) == null)
             {
                 if (_serviceCollectors.putIfAbsent(lotype, new ServiceCollector(lotype)) == null)
                 {
@@ -874,7 +879,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             {
                 if (!list.contains(listener))
                 {
-                    list.add(listener);
+                    list.add(status);
                 }
             }
         }
@@ -897,7 +902,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         // Actually call listener with all service events added above
         for (ServiceEvent serviceEvent : serviceEvents)
         {
-            listener.serviceAdded(serviceEvent);
+            status.serviceAdded(serviceEvent);
         }
         // Create/start ServiceResolver
         new ServiceResolver(this, type).start(_timer);
@@ -912,12 +917,13 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     public void removeServiceListener(String type, ServiceListener listener)
     {
         String aType = type.toLowerCase();
-        List<ServiceListener> list = _serviceListeners.get(aType);
+        List<ServiceListenerStatus> list = _serviceListeners.get(aType);
         if (list != null)
         {
             synchronized (list)
             {
-                list.remove(listener);
+                ServiceListenerStatus status = new ServiceListenerStatus(listener);
+                list.remove(status);
                 if (list.isEmpty())
                 {
                     _serviceListeners.remove(aType, list);
@@ -1272,13 +1278,13 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                 }
             }
 
-            List<ServiceListener> list = _serviceListeners.get(event.getType());
-            final List<ServiceListener> serviceListenerList;
+            List<ServiceListenerStatus> list = _serviceListeners.get(event.getType());
+            final List<ServiceListenerStatus> serviceListenerList;
             if (list != null)
             {
                 synchronized (list)
                 {
-                    serviceListenerList = new ArrayList<ServiceListener>(list);
+                    serviceListenerList = new ArrayList<ServiceListenerStatus>(list);
                 }
             }
             else
@@ -1296,7 +1302,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                 switch (operation)
                 {
                     case Add:
-                        for (final ServiceListener listener : serviceListenerList)
+                        for (final ServiceListenerStatus listener : serviceListenerList)
                         {
                             _executor.submit(new Runnable() {
                                 @Override
@@ -1308,7 +1314,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                         }
                         break;
                     case Remove:
-                        for (final ServiceListener listener : serviceListenerList)
+                        for (final ServiceListenerStatus listener : serviceListenerList)
                         {
                             _executor.submit(new Runnable() {
                                 @Override
