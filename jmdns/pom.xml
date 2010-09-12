@@ -20,7 +20,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 		<url>https://sourceforge.net/projects/jmdns/</url>
 	</organization>
 	<scm>
-		<connection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns</connection>
+		<connection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns/trunk</connection>
 		<developerConnection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns/trunk</developerConnection>
 		<tag>HEAD</tag>
 		<url>https://jmdns.svn.sourceforge.net/svnroot/jmdns</url>
@@ -29,6 +29,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 		<site>
 			<id>jmdns.sf.net</id>
 			<url>scp://shell.sourceforge.net/home/groups/j/jm/jmdns/htdocs</url>
+			<!-- http://maven.apache.org/plugins/maven-site-plugin/examples/site-deploy-to-sourceforge.net.html -->
 		</site>
 	</distributionManagement>
 	<issueManagement>
@@ -74,23 +75,32 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<id>spearway</id>
 			<name>Pierre Frisch</name>
 			<email>spearway@users.sourceforge.net</email>
+			<url>http://www.spearway.com</url>
+			<organization>sPearWay Ltd.</organization>
+			<organizationUrl>http://www.spearway.com</organizationUrl>
 			<roles>
 				<role>Architect</role>
 				<role>Developer</role>
 			</roles>
-			<organization>spearway.com</organization>
 			<timezone>-9</timezone>
 		</developer>
 	</developers>
 	<contributors>
 		<contributor>
-			<name>melloware</name>
+			<name>Melloware</name>
 			<email>info@melloware.com</email>
 			<url>http://www.melloware.com</url>
 			<organization>Melloware Tean</organization>
 			<organizationUrl>http://www.melloware.com</organizationUrl>
 			<roles>
 				<role>Maven Contributor</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>Scott Lewis</name>
+			<email>slewis@users.sourceforge.net</email>
+			<roles>
+				<role>Contributor</role>
 			</roles>
 		</contributor>
 	</contributors>
@@ -202,6 +212,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 				<artifactId>maven-site-plugin</artifactId>
 				<configuration>
 					<locales>en</locales>
+					<!--<templateFile>src/site/site.vm</templateFile>-->
 				</configuration>
 			</plugin>
 			<plugin>
@@ -391,6 +402,9 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 						</reports>
 					</reportSet>
 				</reportSets>
+				<configuration>
+					<issueLinkTemplate>http://sourceforge.net/support/tracker.php?aid=%ISSUE%</issueLinkTemplate>
+				</configuration>
 			</plugin>
 		</plugins>
 	</reporting>

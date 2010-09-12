@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+  <properties>
+    <author>Pierre Frisch</author>
+    <title>JmDNS</title>
+  </properties>
+  <meta name = "keyword" content = "monitoring, java" />
+  <body>
+    <section name = "Idea and Concept">
+      <p>JmDNS is a Java implementation of multi-cast DNS and can be
+        used for service registration and discovery in local area networks.
+        JmDNS is fully compatible with
+        <a href = "http://developer.apple.com/macosx/rendezvous/">Apple's Bonjour</a>.
+      </p>
+      <p>The
+        <a href = "http://www.zeroconf.org/">Zeroconf</a>
+        working group is working towards zero configuration IP networking.
+        <a href = "http://www.multicastdns.org">Multi-cast DNS</a>
+        and
+        <a href = "http://www.dns-sd.org">DNS service discovery</a>
+        provide a convient ways for devices and services to register themselves,
+        and to discover other network-based services without relying on centrally administered services.</p>
+      <p>
+        Java as a language is not appropriate for low-level network configuration,
+        but it is very useful for service registration and discovery. JmDNS provides
+        easy-to-use pure-Java mDNS implementation that runs on most JDK1.6 compatible VMs.</p>
+      <p>The code is released under the Apache 2.0 license so that it can be freely
+        incorporated into other products and services.</p>
+    </section>
+    <section name = "History">
+      <p>The project was originally started in December 2002 by
+        <a href = "mailto:javanator@users.sourceforge.net">Arthur van Hoff</a>
+        at Stangeberry.
+        In November 2003 the project was moved to SourceForge, and the name was changed from JRendezvous to JmDNS for legal reasons.</p>
+      <p>Many thanks to Stuart Cheshire for help and moral support.</p>
+    </section>
+  </body>
+</document>

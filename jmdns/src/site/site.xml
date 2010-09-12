@@ -7,7 +7,7 @@
 	</skin>
 	<bannerLeft>
 		<name>JmDNS</name>
-		<src>images/logo.png</src>
+		<src>images/logos/logo.png</src>
 		<href>http://jmdns.sourceforge.net/</href>
 	</bannerLeft>
 	<bannerRight>
@@ -20,7 +20,11 @@
 			<item name="Zeroconf" href="http://www.zeroconf.org/" />
 			<item name="DNS-SD" href="http://www.dns-sd.org/" />
 		</links>
-		<menu ref="reports" />
+		<menu name="JmDNS Overview">
+			<item name="Description and Usage" href="index.html" />
+			<!--item name="Goals" href="plugin-info.html"/> <item name="Usage" href="usage.html"/> <item name="FAQ" href="faq.html"/ -->
+		</menu>
+		<menu ref="reports" name="Reports" />
 
 	</body>
 </project>
