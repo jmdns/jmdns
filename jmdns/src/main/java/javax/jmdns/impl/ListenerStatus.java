@@ -4,7 +4,8 @@
 package javax.jmdns.impl;
 
 import java.util.EventListener;
-import java.util.logging.Level;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
 
 import javax.jmdns.JmDNS;
@@ -28,11 +29,7 @@ public class ListenerStatus<T extends EventListener>
     {
         private static Logger logger = Logger.getLogger(ServiceListenerStatus.class.getName());
 
-        private volatile boolean _added;
-
-        private volatile boolean _resolved;
-
-        private volatile ServiceInfo _lastServiceInfo;
+        private final ConcurrentMap<String, ServiceInfo> _addedServices;
 
         /**
          * @param listener
@@ -40,9 +37,7 @@ public class ListenerStatus<T extends EventListener>
         public ServiceListenerStatus(ServiceListener listener)
         {
             super(listener);
-            _added = false;
-            _resolved = false;
-            _lastServiceInfo = null;
+            _addedServices = new ConcurrentHashMap<String, ServiceInfo>(32);
         }
 
         /**
@@ -60,16 +55,16 @@ public class ListenerStatus<T extends EventListener>
          * @param event
          *            The ServiceEvent providing the name and fully qualified type of the service.
          */
-        synchronized void serviceAdded(ServiceEvent event)
+        void serviceAdded(ServiceEvent event)
         {
-            if (!_added)
+            String qualifiedName = event.getName() + "." + event.getType();
+            if (null == _addedServices.putIfAbsent(qualifiedName, (ServiceInfo) event.getInfo().clone()))
             {
                 this.getListener().serviceAdded(event);
-                _added = true;
                 ServiceInfo info = event.getInfo();
                 if ((info != null) && (info.hasData()))
                 {
-                    this.serviceResolved(event);
+                    this.getListener().serviceResolved(event);
                 }
             }
             else
@@ -84,14 +79,12 @@ public class ListenerStatus<T extends EventListener>
          * @param event
          *            The ServiceEvent providing the name and fully qualified type of the service.
          */
-        synchronized void serviceRemoved(ServiceEvent event)
+        void serviceRemoved(ServiceEvent event)
         {
-            if (_added)
+            String qualifiedName = event.getName() + "." + event.getType();
+            if (_addedServices.remove(qualifiedName, _addedServices.get(qualifiedName)))
             {
                 this.getListener().serviceRemoved(event);
-                _added = false;
-                _resolved = false;
-                _lastServiceInfo = null;
             }
             else
             {
@@ -111,18 +104,23 @@ public class ListenerStatus<T extends EventListener>
             ServiceInfo info = event.getInfo();
             if ((info != null) && (info.hasData()))
             {
-                if ((!_resolved) || (!_sameInfo(info, _lastServiceInfo)))
+                String qualifiedName = event.getName() + "." + event.getType();
+                ServiceInfo previousServiceInfo = _addedServices.get(qualifiedName);
+                if (!_sameInfo(info, previousServiceInfo))
                 {
-                    this.getListener().serviceResolved(event);
-                    _resolved = true;
-                    try
+                    if (null == previousServiceInfo)
                     {
-                        _lastServiceInfo = (ServiceInfo) info.clone();
+                        if (null == _addedServices.putIfAbsent(qualifiedName, (ServiceInfo) info.clone()))
+                        {
+                            this.getListener().serviceResolved(event);
+                        }
                     }
-                    catch (CloneNotSupportedException exception)
+                    else
                     {
-                        // clone is supported
-                        logger.log(Level.SEVERE, "Exception ", exception);
+                        if (_addedServices.replace(qualifiedName, previousServiceInfo, (ServiceInfo) info.clone()))
+                        {
+                            this.getListener().serviceResolved(event);
+                        }
                     }
                 }
                 else
@@ -156,15 +154,42 @@ public class ListenerStatus<T extends EventListener>
             }
             return true;
         }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString()
+        {
+            StringBuilder aLog = new StringBuilder(2048);
+            aLog.append("[Status for ");
+            aLog.append(this.getListener().toString());
+            if (_addedServices.isEmpty())
+            {
+                aLog.append(" no type event ");
+            }
+            else
+            {
+                aLog.append(" (");
+                for (String service : _addedServices.keySet())
+                {
+                    aLog.append(service + ", ");
+                }
+                aLog.append(") ");
+            }
+            aLog.append("]");
+            return aLog.toString();
+        }
+
     }
 
     public static class ServiceTypeListenerStatus extends ListenerStatus<ServiceTypeListener>
     {
         private static Logger logger = Logger.getLogger(ServiceTypeListenerStatus.class.getName());
 
-        private volatile boolean _typeAdded;
-
-        private volatile boolean _subTypeAdded;
+        private final ConcurrentMap<String, String> _addedTypes;
 
         /**
          * @param listener
@@ -172,8 +197,7 @@ public class ListenerStatus<T extends EventListener>
         public ServiceTypeListenerStatus(ServiceTypeListener listener)
         {
             super(listener);
-            _typeAdded = false;
-            _subTypeAdded = false;
+            _addedTypes = new ConcurrentHashMap<String, String>(32);
         }
 
         /**
@@ -182,12 +206,11 @@ public class ListenerStatus<T extends EventListener>
          * @param event
          *            The service event providing the fully qualified type of the service.
          */
-        synchronized void serviceTypeAdded(ServiceEvent event)
+        void serviceTypeAdded(ServiceEvent event)
         {
-            if (!_typeAdded)
+            if (null == _addedTypes.putIfAbsent(event.getType(), event.getType()))
             {
                 this.getListener().serviceTypeAdded(event);
-                _typeAdded = true;
             }
             else
             {
@@ -205,18 +228,46 @@ public class ListenerStatus<T extends EventListener>
          * @param event
          *            The service event providing the fully qualified type of the service with subtype.
          */
-        synchronized void subTypeForServiceTypeAdded(ServiceEvent event)
+        void subTypeForServiceTypeAdded(ServiceEvent event)
         {
-            if (!_subTypeAdded)
+            if (null == _addedTypes.putIfAbsent(event.getType(), event.getType()))
             {
                 this.getListener().subTypeForServiceTypeAdded(event);
-                _subTypeAdded = true;
             }
             else
             {
                 logger.finest("Service Sub Type Added called for a service sub type already added: " + event);
             }
         }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString()
+        {
+            StringBuilder aLog = new StringBuilder(2048);
+            aLog.append("[Status for ");
+            aLog.append(this.getListener().toString());
+            if (_addedTypes.isEmpty())
+            {
+                aLog.append(" no type event ");
+            }
+            else
+            {
+                aLog.append(" (");
+                for (String type : _addedTypes.keySet())
+                {
+                    aLog.append(type + ", ");
+                }
+                aLog.append(") ");
+            }
+            aLog.append("]");
+            return aLog.toString();
+        }
+
     }
 
     private final T _listener;

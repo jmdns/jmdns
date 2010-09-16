@@ -1058,15 +1058,15 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             typeAdded = _serviceTypes.putIfAbsent(name, new HashSet<String>()) == null;
             if (typeAdded)
             {
-                final ServiceTypeListener[] list = _typeListeners.toArray(new ServiceTypeListener[_typeListeners.size()]);
+                final ServiceTypeListenerStatus[] list = _typeListeners.toArray(new ServiceTypeListenerStatus[_typeListeners.size()]);
                 final ServiceEvent event = new ServiceEventImpl(this, name, "", null);
-                for (final ServiceTypeListener listener : list)
+                for (final ServiceTypeListenerStatus status : list)
                 {
                     _executor.submit(new Runnable() {
                         @Override
                         public void run()
                         {
-                            listener.serviceTypeAdded(event);
+                            status.serviceTypeAdded(event);
                         }
                     });
                 }
@@ -1083,15 +1083,15 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                     {
                         typeAdded = true;
                         subtypes.add(subtype);
-                        final ServiceTypeListener[] list = _typeListeners.toArray(new ServiceTypeListener[_typeListeners.size()]);
+                        final ServiceTypeListenerStatus[] list = _typeListeners.toArray(new ServiceTypeListenerStatus[_typeListeners.size()]);
                         final ServiceEvent event = new ServiceEventImpl(this, "_" + subtype + "._sub." + name, "", null);
-                        for (final ServiceTypeListener listener : list)
+                        for (final ServiceTypeListenerStatus status : list)
                         {
                             _executor.submit(new Runnable() {
                                 @Override
                                 public void run()
                                 {
-                                    listener.subTypeForServiceTypeAdded(event);
+                                    status.subTypeForServiceTypeAdded(event);
                                 }
                             });
                         }

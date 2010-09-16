@@ -624,9 +624,17 @@ public abstract class ServiceInfo
     public abstract Map<Fields, String> getQualifiedNameMap();
 
     @Override
-    public Object clone() throws CloneNotSupportedException
+    public Object clone()
     {
-        return super.clone();
+        try
+        {
+            return super.clone();
+        }
+        catch (CloneNotSupportedException exception)
+        {
+            // clone is supported
+            return null;
+        }
     }
 
 }
