@@ -45,7 +45,7 @@ public class JmDNSTest
     @Before
     public void setup()
     {
-        boolean log = false;
+        boolean log = true;
         if (log)
         {
             ConsoleHandler handler = new ConsoleHandler();
