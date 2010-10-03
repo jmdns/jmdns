@@ -39,10 +39,8 @@ public interface DNSStatefulObject
             _state = DNSState.PROBING_1;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see javax.jmdns.impl.DNSStatefullObject#getDns()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public JmDNSImpl getDns()
@@ -55,10 +53,8 @@ public interface DNSStatefulObject
             this._dns = dns;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see javax.jmdns.impl.DNSStatefulObject#associateWithTask(javax.jmdns.impl.tasks.DNSTask, javax.jmdns.impl.constants.DNSState)
+        /**
+         * {@inheritDoc}
          */
         @Override
         public void associateWithTask(DNSTask task, DNSState state)
@@ -80,10 +76,8 @@ public interface DNSStatefulObject
             }
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see javax.jmdns.impl.DNSStatefulObject#removeAssociationWithTask(javax.jmdns.impl.tasks.DNSTask)
+        /**
+         * {@inheritDoc}
          */
         @Override
         public void removeAssociationWithTask(DNSTask task)
@@ -105,10 +99,8 @@ public interface DNSStatefulObject
             }
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see javax.jmdns.impl.DNSStatefullObject#isHandledByTask(javax.jmdns.impl.tasks.DNSTask, javax.jmdns.impl.constants.DNSState)
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean isAssociatedWithTask(DNSTask task, DNSState state)
@@ -129,10 +121,8 @@ public interface DNSStatefulObject
             this._task = task;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see javax.jmdns.impl.DNSStatefulObject#advanceState(javax.jmdns.impl.tasks.DNSTask)
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean advanceState(DNSTask task)
@@ -160,10 +150,8 @@ public interface DNSStatefulObject
             return result;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see javax.jmdns.impl.DNSStatefullObject#revertState()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean revertState()
@@ -188,10 +176,8 @@ public interface DNSStatefulObject
             return result;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see javax.jmdns.impl.DNSStatefullObject#cancel()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean cancelState()
@@ -217,10 +203,8 @@ public interface DNSStatefulObject
             return result;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see javax.jmdns.impl.DNSStatefulObject#recover()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean recoverState()
@@ -239,10 +223,8 @@ public interface DNSStatefulObject
             return result;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see javax.jmdns.impl.DNSStatefullObject#isProbing()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean isProbing()
@@ -250,10 +232,8 @@ public interface DNSStatefulObject
             return this._state.isProbing();
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see javax.jmdns.impl.DNSStatefullObject#isAnnouncing()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean isAnnouncing()
@@ -261,10 +241,8 @@ public interface DNSStatefulObject
             return this._state.isAnnouncing();
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see javax.jmdns.impl.DNSStatefullObject#isAnnounced()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean isAnnounced()
@@ -272,10 +250,8 @@ public interface DNSStatefulObject
             return this._state.isAnnounced();
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see javax.jmdns.impl.DNSStatefulObject#isCanceling()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean isCanceling()
@@ -283,10 +259,8 @@ public interface DNSStatefulObject
             return this._state.isCanceling();
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see javax.jmdns.impl.DNSStatefullObject#isCanceled()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean isCanceled()
@@ -299,10 +273,8 @@ public interface DNSStatefulObject
             return this._state.isCanceled() || this._state.isCanceling();
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see javax.jmdns.impl.DNSStatefulObject#waitForAnnounced(long)
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean waitForAnnounced(long timeout)
@@ -348,10 +320,8 @@ public interface DNSStatefulObject
             return this.isAnnounced();
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see javax.jmdns.impl.DNSStatefulObject#waitForCanceled(long)
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean waitForCanceled(long timeout)
@@ -390,10 +360,8 @@ public interface DNSStatefulObject
             return this.isCanceled();
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.lang.Object#toString()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public String toString()

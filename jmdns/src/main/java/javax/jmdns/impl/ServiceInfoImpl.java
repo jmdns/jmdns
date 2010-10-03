@@ -284,7 +284,9 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
                         // We need to preserve the case for the user readable name.
                         name = type.substring(0, index);
                         if (index + 1 < aType.length())
+                        {
                             aType = aType.substring(index + 1);
+                        }
                     }
                 }
             }
@@ -335,31 +337,41 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         // Optional domain
         String domain = (qualifiedNameMap.containsKey(Fields.Domain) ? qualifiedNameMap.get(Fields.Domain) : "local");
         if ((domain == null) || (domain.length() == 0))
+        {
             domain = "local";
+        }
         domain = removeSeparators(domain);
         checkedQualifiedNameMap.put(Fields.Domain, domain);
         // Optional protocol
         String protocol = (qualifiedNameMap.containsKey(Fields.Protocol) ? qualifiedNameMap.get(Fields.Protocol) : "tcp");
         if ((protocol == null) || (protocol.length() == 0))
+        {
             protocol = "tcp";
+        }
         protocol = removeSeparators(protocol);
         checkedQualifiedNameMap.put(Fields.Protocol, protocol);
         // Application
         String application = (qualifiedNameMap.containsKey(Fields.Application) ? qualifiedNameMap.get(Fields.Application) : "");
         if ((application == null) || (application.length() == 0))
+        {
             application = "";
+        }
         application = removeSeparators(application);
         checkedQualifiedNameMap.put(Fields.Application, application);
         // Instance
         String instance = (qualifiedNameMap.containsKey(Fields.Instance) ? qualifiedNameMap.get(Fields.Instance) : "");
         if ((instance == null) || (instance.length() == 0))
+        {
             throw new IllegalArgumentException("The instance name component of a fully qualified service cannot be empty.");
+        }
         instance = removeSeparators(instance);
         checkedQualifiedNameMap.put(Fields.Instance, instance);
         // Optional Subtype
         String subtype = (qualifiedNameMap.containsKey(Fields.Subtype) ? qualifiedNameMap.get(Fields.Subtype) : "");
         if ((instance == null) || (instance.length() == 0))
+        {
             instance = "";
+        }
         subtype = removeSeparators(subtype);
         checkedQualifiedNameMap.put(Fields.Subtype, subtype);
 
@@ -384,10 +396,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return newName;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getType()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getType()
@@ -398,10 +408,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + "." : "") + domain + ".";
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getTypeWithSubtype()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getTypeWithSubtype()
@@ -410,10 +418,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return (subtype.length() > 0 ? "_" + subtype.toLowerCase() + "._sub." : "") + this.getType();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getName()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getName()
@@ -432,10 +438,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         this._name = name;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getQualifiedName()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getQualifiedName()
@@ -468,10 +472,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         this._server = server;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getHostAddress()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getHostAddress()
@@ -479,10 +481,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return (this.getInetAddress() != null ? this.getInetAddress().getHostAddress() : "");
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getAddress()
+    /**
+     * {@inheritDoc}
      */
     @Deprecated
     @Override
@@ -509,10 +509,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         this._ipv6Addr = addr;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getInetAddress()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public InetAddress getInetAddress()
@@ -520,10 +518,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return (_ipv4Addr != null ? _ipv4Addr : _ipv6Addr);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getInet4Address()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public Inet4Address getInet4Address()
@@ -531,10 +527,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return _ipv4Addr;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getInet6Address()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public Inet6Address getInet6Address()
@@ -578,10 +572,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return getText();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getTextString()
+    /**
+     * {@inheritDoc}
      */
     @Deprecated
     @Override
@@ -631,10 +623,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return url;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getPropertyBytes(java.lang.String)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public synchronized byte[] getPropertyBytes(String name)
@@ -642,10 +632,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return this.getProperties().get(name);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getPropertyString(java.lang.String)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public synchronized String getPropertyString(String name)
@@ -662,10 +650,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return readUTF(data, 0, data.length);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getPropertyNames()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public Enumeration<String> getPropertyNames()
@@ -675,10 +661,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return new Vector<String>(names).elements();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getApplication()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getApplication()
@@ -686,10 +670,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return (_application != null ? _application : "");
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getDomain()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getDomain()
@@ -697,10 +679,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return (_domain != null ? _domain : "local");
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getProtocol()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getProtocol()
@@ -708,10 +688,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return (_protocol != null ? _protocol : "tcp");
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getSubtype()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getSubtype()
@@ -719,10 +697,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return (_subtype != null ? _subtype : "");
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getQualifiedNameMap()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public Map<Fields, String> getQualifiedNameMap()
@@ -967,10 +943,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
 
     // State machine
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#advanceState(javax.jmdns.impl.tasks.DNSTask)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean advanceState(DNSTask task)
@@ -978,10 +952,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return _state.advanceState(task);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#revertState()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean revertState()
@@ -989,10 +961,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return _state.revertState();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#cancel()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean cancelState()
@@ -1000,10 +970,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return _state.cancelState();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#recover()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean recoverState()
@@ -1011,10 +979,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return this._state.recoverState();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#removeAssociationWithTask(javax.jmdns.impl.tasks.DNSTask)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void removeAssociationWithTask(DNSTask task)
@@ -1022,10 +988,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         _state.removeAssociationWithTask(task);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#associateWithTask(javax.jmdns.impl.tasks.DNSTask, javax.jmdns.impl.constants.DNSState)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void associateWithTask(DNSTask task, DNSState state)
@@ -1033,10 +997,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         _state.associateWithTask(task, state);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#isAssociatedWithTask(javax.jmdns.impl.tasks.DNSTask, javax.jmdns.impl.constants.DNSState)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean isAssociatedWithTask(DNSTask task, DNSState state)
@@ -1044,10 +1006,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return _state.isAssociatedWithTask(task, state);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#isProbing()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean isProbing()
@@ -1055,10 +1015,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return _state.isProbing();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#isAnnouncing()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean isAnnouncing()
@@ -1066,10 +1024,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return _state.isAnnouncing();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#isAnnounced()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean isAnnounced()
@@ -1077,10 +1033,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return _state.isAnnounced();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#isCanceling()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean isCanceling()
@@ -1088,10 +1042,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return this._state.isCanceling();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#isCanceled()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean isCanceled()
@@ -1099,10 +1051,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return _state.isCanceled();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#waitForAnnounced(long)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean waitForAnnounced(long timeout)
@@ -1110,10 +1060,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return _state.waitForAnnounced(timeout);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#waitForCanceled(long)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean waitForCanceled(long timeout)
@@ -1121,10 +1069,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return _state.waitForCanceled(timeout);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#hashCode()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public int hashCode()
@@ -1132,10 +1078,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return getQualifiedName().hashCode();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#equals(java.lang.Object)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean equals(Object obj)
@@ -1143,10 +1087,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return (obj instanceof ServiceInfoImpl) && getQualifiedName().equals(((ServiceInfoImpl) obj).getQualifiedName());
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#getNiceTextString()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getNiceTextString()
@@ -1173,10 +1115,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return buf.toString();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#clone()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public Object clone()
@@ -1184,10 +1124,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return new ServiceInfoImpl(this.getQualifiedNameMap(), _port, _weight, _priority, _persistent, _text);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String toString()
@@ -1241,10 +1179,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         return list;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#setText(byte[])
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void setText(byte[] text) throws IllegalStateException
@@ -1256,10 +1192,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#setText(java.util.Map)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void setText(Map<String, ?> props) throws IllegalStateException
@@ -1343,16 +1277,17 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         this._state.setDns(dns);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public JmDNSImpl getDns()
     {
         return this._state.getDns();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.ServiceInfo#isPersistent()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean isPersistent()

@@ -101,7 +101,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     /**
      * Cache for DNSEntry's.
      */
-    private DNSCache _cache;
+    private final DNSCache _cache;
 
     /**
      * This hashtable holds the services that have been registered. Keys are instances of String which hold an all lower-case version of the fully qualified service name. Values are instances of ServiceInfo.
@@ -373,10 +373,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     }
 
     // State machine
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#advanceState(javax.jmdns.impl.tasks.DNSTask)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean advanceState(DNSTask task)
@@ -384,10 +382,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this._localHost.advanceState(task);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#revertState()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean revertState()
@@ -395,10 +391,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this._localHost.revertState();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#cancel()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean cancelState()
@@ -406,10 +400,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this._localHost.cancelState();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#recover()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean recoverState()
@@ -417,10 +409,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this._localHost.recoverState();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#getDns()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public JmDNSImpl getDns()
@@ -428,10 +418,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#associateWithTask(javax.jmdns.impl.tasks.DNSTask, javax.jmdns.impl.constants.DNSState)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void associateWithTask(DNSTask task, DNSState state)
@@ -439,10 +427,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         this._localHost.associateWithTask(task, state);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#removeAssociationWithTask(javax.jmdns.impl.tasks.DNSTask)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void removeAssociationWithTask(DNSTask task)
@@ -450,10 +436,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         this._localHost.removeAssociationWithTask(task);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#isAssociatedWithTask(javax.jmdns.impl.tasks.DNSTask, javax.jmdns.impl.constants.DNSState)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean isAssociatedWithTask(DNSTask task, DNSState state)
@@ -461,10 +445,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this._localHost.isAssociatedWithTask(task, state);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#isProbing()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean isProbing()
@@ -472,10 +454,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this._localHost.isProbing();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#isAnnouncing()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean isAnnouncing()
@@ -483,10 +463,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this._localHost.isAnnouncing();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#isAnnounced()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean isAnnounced()
@@ -494,10 +472,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this._localHost.isAnnounced();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#isCanceling()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean isCanceling()
@@ -505,10 +481,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this._localHost.isCanceling();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#isCanceled()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean isCanceled()
@@ -516,10 +490,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this._localHost.isCanceled();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#waitForAnnounced(long)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean waitForAnnounced(long timeout)
@@ -527,10 +499,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this._localHost.waitForAnnounced(timeout);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.impl.DNSStatefulObject#waitForCanceled(long)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean waitForCanceled(long timeout)
@@ -548,10 +518,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return _cache;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#getName()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getName()
@@ -559,10 +527,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return _name;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#getHostName()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getHostName()
@@ -580,10 +546,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return _localHost;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#getInterface()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public InetAddress getInterface() throws IOException
@@ -591,10 +555,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return _socket.getInterface();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#getServiceInfo(java.lang.String, java.lang.String)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public ServiceInfo getServiceInfo(String type, String name)
@@ -602,10 +564,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this.getServiceInfo(type, name, false, DNSConstants.SERVICE_INFO_TIMEOUT);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#getServiceInfo(java.lang.String, java.lang.String)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public ServiceInfo getServiceInfo(String type, String name, long timeout)
@@ -613,10 +573,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this.getServiceInfo(type, name, false, timeout);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#getServiceInfo(java.lang.String, java.lang.String)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public ServiceInfo getServiceInfo(String type, String name, boolean persistent)
@@ -624,10 +582,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this.getServiceInfo(type, name, persistent, DNSConstants.SERVICE_INFO_TIMEOUT);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#getServiceInfo(java.lang.String, java.lang.String, int)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public ServiceInfo getServiceInfo(String type, String name, boolean persistent, long timeout)
@@ -749,10 +705,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#requestServiceInfo(java.lang.String, java.lang.String)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void requestServiceInfo(String type, String name)
@@ -760,10 +714,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         this.requestServiceInfo(type, name, false, DNSConstants.SERVICE_INFO_TIMEOUT);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#requestServiceInfo(java.lang.String, java.lang.String, boolean)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void requestServiceInfo(String type, String name, boolean persistent)
@@ -771,10 +723,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         this.requestServiceInfo(type, name, persistent, DNSConstants.SERVICE_INFO_TIMEOUT);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#requestServiceInfo(java.lang.String, java.lang.String, int)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void requestServiceInfo(String type, String name, long timeout)
@@ -782,10 +732,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         this.requestServiceInfo(type, name, false, DNSConstants.SERVICE_INFO_TIMEOUT);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#requestServiceInfo(java.lang.String, java.lang.String, boolean, int)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void requestServiceInfo(String type, String name, boolean persistent, long timeout)
@@ -810,6 +758,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                 for (final ServiceListenerStatus listener : listCopy)
                 {
                     _executor.submit(new Runnable() {
+                        /** {@inheritDoc} */
                         @Override
                         public void run()
                         {
@@ -822,7 +771,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     }
 
     /**
-     * @see javax.jmdns.JmDNS#addServiceTypeListener(javax.jmdns.ServiceTypeListener )
+     * {@inheritDoc}
      */
     @Override
     public void addServiceTypeListener(ServiceTypeListener listener) throws IOException
@@ -839,10 +788,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         new TypeResolver(this).start(_timer);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#removeServiceTypeListener(javax.jmdns.ServiceTypeListener)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void removeServiceTypeListener(ServiceTypeListener listener)
@@ -851,10 +798,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         _typeListeners.remove(status);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#addServiceListener(java.lang.String, javax.jmdns.ServiceListener)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void addServiceListener(String type, ServiceListener listener)
@@ -908,10 +853,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         new ServiceResolver(this, type).start(_timer);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#removeServiceListener(java.lang.String, javax.jmdns.ServiceListener)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void removeServiceListener(String type, ServiceListener listener)
@@ -932,10 +875,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#registerService(javax.jmdns.ServiceInfo)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void registerService(ServiceInfo infoAbstract) throws IOException
@@ -972,10 +913,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#unregisterService(javax.jmdns.ServiceInfo)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void unregisterService(ServiceInfo infoAbstract)
@@ -990,10 +929,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         _services.remove(info.getQualifiedName().toLowerCase(), info);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#unregisterAllServices()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void unregisterAllServices()
@@ -1033,10 +970,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
 
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#registerServiceType(java.lang.String)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean registerServiceType(String type)
@@ -1063,6 +998,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                 for (final ServiceTypeListenerStatus status : list)
                 {
                     _executor.submit(new Runnable() {
+                        /** {@inheritDoc} */
                         @Override
                         public void run()
                         {
@@ -1088,6 +1024,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                         for (final ServiceTypeListenerStatus status : list)
                         {
                             _executor.submit(new Runnable() {
+                                /** {@inheritDoc} */
                                 @Override
                                 public void run()
                                 {
@@ -1305,6 +1242,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                         for (final ServiceListenerStatus listener : serviceListenerList)
                         {
                             _executor.submit(new Runnable() {
+                                /** {@inheritDoc} */
                                 @Override
                                 public void run()
                                 {
@@ -1317,6 +1255,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                         for (final ServiceListenerStatus listener : serviceListenerList)
                         {
                             _executor.submit(new Runnable() {
+                                /** {@inheritDoc} */
                                 @Override
                                 public void run()
                                 {
@@ -1392,7 +1331,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                 }
                 typeAdded |= this.registerServiceType(newRecord.getName());
                 if (typeAdded && (cacheOperation == Operation.Noop))
+                {
                     cacheOperation = Operation.RegisterServiceType;
+                }
                 break;
             default:
                 break;
@@ -1576,7 +1517,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             }
             final MulticastSocket ms = _socket;
             if (ms != null && !ms.isClosed())
+            {
                 ms.send(packet);
+            }
         }
     }
 
@@ -1606,6 +1549,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
      */
     protected class Shutdown implements Runnable
     {
+        /** {@inheritDoc} */
         @Override
         public void run()
         {
@@ -1630,7 +1574,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         // We have an IO error so lets try to recover if anything happens lets close it.
         // This should cover the case of the IP address changing under our feet
         if (this.isCanceling() || this.isCanceled())
+        {
             return;
+        }
 
         // Stop JmDNS
         // This protects against recursive calls
@@ -1689,16 +1635,16 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#close()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public void close()
     {
         if (this.isCanceling() || this.isCanceled())
+        {
             return;
+        }
 
         if (logger.isLoggable(Level.FINER))
         {
@@ -1742,7 +1688,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     }
 
     /**
-     * @see javax.jmdns.JmDNS#printServices()
+     * {@inheritDoc}
      */
     @Override
     public void printServices()
@@ -1750,6 +1696,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         System.err.println(toString());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString()
     {
@@ -1785,10 +1734,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return aLog.toString();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#list(java.lang.String)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public ServiceInfo[] list(String type)
@@ -1796,10 +1743,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this.list(type, DNSConstants.SERVICE_INFO_TIMEOUT);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#list(java.lang.String, int)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public ServiceInfo[] list(String type, long timeout)
@@ -1838,10 +1783,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return (collector != null ? collector.list(timeout) : new ServiceInfo[0]);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#listBySubtype(java.lang.String)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public Map<String, ServiceInfo[]> listBySubtype(String type)
@@ -1849,10 +1792,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
         return this.listBySubtype(type, DNSConstants.SERVICE_INFO_TIMEOUT);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmDNS#listBySubtype(java.lang.String, long)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public Map<String, ServiceInfo[]> listBySubtype(String type, long timeout)
@@ -2036,6 +1977,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
             return _infos.values().toArray(new ServiceInfo[_infos.size()]);
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public String toString()
         {

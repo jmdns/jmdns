@@ -58,10 +58,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
     static class _EmptyCache extends DNSCache
     {
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.util.AbstractMap#size()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public int size()
@@ -69,10 +67,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             return 0;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.util.AbstractMap#isEmpty()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean isEmpty()
@@ -80,10 +76,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             return true;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.util.AbstractMap#containsKey(java.lang.Object)
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean containsKey(Object key)
@@ -91,10 +85,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             return false;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.util.AbstractMap#containsValue(java.lang.Object)
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean containsValue(Object value)
@@ -102,10 +94,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             return false;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.util.AbstractMap#get(java.lang.Object)
+        /**
+         * {@inheritDoc}
          */
         @Override
         public List<DNSEntry> get(Object key)
@@ -113,10 +103,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             return null;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.util.AbstractMap#keySet()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public Set<String> keySet()
@@ -124,10 +112,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             return Collections.emptySet();
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.util.AbstractMap#values()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public Collection<List<? extends DNSEntry>> values()
@@ -135,10 +121,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             return Collections.emptySet();
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see com.webobjects.discoveryservices.DNSCache#entrySet()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public Set<Map.Entry<String, List<? extends DNSEntry>>> entrySet()
@@ -146,10 +130,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             return Collections.emptySet();
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.util.AbstractMap#equals(java.lang.Object)
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean equals(Object o)
@@ -157,10 +139,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             return (o instanceof Map) && ((Map<?, ?>) o).size() == 0;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.util.AbstractMap#put(java.lang.Object, java.lang.Object)
+        /**
+         * {@inheritDoc}
          */
         @Override
         public List<? extends DNSEntry> put(String key, List<? extends DNSEntry> value)
@@ -168,10 +148,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             return null;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.util.AbstractMap#hashCode()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public int hashCode()
@@ -215,10 +193,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             }
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.util.Map$Entry#getKey()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public String getKey()
@@ -226,10 +202,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             return (_key != null ? _key : "");
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.util.Map$Entry#getValue()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public List<? extends DNSEntry> getValue()
@@ -237,10 +211,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             return _value;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.util.Map$Entry#setValue(java.lang.Object)
+        /**
+         * {@inheritDoc}
          */
         @Override
         public List<? extends DNSEntry> setValue(List<? extends DNSEntry> value)
@@ -250,23 +222,21 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             return oldValue;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.lang.Object#equals(java.lang.Object)
+        /**
+         * {@inheritDoc}
          */
         @Override
         public boolean equals(Object entry)
         {
             if (!(entry instanceof Map.Entry))
+            {
                 return false;
+            }
             return this.getKey().equals(((Map.Entry<?, ?>) entry).getKey()) && this.getValue().equals(((Map.Entry<?, ?>) entry).getValue());
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.lang.Object#hashCode()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public int hashCode()
@@ -274,10 +244,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             return ((_key == null) ? 0 : _key.hashCode()) ^ ((_value == null) ? 0 : _value.hashCode());
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.lang.Object#toString()
+        /**
+         * {@inheritDoc}
          */
         @Override
         public synchronized String toString()
@@ -342,7 +310,9 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
     public Set<Map.Entry<String, List<? extends DNSEntry>>> entrySet()
     {
         if (_entrySet == null)
+        {
             _entrySet = new HashSet<Map.Entry<String, List<? extends DNSEntry>>>();
+        }
         return _entrySet;
     }
 
@@ -358,21 +328,23 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
             if (stringKey != null)
             {
                 if (stringKey.equals(entry.getKey()))
+                {
                     return entry;
+                }
             }
             else
             {
                 if (entry.getKey() == null)
+                {
                     return entry;
+                }
             }
         }
         return null;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.util.AbstractMap#put(java.lang.Object, java.lang.Object)
+    /**
+     * {@inheritDoc}
      */
     @Override
     public List<? extends DNSEntry> put(String key, List<? extends DNSEntry> value)
@@ -393,10 +365,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.util.AbstractMap#clone()
+    /**
+     * {@inheritDoc}
      */
     @Override
     protected Object clone() throws CloneNotSupportedException
@@ -417,7 +387,9 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
         for (List<? extends DNSEntry> entry : this.values())
         {
             if (entry != null)
+            {
                 allValues.addAll(entry);
+            }
         }
         return allValues;
     }
@@ -541,7 +513,9 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
                 result = entry.remove(dnsEntry);
                 // If we just removed the last one we need to get rid of the entry
                 if (entry.size() == 0)
+                {
                     this.remove(dnsEntry.getKey());
+                }
             }
         }
         return result;
@@ -588,10 +562,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
         return result;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.util.AbstractMap#toString()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public synchronized String toString()

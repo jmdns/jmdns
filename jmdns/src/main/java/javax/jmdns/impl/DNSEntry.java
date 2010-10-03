@@ -82,6 +82,12 @@ public abstract class DNSEntry
         return this.getKey().equals(entry.getKey()) && this.getRecordType().equals(entry.getRecordType()) && ((DNSRecordClass.CLASS_ANY == entry.getRecordClass()) || this.getRecordClass().equals(entry.getRecordClass()));
     }
 
+    /**
+     * Check if two entries have the same subtype.
+     *
+     * @param other
+     * @return <code>true</code> if the two entries have are for the same subtype, <code>false</code> otherwise
+     */
     public boolean sameSubtype(DNSEntry other)
     {
         return this.getSubtype().equals(other.getSubtype());
