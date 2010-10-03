@@ -349,12 +349,15 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                     {
                         try
                         {
-                            // wait time is arbitrary, we're really expecting notification.
-                            if (logger.isLoggable(Level.FINER))
+                            if (_incomingListener != null && _incomingListener.isAlive())
                             {
-                                logger.finer("closeMulticastSocket(): waiting for jmDNS monitor");
+                                // wait time is arbitrary, we're really expecting notification.
+                                if (logger.isLoggable(Level.FINER))
+                                {
+                                    logger.finer("closeMulticastSocket(): waiting for jmDNS monitor");
+                                }
+                                this.wait(1000);
                             }
-                            this.wait(1000);
                         }
                         catch (InterruptedException ignored)
                         {
