@@ -27,6 +27,8 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
 
+import junit.framework.Assert;
+
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Before;
@@ -45,7 +47,7 @@ public class JmDNSTest
     @Before
     public void setup()
     {
-        boolean log = true;
+        boolean log = false;
         if (log)
         {
             ConsoleHandler handler = new ConsoleHandler();
@@ -344,6 +346,46 @@ public class JmDNSTest
         }
     }
 
+    public static final class Receive extends Thread
+    {
+        MulticastSocket _socket;
+        DatagramPacket _in;
+
+        public Receive(MulticastSocket socket, DatagramPacket in)
+        {
+            super("Test Receive Multicast");
+            _socket = socket;
+            _in = in;
+        }
+
+        @Override
+        public void run()
+        {
+            try
+            {
+                _socket.receive(_in);
+            }
+            catch (IOException exception)
+            {
+                // Ignore
+            }
+        }
+
+        public boolean waitForReceive()
+        {
+            try
+            {
+                this.join(1000);
+            }
+            catch (InterruptedException exception)
+            {
+                // Ignore
+            }
+            return this.isAlive();
+        }
+
+    }
+
     @Test
     public void testTwoMulticastPortsAtOnce() throws UnknownHostException, IOException
     {
@@ -360,21 +402,38 @@ public class JmDNSTest
 
             firstSocket.joinGroup(someInet);
             secondSocket.joinGroup(someInet);
-
-            DatagramPacket data = new DatagramPacket(firstMessage.getBytes("UTF-8"), firstMessage.length(), someInet, 8053);
-            firstSocket.send(data);
-
-            secondSocket.receive(data);
-            String fromFirst = new String(data.getData(), "UTF-8");
+            //
+            DatagramPacket out = new DatagramPacket(firstMessage.getBytes("UTF-8"), firstMessage.length(), someInet, 8053);
+            DatagramPacket inFirst = new DatagramPacket(firstMessage.getBytes("UTF-8"), firstMessage.length(), someInet, 8053);
+            DatagramPacket inSecond = new DatagramPacket(firstMessage.getBytes("UTF-8"), firstMessage.length(), someInet, 8053);
+            Receive receiveSecond = new Receive(secondSocket, inSecond);
+            receiveSecond.start();
+            Receive receiveFirst = new Receive(firstSocket, inSecond);
+            receiveFirst.start();
+            firstSocket.send(out);
+            if (receiveSecond.waitForReceive())
+            {
+                Assert.fail("We did not receive the data in the second socket");
+            }
+            String fromFirst = new String(inSecond.getData(), "UTF-8");
             assertEquals("Expected the second socket to recieve the same message the first socket sent", firstMessage, fromFirst);
             // Make sure the first socket had read its own message
-            firstSocket.receive(data);
+            if (receiveSecond.waitForReceive())
+            {
+                Assert.fail("We did not receive the data in the first socket");
+            }
+            // Reverse the roles
+            out = new DatagramPacket(secondMessage.getBytes("UTF-8"), secondMessage.length(), someInet, 8053);
+            inFirst = new DatagramPacket(secondMessage.getBytes("UTF-8"), secondMessage.length(), someInet, 8053);
+            receiveFirst = new Receive(firstSocket, inSecond);
+            receiveFirst.start();
 
-            data = new DatagramPacket(secondMessage.getBytes("UTF-8"), secondMessage.length(), someInet, 8053);
-            secondSocket.send(data);
-
-            firstSocket.receive(data);
-            String fromSecond = new String(data.getData(), "UTF-8");
+            secondSocket.send(out);
+            if (receiveFirst.waitForReceive())
+            {
+                Assert.fail("We did not receive the data in the first socket");
+            }
+            String fromSecond = new String(inFirst.getData(), "UTF-8");
             assertEquals("Expected the first socket to recieve the same message the second socket sent", secondMessage, fromSecond);
         }
         finally
