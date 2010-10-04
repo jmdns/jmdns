@@ -268,8 +268,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     {
         if (_incomingListener == null)
         {
-            _incomingListener = new Thread(new SocketListener(this), "JmDNS(" + _name + ").SocketListener");
-            _incomingListener.setDaemon(true);
+            _incomingListener = new SocketListener(this);
             _incomingListener.start();
         }
         this.startProber();
@@ -1687,6 +1686,10 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
                 Runtime.getRuntime().removeShutdownHook(_shutdown);
             }
 
+            if (logger.isLoggable(Level.FINER))
+            {
+                logger.finer("JmDNS closed.");
+            }
         }
     }
 
