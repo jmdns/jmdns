@@ -70,6 +70,7 @@ public class JmDNSTest
     @Test
     public void testCreate() throws IOException
     {
+        System.out.println("Unit Test: testCreate()");
         JmDNS registry = JmDNS.create();
         registry.close();
     }
@@ -77,6 +78,7 @@ public class JmDNSTest
     @Test
     public void testCreateINet() throws IOException
     {
+        System.out.println("Unit Test: testCreateINet()");
         JmDNS registry = JmDNS.create(InetAddress.getLocalHost());
         // assertEquals("We did not register on the local host inet:", InetAddress.getLocalHost(), registry.getInterface());
         registry.close();
@@ -85,6 +87,7 @@ public class JmDNSTest
     @Test
     public void testRegisterService() throws IOException
     {
+        System.out.println("Unit Test: testRegisterService()");
         JmDNS registry = null;
         try
         {
@@ -101,6 +104,7 @@ public class JmDNSTest
     @Test
     public void testQueryMyService() throws IOException
     {
+        System.out.println("Unit Test: testQueryMyService()");
         JmDNS registry = null;
         try
         {
@@ -119,6 +123,7 @@ public class JmDNSTest
     @Test
     public void testListMyService() throws IOException
     {
+        System.out.println("Unit Test: testListMyService()");
         JmDNS registry = null;
         try
         {
@@ -138,6 +143,7 @@ public class JmDNSTest
     @Test
     public void testListenForMyService() throws IOException
     {
+        System.out.println("Unit Test: testListenForMyService()");
         JmDNS registry = null;
         try
         {
@@ -192,6 +198,7 @@ public class JmDNSTest
     @Test
     public void testListenForMyServiceAndList() throws IOException
     {
+        System.out.println("Unit Test: testListenForMyServiceAndList()");
         JmDNS registry = null;
         try
         {
@@ -236,6 +243,7 @@ public class JmDNSTest
     @Test
     public void testListenForServiceOnOtherRegistry() throws IOException
     {
+        System.out.println("Unit Test: testListenForServiceOnOtherRegistry()");
         JmDNS registry = null;
         JmDNS newServiceRegistry = null;
         try
@@ -278,6 +286,7 @@ public class JmDNSTest
     @Test
     public void testWaitAndQueryForServiceOnOtherRegistry() throws IOException
     {
+        System.out.println("Unit Test: testWaitAndQueryForServiceOnOtherRegistry()");
         JmDNS registry = null;
         JmDNS newServiceRegistry = null;
         try
@@ -303,6 +312,7 @@ public class JmDNSTest
     @Test
     public void testRegisterAndListServiceOnOtherRegistry() throws IOException, InterruptedException
     {
+        System.out.println("Unit Test: testRegisterAndListServiceOnOtherRegistry()");
         JmDNS registry = null;
         JmDNS newServiceRegistry = null;
         try
@@ -337,6 +347,7 @@ public class JmDNSTest
     @Test
     public void testTwoMulticastPortsAtOnce() throws UnknownHostException, IOException
     {
+        System.out.println("Unit Test: testTwoMulticastPortsAtOnce()");
         MulticastSocket firstSocket = null;
         MulticastSocket secondSocket = null;
         try
