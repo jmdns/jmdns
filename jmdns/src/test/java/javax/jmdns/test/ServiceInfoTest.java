@@ -73,7 +73,7 @@ public class ServiceInfoTest
         assertEquals("We did not get the right domain:", "local", map.get(Fields.Domain));
         assertEquals("We did not get the right protocol:", "tcp", map.get(Fields.Protocol));
         assertEquals("We did not get the right application:", "home-sharing", map.get(Fields.Application));
-        assertEquals("We did not get the right name:", "", map.get(Fields.Instance));
+        assertEquals("We did not get the right name:", "home-sharing", map.get(Fields.Instance));
         assertEquals("We did not get the right subtype:", "", map.get(Fields.Subtype));
 
     }
@@ -88,7 +88,7 @@ public class ServiceInfoTest
         assertEquals("We did not get the right domain:", "local", map.get(Fields.Domain));
         assertEquals("We did not get the right protocol:", "tcp", map.get(Fields.Protocol));
         assertEquals("We did not get the right application:", "afpovertcp", map.get(Fields.Application));
-        assertEquals("We did not get the right name:", "", map.get(Fields.Instance));
+        assertEquals("We did not get the right name:", "afpovertcp", map.get(Fields.Instance));
         assertEquals("We did not get the right subtype:", "", map.get(Fields.Subtype));
     }
 
@@ -102,7 +102,7 @@ public class ServiceInfoTest
         assertEquals("We did not get the right domain:", "local", map.get(Fields.Domain));
         assertEquals("We did not get the right protocol:", "tcp", map.get(Fields.Protocol));
         assertEquals("We did not get the right application:", "home-sharing", map.get(Fields.Application));
-        assertEquals("We did not get the right name:", "", map.get(Fields.Instance));
+        assertEquals("We did not get the right name:", "00000000-0b44-f234-48c8-071c565644b3", map.get(Fields.Instance));
         assertEquals("We did not get the right subtype:", "00000000-0b44-f234-48c8-071c565644b3", map.get(Fields.Subtype));
     }
 

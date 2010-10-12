@@ -2,6 +2,7 @@ CHANGELOG XX XXXX 2010 Pierre Frisch
 Rev the source code to 3.2.2
 serviceResolved not working properly - ID: 3032054
 Only adds "first" server on Android - ID: 3065602
+RecordReaper repeated stacktrace - ID: 3085234
 
 CHANGELOG 31 August 2010 Pierre Frisch
 Rev the source code to 3.2.1

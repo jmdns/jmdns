@@ -249,81 +249,78 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     public static Map<Fields, String> decodeQualifiedNameMapForType(String type)
     {
         String aType = type.toLowerCase();
-        Map<Fields, String> qualifiedNameMap = new HashMap<Fields, String>(5);
-
-        String domain = "";
-        String protocol = "";
         String application = aType;
-        String name = "";
+        String protocol = "";
         String subtype = "";
+        String name = "";
+        String domain = "";
+
+        // default the name and domain values to the first item before the first
+        // . and to the rest of the string after the dot
+        int index = aType.indexOf('.');
+        if (index > -1)
+        {
+            name = removeSeparators(aType.substring(0, index));
+            domain = aType.substring(index);
+        }
+
         if (aType.contains("in-addr.arpa") || aType.contains("ip6.arpa"))
         {
-            int index = (aType.contains("in-addr.arpa") ? aType.indexOf("in-addr.arpa") : aType.indexOf("ip6.arpa"));
+            index = (aType.contains("in-addr.arpa") ? aType.indexOf("in-addr.arpa") : aType.indexOf("ip6.arpa"));
             name = removeSeparators(aType.substring(0, index));
-            domain = removeSeparators(aType.substring(index));
-            protocol = "";
+            domain = aType.substring(index);
             application = "";
         }
         else if ((!aType.contains("_")) && aType.contains("."))
         {
-            int index = aType.indexOf('.');
-            name = removeSeparators(aType.substring(0, index));
-            domain = removeSeparators(aType.substring(index));
-            protocol = "";
             application = "";
         }
-        else
+
+        if (application.length() > 0)
         {
+            // First remove the name if it there.
+            if (!aType.startsWith("_") || aType.startsWith("_services"))
             {
-                // First remove the name if it there.
-                if (!aType.startsWith("_") || aType.startsWith("_services"))
+                index = aType.indexOf('.');
+                if (index > 0)
                 {
-                    int index = aType.indexOf('.');
-                    if (index > 0)
+                    // We need to preserve the case for the user readable name.
+                    name = type.substring(0, index);
+                    if (index + 1 < aType.length())
                     {
-                        // We need to preserve the case for the user readable name.
-                        name = type.substring(0, index);
-                        if (index + 1 < aType.length())
-                        {
-                            aType = aType.substring(index + 1);
-                        }
+                        aType = aType.substring(index + 1);
                     }
                 }
             }
 
+            index = aType.lastIndexOf("._");
+            if (index > 0)
             {
-                int index = aType.lastIndexOf("._");
-                if (index > 0)
-                {
-                    int start = index + 2;
-                    int end = aType.indexOf('.', start);
-                    protocol = aType.substring(start, end);
-                }
+                int start = index + 2;
+                int end = aType.indexOf('.', start);
+                protocol = aType.substring(start, end);
             }
             if (protocol.length() > 0)
             {
-                int index = aType.indexOf("_" + protocol + ".");
-                {
-                    int start = index + protocol.length() + 2;
-                    int end = aType.length() - (aType.endsWith(".") ? 1 : 0);
-                    domain = aType.substring(start, end);
-                    application = aType.substring(0, index - 1);
-                }
+                index = aType.indexOf("_" + protocol + ".");
+                int start = index + protocol.length() + 2;
+                int end = aType.length() - (aType.endsWith(".") ? 1 : 0);
+                domain = aType.substring(start, end);
+                application = aType.substring(0, index - 1);
             }
+            index = application.indexOf("._sub");
+            if (index > 0)
             {
-                int index = application.indexOf("._sub");
-                if (index > 0)
-                {
-                    int start = index + 5;
-                    subtype = removeSeparators(application.substring(0, index));
-                    application = removeSeparators(application.substring(start));
-                }
-                application = removeSeparators(application);
+                int start = index + 5;
+                subtype = removeSeparators(application.substring(0, index));
+                application = application.substring(start);
             }
         }
-        qualifiedNameMap.put(Fields.Domain, domain);
+
+        final Map<Fields, String> qualifiedNameMap = new HashMap<Fields, String>(5);
+        qualifiedNameMap.put(Fields.Domain, removeSeparators(domain));
         qualifiedNameMap.put(Fields.Protocol, protocol);
-        qualifiedNameMap.put(Fields.Application, application);
+        qualifiedNameMap.put(Fields.Application, removeSeparators(application));
         qualifiedNameMap.put(Fields.Instance, name);
         qualifiedNameMap.put(Fields.Subtype, subtype);
 
@@ -362,6 +359,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         String instance = (qualifiedNameMap.containsKey(Fields.Instance) ? qualifiedNameMap.get(Fields.Instance) : "");
         if ((instance == null) || (instance.length() == 0))
         {
+            instance = "";
             throw new IllegalArgumentException("The instance name component of a fully qualified service cannot be empty.");
         }
         instance = removeSeparators(instance);
@@ -380,6 +378,10 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
 
     private static String removeSeparators(String name)
     {
+        if (name == null)
+        {
+            return "";
+        }
         String newName = name.trim();
         if (newName.startsWith("."))
         {
