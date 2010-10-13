@@ -120,6 +120,17 @@ public class Prober extends DNSStateTask
     /*
      * (non-Javadoc)
      *
+     * @see javax.jmdns.impl.tasks.state.DNSStateTask#createOugoing()
+     */
+    @Override
+    protected DNSOutgoing createOugoing()
+    {
+        return new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see javax.jmdns.impl.tasks.state.DNSStateTask#buildOutgoingForDNS(javax.jmdns.impl.DNSOutgoing)
      */
     @Override

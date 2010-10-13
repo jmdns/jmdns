@@ -116,7 +116,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			</roles>
 		</contributor>
 		<contributor>
-			<name>Cédrik</name>
+			<name>Cédrik Lime</name>
 			<roles>
 				<role>Contributor</role>
 			</roles>
@@ -355,6 +355,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 					<encoding>UTF-8</encoding>
 					<docencoding>UTF-8</docencoding>
 					<windowtitle>JmDNS ${project.version} Reference</windowtitle>
+					<header><![CDATA[JmDNS ${project.version}]]></header>
 					<footer><![CDATA[<i>Last updated ${maven.build.timestamp}</i>]]></footer>
 				</configuration>
 			</plugin>

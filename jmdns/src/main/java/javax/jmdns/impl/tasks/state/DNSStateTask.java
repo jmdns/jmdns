@@ -179,6 +179,8 @@ public abstract class DNSStateTask extends DNSTask
 
     protected abstract DNSOutgoing buildOutgoingForInfo(ServiceInfoImpl info, DNSOutgoing out) throws IOException;
 
+    protected abstract DNSOutgoing createOugoing();
+
     protected void advanceObjectsState(List<DNSStatefulObject> list)
     {
         if (list != null)

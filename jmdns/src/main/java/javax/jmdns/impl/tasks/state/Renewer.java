@@ -100,6 +100,17 @@ public class Renewer extends DNSStateTask
     /*
      * (non-Javadoc)
      *
+     * @see javax.jmdns.impl.tasks.state.DNSStateTask#createOugoing()
+     */
+    @Override
+    protected DNSOutgoing createOugoing()
+    {
+        return new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see javax.jmdns.impl.tasks.state.DNSStateTask#buildOutgoingForDNS(javax.jmdns.impl.DNSOutgoing)
      */
     @Override

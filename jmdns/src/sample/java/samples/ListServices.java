@@ -93,7 +93,14 @@ public class ListServices
         finally
         {
             if (jmdns != null)
-                jmdns.close();
+                try
+                {
+                    jmdns.close();
+                }
+                catch (IOException exception)
+                {
+                    //
+                }
         }
     }
 }
