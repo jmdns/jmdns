@@ -26,6 +26,7 @@ import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
+import javax.jmdns.impl.constants.DNSConstants;
 
 import junit.framework.Assert;
 
@@ -386,6 +387,8 @@ public class JmDNSTest
 
     }
 
+    private final static int MPORT = 8053;
+
     @Test
     public void testTwoMulticastPortsAtOnce() throws UnknownHostException, IOException
     {
@@ -396,16 +399,16 @@ public class JmDNSTest
         {
             String firstMessage = "ping";
             String secondMessage = "pong";
-            InetAddress someInet = InetAddress.getByName("224.0.0.252");
-            firstSocket = new MulticastSocket(8053);
-            secondSocket = new MulticastSocket(8053);
+            InetAddress someInet = InetAddress.getByName(DNSConstants.MDNS_GROUP);
+            firstSocket = new MulticastSocket(MPORT);
+            secondSocket = new MulticastSocket(MPORT);
 
             firstSocket.joinGroup(someInet);
             secondSocket.joinGroup(someInet);
             //
-            DatagramPacket out = new DatagramPacket(firstMessage.getBytes("UTF-8"), firstMessage.length(), someInet, 8053);
-            DatagramPacket inFirst = new DatagramPacket(firstMessage.getBytes("UTF-8"), firstMessage.length(), someInet, 8053);
-            DatagramPacket inSecond = new DatagramPacket(firstMessage.getBytes("UTF-8"), firstMessage.length(), someInet, 8053);
+            DatagramPacket out = new DatagramPacket(firstMessage.getBytes("UTF-8"), firstMessage.length(), someInet, MPORT);
+            DatagramPacket inFirst = new DatagramPacket(firstMessage.getBytes("UTF-8"), firstMessage.length(), someInet, MPORT);
+            DatagramPacket inSecond = new DatagramPacket(firstMessage.getBytes("UTF-8"), firstMessage.length(), someInet, MPORT);
             Receive receiveSecond = new Receive(secondSocket, inSecond);
             receiveSecond.start();
             Receive receiveFirst = new Receive(firstSocket, inSecond);
@@ -423,8 +426,8 @@ public class JmDNSTest
                 Assert.fail("We did not receive the data in the first socket");
             }
             // Reverse the roles
-            out = new DatagramPacket(secondMessage.getBytes("UTF-8"), secondMessage.length(), someInet, 8053);
-            inFirst = new DatagramPacket(secondMessage.getBytes("UTF-8"), secondMessage.length(), someInet, 8053);
+            out = new DatagramPacket(secondMessage.getBytes("UTF-8"), secondMessage.length(), someInet, MPORT);
+            inFirst = new DatagramPacket(secondMessage.getBytes("UTF-8"), secondMessage.length(), someInet, MPORT);
             receiveFirst = new Receive(firstSocket, inSecond);
             receiveFirst.start();
 

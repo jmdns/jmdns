@@ -248,21 +248,14 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
 
     public static Map<Fields, String> decodeQualifiedNameMapForType(String type)
     {
+        int index;
+
         String aType = type.toLowerCase();
         String application = aType;
         String protocol = "";
         String subtype = "";
         String name = "";
         String domain = "";
-
-        // default the name and domain values to the first item before the first
-        // . and to the rest of the string after the dot
-        int index = aType.indexOf('.');
-        if (index > -1)
-        {
-            name = removeSeparators(aType.substring(0, index));
-            domain = aType.substring(index);
-        }
 
         if (aType.contains("in-addr.arpa") || aType.contains("ip6.arpa"))
         {
@@ -273,10 +266,12 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         }
         else if ((!aType.contains("_")) && aType.contains("."))
         {
+            index = aType.indexOf('.');
+            name = removeSeparators(aType.substring(0, index));
+            domain = removeSeparators(aType.substring(index));
             application = "";
         }
-
-        if (application.length() > 0)
+        else
         {
             // First remove the name if it there.
             if (!aType.startsWith("_") || aType.startsWith("_services"))
@@ -360,15 +355,15 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
         if ((instance == null) || (instance.length() == 0))
         {
             instance = "";
-            throw new IllegalArgumentException("The instance name component of a fully qualified service cannot be empty.");
+            // throw new IllegalArgumentException("The instance name component of a fully qualified service cannot be empty.");
         }
         instance = removeSeparators(instance);
         checkedQualifiedNameMap.put(Fields.Instance, instance);
         // Optional Subtype
         String subtype = (qualifiedNameMap.containsKey(Fields.Subtype) ? qualifiedNameMap.get(Fields.Subtype) : "");
-        if ((instance == null) || (instance.length() == 0))
+        if ((subtype == null) || (subtype.length() == 0))
         {
-            instance = "";
+            subtype = "";
         }
         subtype = removeSeparators(subtype);
         checkedQualifiedNameMap.put(Fields.Subtype, subtype);
