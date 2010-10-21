@@ -6,6 +6,7 @@ RecordReaper repeated stacktrace - ID: 3085234
 JmDNS 3.2.1 on Android Application - ID: 3059323
 Built-in support for multiple network interfaces - ID: 3079530
 Create OSGi metadata in maven build - ID: 3085811
+Path to prevent JmDNS.create() binding to loopback - ID: 3092443
 
 CHANGELOG 31 August 2010 Pierre Frisch
 Rev the source code to 3.2.1

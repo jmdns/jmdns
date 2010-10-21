@@ -9,10 +9,12 @@ import java.net.DatagramPacket;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -73,6 +75,22 @@ public class HostInfo implements DNSStatefulObject
                 else
                 {
                     addr = InetAddress.getLocalHost();
+                    if (addr.isLoopbackAddress())
+                    {
+                        // Find local address that isn't a loopback address
+                        for (Enumeration<NetworkInterface> nifs = NetworkInterface.getNetworkInterfaces(); nifs.hasMoreElements() && addr.isLoopbackAddress();)
+                        {
+                            NetworkInterface nif = nifs.nextElement();
+                            for (InterfaceAddress interfaceAddress : nif.getInterfaceAddresses())
+                            {
+                                if (useInetAddress(nif, interfaceAddress))
+                                {
+                                    addr = interfaceAddress.getAddress();
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
                 aName = addr.getHostName();
                 if (addr.isLoopbackAddress())
@@ -111,6 +129,30 @@ public class HostInfo implements DNSStatefulObject
         catch (UnknownHostException exception)
         {
             return null;
+        }
+    }
+
+    private static boolean useInetAddress(NetworkInterface networkInterface, InterfaceAddress interfaceAddress)
+    {
+        try
+        {
+            if (!networkInterface.isUp())
+            {
+                return false;
+            }
+            if (!networkInterface.supportsMulticast())
+            {
+                return false;
+            }
+            if (interfaceAddress.getAddress().isLoopbackAddress())
+            {
+                return false;
+            }
+            return true;
+        }
+        catch (Exception exception)
+        {
+            return false;
         }
     }
 
