@@ -11,7 +11,7 @@
 		<version>4</version>
 	</parent>
 	<description>JmDNS is a Java implementation of multi-cast DNS and can be used for service registration and discovery in local area networks. JmDNS is fully compatible with Apple's Bonjour.
-The project was originally started in December 2002 by Arthur van Hoff at Stangeberry. In November 2003 the project was moved to SourceForge, and the name was changed from JRendezvous to JmDNS for legal reasons.
+The project was originally started in December 2002 by Arthur van Hoff at Strangeberry. In November 2003 the project was moved to SourceForge, and the name was changed from JRendezvous to JmDNS for legal reasons.
 Many thanks to Stuart Cheshire for help and moral support.</description>
 	<url>http://sourceforge.net/projects/jmdns/</url>
 	<inceptionYear>2002</inceptionYear>
@@ -152,8 +152,8 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.1</version>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>${jvm.version}</source>
+					<target>${jvm.version}</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -234,6 +234,9 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 					<instructions>
 						<Export-Package>javax.jmdns</Export-Package>
 						<Private-Package>javax.jmdns.impl,javax.jmdns.impl.*,com.strangeberry.*,samples</Private-Package>
+						<Import-Package>!javax.swing.*</Import-Package>
+						<Bundle-RequiredExecutionEnvironment>J2SE-${jvm.version}</Bundle-RequiredExecutionEnvironment>
+						<Bundle-Vendor>jmdns.sourceforge.net</Bundle-Vendor>
 					</instructions>
 				</configuration>
 				<executions>
@@ -451,5 +454,6 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 		<organization.logo>http://mirrorbrain.org/static/images/misc/sourceforge-logo.png</organization.logo>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+		<jvm.version>1.6</jvm.version>
 	</properties>
 </project>
