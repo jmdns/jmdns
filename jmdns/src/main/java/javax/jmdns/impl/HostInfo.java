@@ -95,7 +95,7 @@ public class HostInfo implements DNSStatefulObject
         }
         catch (final IOException e)
         {
-            logger.warning("Could not intialize the host network interface on " + address + "because of an error: " + e.getMessage());
+            logger.log(Level.WARNING, "Could not intialize the host network interface on " + address + "because of an error: " + e.getMessage(), e);
             // This is only used for running unit test on Debian / Ubuntu
             localhost = new HostInfo(loopbackAddress(), "computer", dns);
         }

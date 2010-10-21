@@ -921,7 +921,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     @Override
     public void unregisterService(ServiceInfo infoAbstract)
     {
-        final ServiceInfoImpl info = (ServiceInfoImpl) infoAbstract;
+        final ServiceInfoImpl info = (ServiceInfoImpl) _services.get(infoAbstract.getQualifiedName().toLowerCase());
+
         info.cancelState();
         this.startCanceler();
 
@@ -1697,6 +1698,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
      * {@inheritDoc}
      */
     @Override
+    @Deprecated
     public void printServices()
     {
         System.err.println(toString());

@@ -59,6 +59,14 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
 
     private final ServiceInfoState _state;
 
+    private Delegate _delegate;
+
+    public static interface Delegate {
+
+        public void textValueUpdated(ServiceInfo target, byte[] value);
+
+    }
+
     private final static class ServiceInfoState extends DNSStatefulObject.DefaultImplementation
     {
 
@@ -1311,6 +1319,22 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, Cloneab
     public boolean needTextAnnouncing()
     {
         return _needTextAnnouncing;
+    }
+
+    /**
+     * @return the delegate
+     */
+    Delegate getDelegate()
+    {
+        return this._delegate;
+    }
+
+    /**
+     * @param delegate the delegate to set
+     */
+    void setDelegate(Delegate delegate)
+    {
+        this._delegate = delegate;
     }
 
 }

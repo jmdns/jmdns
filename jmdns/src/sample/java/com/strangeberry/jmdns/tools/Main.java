@@ -29,6 +29,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import javax.jmdns.JmDNS;
+import javax.jmdns.JmmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
@@ -138,7 +139,7 @@ public class Main
 
         if ((argc == 0) || ((argc >= 1) && "-browse".equals(argv[0])))
         {
-            new Browser(jmdns);
+            new Browser(JmmDNS.Factory.getInstance());
             for (int i = 2; i < argc; i++)
             {
                 jmdns.registerServiceType(argv[i]);
@@ -187,7 +188,7 @@ public class Main
         }
         else if ((argc == 2) && "-f".equals(argv[0]))
         {
-            new Responder(jmdns, argv[1]);
+            new Responder(JmDNS.create(intf, "Responder"), argv[1]);
         }
         else if (!debug)
         {

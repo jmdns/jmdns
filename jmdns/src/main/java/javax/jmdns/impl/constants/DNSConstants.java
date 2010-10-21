@@ -56,4 +56,6 @@ public final class DNSConstants
     public final static long CLOSE_TIMEOUT = ANNOUNCE_WAIT_INTERVAL * 5L;
     public final static long SERVICE_INFO_TIMEOUT = ANNOUNCE_WAIT_INTERVAL * 6L;
 
+    public final static int NETWORK_CHECK_INTERVAL = 10 * 1000; // 10 secondes
+
 }

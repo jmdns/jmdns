@@ -4,6 +4,7 @@
 
 package javax.jmdns;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Map;
@@ -16,7 +17,7 @@ import javax.jmdns.impl.JmDNSImpl;
  * @version %I%, %G%
  * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis, Scott Cytacki
  */
-public abstract class JmDNS
+public abstract class JmDNS implements Closeable
 {
     /**
      * The version of JmDNS.
@@ -279,13 +280,11 @@ public abstract class JmDNS
     public abstract boolean registerServiceType(String type);
 
     /**
-     * Close down jmdns. Release all resources and unregister all services.
-     */
-    public abstract void close();
-
-    /**
      * List Services and serviceTypes. Debugging Only
+     *
+     * @deprecated since 3.2.2
      */
+    @Deprecated
     public abstract void printServices();
 
     /**
