@@ -17,7 +17,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 	<inceptionYear>2002</inceptionYear>
 	<organization>
 		<name>JmDNS</name>
-		<url>https://sourceforge.net/projects/jmdns/</url>
+		<url>http://jmdns.sourceforge.net/</url>
 	</organization>
 	<scm>
 		<connection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns/trunk</connection>
@@ -208,6 +208,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 						<compress />
 						<forced>true</forced>
 						<index>true</index>
+						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
 						<manifest>
 							<mainClass>javax.jmdns.impl.JmDNSImpl</mainClass>
 							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
@@ -225,7 +226,26 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 					</excludes>
 				</configuration>
 			</plugin>
-			<plugin>
+			<plugin>   
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Export-Package>javax.jmdns</Export-Package>
+						<Private-Package>javax.jmdns.impl,javax.jmdns.impl.*,com.strangeberry.*,samples</Private-Package>
+					</instructions>
+				</configuration>
+				<executions>
+					<execution>
+						<id>bundle-manifest</id>
+						<phase>process-classes</phase>
+						<goals>    
+							<goal>manifest</goal>
+						</goals>   
+					</execution>
+				</executions>
+			</plugin>			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
 				<configuration>
