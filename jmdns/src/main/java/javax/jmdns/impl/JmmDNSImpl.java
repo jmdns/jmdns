@@ -588,7 +588,6 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyDiscovery, ServiceInfo
             {
                 if (!_knownMDNS.containsKey(address))
                 {
-                    System.out.println("Adding JmDNS for address: " + address);
                     JmDNS mDNS = JmDNS.create(address);
                     _knownMDNS.put(address, mDNS);
                     final NetworkTopologyEvent jmdnsEvent = new NetworkTopologyEventImpl(mDNS, address);
@@ -629,7 +628,6 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyDiscovery, ServiceInfo
             {
                 if (_knownMDNS.containsKey(address))
                 {
-                    System.out.println("Removing JmDNS for address: " + address);
                     JmDNS mDNS = JmDNS.create(address);
                     _knownMDNS.remove(address);
                     mDNS.close();
@@ -673,7 +671,6 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyDiscovery, ServiceInfo
                 NetworkInterface nif = nifs.nextElement();
                 for (InterfaceAddress interfaceAddress : nif.getInterfaceAddresses())
                 {
-                    System.out.println("Found NetworkInterface/InetAddress: " + nif + " -- " + interfaceAddress);
                     if (logger.isLoggable(Level.FINEST))
                     {
                         logger.finest("Found NetworkInterface/InetAddress: " + nif + " -- " + interfaceAddress);
