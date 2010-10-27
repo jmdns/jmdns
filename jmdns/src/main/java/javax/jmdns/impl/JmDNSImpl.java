@@ -923,13 +923,24 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
     {
         final ServiceInfoImpl info = (ServiceInfoImpl) _services.get(infoAbstract.getQualifiedName().toLowerCase());
 
-        info.cancelState();
-        this.startCanceler();
+        if (info != null)
+        {
+            info.cancelState();
+            this.startCanceler();
 
-        // Remind: We get a deadlock here, if the Canceler does not run!
-        info.waitForCanceled(0);
+            // Remind: We get a deadlock here, if the Canceler does not run!
+            info.waitForCanceled(0);
 
-        _services.remove(info.getQualifiedName().toLowerCase(), info);
+            _services.remove(info.getQualifiedName().toLowerCase(), info);
+            if (logger.isLoggable(Level.FINE))
+            {
+                logger.fine("unregisterService() JmDNS unregistered service as " + info);
+            }
+        }
+        else
+        {
+            logger.warning("Removing unregistered service info: " + infoAbstract.getQualifiedName().toLowerCase());
+        }
     }
 
     /**
@@ -1280,66 +1291,70 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject
 
         Operation cacheOperation = Operation.Noop;
         final boolean expired = newRecord.isExpired(now);
-
-        // update the cache
-        final DNSRecord cachedRecord = (DNSRecord) this.getCache().getDNSEntry(newRecord);
         if (logger.isLoggable(Level.FINE))
         {
-            logger.fine(this.getName() + ".handle response: " + newRecord + "\ncached record: " + cachedRecord);
+            logger.fine(this.getName() + " handle response: " + newRecord);
         }
-        if (cachedRecord != null)
+
+        // update the cache
+        if ((newRecord.getRecordType() != DNSRecordType.TYPE_PTR) || (!newRecord.isServicesDiscoveryMetaQuery()))
         {
-            if (expired)
+            final DNSRecord cachedRecord = (DNSRecord) this.getCache().getDNSEntry(newRecord);
+            if (logger.isLoggable(Level.FINE))
             {
-                cacheOperation = Operation.Remove;
-                this.getCache().removeDNSEntry(cachedRecord);
+                logger.fine(this.getName() + " handle response cached record: " + cachedRecord);
             }
-            else
+            if (cachedRecord != null)
             {
-                // If the record content has changed we need to inform our listeners.
-                if (!newRecord.sameValue(cachedRecord) || (!newRecord.sameSubtype(cachedRecord) && (newRecord.getSubtype().length() > 0)))
+                if (expired)
                 {
-                    cacheOperation = Operation.Update;
-                    this.getCache().replaceDNSEntry(newRecord, cachedRecord);
+                    cacheOperation = Operation.Remove;
+                    this.getCache().removeDNSEntry(cachedRecord);
                 }
                 else
                 {
-                    cachedRecord.resetTTL(newRecord);
-                    newRecord = cachedRecord;
+                    // If the record content has changed we need to inform our listeners.
+                    if (!newRecord.sameValue(cachedRecord) || (!newRecord.sameSubtype(cachedRecord) && (newRecord.getSubtype().length() > 0)))
+                    {
+                        cacheOperation = Operation.Update;
+                        this.getCache().replaceDNSEntry(newRecord, cachedRecord);
+                    }
+                    else
+                    {
+                        cachedRecord.resetTTL(newRecord);
+                        newRecord = cachedRecord;
+                    }
                 }
             }
-        }
-        else
-        {
-            if (!expired)
+            else
             {
-                cacheOperation = Operation.Add;
-                this.getCache().addDNSEntry(newRecord);
+                if (!expired)
+                {
+                    cacheOperation = Operation.Add;
+                    this.getCache().addDNSEntry(newRecord);
+                }
             }
         }
 
-        switch (newRecord.getRecordType())
+        // Register new service types
+        if (newRecord.getRecordType() == DNSRecordType.TYPE_PTR)
         {
-            case TYPE_PTR:
-                // handle DNSConstants.DNS_META_QUERY records
-                boolean typeAdded = false;
-                if (newRecord.isServicesDiscoveryMetaQuery())
+            // handle DNSConstants.DNS_META_QUERY records
+            boolean typeAdded = false;
+            if (newRecord.isServicesDiscoveryMetaQuery())
+            {
+                // The service names are in the alias.
+                if (!expired)
                 {
-                    // The service names are in the alias.
-                    if (!expired)
-                    {
-                        typeAdded = this.registerServiceType(((DNSRecord.Pointer) newRecord).getAlias());
-                    }
-                    return;
+                    typeAdded = this.registerServiceType(((DNSRecord.Pointer) newRecord).getAlias());
                 }
-                typeAdded |= this.registerServiceType(newRecord.getName());
-                if (typeAdded && (cacheOperation == Operation.Noop))
-                {
-                    cacheOperation = Operation.RegisterServiceType;
-                }
-                break;
-            default:
-                break;
+                return;
+            }
+            typeAdded |= this.registerServiceType(newRecord.getName());
+            if (typeAdded && (cacheOperation == Operation.Noop))
+            {
+                cacheOperation = Operation.RegisterServiceType;
+            }
         }
 
         // notify the listeners

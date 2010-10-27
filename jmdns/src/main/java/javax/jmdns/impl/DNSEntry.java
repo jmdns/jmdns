@@ -65,7 +65,7 @@ public abstract class DNSEntry
         if (obj instanceof DNSEntry)
         {
             DNSEntry other = (DNSEntry) obj;
-            result = this.getKey().equals(other.getKey()) && this.getRecordType().equals(other.getRecordType()) && _dnsClass == other.getRecordClass();
+            result = this.getKey().equals(other.getKey()) && this.getRecordType().equals(other.getRecordType()) && this.getRecordClass() == other.getRecordClass();
         }
         return result;
     }
@@ -281,7 +281,7 @@ public abstract class DNSEntry
     @Override
     public int hashCode()
     {
-        return _name.hashCode() + this.getRecordType().indexValue() + this.getRecordClass().indexValue();
+        return this.getKey().hashCode() + this.getRecordType().indexValue() + this.getRecordClass().indexValue();
     }
 
     /*

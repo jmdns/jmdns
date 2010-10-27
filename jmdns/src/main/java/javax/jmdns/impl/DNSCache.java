@@ -223,6 +223,16 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
         }
 
         /**
+         * Returns <tt>true</tt> if this list contains no elements.
+         *
+         * @return <tt>true</tt> if this list contains no elements
+         */
+        public boolean isEmpty()
+        {
+            return this.getValue().isEmpty();
+        }
+
+        /**
          * {@inheritDoc}
          */
         @Override
@@ -241,7 +251,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
         @Override
         public int hashCode()
         {
-            return ((_key == null) ? 0 : _key.hashCode()) ^ ((_value == null) ? 0 : _value.hashCode());
+            return (_key == null ? 0 : _key.hashCode());
         }
 
         /**
@@ -252,7 +262,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
         {
             StringBuffer aLog = new StringBuffer();
             aLog.append("\n\t\tname '" + _key + "'");
-            if (_value != null)
+            if ((_value != null) && (!_value.isEmpty()))
             {
                 for (DNSEntry entry : _value)
                 {
@@ -507,14 +517,14 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
         boolean result = false;
         if (dnsEntry != null)
         {
-            Collection<? extends DNSEntry> entry = this.getDNSEntryList(dnsEntry.getKey());
-            if (entry != null)
+            Map.Entry<String, List<? extends DNSEntry>> existingEntry = this.getEntry(dnsEntry.getKey());
+            if (existingEntry != null)
             {
-                result = entry.remove(dnsEntry);
+                result = existingEntry.getValue().remove(dnsEntry);
                 // If we just removed the last one we need to get rid of the entry
-                if (entry.size() == 0)
+                if (existingEntry.getValue().isEmpty())
                 {
-                    this.remove(dnsEntry.getKey());
+                    this.entrySet().remove(existingEntry);
                 }
             }
         }
