@@ -5,7 +5,6 @@ package javax.jmdns.impl;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
@@ -669,15 +668,16 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyDiscovery, ServiceInfo
             for (Enumeration<NetworkInterface> nifs = NetworkInterface.getNetworkInterfaces(); nifs.hasMoreElements();)
             {
                 NetworkInterface nif = nifs.nextElement();
-                for (InterfaceAddress interfaceAddress : nif.getInterfaceAddresses())
+                for (Enumeration<InetAddress> iaenum = nif.getInetAddresses(); iaenum.hasMoreElements();)
                 {
+                    InetAddress interfaceAddress = iaenum.nextElement();
                     if (logger.isLoggable(Level.FINEST))
                     {
                         logger.finest("Found NetworkInterface/InetAddress: " + nif + " -- " + interfaceAddress);
                     }
                     if (this.useInetAddress(nif, interfaceAddress))
                     {
-                        result.add(interfaceAddress.getAddress());
+                        result.add(interfaceAddress);
                     }
                 }
             }
@@ -695,7 +695,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyDiscovery, ServiceInfo
      * @see javax.jmdns.JmmDNS.NetworkTopologyDiscovery#useInetAddress(java.net.NetworkInterface, java.net.InetAddress)
      */
     @Override
-    public boolean useInetAddress(NetworkInterface networkInterface, InterfaceAddress interfaceAddress)
+    public boolean useInetAddress(NetworkInterface networkInterface, InetAddress interfaceAddress)
     {
         try
         {
@@ -707,7 +707,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyDiscovery, ServiceInfo
             {
                 return false;
             }
-            if (interfaceAddress.getAddress().isLoopbackAddress())
+            if (interfaceAddress.isLoopbackAddress())
             {
                 return false;
             }

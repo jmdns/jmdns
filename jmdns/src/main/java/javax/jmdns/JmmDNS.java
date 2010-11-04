@@ -6,7 +6,6 @@ package javax.jmdns;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -128,7 +127,7 @@ public interface JmmDNS extends Closeable
          * @param interfaceAddress
          * @return <code>true</code> is the address is to be used, <code>false</code> otherwise.
          */
-        public boolean useInetAddress(NetworkInterface networkInterface, InterfaceAddress interfaceAddress);
+        public boolean useInetAddress(NetworkInterface networkInterface, InetAddress interfaceAddress);
 
     }
 

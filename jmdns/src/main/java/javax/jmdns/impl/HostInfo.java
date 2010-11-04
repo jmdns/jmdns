@@ -9,7 +9,6 @@ import java.net.DatagramPacket;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
-import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -81,11 +80,12 @@ public class HostInfo implements DNSStatefulObject
                         for (Enumeration<NetworkInterface> nifs = NetworkInterface.getNetworkInterfaces(); nifs.hasMoreElements() && addr.isLoopbackAddress();)
                         {
                             NetworkInterface nif = nifs.nextElement();
-                            for (InterfaceAddress interfaceAddress : nif.getInterfaceAddresses())
+                            for (Enumeration<InetAddress> iaenum = nif.getInetAddresses(); iaenum.hasMoreElements();)
                             {
+                                InetAddress interfaceAddress = iaenum.nextElement();
                                 if (useInetAddress(nif, interfaceAddress))
                                 {
-                                    addr = interfaceAddress.getAddress();
+                                    addr = interfaceAddress;
                                     break;
                                 }
                             }
@@ -132,7 +132,7 @@ public class HostInfo implements DNSStatefulObject
         }
     }
 
-    private static boolean useInetAddress(NetworkInterface networkInterface, InterfaceAddress interfaceAddress)
+    private static boolean useInetAddress(NetworkInterface networkInterface, InetAddress interfaceAddress)
     {
         try
         {
@@ -144,7 +144,7 @@ public class HostInfo implements DNSStatefulObject
             {
                 return false;
             }
-            if (interfaceAddress.getAddress().isLoopbackAddress())
+            if (interfaceAddress.isLoopbackAddress())
             {
                 return false;
             }

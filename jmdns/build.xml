@@ -16,7 +16,7 @@
 	<property name="reports" value="${build}/reports" />
 	<property name="buildlib" value="${build}/lib" />
 	<property name="doc" value="${build}/docs" />
-	<property name="jdk" value="1.5" />
+	<property name="jdk" value="1.6" />
 	<property name="version" value="3.2.2" />
 	<property name="release" value="${build}/jmdns-${version}" />
 
