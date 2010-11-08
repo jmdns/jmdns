@@ -13,11 +13,11 @@ import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.jmdns.JmmDNS;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSState;
@@ -77,18 +77,10 @@ public class HostInfo implements DNSStatefulObject
                     if (addr.isLoopbackAddress())
                     {
                         // Find local address that isn't a loopback address
-                        for (Enumeration<NetworkInterface> nifs = NetworkInterface.getNetworkInterfaces(); nifs.hasMoreElements() && addr.isLoopbackAddress();)
+                        InetAddress[] addresses = JmmDNS.NetworkTopologyDiscovery.Factory.getInstance().getInetAddresses();
+                        if (addresses.length > 0)
                         {
-                            NetworkInterface nif = nifs.nextElement();
-                            for (Enumeration<InetAddress> iaenum = nif.getInetAddresses(); iaenum.hasMoreElements();)
-                            {
-                                InetAddress interfaceAddress = iaenum.nextElement();
-                                if (useInetAddress(nif, interfaceAddress))
-                                {
-                                    addr = interfaceAddress;
-                                    break;
-                                }
-                            }
+                            addr = addresses[0];
                         }
                     }
                 }
@@ -103,6 +95,10 @@ public class HostInfo implements DNSStatefulObject
                 aName = addr.getHostName();
             }
             // A host name with "." is illegal. so strip off everything and append .local.
+            if (aName.contains("in-addr.arpa"))
+            {
+                aName = "computer";
+            }
             final int idx = aName.indexOf(".");
             if (idx > 0)
             {
@@ -129,30 +125,6 @@ public class HostInfo implements DNSStatefulObject
         catch (UnknownHostException exception)
         {
             return null;
-        }
-    }
-
-    private static boolean useInetAddress(NetworkInterface networkInterface, InetAddress interfaceAddress)
-    {
-        try
-        {
-            if (!networkInterface.isUp())
-            {
-                return false;
-            }
-            if (!networkInterface.supportsMulticast())
-            {
-                return false;
-            }
-            if (interfaceAddress.isLoopbackAddress())
-            {
-                return false;
-            }
-            return true;
-        }
-        catch (Exception exception)
-        {
-            return false;
         }
     }
 

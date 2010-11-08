@@ -5,12 +5,9 @@ package javax.jmdns.impl;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,7 +25,6 @@ import java.util.logging.Logger;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.JmmDNS;
-import javax.jmdns.JmmDNS.NetworkTopologyDiscovery;
 import javax.jmdns.NetworkTopologyEvent;
 import javax.jmdns.NetworkTopologyListener;
 import javax.jmdns.ServiceInfo;
@@ -41,7 +37,7 @@ import javax.jmdns.impl.constants.DNSConstants;
  *
  * @author C&eacute;drik Lime, Pierre Frisch
  */
-public class JmmDNSImpl implements JmmDNS, NetworkTopologyDiscovery, ServiceInfoImpl.Delegate
+public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoImpl.Delegate
 {
     private static Logger logger = Logger.getLogger(JmmDNSImpl.class.getName());
 
@@ -75,7 +71,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyDiscovery, ServiceInfo
         _ListenerExecutor = Executors.newSingleThreadExecutor();
         _jmDNSExecutor = Executors.newCachedThreadPool();
         _timer = new Timer("Multihommed mDNS.Timer", true);
-        (new NetworkChecker(this)).start(_timer);
+        (new NetworkChecker(this, JmmDNS.NetworkTopologyDiscovery.Factory.getInstance())).start(_timer);
     }
 
     /*
@@ -653,72 +649,6 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyDiscovery, ServiceInfo
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmmDNS.NetworkTopologyDiscovery#getInetAddresses()
-     */
-    @Override
-    public InetAddress[] getInetAddresses()
-    {
-        Set<InetAddress> result = new HashSet<InetAddress>();
-        try
-        {
-
-            for (Enumeration<NetworkInterface> nifs = NetworkInterface.getNetworkInterfaces(); nifs.hasMoreElements();)
-            {
-                NetworkInterface nif = nifs.nextElement();
-                for (Enumeration<InetAddress> iaenum = nif.getInetAddresses(); iaenum.hasMoreElements();)
-                {
-                    InetAddress interfaceAddress = iaenum.nextElement();
-                    if (logger.isLoggable(Level.FINEST))
-                    {
-                        logger.finest("Found NetworkInterface/InetAddress: " + nif + " -- " + interfaceAddress);
-                    }
-                    if (this.useInetAddress(nif, interfaceAddress))
-                    {
-                        result.add(interfaceAddress);
-                    }
-                }
-            }
-        }
-        catch (SocketException se)
-        {
-            logger.warning("Error while fetching network interfaces addresses: " + se);
-        }
-        return result.toArray(new InetAddress[result.size()]);
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.jmdns.JmmDNS.NetworkTopologyDiscovery#useInetAddress(java.net.NetworkInterface, java.net.InetAddress)
-     */
-    @Override
-    public boolean useInetAddress(NetworkInterface networkInterface, InetAddress interfaceAddress)
-    {
-        try
-        {
-            if (!networkInterface.isUp())
-            {
-                return false;
-            }
-            if (!networkInterface.supportsMulticast())
-            {
-                return false;
-            }
-            if (interfaceAddress.isLoopbackAddress())
-            {
-                return false;
-            }
-            return true;
-        }
-        catch (Exception exception)
-        {
-            return false;
-        }
-    }
-
     /**
      * Checks the network state.<br/>
      * If the network change, this class will reconfigure the list of DNS do adapt to the new configuration.
@@ -727,14 +657,17 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyDiscovery, ServiceInfo
     {
         private static Logger logger1 = Logger.getLogger(NetworkChecker.class.getName());
 
-        private final NetworkTopologyDiscovery _mmDNS;
+        private final NetworkTopologyListener _mmDNS;
+
+        private final NetworkTopologyDiscovery _topology;
 
         private Set<InetAddress> _knownAddresses;
 
-        public NetworkChecker(NetworkTopologyDiscovery mmDNS)
+        public NetworkChecker(NetworkTopologyListener mmDNS, NetworkTopologyDiscovery topology)
         {
             super();
             this._mmDNS = mmDNS;
+            this._topology = topology;
             _knownAddresses = Collections.synchronizedSet(new HashSet<InetAddress>());
         }
 
@@ -751,7 +684,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyDiscovery, ServiceInfo
         {
             try
             {
-                InetAddress[] curentAddresses = _mmDNS.getInetAddresses();
+                InetAddress[] curentAddresses = _topology.getInetAddresses();
                 Set<InetAddress> current = new HashSet<InetAddress>(curentAddresses.length);
                 for (InetAddress address : curentAddresses)
                 {

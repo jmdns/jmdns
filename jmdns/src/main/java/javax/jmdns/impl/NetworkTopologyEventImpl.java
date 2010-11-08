@@ -6,8 +6,8 @@ package javax.jmdns.impl;
 import java.net.InetAddress;
 
 import javax.jmdns.JmDNS;
-import javax.jmdns.JmmDNS;
 import javax.jmdns.NetworkTopologyEvent;
+import javax.jmdns.NetworkTopologyListener;
 
 /**
  *
@@ -39,7 +39,7 @@ public class NetworkTopologyEventImpl extends NetworkTopologyEvent
         this._inetAddress = inetAddress;
     }
 
-    NetworkTopologyEventImpl(JmmDNS.NetworkTopologyDiscovery jmmDNS, InetAddress inetAddress)
+    NetworkTopologyEventImpl(NetworkTopologyListener jmmDNS, InetAddress inetAddress)
     {
         super(jmmDNS);
         this._inetAddress = inetAddress;
