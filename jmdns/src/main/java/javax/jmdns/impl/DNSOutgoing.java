@@ -25,6 +25,8 @@ public final class DNSOutgoing extends DNSMessage
     {
         private DNSOutgoing _out;
 
+        private int _offset;
+
         /**
          * Creates a new message stream, with a buffer capacity of the specified size, in bytes.
          *
@@ -35,8 +37,14 @@ public final class DNSOutgoing extends DNSMessage
          */
         MessageOutputStream(int size, DNSOutgoing out)
         {
+            this(size, out, 0);
+        }
+
+        MessageOutputStream(int size, DNSOutgoing out, int offset)
+        {
             super(size);
             _out = out;
+            _offset = offset;
         }
 
         void writeByte(int value)
@@ -150,9 +158,10 @@ public final class DNSOutgoing extends DNSMessage
                     writeByte(0);
                     return;
                 }
+                String label = aName.substring(0, n);
                 if (useCompression && USE_DOMAIN_NAME_COMPRESSION)
                 {
-                    Integer offset = _out._names.get(aName);
+                    Integer offset = _out._names.get(label);
                     if (offset != null)
                     {
                         int val = offset.intValue();
@@ -161,9 +170,9 @@ public final class DNSOutgoing extends DNSMessage
                         writeByte(val & 0xFF);
                         return;
                     }
-                    _out._names.put(aName, Integer.valueOf(this.size()));
+                    _out._names.put(label, Integer.valueOf(this.size() + _offset));
                 }
-                writeUTF(aName, 0, n);
+                writeUTF(label, 0, label.length());
                 aName = aName.substring(n);
                 if (aName.startsWith("."))
                 {
@@ -186,7 +195,7 @@ public final class DNSOutgoing extends DNSMessage
             writeShort(rec.getRecordClass().indexValue() | ((rec.isUnique() && _out.isMulticast()) ? DNSRecordClass.CLASS_UNIQUE : 0));
             writeInt((now == 0) ? rec.getTTL() : rec.getRemainingTTL(now));
 
-            MessageOutputStream record = new MessageOutputStream(512, _out);
+            MessageOutputStream record = new MessageOutputStream(512, _out, _offset + this.size());
             rec.write(record);
             byte[] byteArray = record.toByteArray();
 
