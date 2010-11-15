@@ -1,7 +1,8 @@
+http://www.iana.org/assignments/dns-parameters
 
 Domain Name System (DNS) Parameters
 
-(last updated 2010-02-17)
+(last updated 2010-07-23)
 
 Registries included below:
 - DNS CLASSes
@@ -20,75 +21,47 @@ Registries included below:
 Registry Name: DNS CLASSes
 Reference: [RFC5395]
 Range
-Decimal
-Hexadecimal    Registration Procedures        Notes
--------------  -----------------------------  ----------------------
-0              Standards Action
-0x0000
-1-127          IETF Review                    data CLASSes only
-0x000-0x007F
-128-253        IETF Review                    QCLASSes and meta-CLASSes only
-0x0080-0x00FD
-256-32767      IETF Review
-0x0100-0x7FFF
-32768-57343    Specification Required         data CLASSes only
-0x8000-0xDFFF
-57344-65279    Specification Required         QCLASSes and meta-CLASSes only
-0xE000-0xFEFF
-65280-65534    Reserved for Private Use
-0xFF00-0xFFFE
-65535          Standards Action
-0xFFFF
+Decimal      Hexadecimal    Registration Procedures        Notes
+-----------  -------------  -----------------------------  ----------------------
+0            0x0000         Standards Action
+1-127        0x0000-0x007F  IETF Review                    data CLASSes only
+128-253      0x0080-0x00FD  IETF Review                    QCLASSes and meta-CLASSes only
+256-32767    0x0100-0x7FFF  IETF Review
+32768-57343  0x8000-0xDFFF  Specification Required         data CLASSes only
+57344-65279  0xE000-0xFEFF  Specification Required         QCLASSes and meta-CLASSes only
+65280-65534  0xFF00-0xFFFE  Reserved for Private Use
+65535        0xFFFF         Standards Action
 
 Registry:
-Decimal
-Hexadecimal    Name                            Reference
--------------  ------------------------------  ---------
-0              Reserved                        [RFC5395]
-0x0000
-1              Internet (IN)                   [RFC1035]
-0x0001
-2              Unassigned
-0x0002
-3              Chaos (CH)                      [Moon1981]
-0x0003
-4              Hesiod (HS)                     [Dyer1987]
-0x0004
-5-253          Unassigned
-0x0005-0x00FD
-254            QCLASS NONE                     [RFC2136]
-0x00FD
-255            QCLASS * (ANY)                  [RFC1035]
-0x00FF
-256-65279      Unassigned
-0x0100-0xFEFF
-65280-65534    Reserved for Private Use        [RFC5395]
-0xFF00-0xFFFE
-65535          Reserved                        [RFC5395]
-0xFFFF
+Decimal      Hexadecimal    Name                            Reference
+-----------  -----------    ------------------------------  ---------
+0            0x0000         Reserved                        [RFC5395]
+1            0x0001         Internet (IN)                   [RFC1035]
+2            0x0002         Unassigned
+3            0x0003         Chaos (CH)                      [Moon1981]
+4            0x0004         Hesiod (HS)                     [Dyer1987]
+5-253        0x0005-0x00FD  Unassigned
+254          0x00FD         QCLASS NONE                     [RFC2136]
+255          0x00FF         QCLASS * (ANY)                  [RFC1035]
+256-65279    0x0100-0xFEFF  Unassigned
+65280-65534  0xFF00-0xFFFE  Reserved for Private Use        [RFC5395]
+65535        0xFFFF         Reserved                        [RFC5395]
 
 
 Registry Name: Resource Record (RR) TYPEs
 Reference: [RFC5395][RFC1035]
 Range
-Decimal
-Hexadecimal    Registration Procedures                                         Notes
--------------  --------------------------------------------------------------  --------------
-0              RRTYPE zero is used as a special indicator for the SIG RR
-0x0000         [RFC2931], [RFC4034] and in other circumstances and must never
-               be allocated for ordinary use.
-1-127          DNS RRTYPE Allocation Policy                                    data TYPEs
-0x0001-0x007F
-128-255        DNS RRTYPE Allocation Policy                                    Q TYPEs, Meta TYPEs
-0x0080-0x00FF
-256-61439      DNS RRTYPE Allocation Policy                                    data RRTYPEs
-0x0100-0xEFFF
-61440-65279    IETF Review
-0xF000-0xFEFF
-65280-65534    Reserved for Private Use
-0xFF00-0xFFFE
-65535          Reserved (Standards Action)
-0xFFFF
+Decimal      Hexadecimal    Registration Procedures                                         Notes
+-----------  -------------  --------------------------------------------------------------  --------------
+0            0x0000         RRTYPE zero is used as a special indicator for the SIG RR
+                            [RFC2931], [RFC4034] and in other circumstances and must never
+                            be allocated for ordinary use.
+1-127        0x0000-0x007F  DNS RRTYPE Allocation Policy                                    data TYPEs
+128-255      0x0080-0x00FF  DNS RRTYPE Allocation Policy                                    Q TYPEs, Meta TYPEs
+256-61439    0x0100-0xEFFF  DNS RRTYPE Allocation Policy                                    data RRTYPEs
+61440-65279  0xF000-0xFEFF  IETF Review
+65280-65534  0xFF00-0xFFFE  Reserved for Private Use
+65535        0xFFFF         Reserved (Standards Action)
 
 Registry:
 TYPE         Value and meaning                              Reference
@@ -110,7 +83,7 @@ MINFO        14 mailbox or mail list information            [RFC1035]
 MX           15 mail exchange                               [RFC1035]
 TXT          16 text strings                                [RFC1035]
 RP           17 for Responsible Person                      [RFC1183]
-AFSDB        18 for AFS Data Base location                  [RFC1183]
+AFSDB        18 for AFS Data Base location                  [RFC1183][RFC5864]
 X25          19 for X.25 PSDN address                       [RFC1183]
 ISDN         20 for ISDN address                            [RFC1183]
 RT           21 for Route Through                           [RFC1183]
@@ -127,7 +100,7 @@ EID          31 Endpoint Identifier                         [Patton]
 NIMLOC       32 Nimrod Locator                              [Patton]
 SRV          33 Server Selection                            [RFC2782]
 ATMA         34 ATM Address                                 [ATMDOC]
-NAPTR        35 Naming Authority Pointer                    [RFC2915][RFC2168]
+NAPTR        35 Naming Authority Pointer                    [RFC2915][RFC2168][RFC3403]
 KX           36 Key Exchanger                               [RFC2230]
 CERT         37 CERT                                        [RFC4398]
 A6           38 A6 (Experimental)                           [RFC3226][RFC2874]
@@ -159,7 +132,7 @@ Unassigned   104-248
 TKEY         249 Transaction Key                            [RFC2930]
 TSIG         250 Transaction Signature                      [RFC2845]
 IXFR         251 incremental transfer                       [RFC1995]
-AXFR         252 transfer of an entire zone                 [RFC1035]
+AXFR         252 transfer of an entire zone                 [RFC1035][RFC5936]
 MAILB        253 mailbox-related RRs (MB, MG or MR)         [RFC1035]
 MAILA        254 mail agent RRs (Obsolete - see MX)         [RFC1035]
 *            255 A request for all records                  [RFC1035]
@@ -198,8 +171,7 @@ Registration Procedures: IETF Review
 
 Registry:
 RCODE
-Decimal
-Hexadecimal  Name        Description                          Reference
+Decimal      Name        Description                          Reference
 -----------  ----------  -----------------------------------  ---------
 0            NoError     No Error                             [RFC1035]
 1            FormErr     Format Error                         [RFC1035]
@@ -230,34 +202,22 @@ Hexadecimal  Name        Description                          Reference
 Registry Name: AFSDB RR Subtype
 Reference: [RFC5395][RFC1035]
 Range
-Decimal
-Hexadecimal    Registration Procedures
--------------  --------------------------------------
-0              Standards Action
-0x0000
-1-65279        IETF Review
-0x0001-0xFEFF
-65280-65534    Private Use
-0xFF00-0xFFFE
-65535          Standards Action
-0xFFFF
+Decimal      Hexadecimal    Registration Procedures
+-----------  -------------  --------------------------------------
+0            0x0000         Standards Action
+1-65279      0x0001-0xFEFF  IETF Review
+65280-65534  0xFF00-0xFFFE  Private Use
+65535        0xFFFF         Standards Action
 
 Registry:
-Decimal
-Hexadecimal    Description                                 Reference
--------------  ------------------------------------------  ---------
-0              Reserved                                    [RFC5395]
-0x0000
-1              Andrews File Service v3.0 Location Service  [RFC1183]
-0x0001
-2              DCE/NCA root cell directory node            [RFC1183]
-0x0002
-3-65279        Unassigned
-0x0003-0xFEFF
-65280-65534    Reserved for Private Use                    [RFC5395]
-0xFF00-0xFFFE
-65535          Reserved                                    [RFC5395]
-0xFFFF
+Decimal      Hexadecimal    Description                                 Reference
+-----------  -------------  ------------------------------------------  ---------
+0            0x0000         Reserved                                    [RFC5395]
+1            0x0001         Andrews File Service v3.0 Location Service  [RFC1183]
+2            0x0002         DCE/NCA root cell directory node            [RFC1183]
+3-65279      0x0003-0xFEFF  Unassigned
+65280-65534  0xFF00-0xFFFE  Reserved for Private Use                    [RFC5395]
+65535        0xFFFF         Reserved                                    [RFC5395]
 
 
 Registry Name: DHCID RR Identifier Type Codes
@@ -283,13 +243,13 @@ Identifier Type Code  Identifier                                        Referenc
                       DHCPv6 client's Client Identifier option
                       or the DUID field from a DHCPv4 client's
                       Client Identifier option).
-0x0003-0xfffe         Unassigned                                        [RFC4701]
-0xffff                Reserved                                          [RFC4701]
+0x0003-0xFFFE         Unassigned                                        [RFC4701]
+0xFFFF                Reserved                                          [RFC4701]
 
 
 Registry Name: DNS Label types
-Reference: [RFC5001]
-Registration Procedures: Standards Action
+Reference: [RFC2671]
+Registration Procedures: IESG Approval
 
 Note:
 IETF standards action required to allocate new types
@@ -309,8 +269,8 @@ Value             Type                                                       Sta
 
 
 Registry Name: DNS EDNS0 Options
-Reference: [RFC5001]
-Registration Procedures: Specification Required
+Reference: [RFC2671]
+Registration Procedures: RFC Required
 
 Registry:
 Value     Name       Status        Reference
@@ -370,7 +330,7 @@ References
 ----------
 [ATMDOC]   ATM Forum Technical Committee, "ATM Name System, V2.0",
            Doc ID: AF-DANS-0152.000, July 2000. Available from
-           http://www.ipmplsforum.org/ftp/pub/approved-specs/af-dans-0152.000.pdf
+           http://broadband-forum.org/ftp/pub/approved-specs/af-saa-0069.000.pdf
            and held in escrow by IANA.
 
 [Dyer1987] Dyer, S., and F. Hsu, "Hesiod", Project Athena Technical
@@ -462,6 +422,10 @@ References
 [RFC3226]  O. Gudmundsson, "DNSSEC and IPv6 A6 aware server/resolver message
            size requirements", RFC 3226, December 2001.
 
+[RFC3403]  M. Mealling, "Dynamic Delegation Discovery System (DDDS) Part
+           Three: The Domain Name System (DNS) Database", RFC 3403, October
+           2002.
+
 [RFC3425]  D. Lawrence, "Obsoleting IQUERY", RFC 3425, November 2002.
 
 [RFC3596]  S. Thomson, C. Huitema, V. Ksinant, and M. Souissi, "DNS
@@ -519,6 +483,10 @@ References
 
 [draft-cheshire-edns0-owner-option]  work in progress
 
+[RFC5864]  R. Allbery, "DNS SRV Resource Records for AFS", RFC 5864, April 2010.
+
+[RFC5936]  E. Lewis, A. Hoenes, Ed., "DNS Zone Transfer Protocol (AXFR)",
+           RFC 5936, June 2010.
 
 People
 --------
