@@ -326,7 +326,6 @@ public final class DNSOutgoing extends DNSMessage
     {
         if (rec != null)
         {
-            // FIXME [PJYF July 27 2010] This is wrong when adding answers to a query we should not include stale records.
             if ((now == 0) || !rec.isExpired(now))
             {
                 MessageOutputStream record = new MessageOutputStream(512, this);

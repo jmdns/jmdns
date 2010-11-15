@@ -541,7 +541,7 @@ public abstract class DNSRecord extends DNSEntry
             }
             else if (this.isDomainDiscoveryQuery())
             {
-                // FIXME [PJYF July 3 2010] Not sure what to do with this at this point
+                // FIXME [PJYF July 3 2010] We do currently support domain discovery
                 return new ServiceInfoImpl(this.getQualifiedNameMap(), 0, 0, 0, persistent, (byte[]) null);
             }
             else if (this.isReverseLookup())

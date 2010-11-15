@@ -147,8 +147,7 @@ public class HostInfo implements DNSStatefulObject
             }
             catch (Exception exception)
             {
-                // FIXME Shouldn't we take an action here?
-                logger.log(Level.WARNING, "LocalHostInfo() exception ", exception);
+                logger.log(Level.SEVERE, "LocalHostInfo() exception ", exception);
             }
         }
     }
