@@ -161,18 +161,21 @@ public final class DNSOutgoing extends DNSMessage
                 String label = aName.substring(0, n);
                 if (useCompression && USE_DOMAIN_NAME_COMPRESSION)
                 {
-                    Integer offset = _out._names.get(label);
+                    Integer offset = _out._names.get(aName);
                     if (offset != null)
                     {
                         int val = offset.intValue();
-
                         writeByte((val >> 8) | 0xC0);
                         writeByte(val & 0xFF);
                         return;
                     }
-                    _out._names.put(label, Integer.valueOf(this.size() + _offset));
+                    _out._names.put(aName, Integer.valueOf(this.size() + _offset));
+                    writeUTF(label, 0, label.length());
                 }
-                writeUTF(label, 0, label.length());
+                else
+                {
+                    writeUTF(label, 0, label.length());
+                }
                 aName = aName.substring(n);
                 if (aName.startsWith("."))
                 {
@@ -195,7 +198,8 @@ public final class DNSOutgoing extends DNSMessage
             writeShort(rec.getRecordClass().indexValue() | ((rec.isUnique() && _out.isMulticast()) ? DNSRecordClass.CLASS_UNIQUE : 0));
             writeInt((now == 0) ? rec.getTTL() : rec.getRemainingTTL(now));
 
-            MessageOutputStream record = new MessageOutputStream(512, _out, _offset + this.size());
+            // We need to take into account the 2 size bytes
+            MessageOutputStream record = new MessageOutputStream(512, _out, _offset + this.size() + 2);
             rec.write(record);
             byte[] byteArray = record.toByteArray();
 
@@ -426,6 +430,20 @@ public final class DNSOutgoing extends DNSMessage
     public boolean isQuery()
     {
         return (this.getFlags() & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_QUERY;
+    }
+
+    /**
+     * Debugging.
+     */
+    String print(boolean dump)
+    {
+        StringBuilder buf = new StringBuilder();
+        buf.append(this.print());
+        if (dump)
+        {
+            buf.append(this.print(this.data()));
+        }
+        return buf.toString();
     }
 
     @Override

@@ -489,7 +489,7 @@ public abstract class DNSRecord extends DNSEntry
         @Override
         void write(MessageOutputStream out)
         {
-            out.writeName(_alias, false);
+            out.writeName(_alias);
         }
 
         @Override
@@ -708,10 +708,11 @@ public abstract class DNSRecord extends DNSEntry
             out.writeShort(_port);
             if (DNSIncoming.USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET)
             {
-                out.writeName(_server, false);
+                out.writeName(_server);
             }
             else
             {
+                // [PJYF Nov 13 2010] Do we still need this? This looks really bad. All label are supposed to start by a length.
                 out.writeUTF(_server, 0, _server.length());
 
                 // add a zero byte to the end just to be safe, this is the strange form
@@ -777,7 +778,7 @@ public abstract class DNSRecord extends DNSEntry
         boolean handleQuery(JmDNSImpl dns, long expirationTime)
         {
             ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(this.getKey());
-            if (info != null && (_port != info.getPort() || !_server.equalsIgnoreCase(dns.getLocalHost().getName())))
+            if (info != null && (info.isAnnouncing() || info.isAnnounced()) && (_port != info.getPort() || !_server.equalsIgnoreCase(dns.getLocalHost().getName())))
             {
                 logger1.finer("handleQuery() Conflicting probe detected from: " + getRecordSource());
                 DNSRecord.Service localService = new DNSRecord.Service(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(), dns.getLocalHost().getName());

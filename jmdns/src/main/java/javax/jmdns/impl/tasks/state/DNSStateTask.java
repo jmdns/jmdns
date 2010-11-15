@@ -112,7 +112,7 @@ public abstract class DNSStateTask extends DNSTask
     @Override
     public void run()
     {
-        DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
+        DNSOutgoing out = this.createOugoing();
         try
         {
             if (!this.checkRunCondition())
