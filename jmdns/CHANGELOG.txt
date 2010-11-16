@@ -1,4 +1,7 @@
-CHANGELOG XX XXXX 2010 Pierre Frisch
+CHANGELOG XX XXXX 2011 Pierre Frisch
+Rev the source code to 3.2.3
+
+CHANGELOG 16 November 2010 Pierre Frisch
 Rev the source code to 3.2.2
 serviceResolved not working properly - ID: 3032054
 Only adds "first" server on Android - ID: 3065602
