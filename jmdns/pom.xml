@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>javax.jmdns</groupId>
 	<artifactId>jmdns</artifactId>
-	<version>3.2.2</version>
+	<version>3.2.3-SNAPSHOT</version>
 	<name>JmDNS</name>
 	<packaging>jar</packaging>
 	<parent>
@@ -20,10 +20,9 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 		<url>http://jmdns.sourceforge.net/</url>
 	</organization>
 	<scm>
-		<connection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns/tags/jmdns-3.2.2</connection>
-		<developerConnection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns/tags/jmdns-3.2.2</developerConnection>
-		<tag>HEAD</tag>
-		<url>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns/tags/jmdns-3.2.2</url>
+		<connection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns/trunk</connection>
+		<developerConnection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns/trunk</developerConnection>
+		<url>https://jmdns.svn.sourceforge.net/svnroot/jmdns</url>
 	</scm>
 	<distributionManagement>
 		<site>
