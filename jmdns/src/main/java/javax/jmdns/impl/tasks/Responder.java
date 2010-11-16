@@ -161,11 +161,18 @@ public class Responder extends DNSTask
                     out.setId(_in.getId());
                     for (DNSQuestion question : questions)
                     {
-                        out = this.addQuestion(out, question);
+                        if (question != null)
+                        {
+                            out = this.addQuestion(out, question);
+                        }
                     }
                     for (DNSRecord answer : answers)
                     {
-                        out = this.addAnswer(out, _in, answer);
+                        if (answer != null)
+                        {
+                            out = this.addAnswer(out, _in, answer);
+
+                        }
                     }
                     if (!out.isEmpty())
                         this.getDns().send(out);

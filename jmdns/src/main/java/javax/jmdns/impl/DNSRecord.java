@@ -539,13 +539,13 @@ public abstract class DNSRecord extends DNSEntry
                 Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(this.getAlias());
                 return new ServiceInfoImpl(map, 0, 0, 0, persistent, (byte[]) null);
             }
-            else if (this.isDomainDiscoveryQuery())
-            {
-                // FIXME [PJYF July 3 2010] We do currently support domain discovery
-                return new ServiceInfoImpl(this.getQualifiedNameMap(), 0, 0, 0, persistent, (byte[]) null);
-            }
             else if (this.isReverseLookup())
             {
+                return new ServiceInfoImpl(this.getQualifiedNameMap(), 0, 0, 0, persistent, (byte[]) null);
+            }
+            else if (this.isDomainDiscoveryQuery())
+            {
+                // FIXME [PJYF Nov 16 2010] We do not currently support domain discovery
                 return new ServiceInfoImpl(this.getQualifiedNameMap(), 0, 0, 0, persistent, (byte[]) null);
             }
             Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(this.getAlias());

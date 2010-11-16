@@ -176,7 +176,17 @@ public abstract class DNSEntry
 
     public boolean isReverseLookup()
     {
-        return _qualifiedNameMap.get(Fields.Domain).endsWith("in-addr.arpa") || _qualifiedNameMap.get(Fields.Domain).endsWith("ip6.arpa");
+        return this.isV4ReverseLookup() || this.isV6ReverseLookup();
+    }
+
+    public boolean isV4ReverseLookup()
+    {
+        return _qualifiedNameMap.get(Fields.Domain).endsWith("in-addr.arpa");
+    }
+
+    public boolean isV6ReverseLookup()
+    {
+        return _qualifiedNameMap.get(Fields.Domain).endsWith("ip6.arpa");
     }
 
     /**

@@ -40,9 +40,9 @@ public final class DNSIncoming extends DNSMessage
 
         final Map<Integer, String> _names;
 
-        public MessageInputStream(byte[] buffer)
+        public MessageInputStream(byte[] buffer, int length)
         {
-            this(buffer, 0, buffer.length);
+            this(buffer, 0, length);
         }
 
         /**
@@ -207,7 +207,7 @@ public final class DNSIncoming extends DNSMessage
         super(0, 0, packet.getPort() == DNSConstants.MDNS_PORT);
         this._packet = packet;
         InetAddress source = packet.getAddress();
-        _messageInputStream = new MessageInputStream(packet.getData());
+        this._messageInputStream = new MessageInputStream(packet.getData(), packet.getLength());
         this._receivedTime = System.currentTimeMillis();
         this._senderUDPPayload = DNSConstants.MAX_MSG_TYPICAL;
 
@@ -300,7 +300,7 @@ public final class DNSIncoming extends DNSMessage
         }
         int recordClassIndex = _messageInputStream.readUnsignedShort();
         DNSRecordClass recordClass = (type == DNSRecordType.TYPE_OPT ? DNSRecordClass.CLASS_UNKNOWN : DNSRecordClass.classForIndex(recordClassIndex));
-        if (recordClass == DNSRecordClass.CLASS_UNKNOWN)
+        if ((recordClass == DNSRecordClass.CLASS_UNKNOWN) && (type != DNSRecordType.TYPE_OPT))
         {
             logger.log(Level.SEVERE, "Could not find record class. domain: " + domain + " type: " + type + "\n" + this.print(true));
         }
@@ -396,62 +396,63 @@ public final class DNSIncoming extends DNSMessage
                             optiondata = _messageInputStream.readBytes(optionLength);
                         }
                         //
-                        if (DNSOptionCode.Unknown == optionCode)
+                        // We should really do something with those options.
+                        switch (optionCode)
                         {
-                            logger.log(Level.WARNING, "There was an OPT answer. Not currently handled. Option code: " + optionCodeInt + " data: " + this._hexString(optiondata));
-                        }
-                        else
-                        {
-                            // We should really do something with those options.
-                            switch (optionCode)
-                            {
-                                case Owner:
-                                    // Valid length values are 8, 14, 18 and 20
-                                    // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-                                    // |Opt|Len|V|S|Primary MAC|Wakeup MAC | Password |
-                                    // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-                                    //
-                                    int ownerVersion = 0;
-                                    int ownerSequence = 0;
-                                    byte[] ownerPrimaryMacAddress = null;
-                                    byte[] ownerWakeupMacAddress = null;
-                                    byte[] ownerPassword = null;
-                                    try
+                            case Owner:
+                                // Valid length values are 8, 14, 18 and 20
+                                // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                                // |Opt|Len|V|S|Primary MAC|Wakeup MAC | Password |
+                                // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                                //
+                                int ownerVersion = 0;
+                                int ownerSequence = 0;
+                                byte[] ownerPrimaryMacAddress = null;
+                                byte[] ownerWakeupMacAddress = null;
+                                byte[] ownerPassword = null;
+                                try
+                                {
+                                    ownerVersion = optiondata[0];
+                                    ownerSequence = optiondata[1];
+                                    ownerPrimaryMacAddress = new byte[] { optiondata[2], optiondata[3], optiondata[4], optiondata[5], optiondata[6], optiondata[7] };
+                                    ownerWakeupMacAddress = ownerPrimaryMacAddress;
+                                    if (optiondata.length > 8)
                                     {
-                                        ownerVersion = optiondata[0];
-                                        ownerSequence = optiondata[1];
-                                        ownerPrimaryMacAddress = new byte[] { optiondata[2], optiondata[3], optiondata[4], optiondata[5], optiondata[6], optiondata[7] };
-                                        ownerWakeupMacAddress = ownerPrimaryMacAddress;
-                                        if (optiondata.length > 8)
-                                        {
-                                            // We have a wakeupMacAddress.
-                                            ownerWakeupMacAddress = new byte[] { optiondata[8], optiondata[9], optiondata[10], optiondata[11], optiondata[12], optiondata[13] };
-                                        }
-                                        if (optiondata.length == 18)
-                                        {
-                                            // We have a short password.
-                                            ownerPassword = new byte[] { optiondata[14], optiondata[15], optiondata[16], optiondata[17] };
-                                        }
-                                        if (optiondata.length == 22)
-                                        {
-                                            // We have a long password.
-                                            ownerPassword = new byte[] { optiondata[14], optiondata[15], optiondata[16], optiondata[17], optiondata[18], optiondata[19], optiondata[20], optiondata[21] };
-                                        }
+                                        // We have a wakeupMacAddress.
+                                        ownerWakeupMacAddress = new byte[] { optiondata[8], optiondata[9], optiondata[10], optiondata[11], optiondata[12], optiondata[13] };
                                     }
-                                    catch (Exception exception)
+                                    if (optiondata.length == 18)
                                     {
-                                        logger.warning("Malformed OPT answer. Option code: Owner data: " + this._hexString(optiondata));
+                                        // We have a short password.
+                                        ownerPassword = new byte[] { optiondata[14], optiondata[15], optiondata[16], optiondata[17] };
                                     }
-                                    logger.info("Unhandled Owner OPT version: " + ownerVersion + " sequence: " + ownerSequence + " MAC address: " + this._hexString(ownerPrimaryMacAddress)
+                                    if (optiondata.length == 22)
+                                    {
+                                        // We have a long password.
+                                        ownerPassword = new byte[] { optiondata[14], optiondata[15], optiondata[16], optiondata[17], optiondata[18], optiondata[19], optiondata[20], optiondata[21] };
+                                    }
+                                }
+                                catch (Exception exception)
+                                {
+                                    logger.warning("Malformed OPT answer. Option code: Owner data: " + this._hexString(optiondata));
+                                }
+                                if (logger.isLoggable(Level.FINE))
+                                {
+                                    logger.fine("Unhandled Owner OPT version: " + ownerVersion + " sequence: " + ownerSequence + " MAC address: " + this._hexString(ownerPrimaryMacAddress)
                                             + (ownerWakeupMacAddress != ownerPrimaryMacAddress ? " wakeup MAC address: " + this._hexString(ownerWakeupMacAddress) : "") + (ownerPassword != null ? " password: " + this._hexString(ownerPassword) : ""));
-                                    break;
-                                case LLQ:
-                                case NSID:
-                                case UL:
-                                case Unknown:
-                                    logger.log(Level.INFO, "There was an OPT answer. Option code: " + optionCode + " data: " + this._hexString(optiondata));
-                                    break;
-                            }
+                                }
+                                break;
+                            case LLQ:
+                            case NSID:
+                            case UL:
+                                if (logger.isLoggable(Level.FINE))
+                                {
+                                    logger.log(Level.FINE, "There was an OPT answer. Option code: " + optionCode + " data: " + this._hexString(optiondata));
+                                }
+                                break;
+                            case Unknown:
+                                logger.log(Level.WARNING, "There was an OPT answer. Not currently handled. Option code: " + optionCodeInt + " data: " + this._hexString(optiondata));
+                                break;
                         }
                     }
                 }
@@ -484,7 +485,8 @@ public final class DNSIncoming extends DNSMessage
         buf.append(this.print());
         if (dump)
         {
-            byte[] data = _packet.getData();
+            byte[] data = new byte[_packet.getLength()];
+            System.arraycopy(_packet.getData(), 0, data, 0, data.length);
             buf.append(this.print(data));
         }
         return buf.toString();

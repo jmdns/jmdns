@@ -4,11 +4,13 @@
 
 package javax.jmdns.impl;
 
+import java.net.InetAddress;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.jmdns.ServiceInfo;
+import javax.jmdns.ServiceInfo.Fields;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
@@ -116,6 +118,28 @@ public class DNSQuestion extends DNSEntry
                 {
                     answers.add(new DNSRecord.Pointer("_services._dns-sd._udp.local.", DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, serviceType));
                 }
+            }
+            else if (this.isReverseLookup())
+            {
+                String ipValue = this.getQualifiedNameMap().get(Fields.Instance);
+                if ((ipValue != null) && (!ipValue.isEmpty()))
+                {
+                    InetAddress address = jmDNSImpl.getLocalHost().getInetAddress();
+                    String hostIPAddress = (address != null ? address.getHostAddress() : "");
+                    if (ipValue.equalsIgnoreCase(hostIPAddress))
+                    {
+                        if (this.isV4ReverseLookup()) {
+                            answers.add(jmDNSImpl.getLocalHost().getDNSReverseAddressRecord(DNSRecordType.TYPE_A, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL));
+                        }
+                        if (this.isV6ReverseLookup()) {
+                            answers.add(jmDNSImpl.getLocalHost().getDNSReverseAddressRecord(DNSRecordType.TYPE_AAAA, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL));
+                        }
+                    }
+                }
+            }
+            else if (this.isDomainDiscoveryQuery())
+            {
+                // FIXME [PJYF Nov 16 2010] We do not currently support domain discovery
             }
         }
 
