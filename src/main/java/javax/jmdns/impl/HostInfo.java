@@ -80,14 +80,11 @@ public class HostInfo implements DNSStatefulObject {
             } else {
                 aName = addr.getHostName();
             }
-            // A host name with "." is illegal. so strip off everything and append .local.
             if (aName.contains("in-addr.arpa")) {
                 aName = "computer";
             }
-            final int idx = aName.indexOf('.');
-            if (idx > 0) {
-                aName = aName.substring(0, idx);
-            }
+            // A host name with "." is illegal. so strip off everything and append .local.
+            aName.replace('.', '-');
             aName += ".local.";
             localhost = new HostInfo(addr, aName, dns);
         } catch (final IOException e) {
