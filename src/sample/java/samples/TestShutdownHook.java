@@ -1,5 +1,5 @@
-//Licensed under Apache License version 2.0
-//Original license LGPL
+// Licensed under Apache License version 2.0
+// Original license LGPL
 
 package samples;
 
@@ -7,37 +7,30 @@ import java.io.*;
 
 /**
  * TestShutdownHook.
- *
+ * 
  * @author Werner Randelshofer
  * @version 1.0 May 24, 2004 Created.
  */
-public class TestShutdownHook
-{
+public class TestShutdownHook {
 
     /**
      * Creates a new instance.
-     *
+     * 
      * @param args
      */
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
-            public void run()
-            {
+            public void run() {
                 System.out.println("Shutdown Hook");
             }
         });
-        try
-        {
+        try {
             int b;
-            while ((b = System.in.read()) != -1)
-            {
+            while ((b = System.in.read()) != -1) {
                 System.out.print("\"" + (char) b);
             }
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             /* Stub */
         }
     }

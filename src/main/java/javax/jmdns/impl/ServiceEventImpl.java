@@ -1,6 +1,6 @@
-///Copyright 2003-2005 Arthur van Hoff, Rick Blair
-//Licensed under Apache License version 2.0
-//Original license LGPL
+// /Copyright 2003-2005 Arthur van Hoff, Rick Blair
+// Licensed under Apache License version 2.0
+// Original license LGPL
 
 package javax.jmdns.impl;
 
@@ -14,8 +14,7 @@ import javax.jmdns.ServiceInfo;
  * @author Werner Randelshofer, Rick Blair
  * @version %I%, %G%
  */
-public class ServiceEventImpl extends ServiceEvent
-{
+public class ServiceEventImpl extends ServiceEvent {
     /**
      *
      */
@@ -24,15 +23,15 @@ public class ServiceEventImpl extends ServiceEvent
     /**
      * The type name of the service.
      */
-    private String _type;
+    private final String      _type;
     /**
      * The instance name of the service. Or null, if the event was fired to a service type listener.
      */
-    private String _name;
+    private final String      _name;
     /**
      * The service info record, or null if the service could be be resolved. This is also null, if the event was fired to a service type listener.
      */
-    private ServiceInfo _info;
+    private final ServiceInfo _info;
 
     /**
      * Creates a new instance.
@@ -46,8 +45,7 @@ public class ServiceEventImpl extends ServiceEvent
      * @param info
      *            the service info record, or null if the service could be be resolved.
      */
-    public ServiceEventImpl(JmDNSImpl jmDNS, String type, String name, ServiceInfo info)
-    {
+    public ServiceEventImpl(JmDNSImpl jmDNS, String type, String name, ServiceInfo info) {
         super(jmDNS);
         this._type = type;
         this._name = name;
@@ -58,8 +56,7 @@ public class ServiceEventImpl extends ServiceEvent
      * @see javax.jmdns.ServiceEvent#getDNS()
      */
     @Override
-    public JmDNS getDNS()
-    {
+    public JmDNS getDNS() {
         return (JmDNS) getSource();
     }
 
@@ -67,8 +64,7 @@ public class ServiceEventImpl extends ServiceEvent
      * @see javax.jmdns.ServiceEvent#getType()
      */
     @Override
-    public String getType()
-    {
+    public String getType() {
         return _type;
     }
 
@@ -76,8 +72,7 @@ public class ServiceEventImpl extends ServiceEvent
      * @see javax.jmdns.ServiceEvent#getName()
      */
     @Override
-    public String getName()
-    {
+    public String getName() {
         return _name;
     }
 
@@ -85,8 +80,7 @@ public class ServiceEventImpl extends ServiceEvent
      * @see javax.jmdns.ServiceEvent#toString()
      */
     @Override
-    public String toString()
-    {
+    public String toString() {
         StringBuilder buf = new StringBuilder();
         buf.append("[" + this.getClass().getSimpleName() + "@" + System.identityHashCode(this) + " ");
         buf.append("\n\tname: '");
@@ -103,19 +97,16 @@ public class ServiceEventImpl extends ServiceEvent
     }
 
     @Override
-    public ServiceInfo getInfo()
-    {
+    public ServiceInfo getInfo() {
         return _info;
     }
 
     /*
      * (non-Javadoc)
-     *
      * @see java.lang.Object#clone()
      */
     @Override
-    public Object clone() throws CloneNotSupportedException
-    {
+    public ServiceEventImpl clone() throws CloneNotSupportedException {
         ServiceInfoImpl newInfo = new ServiceInfoImpl(this.getInfo());
         return new ServiceEventImpl((JmDNSImpl) this.getDNS(), this.getType(), this.getName(), newInfo);
     }

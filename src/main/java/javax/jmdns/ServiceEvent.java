@@ -1,6 +1,6 @@
-//Copyright 2003-2005 Arthur van Hoff, Rick Blair
-//Licensed under Apache License version 2.0
-//Original license LGPL
+// Copyright 2003-2005 Arthur van Hoff, Rick Blair
+// Licensed under Apache License version 2.0
+// Original license LGPL
 
 package javax.jmdns;
 
@@ -9,8 +9,7 @@ import java.util.EventObject;
 /**
  *
  */
-public abstract class ServiceEvent extends EventObject
-{
+public abstract class ServiceEvent extends EventObject implements Cloneable {
 
     /**
      *
@@ -25,8 +24,7 @@ public abstract class ServiceEvent extends EventObject
      * @exception IllegalArgumentException
      *                if source is null.
      */
-    public ServiceEvent(Object eventSource)
-    {
+    public ServiceEvent(final Object eventSource) {
         super(eventSource);
     }
 
@@ -60,8 +58,7 @@ public abstract class ServiceEvent extends EventObject
     public abstract ServiceInfo getInfo();
 
     @Override
-    public Object clone() throws CloneNotSupportedException
-    {
-        return super.clone();
+    public ServiceEvent clone() throws CloneNotSupportedException {
+        return (ServiceEvent)super.clone();
     }
 }

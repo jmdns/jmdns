@@ -1,6 +1,6 @@
-//Copyright 2003-2005 Arthur van Hoff, Rick Blair
-//Licensed under Apache License version 2.0
-//Original license LGPL
+// Copyright 2003-2005 Arthur van Hoff, Rick Blair
+// Licensed under Apache License version 2.0
+// Original license LGPL
 
 package javax.jmdns.impl;
 
@@ -29,86 +29,68 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @version %I%, %G%
  * @author Pierre Frisch, Werner Randelshofer
  */
-public class HostInfo implements DNSStatefulObject
-{
-    private static Logger logger = Logger.getLogger(HostInfo.class.getName());
+public class HostInfo implements DNSStatefulObject {
+    private static Logger       logger = Logger.getLogger(HostInfo.class.getName());
 
-    protected String _name;
+    protected String            _name;
 
-    protected InetAddress _address;
+    protected InetAddress       _address;
 
-    protected NetworkInterface _interfaze;
+    protected NetworkInterface  _interfaze;
 
     private final HostInfoState _state;
 
-    private final static class HostInfoState extends DNSStatefulObject.DefaultImplementation
-    {
+    private final static class HostInfoState extends DNSStatefulObject.DefaultImplementation {
 
         private static final long serialVersionUID = -8191476803620402088L;
 
         /**
          * @param dns
          */
-        public HostInfoState(JmDNSImpl dns)
-        {
+        public HostInfoState(JmDNSImpl dns) {
             super();
             this.setDns(dns);
         }
 
     }
 
-    public static HostInfo newHostInfo(InetAddress address, JmDNSImpl dns)
-    {
+    public static HostInfo newHostInfo(InetAddress address, JmDNSImpl dns) {
         HostInfo localhost = null;
-        try
-        {
+        try {
             InetAddress addr = address;
             String aName = "";
-            if (addr == null)
-            {
+            if (addr == null) {
                 String ip = System.getProperty("net.mdns.interface");
-                if (ip != null)
-                {
+                if (ip != null) {
                     addr = InetAddress.getByName(ip);
-                }
-                else
-                {
+                } else {
                     addr = InetAddress.getLocalHost();
-                    if (addr.isLoopbackAddress())
-                    {
+                    if (addr.isLoopbackAddress()) {
                         // Find local address that isn't a loopback address
                         InetAddress[] addresses = JmmDNS.NetworkTopologyDiscovery.Factory.getInstance().getInetAddresses();
-                        if (addresses.length > 0)
-                        {
+                        if (addresses.length > 0) {
                             addr = addresses[0];
                         }
                     }
                 }
                 aName = addr.getHostName();
-                if (addr.isLoopbackAddress())
-                {
+                if (addr.isLoopbackAddress()) {
                     logger.warning("Could not find any address beside the loopback.");
                 }
-            }
-            else
-            {
+            } else {
                 aName = addr.getHostName();
             }
             // A host name with "." is illegal. so strip off everything and append .local.
-            if (aName.contains("in-addr.arpa"))
-            {
+            if (aName.contains("in-addr.arpa")) {
                 aName = "computer";
             }
-            final int idx = aName.indexOf(".");
-            if (idx > 0)
-            {
+            final int idx = aName.indexOf('.');
+            if (idx > 0) {
                 aName = aName.substring(0, idx);
             }
             aName += ".local.";
             localhost = new HostInfo(addr, aName, dns);
-        }
-        catch (final IOException e)
-        {
+        } catch (final IOException e) {
             logger.log(Level.WARNING, "Could not intialize the host network interface on " + address + "because of an error: " + e.getMessage(), e);
             // This is only used for running unit test on Debian / Ubuntu
             localhost = new HostInfo(loopbackAddress(), "computer", dns);
@@ -116,14 +98,10 @@ public class HostInfo implements DNSStatefulObject
         return localhost;
     }
 
-    private static InetAddress loopbackAddress()
-    {
-        try
-        {
+    private static InetAddress loopbackAddress() {
+        try {
             return InetAddress.getByName(null);
-        }
-        catch (UnknownHostException exception)
-        {
+        } catch (UnknownHostException exception) {
             return null;
         }
     }
@@ -133,85 +111,67 @@ public class HostInfo implements DNSStatefulObject
      */
     private int hostNameCount;
 
-    public HostInfo(InetAddress address, String name, JmDNSImpl dns)
-    {
+    public HostInfo(final InetAddress address, final String name, final JmDNSImpl dns) {
         super();
         this._state = new HostInfoState(dns);
         this._address = address;
         this._name = name;
-        if (address != null)
-        {
-            try
-            {
+        if (address != null) {
+            try {
                 _interfaze = NetworkInterface.getByInetAddress(address);
-            }
-            catch (Exception exception)
-            {
+            } catch (Exception exception) {
                 logger.log(Level.SEVERE, "LocalHostInfo() exception ", exception);
             }
         }
     }
 
-    public String getName()
-    {
+    public String getName() {
         return _name;
     }
 
-    public InetAddress getInetAddress()
-    {
+    public InetAddress getInetAddress() {
         return _address;
     }
 
-    Inet4Address getInet4Address()
-    {
-        if (this.getInetAddress() instanceof Inet4Address)
-        {
+    Inet4Address getInet4Address() {
+        if (this.getInetAddress() instanceof Inet4Address) {
             return (Inet4Address) _address;
         }
         return null;
     }
 
-    Inet6Address getInet6Address()
-    {
-        if (this.getInetAddress() instanceof Inet6Address)
-        {
+    Inet6Address getInet6Address() {
+        if (this.getInetAddress() instanceof Inet6Address) {
             return (Inet6Address) _address;
         }
         return null;
     }
 
-    public NetworkInterface getInterface()
-    {
+    public NetworkInterface getInterface() {
         return _interfaze;
     }
 
-    synchronized String incrementHostName()
-    {
+    synchronized String incrementHostName() {
         hostNameCount++;
         int plocal = _name.indexOf(".local.");
-        int punder = _name.lastIndexOf("-");
+        int punder = _name.lastIndexOf('-');
         _name = _name.substring(0, (punder == -1 ? plocal : punder)) + "-" + hostNameCount + ".local.";
         return _name;
     }
 
-    boolean shouldIgnorePacket(DatagramPacket packet)
-    {
+    boolean shouldIgnorePacket(DatagramPacket packet) {
         boolean result = false;
-        if (this.getInetAddress() != null)
-        {
+        if (this.getInetAddress() != null) {
             InetAddress from = packet.getAddress();
-            if (from != null)
-            {
-                if (from.isLinkLocalAddress() && (!this.getInetAddress().isLinkLocalAddress()))
-                {
+            if (from != null) {
+                if (from.isLinkLocalAddress() && (!this.getInetAddress().isLinkLocalAddress())) {
                     // Ignore linklocal packets on regular interfaces, unless this is
                     // also a linklocal interface. This is to avoid duplicates. This is
                     // a terrible hack caused by the lack of an API to get the address
                     // of the interface on which the packet was received.
                     result = true;
                 }
-                if (from.isLoopbackAddress() && (!this.getInetAddress().isLoopbackAddress()))
-                {
+                if (from.isLoopbackAddress() && (!this.getInetAddress().isLoopbackAddress())) {
                     // Ignore loopback packets on a regular interface unless this is also a loopback interface.
                     result = true;
                 }
@@ -220,10 +180,8 @@ public class HostInfo implements DNSStatefulObject
         return result;
     }
 
-    DNSRecord.Address getDNSAddressRecord(DNSRecordType type, boolean unique, int ttl)
-    {
-        switch (type)
-        {
+    DNSRecord.Address getDNSAddressRecord(DNSRecordType type, boolean unique, int ttl) {
+        switch (type) {
             case TYPE_A:
                 return this.getDNS4AddressRecord(unique, ttl);
             case TYPE_A6:
@@ -234,28 +192,22 @@ public class HostInfo implements DNSStatefulObject
         return null;
     }
 
-    private DNSRecord.Address getDNS4AddressRecord(boolean unique, int ttl)
-    {
-        if ((this.getInetAddress() instanceof Inet4Address) || ((this.getInetAddress() instanceof Inet6Address) && (((Inet6Address) this.getInetAddress()).isIPv4CompatibleAddress())))
-        {
+    private DNSRecord.Address getDNS4AddressRecord(boolean unique, int ttl) {
+        if ((this.getInetAddress() instanceof Inet4Address) || ((this.getInetAddress() instanceof Inet6Address) && (((Inet6Address) this.getInetAddress()).isIPv4CompatibleAddress()))) {
             return new DNSRecord.IPv4Address(this.getName(), DNSRecordClass.CLASS_IN, unique, ttl, this.getInetAddress());
         }
         return null;
     }
 
-    private DNSRecord.Address getDNS6AddressRecord(boolean unique, int ttl)
-    {
-        if (this.getInetAddress() instanceof Inet6Address)
-        {
+    private DNSRecord.Address getDNS6AddressRecord(boolean unique, int ttl) {
+        if (this.getInetAddress() instanceof Inet6Address) {
             return new DNSRecord.IPv6Address(this.getName(), DNSRecordClass.CLASS_IN, unique, ttl, this.getInetAddress());
         }
         return null;
     }
 
-    DNSRecord.Pointer getDNSReverseAddressRecord(DNSRecordType type, boolean unique, int ttl)
-    {
-        switch (type)
-        {
+    DNSRecord.Pointer getDNSReverseAddressRecord(DNSRecordType type, boolean unique, int ttl) {
+        switch (type) {
             case TYPE_A:
                 return this.getDNS4ReverseAddressRecord(unique, ttl);
             case TYPE_A6:
@@ -266,14 +218,11 @@ public class HostInfo implements DNSStatefulObject
         return null;
     }
 
-    private DNSRecord.Pointer getDNS4ReverseAddressRecord(boolean unique, int ttl)
-    {
-        if (this.getInetAddress() instanceof Inet4Address)
-        {
+    private DNSRecord.Pointer getDNS4ReverseAddressRecord(boolean unique, int ttl) {
+        if (this.getInetAddress() instanceof Inet4Address) {
             return new DNSRecord.Pointer(this.getInetAddress().getHostAddress() + ".in-addr.arpa.", DNSRecordClass.CLASS_IN, unique, ttl, this.getName());
         }
-        if ((this.getInetAddress() instanceof Inet6Address) && (((Inet6Address) this.getInetAddress()).isIPv4CompatibleAddress()))
-        {
+        if ((this.getInetAddress() instanceof Inet6Address) && (((Inet6Address) this.getInetAddress()).isIPv4CompatibleAddress())) {
             byte[] rawAddress = this.getInetAddress().getAddress();
             String address = (rawAddress[12] & 0xff) + "." + (rawAddress[13] & 0xff) + "." + (rawAddress[14] & 0xff) + "." + (rawAddress[15] & 0xff);
             return new DNSRecord.Pointer(address + ".in-addr.arpa.", DNSRecordClass.CLASS_IN, unique, ttl, this.getName());
@@ -281,18 +230,15 @@ public class HostInfo implements DNSStatefulObject
         return null;
     }
 
-    private DNSRecord.Pointer getDNS6ReverseAddressRecord(boolean unique, int ttl)
-    {
-        if (this.getInetAddress() instanceof Inet6Address)
-        {
+    private DNSRecord.Pointer getDNS6ReverseAddressRecord(boolean unique, int ttl) {
+        if (this.getInetAddress() instanceof Inet6Address) {
             return new DNSRecord.Pointer(this.getInetAddress().getHostAddress() + ".ip6.arpa.", DNSRecordClass.CLASS_IN, unique, ttl, this.getName());
         }
         return null;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         StringBuilder buf = new StringBuilder(1024);
         buf.append("local host info[");
         buf.append(getName() != null ? getName() : "no name");
@@ -306,17 +252,14 @@ public class HostInfo implements DNSStatefulObject
         return buf.toString();
     }
 
-    public Collection<DNSRecord> answers(boolean unique, int ttl)
-    {
+    public Collection<DNSRecord> answers(boolean unique, int ttl) {
         List<DNSRecord> list = new ArrayList<DNSRecord>();
         DNSRecord answer = this.getDNS4AddressRecord(unique, ttl);
-        if (answer != null)
-        {
+        if (answer != null) {
             list.add(answer);
         }
         answer = this.getDNS6AddressRecord(unique, ttl);
-        if (answer != null)
-        {
+        if (answer != null) {
             list.add(answer);
         }
         return list;
@@ -326,8 +269,7 @@ public class HostInfo implements DNSStatefulObject
      * {@inheritDoc}
      */
     @Override
-    public JmDNSImpl getDns()
-    {
+    public JmDNSImpl getDns() {
         return this._state.getDns();
     }
 
@@ -335,8 +277,7 @@ public class HostInfo implements DNSStatefulObject
      * {@inheritDoc}
      */
     @Override
-    public boolean advanceState(DNSTask task)
-    {
+    public boolean advanceState(DNSTask task) {
         return this._state.advanceState(task);
     }
 
@@ -344,8 +285,7 @@ public class HostInfo implements DNSStatefulObject
      * {@inheritDoc}
      */
     @Override
-    public void removeAssociationWithTask(DNSTask task)
-    {
+    public void removeAssociationWithTask(DNSTask task) {
         this._state.removeAssociationWithTask(task);
     }
 
@@ -353,8 +293,7 @@ public class HostInfo implements DNSStatefulObject
      * {@inheritDoc}
      */
     @Override
-    public boolean revertState()
-    {
+    public boolean revertState() {
         return this._state.revertState();
     }
 
@@ -362,8 +301,7 @@ public class HostInfo implements DNSStatefulObject
      * {@inheritDoc}
      */
     @Override
-    public void associateWithTask(DNSTask task, DNSState state)
-    {
+    public void associateWithTask(DNSTask task, DNSState state) {
         this._state.associateWithTask(task, state);
     }
 
@@ -371,8 +309,7 @@ public class HostInfo implements DNSStatefulObject
      * {@inheritDoc}
      */
     @Override
-    public boolean isAssociatedWithTask(DNSTask task, DNSState state)
-    {
+    public boolean isAssociatedWithTask(DNSTask task, DNSState state) {
         return this._state.isAssociatedWithTask(task, state);
     }
 
@@ -380,8 +317,7 @@ public class HostInfo implements DNSStatefulObject
      * {@inheritDoc}
      */
     @Override
-    public boolean cancelState()
-    {
+    public boolean cancelState() {
         return this._state.cancelState();
     }
 
@@ -389,8 +325,7 @@ public class HostInfo implements DNSStatefulObject
      * {@inheritDoc}
      */
     @Override
-    public boolean recoverState()
-    {
+    public boolean recoverState() {
         return this._state.recoverState();
     }
 
@@ -398,8 +333,7 @@ public class HostInfo implements DNSStatefulObject
      * {@inheritDoc}
      */
     @Override
-    public boolean isProbing()
-    {
+    public boolean isProbing() {
         return this._state.isProbing();
     }
 
@@ -407,8 +341,7 @@ public class HostInfo implements DNSStatefulObject
      * {@inheritDoc}
      */
     @Override
-    public boolean isAnnouncing()
-    {
+    public boolean isAnnouncing() {
         return this._state.isAnnouncing();
     }
 
@@ -416,8 +349,7 @@ public class HostInfo implements DNSStatefulObject
      * {@inheritDoc}
      */
     @Override
-    public boolean isAnnounced()
-    {
+    public boolean isAnnounced() {
         return this._state.isAnnounced();
     }
 
@@ -425,8 +357,7 @@ public class HostInfo implements DNSStatefulObject
      * {@inheritDoc}
      */
     @Override
-    public boolean isCanceling()
-    {
+    public boolean isCanceling() {
         return this._state.isCanceling();
     }
 
@@ -434,8 +365,7 @@ public class HostInfo implements DNSStatefulObject
      * {@inheritDoc}
      */
     @Override
-    public boolean isCanceled()
-    {
+    public boolean isCanceled() {
         return this._state.isCanceled();
     }
 
@@ -443,8 +373,7 @@ public class HostInfo implements DNSStatefulObject
      * {@inheritDoc}
      */
     @Override
-    public boolean waitForAnnounced(long timeout)
-    {
+    public boolean waitForAnnounced(long timeout) {
         return _state.waitForAnnounced(timeout);
     }
 
@@ -452,10 +381,8 @@ public class HostInfo implements DNSStatefulObject
      * {@inheritDoc}
      */
     @Override
-    public boolean waitForCanceled(long timeout)
-    {
-        if (_address == null)
-        {
+    public boolean waitForCanceled(long timeout) {
+        if (_address == null) {
             // No need to wait this was never announced.
             return true;
         }

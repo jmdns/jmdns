@@ -1,6 +1,6 @@
-//Copyright 2003-2005 Arthur van Hoff, Rick Blair
-//Licensed under Apache License version 2.0
-//Original license LGPL
+// Copyright 2003-2005 Arthur van Hoff, Rick Blair
+// Licensed under Apache License version 2.0
+// Original license LGPL
 
 package javax.jmdns.impl;
 
@@ -20,26 +20,24 @@ import javax.jmdns.impl.constants.DNSRecordType;
  * @version %I%, %G%
  * @author Arthur van Hoff, Pierre Frisch, Rick Blair
  */
-public abstract class DNSEntry
-{
+public abstract class DNSEntry {
     // private static Logger logger = Logger.getLogger(DNSEntry.class.getName());
-    private final String _key;
+    private final String         _key;
 
-    private final String _name;
+    private final String         _name;
 
-    private final DNSRecordType _type;
+    private final DNSRecordType  _type;
 
     private final DNSRecordClass _dnsClass;
 
-    private final boolean _unique;
+    private final boolean        _unique;
 
-    final Map<Fields, String> _qualifiedNameMap;
+    final Map<Fields, String>    _qualifiedNameMap;
 
     /**
      * Create an entry.
      */
-    DNSEntry(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique)
-    {
+    DNSEntry(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique) {
         _name = name;
         // _key = (name != null ? name.trim().toLowerCase() : null);
         _type = type;
@@ -55,15 +53,12 @@ public abstract class DNSEntry
 
     /*
      * (non-Javadoc)
-     *
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
-    public boolean equals(Object obj)
-    {
+    public boolean equals(Object obj) {
         boolean result = false;
-        if (obj instanceof DNSEntry)
-        {
+        if (obj instanceof DNSEntry) {
             DNSEntry other = (DNSEntry) obj;
             result = this.getKey().equals(other.getKey()) && this.getRecordType().equals(other.getRecordType()) && this.getRecordClass() == other.getRecordClass();
         }
@@ -74,11 +69,9 @@ public abstract class DNSEntry
      * Check if two entries have exactly the same name, type, and class.
      *
      * @param entry
-     *
      * @return <code>true</code> if the two entries have are for the same record, <code>false</code> otherwise
      */
-    public boolean isSameEntry(DNSEntry entry)
-    {
+    public boolean isSameEntry(DNSEntry entry) {
         return this.getKey().equals(entry.getKey()) && this.getRecordType().equals(entry.getRecordType()) && ((DNSRecordClass.CLASS_ANY == entry.getRecordClass()) || this.getRecordClass().equals(entry.getRecordClass()));
     }
 
@@ -88,8 +81,7 @@ public abstract class DNSEntry
      * @param other
      * @return <code>true</code> if the two entries have are for the same subtype, <code>false</code> otherwise
      */
-    public boolean sameSubtype(DNSEntry other)
-    {
+    public boolean sameSubtype(DNSEntry other) {
         return this.getSubtype().equals(other.getSubtype());
     }
 
@@ -98,8 +90,7 @@ public abstract class DNSEntry
      *
      * @return subtype of this entry
      */
-    public String getSubtype()
-    {
+    public String getSubtype() {
         String subtype = this.getQualifiedNameMap().get(Fields.Subtype);
         return (subtype != null ? subtype : "");
     }
@@ -109,8 +100,7 @@ public abstract class DNSEntry
      *
      * @return name of this entry
      */
-    public String getName()
-    {
+    public String getName() {
         return (_name != null ? _name : "");
     }
 
@@ -119,73 +109,62 @@ public abstract class DNSEntry
      *
      * @return key for this entry
      */
-    public String getKey()
-    {
+    public String getKey() {
         return (_key != null ? _key : "");
     }
 
     /**
      * @return record type
      */
-    public DNSRecordType getRecordType()
-    {
+    public DNSRecordType getRecordType() {
         return (_type != null ? _type : DNSRecordType.TYPE_IGNORE);
     }
 
     /**
      * @return record class
      */
-    public DNSRecordClass getRecordClass()
-    {
+    public DNSRecordClass getRecordClass() {
         return (_dnsClass != null ? _dnsClass : DNSRecordClass.CLASS_UNKNOWN);
     }
 
     /**
      * @return true if unique
      */
-    public boolean isUnique()
-    {
+    public boolean isUnique() {
         return _unique;
     }
 
-    public Map<Fields, String> getQualifiedNameMap()
-    {
+    public Map<Fields, String> getQualifiedNameMap() {
         return Collections.unmodifiableMap(_qualifiedNameMap);
     }
 
-    public boolean isServicesDiscoveryMetaQuery()
-    {
+    public boolean isServicesDiscoveryMetaQuery() {
         return _qualifiedNameMap.get(Fields.Application).equals("dns-sd") && _qualifiedNameMap.get(Fields.Instance).equals("_services");
     }
 
-    public boolean isDomainDiscoveryQuery()
-    {
+    public boolean isDomainDiscoveryQuery() {
         // b._dns-sd._udp.<domain>.
         // db._dns-sd._udp.<domain>.
         // r._dns-sd._udp.<domain>.
         // dr._dns-sd._udp.<domain>.
         // lb._dns-sd._udp.<domain>.
 
-        if (_qualifiedNameMap.get(Fields.Application).equals("dns-sd"))
-        {
+        if (_qualifiedNameMap.get(Fields.Application).equals("dns-sd")) {
             String name = _qualifiedNameMap.get(Fields.Instance);
-            return name.equals("b") || name.equals("db") || name.equals("r") || name.equals("dr") || name.equals("lb");
+            return "b".equals(name) || "db".equals(name) || "r".equals(name) || "dr".equals(name) || "lb".equals(name);
         }
         return false;
     }
 
-    public boolean isReverseLookup()
-    {
+    public boolean isReverseLookup() {
         return this.isV4ReverseLookup() || this.isV6ReverseLookup();
     }
 
-    public boolean isV4ReverseLookup()
-    {
+    public boolean isV4ReverseLookup() {
         return _qualifiedNameMap.get(Fields.Domain).endsWith("in-addr.arpa");
     }
 
-    public boolean isV6ReverseLookup()
-    {
+    public boolean isV6ReverseLookup() {
         return _qualifiedNameMap.get(Fields.Domain).endsWith("ip6.arpa");
     }
 
@@ -213,8 +192,7 @@ public abstract class DNSEntry
      * @param entry
      * @return <code>true</code> is the two class are the same, <code>false</code> otherwise.
      */
-    public boolean isSameRecordClass(DNSEntry entry)
-    {
+    public boolean isSameRecordClass(DNSEntry entry) {
         return (entry != null) && (entry.getRecordClass() == this.getRecordClass());
     }
 
@@ -224,8 +202,7 @@ public abstract class DNSEntry
      * @param entry
      * @return <code>true</code> is the two type are the same, <code>false</code> otherwise.
      */
-    public boolean isSameType(DNSEntry entry)
-    {
+    public boolean isSameType(DNSEntry entry) {
         return (entry != null) && (entry.getRecordType() == this.getRecordType());
     }
 
@@ -233,8 +210,7 @@ public abstract class DNSEntry
      * @param dout
      * @throws IOException
      */
-    protected void toByteArray(DataOutputStream dout) throws IOException
-    {
+    protected void toByteArray(DataOutputStream dout) throws IOException {
         dout.write(this.getName().getBytes("UTF8"));
         dout.writeShort(this.getRecordType().indexValue());
         dout.writeShort(this.getRecordClass().indexValue());
@@ -245,18 +221,14 @@ public abstract class DNSEntry
      *
      * @return byte array representation
      */
-    protected byte[] toByteArray()
-    {
-        try
-        {
+    protected byte[] toByteArray() {
+        try {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             DataOutputStream dout = new DataOutputStream(bout);
             this.toByteArray(dout);
             dout.close();
             return bout.toByteArray();
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             throw new InternalError();
         }
     }
@@ -267,18 +239,13 @@ public abstract class DNSEntry
      * @param that
      * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than the specified object.
      */
-    public int compareTo(DNSEntry that)
-    {
+    public int compareTo(DNSEntry that) {
         byte[] thisBytes = this.toByteArray();
         byte[] thatBytes = that.toByteArray();
-        for (int i = 0, n = Math.min(thisBytes.length, thatBytes.length); i < n; i++)
-        {
-            if (thisBytes[i] > thatBytes[i])
-            {
+        for (int i = 0, n = Math.min(thisBytes.length, thatBytes.length); i < n; i++) {
+            if (thisBytes[i] > thatBytes[i]) {
                 return 1;
-            }
-            else if (thisBytes[i] < thatBytes[i])
-            {
+            } else if (thisBytes[i] < thatBytes[i]) {
                 return -1;
             }
         }
@@ -289,20 +256,17 @@ public abstract class DNSEntry
      * Overriden, to return a value which is consistent with the value returned by equals(Object).
      */
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         return this.getKey().hashCode() + this.getRecordType().indexValue() + this.getRecordClass().indexValue();
     }
 
     /*
      * (non-Javadoc)
-     *
      * @see java.lang.Object#toString()
      */
     @Override
-    public String toString()
-    {
-        StringBuilder aLog = new StringBuilder();
+    public String toString() {
+        StringBuilder aLog = new StringBuilder(200);
         aLog.append("[" + this.getClass().getSimpleName() + "@" + System.identityHashCode(this));
         aLog.append(" type: " + this.getRecordType());
         aLog.append(", class: " + this.getRecordClass());
@@ -316,8 +280,7 @@ public abstract class DNSEntry
     /**
      * @param aLog
      */
-    protected void toString(StringBuilder aLog)
-    {
+    protected void toString(StringBuilder aLog) {
         // Stub
     }
 

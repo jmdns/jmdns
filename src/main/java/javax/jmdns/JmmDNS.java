@@ -24,18 +24,15 @@ import javax.jmdns.impl.NetworkTopologyDiscoveryImpl;
  *
  * @author C&eacute;drik Lime, Pierre Frisch
  */
-public interface JmmDNS extends Closeable
-{
+public interface JmmDNS extends Closeable {
 
-    public static class Factory
-    {
+    public static class Factory {
         private static volatile JmmDNS _instance;
 
         /**
          * This interface defines a delegate to the EOClassDescriptionRegister class to enable subclassing.
          */
-        public static interface ClassDelegate
-        {
+        public static interface ClassDelegate {
 
             /**
              * Allows the delegate the opportunity to construct and return a different JmmDNS.
@@ -49,6 +46,10 @@ public interface JmmDNS extends Closeable
 
         private static final AtomicReference<ClassDelegate> _databaseClassDelegate = new AtomicReference<ClassDelegate>();
 
+        private Factory() {
+            super();
+        }
+
         /**
          * Assigns <code>delegate</code> as JmmDNS's class delegate. The class delegate is optional.
          *
@@ -57,8 +58,7 @@ public interface JmmDNS extends Closeable
          * @see #classDelegate()
          * @see JmmDNS.Factory.ClassDelegate
          */
-        public static void setClassDelegate(ClassDelegate delegate)
-        {
+        public static void setClassDelegate(ClassDelegate delegate) {
             _databaseClassDelegate.set(delegate);
         }
 
@@ -69,8 +69,7 @@ public interface JmmDNS extends Closeable
          * @see #setClassDelegate(ClassDelegate anObject)
          * @see JmmDNS.Factory.ClassDelegate
          */
-        public static ClassDelegate classDelegate()
-        {
+        public static ClassDelegate classDelegate() {
             return _databaseClassDelegate.get();
         }
 
@@ -79,12 +78,10 @@ public interface JmmDNS extends Closeable
          *
          * @return new instance of JmmDNS
          */
-        protected static JmmDNS newJmmDNS()
-        {
+        protected static JmmDNS newJmmDNS() {
             JmmDNS dns = null;
             ClassDelegate delegate = _databaseClassDelegate.get();
-            if (delegate != null)
-            {
+            if (delegate != null) {
                 dns = delegate.newJmmDNS();
             }
             return (dns != null ? dns : new JmmDNSImpl());
@@ -95,14 +92,10 @@ public interface JmmDNS extends Closeable
          *
          * @return the JmmDNS
          */
-        public static JmmDNS getInstance()
-        {
-            if (_instance == null)
-            {
-                synchronized (Factory.class)
-                {
-                    if (_instance == null)
-                    {
+        public static JmmDNS getInstance() {
+            if (_instance == null) {
+                synchronized (Factory.class) {
+                    if (_instance == null) {
                         _instance = JmmDNS.Factory.newJmmDNS();
                     }
                 }
@@ -117,29 +110,24 @@ public interface JmmDNS extends Closeable
      * To create you own filtering class for Internet Addresses you will need to implement the class and the factory delegate. These must be called before any other call to JmDNS.
      *
      * <pre>
-     * public static class MyNetworkTopologyDiscovery implements NetworkTopologyDiscovery
-     * {
+     * public static class MyNetworkTopologyDiscovery implements NetworkTopologyDiscovery {
      *
      *     &#064;Override
-     *     public InetAddress[] getInetAddresses()
-     *     {
+     *     public InetAddress[] getInetAddresses() {
      *         // TODO Auto-generated method stub
      *         return null;
      *     }
      *
      *     &#064;Override
-     *     public boolean useInetAddress(NetworkInterface networkInterface, InetAddress interfaceAddress)
-     *     {
+     *     public boolean useInetAddress(NetworkInterface networkInterface, InetAddress interfaceAddress) {
      *         // TODO Auto-generated method stub
      *         return false;
      *     }
      *
      * }
      *
-     * public static class MyClass implements NetworkTopologyDiscovery.Factory.ClassDelegate
-     * {
-     *     public MyClass()
-     *     {
+     * public static class MyClass implements NetworkTopologyDiscovery.Factory.ClassDelegate {
+     *     public MyClass() {
      *         super();
      *         NetworkTopologyDiscovery.Factory.setClassDelegate(this);
      *
@@ -147,8 +135,7 @@ public interface JmmDNS extends Closeable
      *     }
      *
      *     &#064;Override
-     *     public NetworkTopologyDiscovery newNetworkTopologyDiscovery()
-     *     {
+     *     public NetworkTopologyDiscovery newNetworkTopologyDiscovery() {
      *         return new MyNetworkTopologyDiscovery();
      *     }
      *
@@ -157,17 +144,14 @@ public interface JmmDNS extends Closeable
      *
      * </p>
      */
-    public static interface NetworkTopologyDiscovery
-    {
-        public static class Factory
-        {
+    public static interface NetworkTopologyDiscovery {
+        public static class Factory {
             private static volatile NetworkTopologyDiscovery _instance;
 
             /**
              * This interface defines a delegate to the EOClassDescriptionRegister class to enable subclassing.
              */
-            public static interface ClassDelegate
-            {
+            public static interface ClassDelegate {
 
                 /**
                  * Allows the delegate the opportunity to construct and return a different NetworkTopologyDiscovery.
@@ -181,6 +165,10 @@ public interface JmmDNS extends Closeable
 
             private static final AtomicReference<ClassDelegate> _databaseClassDelegate = new AtomicReference<ClassDelegate>();
 
+            private Factory() {
+                super();
+            }
+
             /**
              * Assigns <code>delegate</code> as NetworkTopologyDiscovery's class delegate. The class delegate is optional.
              *
@@ -189,8 +177,7 @@ public interface JmmDNS extends Closeable
              * @see #classDelegate()
              * @see JmmDNS.Factory.ClassDelegate
              */
-            public static void setClassDelegate(ClassDelegate delegate)
-            {
+            public static void setClassDelegate(ClassDelegate delegate) {
                 _databaseClassDelegate.set(delegate);
             }
 
@@ -201,8 +188,7 @@ public interface JmmDNS extends Closeable
              * @see #setClassDelegate(ClassDelegate anObject)
              * @see JmmDNS.Factory.ClassDelegate
              */
-            public static ClassDelegate classDelegate()
-            {
+            public static ClassDelegate classDelegate() {
                 return _databaseClassDelegate.get();
             }
 
@@ -211,12 +197,10 @@ public interface JmmDNS extends Closeable
              *
              * @return new instance of NetworkTopologyDiscovery
              */
-            protected static NetworkTopologyDiscovery newNetworkTopologyDiscovery()
-            {
+            protected static NetworkTopologyDiscovery newNetworkTopologyDiscovery() {
                 NetworkTopologyDiscovery instance = null;
                 ClassDelegate delegate = _databaseClassDelegate.get();
-                if (delegate != null)
-                {
+                if (delegate != null) {
                     instance = delegate.newNetworkTopologyDiscovery();
                 }
                 return (instance != null ? instance : new NetworkTopologyDiscoveryImpl());
@@ -227,14 +211,10 @@ public interface JmmDNS extends Closeable
              *
              * @return the JmmDNS
              */
-            public static NetworkTopologyDiscovery getInstance()
-            {
-                if (_instance == null)
-                {
-                    synchronized (Factory.class)
-                    {
-                        if (_instance == null)
-                        {
+            public static NetworkTopologyDiscovery getInstance() {
+                if (_instance == null) {
+                    synchronized (Factory.class) {
+                        if (_instance == null) {
                             _instance = JmmDNS.NetworkTopologyDiscovery.Factory.newNetworkTopologyDiscovery();
                         }
                     }

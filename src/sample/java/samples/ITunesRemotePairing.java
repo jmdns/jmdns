@@ -27,33 +27,29 @@ import javax.jmdns.ServiceListener;
 /**
  *
  */
-public class ITunesRemotePairing implements Runnable, ServiceListener
-{
+public class ITunesRemotePairing implements Runnable, ServiceListener {
 
-    public final static String TOUCH_ABLE_TYPE = "_touch-able._tcp.local.";
-    public final static String DACP_TYPE = "_dacp._tcp.local.";
-    public final static String REMOTE_TYPE = "_touch-remote._tcp.local.";
+    public final static String     TOUCH_ABLE_TYPE = "_touch-able._tcp.local.";
+    public final static String     DACP_TYPE       = "_dacp._tcp.local.";
+    public final static String     REMOTE_TYPE     = "_touch-remote._tcp.local.";
 
-    public volatile static boolean _running = true;
-    protected final Random random = new Random();
+    public volatile static boolean _running        = true;
+    protected final Random         random          = new Random();
 
-    public static byte[] PAIRING_RAW = new byte[] { 0x63, 0x6d, 0x70, 0x61, 0x00, 0x00, 0x00, 0x3a, 0x63, 0x6d, 0x70, 0x67, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x63, 0x6d, 0x6e, 0x6d, 0x00, 0x00, 0x00, 0x16, 0x41,
-            0x64, 0x6d, 0x69, 0x6e, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x72, (byte) 0xe2, (byte) 0x80, (byte) 0x99, 0x73, 0x20, 0x69, 0x50, 0x6f, 0x64, 0x63, 0x6d, 0x74, 0x79, 0x00, 0x00, 0x00, 0x04, 0x69, 0x50, 0x6f, 0x64 };
+    public static byte[]           PAIRING_RAW     = new byte[] { 0x63, 0x6d, 0x70, 0x61, 0x00, 0x00, 0x00, 0x3a, 0x63, 0x6d, 0x70, 0x67, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x63, 0x6d, 0x6e, 0x6d, 0x00, 0x00,
+            0x00, 0x16, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x72, (byte) 0xe2, (byte) 0x80, (byte) 0x99, 0x73, 0x20, 0x69, 0x50, 0x6f, 0x64, 0x63, 0x6d, 0x74, 0x79, 0x00, 0x00, 0x00, 0x04, 0x69, 0x50, 0x6f, 0x64 };
 
     /**
      * @param args
      * @throws IOException
      */
-    public static void main(String[] args) throws IOException
-    {
+    public static void main(String[] args) throws IOException {
         // Activate these lines to see log messages of JmDNS
         boolean log = false;
-        if (log)
-        {
+        if (log) {
             ConsoleHandler handler = new ConsoleHandler();
             handler.setLevel(Level.FINEST);
-            for (Enumeration<String> enumerator = LogManager.getLogManager().getLoggerNames(); enumerator.hasMoreElements();)
-            {
+            for (Enumeration<String> enumerator = LogManager.getLogManager().getLoggerNames(); enumerator.hasMoreElements();) {
                 String loggerName = enumerator.nextElement();
                 Logger logger = Logger.getLogger(loggerName);
                 logger.addHandler(handler);
@@ -69,16 +65,13 @@ public class ITunesRemotePairing implements Runnable, ServiceListener
     /**
      *
      */
-    public ITunesRemotePairing()
-    {
+    public ITunesRemotePairing() {
         super();
     }
 
     @Override
-    public void run()
-    {
-        try
-        {
+    public void run() {
+        try {
             final JmDNS jmdns = JmDNS.create();
             jmdns.addServiceListener(TOUCH_ABLE_TYPE, this);
             jmdns.addServiceListener(DACP_TYPE, this);
@@ -95,8 +88,7 @@ public class ITunesRemotePairing implements Runnable, ServiceListener
             random.nextBytes(pair);
             values.put("Pair", toHex(pair));
 
-            while (_running)
-            {
+            while (_running) {
                 ServerSocket server = new ServerSocket(0);
 
                 byte[] name = new byte[20];
@@ -109,14 +101,12 @@ public class ITunesRemotePairing implements Runnable, ServiceListener
                 final Socket socket = server.accept();
                 OutputStream output = null;
 
-                try
-                {
+                try {
                     output = socket.getOutputStream();
 
                     // output the contents for debugging
                     final BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    while (br.ready())
-                    {
+                    while (br.ready()) {
                         String line = br.readLine();
                         System.out.println(line);
                     }
@@ -141,17 +131,13 @@ public class ITunesRemotePairing implements Runnable, ServiceListener
                     System.out.println("someone paired with me!");
 
                     jmdns.unregisterService(pairservice);
-                }
-                finally
-                {
-                    if (output != null)
-                    {
+                } finally {
+                    if (output != null) {
                         output.close();
                     }
 
                     System.out.println("Closing Socket");
-                    if (!server.isClosed())
-                    {
+                    if (!server.isClosed()) {
                         server.close();
                     }
                     _running = false;
@@ -160,40 +146,33 @@ public class ITunesRemotePairing implements Runnable, ServiceListener
             Thread.sleep(6000);
             System.out.println("Closing JmDNS");
             jmdns.close();
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
     @Override
-    public void serviceAdded(ServiceEvent event)
-    {
+    public void serviceAdded(ServiceEvent event) {
         System.out.println("Service added   : " + event.getName() + "." + event.getType());
     }
 
     @Override
-    public void serviceRemoved(ServiceEvent event)
-    {
+    public void serviceRemoved(ServiceEvent event) {
         System.out.println("Service removed : " + event.getName() + "." + event.getType());
     }
 
     @Override
-    public void serviceResolved(ServiceEvent event)
-    {
+    public void serviceResolved(ServiceEvent event) {
         System.out.println("Service resolved: " + event.getName() + "." + event.getType() + "\n" + event.getInfo());
     }
 
     private static final char[] _nibbleToHex = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
-    private static String toHex(byte[] code)
-    {
+    private static String toHex(byte[] code) {
         StringBuilder result = new StringBuilder(2 * code.length);
 
-        for (int i = 0; i < code.length; i++)
-        {
+        for (int i = 0; i < code.length; i++) {
             int b = code[i] & 0xFF;
             result.append(_nibbleToHex[b / 16]);
             result.append(_nibbleToHex[b % 16]);

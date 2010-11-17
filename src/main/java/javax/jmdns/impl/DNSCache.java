@@ -1,6 +1,6 @@
-//Copyright 2003-2005 Arthur van Hoff Rick Blair
-//Licensed under Apache License version 2.0
-//Original license LGPL
+// Copyright 2003-2005 Arthur van Hoff Rick Blair
+// Licensed under Apache License version 2.0
+// Original license LGPL
 
 package javax.jmdns.impl;
 
@@ -29,7 +29,6 @@ import javax.jmdns.impl.constants.DNSRecordType;
  *             ...do something with entry...
  *       }
  * </pre>
- *
  * <p/>
  * And here's how to iterate over all entries having a given name:
  *
@@ -43,27 +42,24 @@ import javax.jmdns.impl.constants.DNSRecordType;
  * @version %I%, %G%
  * @author Arthur van Hoff, Werner Randelshofer, Rick Blair, Pierre Frisch
  */
-public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
-{
+public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>> {
 
     // private static Logger logger = Logger.getLogger(DNSCache.class.getName());
 
-    private transient Set<Map.Entry<String, List<? extends DNSEntry>>> _entrySet = null;
+    private transient Set<Map.Entry<String, List<? extends DNSEntry>>> _entrySet  = null;
 
     /**
      *
      */
-    public static final DNSCache EmptyCache = new _EmptyCache();
+    public static final DNSCache                                       EmptyCache = new _EmptyCache();
 
-    static class _EmptyCache extends DNSCache
-    {
+    static final class _EmptyCache extends DNSCache {
 
         /**
          * {@inheritDoc}
          */
         @Override
-        public int size()
-        {
+        public int size() {
             return 0;
         }
 
@@ -71,8 +67,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          * {@inheritDoc}
          */
         @Override
-        public boolean isEmpty()
-        {
+        public boolean isEmpty() {
             return true;
         }
 
@@ -80,8 +75,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          * {@inheritDoc}
          */
         @Override
-        public boolean containsKey(Object key)
-        {
+        public boolean containsKey(Object key) {
             return false;
         }
 
@@ -89,8 +83,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          * {@inheritDoc}
          */
         @Override
-        public boolean containsValue(Object value)
-        {
+        public boolean containsValue(Object value) {
             return false;
         }
 
@@ -98,8 +91,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          * {@inheritDoc}
          */
         @Override
-        public List<DNSEntry> get(Object key)
-        {
+        public List<DNSEntry> get(Object key) {
             return null;
         }
 
@@ -107,8 +99,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          * {@inheritDoc}
          */
         @Override
-        public Set<String> keySet()
-        {
+        public Set<String> keySet() {
             return Collections.emptySet();
         }
 
@@ -116,8 +107,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          * {@inheritDoc}
          */
         @Override
-        public Collection<List<? extends DNSEntry>> values()
-        {
+        public Collection<List<? extends DNSEntry>> values() {
             return Collections.emptySet();
         }
 
@@ -125,8 +115,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          * {@inheritDoc}
          */
         @Override
-        public Set<Map.Entry<String, List<? extends DNSEntry>>> entrySet()
-        {
+        public Set<Map.Entry<String, List<? extends DNSEntry>>> entrySet() {
             return Collections.emptySet();
         }
 
@@ -134,8 +123,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          * {@inheritDoc}
          */
         @Override
-        public boolean equals(Object o)
-        {
+        public boolean equals(Object o) {
             return (o instanceof Map) && ((Map<?, ?>) o).size() == 0;
         }
 
@@ -143,8 +131,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          * {@inheritDoc}
          */
         @Override
-        public List<? extends DNSEntry> put(String key, List<? extends DNSEntry> value)
-        {
+        public List<? extends DNSEntry> put(String key, List<? extends DNSEntry> value) {
             return null;
         }
 
@@ -152,8 +139,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          * {@inheritDoc}
          */
         @Override
-        public int hashCode()
-        {
+        public int hashCode() {
             return 0;
         }
 
@@ -162,19 +148,17 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
     /**
      *
      */
-    protected static class _CacheEntry extends Object implements Map.Entry<String, List<? extends DNSEntry>>
-    {
+    protected static class _CacheEntry extends Object implements Map.Entry<String, List<? extends DNSEntry>> {
 
         private List<? extends DNSEntry> _value;
 
-        private String _key;
+        private String                   _key;
 
         /**
          * @param key
          * @param value
          */
-        protected _CacheEntry(String key, List<? extends DNSEntry> value)
-        {
+        protected _CacheEntry(String key, List<? extends DNSEntry> value) {
             super();
             _key = (key != null ? key.trim().toLowerCase() : null);
             _value = value;
@@ -183,11 +167,9 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
         /**
          * @param entry
          */
-        protected _CacheEntry(Map.Entry<String, List<? extends DNSEntry>> entry)
-        {
+        protected _CacheEntry(Map.Entry<String, List<? extends DNSEntry>> entry) {
             super();
-            if (entry instanceof _CacheEntry)
-            {
+            if (entry instanceof _CacheEntry) {
                 _key = ((_CacheEntry) entry).getKey();
                 _value = ((_CacheEntry) entry).getValue();
             }
@@ -197,8 +179,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          * {@inheritDoc}
          */
         @Override
-        public String getKey()
-        {
+        public String getKey() {
             return (_key != null ? _key : "");
         }
 
@@ -206,8 +187,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          * {@inheritDoc}
          */
         @Override
-        public List<? extends DNSEntry> getValue()
-        {
+        public List<? extends DNSEntry> getValue() {
             return _value;
         }
 
@@ -215,8 +195,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          * {@inheritDoc}
          */
         @Override
-        public List<? extends DNSEntry> setValue(List<? extends DNSEntry> value)
-        {
+        public List<? extends DNSEntry> setValue(List<? extends DNSEntry> value) {
             List<? extends DNSEntry> oldValue = _value;
             _value = value;
             return oldValue;
@@ -227,8 +206,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          *
          * @return <tt>true</tt> if this list contains no elements
          */
-        public boolean isEmpty()
-        {
+        public boolean isEmpty() {
             return this.getValue().isEmpty();
         }
 
@@ -236,10 +214,8 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          * {@inheritDoc}
          */
         @Override
-        public boolean equals(Object entry)
-        {
-            if (!(entry instanceof Map.Entry))
-            {
+        public boolean equals(Object entry) {
+            if (!(entry instanceof Map.Entry)) {
                 return false;
             }
             return this.getKey().equals(((Map.Entry<?, ?>) entry).getKey()) && this.getValue().equals(((Map.Entry<?, ?>) entry).getValue());
@@ -249,8 +225,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          * {@inheritDoc}
          */
         @Override
-        public int hashCode()
-        {
+        public int hashCode() {
             return (_key == null ? 0 : _key.hashCode());
         }
 
@@ -258,19 +233,17 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
          * {@inheritDoc}
          */
         @Override
-        public synchronized String toString()
-        {
-            StringBuffer aLog = new StringBuffer();
-            aLog.append("\n\t\tname '" + _key + "'");
-            if ((_value != null) && (!_value.isEmpty()))
-            {
-                for (DNSEntry entry : _value)
-                {
-                    aLog.append("\n\t\t\t" + entry.toString());
+        public synchronized String toString() {
+            StringBuffer aLog = new StringBuffer(200);
+            aLog.append("\n\t\tname '");
+            aLog.append(_key);
+            aLog.append("' ");
+            if ((_value != null) && (!_value.isEmpty())) {
+                for (DNSEntry entry : _value) {
+                    aLog.append("\n\t\t\t");
+                    aLog.append(entry.toString());
                 }
-            }
-            else
-            {
+            } else {
                 aLog.append(" no entries");
             }
             return aLog.toString();
@@ -280,19 +253,16 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
     /**
      *
      */
-    public DNSCache()
-    {
+    public DNSCache() {
         this(1024);
     }
 
     /**
      * @param map
      */
-    public DNSCache(DNSCache map)
-    {
+    public DNSCache(DNSCache map) {
         this(map != null ? map.size() : 1024);
-        if (map != null)
-        {
+        if (map != null) {
             this.putAll(map);
         }
     }
@@ -302,8 +272,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
      *
      * @param initialCapacity
      */
-    public DNSCache(int initialCapacity)
-    {
+    public DNSCache(int initialCapacity) {
         super();
         _entrySet = new HashSet<Map.Entry<String, List<? extends DNSEntry>>>(initialCapacity);
     }
@@ -313,14 +282,11 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
 
     /*
      * (non-Javadoc)
-     *
      * @see java.util.AbstractMap#entrySet()
      */
     @Override
-    public Set<Map.Entry<String, List<? extends DNSEntry>>> entrySet()
-    {
-        if (_entrySet == null)
-        {
+    public Set<Map.Entry<String, List<? extends DNSEntry>>> entrySet() {
+        if (_entrySet == null) {
             _entrySet = new HashSet<Map.Entry<String, List<? extends DNSEntry>>>();
         }
         return _entrySet;
@@ -330,22 +296,15 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
      * @param key
      * @return map entry for the key
      */
-    protected Map.Entry<String, List<? extends DNSEntry>> getEntry(String key)
-    {
+    protected Map.Entry<String, List<? extends DNSEntry>> getEntry(String key) {
         String stringKey = (key != null ? key.trim().toLowerCase() : null);
-        for (Map.Entry<String, List<? extends DNSEntry>> entry : this.entrySet())
-        {
-            if (stringKey != null)
-            {
-                if (stringKey.equals(entry.getKey()))
-                {
+        for (Map.Entry<String, List<? extends DNSEntry>> entry : this.entrySet()) {
+            if (stringKey != null) {
+                if (stringKey.equals(entry.getKey())) {
                     return entry;
                 }
-            }
-            else
-            {
-                if (entry.getKey() == null)
-                {
+            } else {
+                if (entry.getKey() == null) {
                     return entry;
                 }
             }
@@ -357,18 +316,13 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
      * {@inheritDoc}
      */
     @Override
-    public List<? extends DNSEntry> put(String key, List<? extends DNSEntry> value)
-    {
-        synchronized (this)
-        {
+    public List<? extends DNSEntry> put(String key, List<? extends DNSEntry> value) {
+        synchronized (this) {
             List<? extends DNSEntry> oldValue = null;
             Map.Entry<String, List<? extends DNSEntry>> oldEntry = this.getEntry(key);
-            if (oldEntry != null)
-            {
+            if (oldEntry != null) {
                 oldValue = oldEntry.setValue(value);
-            }
-            else
-            {
+            } else {
                 this.entrySet().add(new _CacheEntry(key, value));
             }
             return oldValue;
@@ -379,8 +333,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
      * {@inheritDoc}
      */
     @Override
-    protected Object clone() throws CloneNotSupportedException
-    {
+    protected Object clone() throws CloneNotSupportedException {
         return new DNSCache(this);
     }
 
@@ -391,13 +344,10 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
      *
      * @return all entries in the cache
      */
-    public synchronized Collection<DNSEntry> allValues()
-    {
+    public synchronized Collection<DNSEntry> allValues() {
         List<DNSEntry> allValues = new ArrayList<DNSEntry>();
-        for (List<? extends DNSEntry> entry : this.values())
-        {
-            if (entry != null)
-            {
+        for (List<? extends DNSEntry> entry : this.values()) {
+            if (entry != null) {
                 allValues.addAll(entry);
             }
         }
@@ -410,8 +360,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
      * @param name
      * @return list of DNSEntries
      */
-    public synchronized Collection<? extends DNSEntry> getDNSEntryList(String name)
-    {
+    public synchronized Collection<? extends DNSEntry> getDNSEntryList(String name) {
         return this.get(name != null ? name.toLowerCase() : null);
     }
 
@@ -421,18 +370,13 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
      * @param dnsEntry
      * @return DNSEntry
      */
-    public synchronized DNSEntry getDNSEntry(DNSEntry dnsEntry)
-    {
+    public synchronized DNSEntry getDNSEntry(DNSEntry dnsEntry) {
         DNSEntry result = null;
-        if (dnsEntry != null)
-        {
+        if (dnsEntry != null) {
             Collection<? extends DNSEntry> entryList = this.getDNSEntryList(dnsEntry.getKey());
-            if (entryList != null)
-            {
-                for (DNSEntry testDNSEntry : entryList)
-                {
-                    if (testDNSEntry.isSameEntry(dnsEntry))
-                    {
+            if (entryList != null) {
+                for (DNSEntry testDNSEntry : entryList) {
+                    if (testDNSEntry.isSameEntry(dnsEntry)) {
                         result = testDNSEntry;
                         break;
                     }
@@ -450,16 +394,12 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
      * @param recordClass
      * @return DNSEntry
      */
-    public synchronized DNSEntry getDNSEntry(String name, DNSRecordType type, DNSRecordClass recordClass)
-    {
+    public synchronized DNSEntry getDNSEntry(String name, DNSRecordType type, DNSRecordClass recordClass) {
         DNSEntry result = null;
         Collection<? extends DNSEntry> entryList = this.getDNSEntryList(name);
-        if (entryList != null)
-        {
-            for (DNSEntry testDNSEntry : entryList)
-            {
-                if (testDNSEntry.getRecordType().equals(type) && ((DNSRecordClass.CLASS_ANY == recordClass) || testDNSEntry.getRecordClass().equals(recordClass)))
-                {
+        if (entryList != null) {
+            for (DNSEntry testDNSEntry : entryList) {
+                if (testDNSEntry.getRecordType().equals(type) && ((DNSRecordClass.CLASS_ANY == recordClass) || testDNSEntry.getRecordClass().equals(recordClass))) {
                     result = testDNSEntry;
                     break;
                 }
@@ -474,30 +414,22 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
      * @param dnsEntry
      * @return true if the entry was added
      */
-    public synchronized boolean addDNSEntry(final DNSEntry dnsEntry)
-    {
+    public synchronized boolean addDNSEntry(final DNSEntry dnsEntry) {
         boolean result = false;
-        if (dnsEntry != null)
-        {
+        if (dnsEntry != null) {
             Map.Entry<String, List<? extends DNSEntry>> oldEntry = this.getEntry(dnsEntry.getKey());
 
             List<DNSEntry> aNewValue = null;
-            if (oldEntry != null)
-            {
+            if (oldEntry != null) {
                 aNewValue = new ArrayList<DNSEntry>(oldEntry.getValue());
-            }
-            else
-            {
+            } else {
                 aNewValue = new ArrayList<DNSEntry>();
             }
             aNewValue.add(dnsEntry);
 
-            if (oldEntry != null)
-            {
+            if (oldEntry != null) {
                 oldEntry.setValue(aNewValue);
-            }
-            else
-            {
+            } else {
                 this.entrySet().add(new _CacheEntry(dnsEntry.getKey(), aNewValue));
             }
             // This is probably not very informative
@@ -512,18 +444,14 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
      * @param dnsEntry
      * @return true if the entry was removed
      */
-    public synchronized boolean removeDNSEntry(DNSEntry dnsEntry)
-    {
+    public synchronized boolean removeDNSEntry(DNSEntry dnsEntry) {
         boolean result = false;
-        if (dnsEntry != null)
-        {
+        if (dnsEntry != null) {
             Map.Entry<String, List<? extends DNSEntry>> existingEntry = this.getEntry(dnsEntry.getKey());
-            if (existingEntry != null)
-            {
+            if (existingEntry != null) {
                 result = existingEntry.getValue().remove(dnsEntry);
                 // If we just removed the last one we need to get rid of the entry
-                if (existingEntry.getValue().isEmpty())
-                {
+                if (existingEntry.getValue().isEmpty()) {
                     this.entrySet().remove(existingEntry);
                 }
             }
@@ -539,31 +467,23 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
      * @param existingDNSEntry
      * @return <code>true</code> if the entry has been replace, <code>false</code> otherwise.
      */
-    public synchronized boolean replaceDNSEntry(DNSEntry newDNSEntry, DNSEntry existingDNSEntry)
-    {
+    public synchronized boolean replaceDNSEntry(DNSEntry newDNSEntry, DNSEntry existingDNSEntry) {
         boolean result = false;
-        if ((newDNSEntry != null) && (existingDNSEntry != null) && (newDNSEntry.getKey().equals(existingDNSEntry.getKey())))
-        {
+        if ((newDNSEntry != null) && (existingDNSEntry != null) && (newDNSEntry.getKey().equals(existingDNSEntry.getKey()))) {
             Map.Entry<String, List<? extends DNSEntry>> oldEntry = this.getEntry(newDNSEntry.getKey());
 
             List<DNSEntry> aNewValue = null;
-            if (oldEntry != null)
-            {
+            if (oldEntry != null) {
                 aNewValue = new ArrayList<DNSEntry>(oldEntry.getValue());
-            }
-            else
-            {
+            } else {
                 aNewValue = new ArrayList<DNSEntry>();
             }
             aNewValue.remove(existingDNSEntry);
             aNewValue.add(newDNSEntry);
 
-            if (oldEntry != null)
-            {
+            if (oldEntry != null) {
                 oldEntry.setValue(aNewValue);
-            }
-            else
-            {
+            } else {
                 this.entrySet().add(new _CacheEntry(newDNSEntry.getKey(), aNewValue));
             }
             // This is probably not very informative
@@ -576,13 +496,12 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>>
      * {@inheritDoc}
      */
     @Override
-    public synchronized String toString()
-    {
-        StringBuffer aLog = new StringBuffer();
+    public synchronized String toString() {
+        StringBuffer aLog = new StringBuffer(2000);
         aLog.append("\t---- cache ----");
-        for (Map.Entry<String, List<? extends DNSEntry>> entry : this.entrySet())
-        {
-            aLog.append("\n\t\t" + entry.toString());
+        for (Map.Entry<String, List<? extends DNSEntry>> entry : this.entrySet()) {
+            aLog.append("\n\t\t");
+            aLog.append(entry.toString());
         }
         return aLog.toString();
     }

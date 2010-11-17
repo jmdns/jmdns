@@ -1,6 +1,6 @@
-///Copyright 2003-2005 Arthur van Hoff, Rick Blair
-//Licensed under Apache License version 2.0
-//Original license LGPL
+// /Copyright 2003-2005 Arthur van Hoff, Rick Blair
+// Licensed under Apache License version 2.0
+// Original license LGPL
 
 package javax.jmdns;
 
@@ -17,8 +17,7 @@ import javax.jmdns.impl.JmDNSImpl;
  * @version %I%, %G%
  * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis, Scott Cytacki
  */
-public abstract class JmDNS implements Closeable
-{
+public abstract class JmDNS implements Closeable {
     /**
      * The version of JmDNS.
      */
@@ -29,9 +28,9 @@ public abstract class JmDNS implements Closeable
      *
      * @return jmDNS instance
      * @throws IOException
+     *             if an exception occurs during the socket creation
      */
-    public static JmDNS create() throws IOException
-    {
+    public static JmDNS create() throws IOException {
         return new JmDNSImpl(null, null);
     }
 
@@ -42,9 +41,9 @@ public abstract class JmDNS implements Closeable
      *            IP address to bind to.
      * @return jmDNS instance
      * @throws IOException
+     *             if an exception occurs during the socket creation
      */
-    public static JmDNS create(InetAddress addr) throws IOException
-    {
+    public static JmDNS create(final InetAddress addr) throws IOException {
         return new JmDNSImpl(addr, null);
     }
 
@@ -55,9 +54,9 @@ public abstract class JmDNS implements Closeable
      *            name of the newly created JmDNS
      * @return jmDNS instance
      * @throws IOException
+     *             if an exception occurs during the socket creation
      */
-    public static JmDNS create(String name) throws IOException
-    {
+    public static JmDNS create(final String name) throws IOException {
         return new JmDNSImpl(null, name);
     }
 
@@ -70,9 +69,9 @@ public abstract class JmDNS implements Closeable
      *            name of the newly created JmDNS
      * @return jmDNS instance
      * @throws IOException
+     *             if an exception occurs during the socket creation
      */
-    public static JmDNS create(InetAddress addr, String name) throws IOException
-    {
+    public static JmDNS create(final InetAddress addr, final String name) throws IOException {
         return new JmDNSImpl(addr, name);
     }
 

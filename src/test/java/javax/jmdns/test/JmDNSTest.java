@@ -35,26 +35,22 @@ import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
-public class JmDNSTest
-{
+public class JmDNSTest {
 
     @SuppressWarnings("unused")
     private ServiceTypeListener typeListenerMock;
-    private ServiceListener serviceListenerMock;
-    private ServiceInfo service;
+    private ServiceListener     serviceListenerMock;
+    private ServiceInfo         service;
 
     private final static String serviceKey = "srvname"; // Max 9 chars
 
     @Before
-    public void setup()
-    {
+    public void setup() {
         boolean log = false;
-        if (log)
-        {
+        if (log) {
             ConsoleHandler handler = new ConsoleHandler();
             handler.setLevel(Level.FINEST);
-            for (Enumeration<String> enumerator = LogManager.getLogManager().getLoggerNames(); enumerator.hasMoreElements();)
-            {
+            for (Enumeration<String> enumerator = LogManager.getLogManager().getLoggerNames(); enumerator.hasMoreElements();) {
                 String loggerName = enumerator.nextElement();
                 Logger logger = Logger.getLogger(loggerName);
                 logger.addHandler(handler);
@@ -71,16 +67,14 @@ public class JmDNSTest
     }
 
     @Test
-    public void testCreate() throws IOException
-    {
+    public void testCreate() throws IOException {
         System.out.println("Unit Test: testCreate()");
         JmDNS registry = JmDNS.create();
         registry.close();
     }
 
     @Test
-    public void testCreateINet() throws IOException
-    {
+    public void testCreateINet() throws IOException {
         System.out.println("Unit Test: testCreateINet()");
         JmDNS registry = JmDNS.create(InetAddress.getLocalHost());
         // assertEquals("We did not register on the local host inet:", InetAddress.getLocalHost(), registry.getInterface());
@@ -88,68 +82,51 @@ public class JmDNSTest
     }
 
     @Test
-    public void testRegisterService() throws IOException
-    {
+    public void testRegisterService() throws IOException {
         System.out.println("Unit Test: testRegisterService()");
         JmDNS registry = null;
-        try
-        {
+        try {
             registry = JmDNS.create();
             registry.registerService(service);
-        }
-        finally
-        {
-            if (registry != null)
-                registry.close();
+        } finally {
+            if (registry != null) registry.close();
         }
     }
 
     @Test
-    public void testQueryMyService() throws IOException
-    {
+    public void testQueryMyService() throws IOException {
         System.out.println("Unit Test: testQueryMyService()");
         JmDNS registry = null;
-        try
-        {
+        try {
             registry = JmDNS.create();
             registry.registerService(service);
             ServiceInfo queriedService = registry.getServiceInfo(service.getType(), service.getName());
             assertEquals(service, queriedService);
-        }
-        finally
-        {
-            if (registry != null)
-                registry.close();
+        } finally {
+            if (registry != null) registry.close();
         }
     }
 
     @Test
-    public void testListMyService() throws IOException
-    {
+    public void testListMyService() throws IOException {
         System.out.println("Unit Test: testListMyService()");
         JmDNS registry = null;
-        try
-        {
+        try {
             registry = JmDNS.create();
             registry.registerService(service);
             ServiceInfo[] services = registry.list(service.getType());
             assertEquals("We should see the service we just registered: ", 1, services.length);
             assertEquals(service, services[0]);
-        }
-        finally
-        {
-            if (registry != null)
-                registry.close();
+        } finally {
+            if (registry != null) registry.close();
         }
     }
 
     @Test
-    public void testListenForMyService() throws IOException
-    {
+    public void testListenForMyService() throws IOException {
         System.out.println("Unit Test: testListenForMyService()");
         JmDNS registry = null;
-        try
-        {
+        try {
             Capture<ServiceEvent> capServiceAddedEvent = new Capture<ServiceEvent>();
             Capture<ServiceEvent> capServiceResolvedEvent = new Capture<ServiceEvent>();
             // Add an expectation that the listener interface will be called once capture the object so I can verify it separately.
@@ -190,21 +167,16 @@ public class JmDNSTest
             verify(serviceListenerMock);
             ServiceInfo resolvedInfo = capServiceResolvedEvent.getValue().getInfo();
             assertEquals("Did not get the expected service info: ", service, resolvedInfo);
-        }
-        finally
-        {
-            if (registry != null)
-                registry.close();
+        } finally {
+            if (registry != null) registry.close();
         }
     }
 
     @Test
-    public void testListenForMyServiceAndList() throws IOException
-    {
+    public void testListenForMyServiceAndList() throws IOException {
         System.out.println("Unit Test: testListenForMyServiceAndList()");
         JmDNS registry = null;
-        try
-        {
+        try {
             Capture<ServiceEvent> capServiceAddedEvent = new Capture<ServiceEvent>();
             Capture<ServiceEvent> capServiceResolvedEvent = new Capture<ServiceEvent>();
             // Expect the listener to be called once and capture the result
@@ -235,22 +207,17 @@ public class JmDNSTest
             verify(serviceListenerMock);
             ServiceInfo resolvedInfo = capServiceResolvedEvent.getValue().getInfo();
             assertEquals("Did not get the expected service info: ", service, resolvedInfo);
-        }
-        finally
-        {
-            if (registry != null)
-                registry.close();
+        } finally {
+            if (registry != null) registry.close();
         }
     }
 
     @Test
-    public void testListenForServiceOnOtherRegistry() throws IOException
-    {
+    public void testListenForServiceOnOtherRegistry() throws IOException {
         System.out.println("Unit Test: testListenForServiceOnOtherRegistry()");
         JmDNS registry = null;
         JmDNS newServiceRegistry = null;
-        try
-        {
+        try {
             Capture<ServiceEvent> capServiceAddedEvent = new Capture<ServiceEvent>();
             Capture<ServiceEvent> capServiceResolvedEvent = new Capture<ServiceEvent>();
             // Expect the listener to be called once and capture the result
@@ -276,24 +243,18 @@ public class JmDNSTest
             verify(serviceListenerMock);
             Object result = capServiceResolvedEvent.getValue().getInfo();
             assertEquals("Did not get the expected service info: ", service, result);
-        }
-        finally
-        {
-            if (registry != null)
-                registry.close();
-            if (newServiceRegistry != null)
-                newServiceRegistry.close();
+        } finally {
+            if (registry != null) registry.close();
+            if (newServiceRegistry != null) newServiceRegistry.close();
         }
     }
 
     @Test
-    public void testWaitAndQueryForServiceOnOtherRegistry() throws IOException
-    {
+    public void testWaitAndQueryForServiceOnOtherRegistry() throws IOException {
         System.out.println("Unit Test: testWaitAndQueryForServiceOnOtherRegistry()");
         JmDNS registry = null;
         JmDNS newServiceRegistry = null;
-        try
-        {
+        try {
             newServiceRegistry = JmDNS.create();
             registry = JmDNS.create();
 
@@ -302,24 +263,18 @@ public class JmDNSTest
             ServiceInfo fetchedService = newServiceRegistry.getServiceInfo(service.getType(), service.getName());
 
             assertEquals("Did not get the expected service info: ", service, fetchedService);
-        }
-        finally
-        {
-            if (registry != null)
-                registry.close();
-            if (newServiceRegistry != null)
-                newServiceRegistry.close();
+        } finally {
+            if (registry != null) registry.close();
+            if (newServiceRegistry != null) newServiceRegistry.close();
         }
     }
 
     @Test
-    public void testRegisterAndListServiceOnOtherRegistry() throws IOException, InterruptedException
-    {
+    public void testRegisterAndListServiceOnOtherRegistry() throws IOException, InterruptedException {
         System.out.println("Unit Test: testRegisterAndListServiceOnOtherRegistry()");
         JmDNS registry = null;
         JmDNS newServiceRegistry = null;
-        try
-        {
+        try {
             registry = JmDNS.create("Registry");
             registry.registerService(service);
 
@@ -337,49 +292,35 @@ public class JmDNSTest
             registry = null;
             fetchedServices = newServiceRegistry.list(service.getType());
             assertEquals("The service was not cancelled after the close:", 0, fetchedServices.length);
-        }
-        finally
-        {
-            if (registry != null)
-                registry.close();
-            if (newServiceRegistry != null)
-                newServiceRegistry.close();
+        } finally {
+            if (registry != null) registry.close();
+            if (newServiceRegistry != null) newServiceRegistry.close();
         }
     }
 
-    public static final class Receive extends Thread
-    {
+    public static final class Receive extends Thread {
         MulticastSocket _socket;
-        DatagramPacket _in;
+        DatagramPacket  _in;
 
-        public Receive(MulticastSocket socket, DatagramPacket in)
-        {
+        public Receive(MulticastSocket socket, DatagramPacket in) {
             super("Test Receive Multicast");
             _socket = socket;
             _in = in;
         }
 
         @Override
-        public void run()
-        {
-            try
-            {
+        public void run() {
+            try {
                 _socket.receive(_in);
-            }
-            catch (IOException exception)
-            {
+            } catch (IOException exception) {
                 // Ignore
             }
         }
 
-        public boolean waitForReceive()
-        {
-            try
-            {
+        public boolean waitForReceive() {
+            try {
                 this.join(1000);
-            }
-            catch (InterruptedException exception)
-            {
+            } catch (InterruptedException exception) {
                 // Ignore
             }
             return this.isAlive();
@@ -390,13 +331,11 @@ public class JmDNSTest
     private final static int MPORT = 8053;
 
     @Test
-    public void testTwoMulticastPortsAtOnce() throws UnknownHostException, IOException
-    {
+    public void testTwoMulticastPortsAtOnce() throws UnknownHostException, IOException {
         System.out.println("Unit Test: testTwoMulticastPortsAtOnce()");
         MulticastSocket firstSocket = null;
         MulticastSocket secondSocket = null;
-        try
-        {
+        try {
             String firstMessage = "ping";
             String secondMessage = "pong";
             InetAddress someInet = InetAddress.getByName(DNSConstants.MDNS_GROUP);
@@ -414,15 +353,13 @@ public class JmDNSTest
             Receive receiveFirst = new Receive(firstSocket, inSecond);
             receiveFirst.start();
             firstSocket.send(out);
-            if (receiveSecond.waitForReceive())
-            {
+            if (receiveSecond.waitForReceive()) {
                 Assert.fail("We did not receive the data in the second socket");
             }
             String fromFirst = new String(inSecond.getData(), "UTF-8");
             assertEquals("Expected the second socket to recieve the same message the first socket sent", firstMessage, fromFirst);
             // Make sure the first socket had read its own message
-            if (receiveSecond.waitForReceive())
-            {
+            if (receiveSecond.waitForReceive()) {
                 Assert.fail("We did not receive the data in the first socket");
             }
             // Reverse the roles
@@ -432,19 +369,14 @@ public class JmDNSTest
             receiveFirst.start();
 
             secondSocket.send(out);
-            if (receiveFirst.waitForReceive())
-            {
+            if (receiveFirst.waitForReceive()) {
                 Assert.fail("We did not receive the data in the first socket");
             }
             String fromSecond = new String(inFirst.getData(), "UTF-8");
             assertEquals("Expected the first socket to recieve the same message the second socket sent", secondMessage, fromSecond);
-        }
-        finally
-        {
-            if (firstSocket != null)
-                firstSocket.close();
-            if (secondSocket != null)
-                secondSocket.close();
+        } finally {
+            if (firstSocket != null) firstSocket.close();
+            if (secondSocket != null) secondSocket.close();
         }
     }
 

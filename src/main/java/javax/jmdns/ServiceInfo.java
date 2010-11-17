@@ -1,6 +1,6 @@
-//Copyright 2003-2005 Arthur van Hoff, Rick Blair
-//Licensed under Apache License version 2.0
-//Original license LGPL
+// Copyright 2003-2005 Arthur van Hoff, Rick Blair
+// Licensed under Apache License version 2.0
+// Original license LGPL
 package javax.jmdns;
 
 import java.net.Inet4Address;
@@ -30,12 +30,10 @@ import javax.jmdns.impl.ServiceInfoImpl;
  * </ol>
  * </p>
  */
-public abstract class ServiceInfo
-{
+public abstract class ServiceInfo implements Cloneable {
     public static final byte[] NO_VALUE = new byte[0];
 
-    public enum Fields
-    {
+    public enum Fields {
         Domain, Protocol, Application, Instance, Subtype
     }
 
@@ -52,8 +50,7 @@ public abstract class ServiceInfo
      *            string describing the service
      * @return new service info
      */
-    public static ServiceInfo create(String type, String name, int port, String text)
-    {
+    public static ServiceInfo create(final String type, final String name, final int port, final String text) {
         return new ServiceInfoImpl(type, name, "", port, 0, 0, false, text);
     }
 
@@ -72,8 +69,7 @@ public abstract class ServiceInfo
      *            string describing the service
      * @return new service info
      */
-    public static ServiceInfo create(String type, String name, String subtype, int port, String text)
-    {
+    public static ServiceInfo create(final String type, final String name, final String subtype, final int port, final String text) {
         return new ServiceInfoImpl(type, name, subtype, port, 0, 0, false, text);
     }
 
@@ -94,8 +90,7 @@ public abstract class ServiceInfo
      *            string describing the service
      * @return new service info
      */
-    public static ServiceInfo create(String type, String name, int port, int weight, int priority, String text)
-    {
+    public static ServiceInfo create(final String type, final String name, final int port, final int weight, final int priority, final String text) {
         return new ServiceInfoImpl(type, name, "", port, weight, priority, false, text);
     }
 
@@ -118,8 +113,7 @@ public abstract class ServiceInfo
      *            string describing the service
      * @return new service info
      */
-    public static ServiceInfo create(String type, String name, String subtype, int port, int weight, int priority, String text)
-    {
+    public static ServiceInfo create(final String type, final String name, final String subtype, final int port, final int weight, final int priority, final String text) {
         return new ServiceInfoImpl(type, name, subtype, port, weight, priority, false, text);
     }
 
@@ -140,8 +134,7 @@ public abstract class ServiceInfo
      *            properties describing the service
      * @return new service info
      */
-    public static ServiceInfo create(String type, String name, int port, int weight, int priority, Map<String, ?> props)
-    {
+    public static ServiceInfo create(final String type, final String name, final int port, final int weight, final int priority, final Map<String, ?> props) {
         return new ServiceInfoImpl(type, name, "", port, weight, priority, false, props);
     }
 
@@ -164,8 +157,7 @@ public abstract class ServiceInfo
      *            properties describing the service
      * @return new service info
      */
-    public static ServiceInfo create(String type, String name, String subtype, int port, int weight, int priority, Map<String, ?> props)
-    {
+    public static ServiceInfo create(final String type, final String name, final String subtype, final int port, final int weight, final int priority, final Map<String, ?> props) {
         return new ServiceInfoImpl(type, name, subtype, port, weight, priority, false, props);
     }
 
@@ -186,8 +178,7 @@ public abstract class ServiceInfo
      *            bytes describing the service
      * @return new service info
      */
-    public static ServiceInfo create(String type, String name, int port, int weight, int priority, byte text[])
-    {
+    public static ServiceInfo create(final String type, final String name, final int port, final int weight, final int priority, final byte text[]) {
         return new ServiceInfoImpl(type, name, "", port, weight, priority, false, text);
     }
 
@@ -210,8 +201,7 @@ public abstract class ServiceInfo
      *            bytes describing the service
      * @return new service info
      */
-    public static ServiceInfo create(String type, String name, String subtype, int port, int weight, int priority, byte text[])
-    {
+    public static ServiceInfo create(final String type, final String name, final String subtype, final int port, final int weight, final int priority, final byte text[]) {
         return new ServiceInfoImpl(type, name, subtype, port, weight, priority, false, text);
     }
 
@@ -234,8 +224,7 @@ public abstract class ServiceInfo
      *            string describing the service
      * @return new service info
      */
-    public static ServiceInfo create(String type, String name, int port, int weight, int priority, boolean persistent, String text)
-    {
+    public static ServiceInfo create(final String type, final String name, final int port, final int weight, final int priority, final boolean persistent, final String text) {
         return new ServiceInfoImpl(type, name, "", port, weight, priority, persistent, text);
     }
 
@@ -260,8 +249,7 @@ public abstract class ServiceInfo
      *            string describing the service
      * @return new service info
      */
-    public static ServiceInfo create(String type, String name, String subtype, int port, int weight, int priority, boolean persistent, String text)
-    {
+    public static ServiceInfo create(final String type, final String name, final String subtype, final int port, final int weight, final int priority, final boolean persistent, final String text) {
         return new ServiceInfoImpl(type, name, subtype, port, weight, priority, persistent, text);
     }
 
@@ -284,8 +272,7 @@ public abstract class ServiceInfo
      *            properties describing the service
      * @return new service info
      */
-    public static ServiceInfo create(String type, String name, int port, int weight, int priority, boolean persistent, Map<String, ?> props)
-    {
+    public static ServiceInfo create(final String type, final String name, final int port, final int weight, final int priority, final boolean persistent, final Map<String, ?> props) {
         return new ServiceInfoImpl(type, name, "", port, weight, priority, persistent, props);
     }
 
@@ -310,8 +297,7 @@ public abstract class ServiceInfo
      *            properties describing the service
      * @return new service info
      */
-    public static ServiceInfo create(String type, String name, String subtype, int port, int weight, int priority, boolean persistent, Map<String, ?> props)
-    {
+    public static ServiceInfo create(final String type, final String name, final String subtype, final int port, final int weight, final int priority, final boolean persistent, final Map<String, ?> props) {
         return new ServiceInfoImpl(type, name, subtype, port, weight, priority, persistent, props);
     }
 
@@ -334,8 +320,7 @@ public abstract class ServiceInfo
      *            bytes describing the service
      * @return new service info
      */
-    public static ServiceInfo create(String type, String name, int port, int weight, int priority, boolean persistent, byte text[])
-    {
+    public static ServiceInfo create(final String type, final String name, final int port, final int weight, final int priority, final boolean persistent, final byte text[]) {
         return new ServiceInfoImpl(type, name, "", port, weight, priority, persistent, text);
     }
 
@@ -360,8 +345,7 @@ public abstract class ServiceInfo
      *            bytes describing the service
      * @return new service info
      */
-    public static ServiceInfo create(String type, String name, String subtype, int port, int weight, int priority, boolean persistent, byte text[])
-    {
+    public static ServiceInfo create(final String type, final String name, final String subtype, final int port, final int weight, final int priority, final boolean persistent, final byte text[]) {
         return new ServiceInfoImpl(type, name, subtype, port, weight, priority, persistent, text);
     }
 
@@ -382,8 +366,7 @@ public abstract class ServiceInfo
      *            properties describing the service
      * @return new service info
      */
-    public static ServiceInfo create(Map<Fields, String> qualifiedNameMap, int port, int weight, int priority, boolean persistent, Map<String, ?> props)
-    {
+    public static ServiceInfo create(final Map<Fields, String> qualifiedNameMap, final int port, final int weight, final int priority, final boolean persistent, final Map<String, ?> props) {
         return new ServiceInfoImpl(qualifiedNameMap, port, weight, priority, persistent, props);
     }
 
@@ -439,7 +422,6 @@ public abstract class ServiceInfo
 
     /**
      * Get the host address of the service.<br/>
-     *
      *
      * @return host Internet address
      * @deprecated since 3.1.8
@@ -536,7 +518,7 @@ public abstract class ServiceInfo
      *            property name
      * @return raw property text
      */
-    public abstract byte[] getPropertyBytes(String name);
+    public abstract byte[] getPropertyBytes(final String name);
 
     /**
      * Get a property of the service. This involves decoding the text bytes into a property list. Returns null if the property is not found, the text data could not be decoded correctly, or the resulting bytes are not a valid UTF8 string.
@@ -545,7 +527,7 @@ public abstract class ServiceInfo
      *            property name
      * @return property text
      */
-    public abstract String getPropertyString(String name);
+    public abstract String getPropertyString(final String name);
 
     /**
      * Enumeration of the property names.
@@ -569,7 +551,7 @@ public abstract class ServiceInfo
      * @throws IllegalStateException
      *             if attempting to set the text for a non persistent service info.
      */
-    public abstract void setText(byte[] text) throws IllegalStateException;
+    public abstract void setText(final byte[] text) throws IllegalStateException;
 
     /**
      * Set the text for the service. Setting the text will fore a re-announce of the service.
@@ -579,7 +561,7 @@ public abstract class ServiceInfo
      * @throws IllegalStateException
      *             if attempting to set the text for a non persistent service info.
      */
-    public abstract void setText(Map<String, ?> props) throws IllegalStateException;
+    public abstract void setText(final Map<String, ?> props) throws IllegalStateException;
 
     /**
      * Returns <code>true</code> if ServiceListener.resolveService will be called whenever new new information is received.
@@ -624,14 +606,10 @@ public abstract class ServiceInfo
     public abstract Map<Fields, String> getQualifiedNameMap();
 
     @Override
-    public Object clone()
-    {
-        try
-        {
-            return super.clone();
-        }
-        catch (CloneNotSupportedException exception)
-        {
+    public ServiceInfo clone() {
+        try {
+            return (ServiceInfo)super.clone();
+        } catch (CloneNotSupportedException exception) {
             // clone is supported
             return null;
         }

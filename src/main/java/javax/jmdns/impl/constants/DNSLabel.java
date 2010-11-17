@@ -5,12 +5,11 @@ package javax.jmdns.impl.constants;
 
 /**
  * DNS label.
- *
+ * 
  * @version %I%, %G%
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Rick Blair
  */
-public enum DNSLabel
-{
+public enum DNSLabel {
     /**
      * This is unallocated.
      */
@@ -31,36 +30,33 @@ public enum DNSLabel
     /**
      * DNS label types are encoded on the first 2 bits
      */
-    final static int LABEL_MASK = 0xC0;
-    final static int LABEL_NOT_MASK = 0x3F;
+    final static int     LABEL_MASK     = 0xC0;
+    final static int     LABEL_NOT_MASK = 0x3F;
 
     private final String _externalName;
 
-    private final int _index;
+    private final int    _index;
 
-    DNSLabel(String name, int index)
-    {
+    DNSLabel(String name, int index) {
         _externalName = name;
         _index = index;
     }
 
     /**
      * Return the string representation of this type
-     *
+     * 
      * @return String
      */
-    public String externalName()
-    {
+    public String externalName() {
         return _externalName;
     }
 
     /**
      * Return the numeric value of this type
-     *
+     * 
      * @return String
      */
-    public int indexValue()
-    {
+    public int indexValue() {
         return _index;
     }
 
@@ -68,13 +64,10 @@ public enum DNSLabel
      * @param index
      * @return label
      */
-    public static DNSLabel labelForByte(int index)
-    {
+    public static DNSLabel labelForByte(int index) {
         int maskedIndex = index & LABEL_MASK;
-        for (DNSLabel aLabel : DNSLabel.values())
-        {
-            if (aLabel._index == maskedIndex)
-                return aLabel;
+        for (DNSLabel aLabel : DNSLabel.values()) {
+            if (aLabel._index == maskedIndex) return aLabel;
         }
         return Unknown;
     }
@@ -83,14 +76,12 @@ public enum DNSLabel
      * @param index
      * @return masked value
      */
-    public static int labelValue(int index)
-    {
+    public static int labelValue(int index) {
         return index & LABEL_NOT_MASK;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return this.name() + " index " + this.indexValue();
     }
 

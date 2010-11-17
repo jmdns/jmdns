@@ -32,105 +32,82 @@ import org.junit.Test;
 /**
  *
  */
-public class TextUpdateTest
-{
+public class TextUpdateTest {
 
-    private ServiceInfo service;
-    private ServiceInfo printer;
-    private MockListener serviceListenerMock;
+    private ServiceInfo         service;
+    private ServiceInfo         printer;
+    private MockListener        serviceListenerMock;
 
     private final static String serviceKey = "srvname"; // Max 9 chars
 
-    public static class MockListener implements ServiceListener
-    {
+    public static class MockListener implements ServiceListener {
 
-        private final List<ServiceEvent> _serviceAdded = Collections.synchronizedList(new ArrayList<ServiceEvent>(2));
-        private final List<ServiceEvent> _serviceRemoved = Collections.synchronizedList(new ArrayList<ServiceEvent>(2));
+        private final List<ServiceEvent> _serviceAdded    = Collections.synchronizedList(new ArrayList<ServiceEvent>(2));
+        private final List<ServiceEvent> _serviceRemoved  = Collections.synchronizedList(new ArrayList<ServiceEvent>(2));
         private final List<ServiceEvent> _serviceResolved = Collections.synchronizedList(new ArrayList<ServiceEvent>(2));
 
         /*
          * (non-Javadoc)
-         *
          * @see javax.jmdns.ServiceListener#serviceAdded(javax.jmdns.ServiceEvent)
          */
         @Override
-        public void serviceAdded(ServiceEvent event)
-        {
-            try
-            {
-                _serviceAdded.add((ServiceEvent) event.clone());
-            }
-            catch (CloneNotSupportedException exception)
-            {
+        public void serviceAdded(ServiceEvent event) {
+            try {
+                _serviceAdded.add(event.clone());
+            } catch (CloneNotSupportedException exception) {
                 //
             }
         }
 
         /*
          * (non-Javadoc)
-         *
          * @see javax.jmdns.ServiceListener#serviceRemoved(javax.jmdns.ServiceEvent)
          */
         @Override
-        public void serviceRemoved(ServiceEvent event)
-        {
-            try
-            {
-                _serviceRemoved.add((ServiceEvent) event.clone());
-            }
-            catch (CloneNotSupportedException exception)
-            {
+        public void serviceRemoved(ServiceEvent event) {
+            try {
+                _serviceRemoved.add(event.clone());
+            } catch (CloneNotSupportedException exception) {
                 //
             }
         }
 
         /*
          * (non-Javadoc)
-         *
          * @see javax.jmdns.ServiceListener#serviceResolved(javax.jmdns.ServiceEvent)
          */
         @Override
-        public void serviceResolved(ServiceEvent event)
-        {
-            try
-            {
-                _serviceResolved.add((ServiceEvent) event.clone());
-            }
-            catch (CloneNotSupportedException exception)
-            {
+        public void serviceResolved(ServiceEvent event) {
+            try {
+                _serviceResolved.add(event.clone());
+            } catch (CloneNotSupportedException exception) {
                 //
             }
         }
 
-        public List<ServiceEvent> servicesAdded()
-        {
+        public List<ServiceEvent> servicesAdded() {
             return _serviceAdded;
         }
 
-        public List<ServiceEvent> servicesRemoved()
-        {
+        public List<ServiceEvent> servicesRemoved() {
             return _serviceRemoved;
         }
 
-        public List<ServiceEvent> servicesResolved()
-        {
+        public List<ServiceEvent> servicesResolved() {
             return _serviceResolved;
         }
 
-        public synchronized void reset()
-        {
+        public synchronized void reset() {
             _serviceAdded.clear();
             _serviceRemoved.clear();
             _serviceResolved.clear();
         }
 
         @Override
-        public String toString()
-        {
+        public String toString() {
             StringBuilder aLog = new StringBuilder();
             aLog.append("Services Added: " + _serviceAdded.size());
-            for (ServiceEvent event : _serviceAdded)
-            {
+            for (ServiceEvent event : _serviceAdded) {
                 aLog.append("\n\tevent name: '");
                 aLog.append(event.getName());
                 aLog.append("' type: '");
@@ -139,8 +116,7 @@ public class TextUpdateTest
                 aLog.append(event.getInfo());
             }
             aLog.append("\nServices Removed: " + _serviceRemoved.size());
-            for (ServiceEvent event : _serviceRemoved)
-            {
+            for (ServiceEvent event : _serviceRemoved) {
                 aLog.append("\n\tevent name: '");
                 aLog.append(event.getName());
                 aLog.append("' type: '");
@@ -149,8 +125,7 @@ public class TextUpdateTest
                 aLog.append(event.getInfo());
             }
             aLog.append("\nServices Resolved: " + _serviceResolved.size());
-            for (ServiceEvent event : _serviceResolved)
-            {
+            for (ServiceEvent event : _serviceResolved) {
                 aLog.append("\n\tevent name: '");
                 aLog.append(event.getName());
                 aLog.append("' type: '");
@@ -164,15 +139,12 @@ public class TextUpdateTest
     }
 
     @Before
-    public void setup()
-    {
+    public void setup() {
         boolean log = false;
-        if (log)
-        {
+        if (log) {
             ConsoleHandler handler = new ConsoleHandler();
             handler.setLevel(Level.FINEST);
-            for (Enumeration<String> enumerator = LogManager.getLogManager().getLoggerNames(); enumerator.hasMoreElements();)
-            {
+            for (Enumeration<String> enumerator = LogManager.getLogManager().getLoggerNames(); enumerator.hasMoreElements();) {
                 String loggerName = enumerator.nextElement();
                 Logger logger = Logger.getLogger(loggerName);
                 logger.addHandler(handler);
@@ -192,12 +164,10 @@ public class TextUpdateTest
     }
 
     @Test
-    public void testListenForTextUpdateOnOtherRegistry() throws IOException, InterruptedException
-    {
+    public void testListenForTextUpdateOnOtherRegistry() throws IOException, InterruptedException {
         JmDNS registry = null;
         JmDNS newServiceRegistry = null;
-        try
-        {
+        try {
             registry = JmDNS.create("Listener");
             registry.addServiceListener(service.getType(), serviceListenerMock);
             //
@@ -253,23 +223,17 @@ public class TextUpdateTest
             result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
             assertEquals("Did not get the expected service info text: ", text, result.getPropertyString(serviceKey));
 
-        }
-        finally
-        {
-            if (registry != null)
-                registry.close();
-            if (newServiceRegistry != null)
-                newServiceRegistry.close();
+        } finally {
+            if (registry != null) registry.close();
+            if (newServiceRegistry != null) newServiceRegistry.close();
         }
     }
 
     @Test
-    public void testRenewExpiringRequests() throws IOException, InterruptedException
-    {
+    public void testRenewExpiringRequests() throws IOException, InterruptedException {
         JmDNS registry = null;
         JmDNS newServiceRegistry = null;
-        try
-        {
+        try {
 
             // To test for expiring TTL
             DNSStateTask.setDefaultTTL(1 * 60);
@@ -294,24 +258,18 @@ public class TextUpdateTest
             assertEquals("We should see the service after the renewal: ", 1, services.length);
             assertEquals(service, services[0]);
 
-        }
-        finally
-        {
-            if (registry != null)
-                registry.close();
-            if (newServiceRegistry != null)
-                newServiceRegistry.close();
+        } finally {
+            if (registry != null) registry.close();
+            if (newServiceRegistry != null) newServiceRegistry.close();
             DNSStateTask.setDefaultTTL(DNSConstants.DNS_TTL);
         }
     }
 
     @Test
-    public void testSubtype() throws IOException
-    {
+    public void testSubtype() throws IOException {
         JmDNS registry = null;
         JmDNS newServiceRegistry = null;
-        try
-        {
+        try {
             registry = JmDNS.create("Listener");
             registry.addServiceListener(service.getType(), serviceListenerMock);
             //
@@ -335,13 +293,9 @@ public class TextUpdateTest
             assertEquals("Did not get the expected service info subtype: ", printer.getSubtype(), result.getSubtype());
             assertEquals("Did not get the expected service info text: ", printer.getPropertyString(serviceKey), result.getPropertyString(serviceKey));
             serviceListenerMock.reset();
-        }
-        finally
-        {
-            if (registry != null)
-                registry.close();
-            if (newServiceRegistry != null)
-                newServiceRegistry.close();
+        } finally {
+            if (registry != null) registry.close();
+            if (newServiceRegistry != null) newServiceRegistry.close();
         }
 
     }

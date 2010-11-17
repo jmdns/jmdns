@@ -1,6 +1,6 @@
-//Copyright 2003-2005 Arthur van Hoff, Rick Blair
-//Licensed under Apache License version 2.0
-//Original license LGPL
+// Copyright 2003-2005 Arthur van Hoff, Rick Blair
+// Licensed under Apache License version 2.0
+// Original license LGPL
 
 package javax.jmdns.impl.tasks.state;
 
@@ -24,12 +24,10 @@ import javax.jmdns.impl.constants.DNSState;
  * <p/>
  * If a conflict during probes occurs, the affected service infos (and affected host name) are taken away from the prober. This eventually causes the prober to cancel itself.
  */
-public class Prober extends DNSStateTask
-{
+public class Prober extends DNSStateTask {
     static Logger logger = Logger.getLogger(Prober.class.getName());
 
-    public Prober(JmDNSImpl jmDNSImpl)
-    {
+    public Prober(JmDNSImpl jmDNSImpl) {
         super(jmDNSImpl, defaultTTL());
 
         this.setTaskState(DNSState.PROBING_1);
@@ -38,58 +36,45 @@ public class Prober extends DNSStateTask
 
     /*
      * (non-Javadoc)
-     *
      * @see javax.jmdns.impl.tasks.DNSTask#getName()
      */
     @Override
-    public String getName()
-    {
+    public String getName() {
         return "Prober(" + (this.getDns() != null ? this.getDns().getName() : "") + ")";
     }
 
     /*
      * (non-Javadoc)
-     *
      * @see java.lang.Object#toString()
      */
     @Override
-    public String toString()
-    {
+    public String toString() {
         return super.toString() + " state: " + this.getTaskState();
     }
 
     /*
      * (non-Javadoc)
-     *
      * @see javax.jmdns.impl.tasks.DNSTask#start(java.util.Timer)
      */
     @Override
-    public void start(Timer timer)
-    {
+    public void start(Timer timer) {
         long now = System.currentTimeMillis();
-        if (now - this.getDns().getLastThrottleIncrement() < DNSConstants.PROBE_THROTTLE_COUNT_INTERVAL)
-        {
+        if (now - this.getDns().getLastThrottleIncrement() < DNSConstants.PROBE_THROTTLE_COUNT_INTERVAL) {
             this.getDns().setThrottle(this.getDns().getThrottle() + 1);
-        }
-        else
-        {
+        } else {
             this.getDns().setThrottle(1);
         }
         this.getDns().setLastThrottleIncrement(now);
 
-        if (this.getDns().isAnnounced() && this.getDns().getThrottle() < DNSConstants.PROBE_THROTTLE_COUNT)
-        {
+        if (this.getDns().isAnnounced() && this.getDns().getThrottle() < DNSConstants.PROBE_THROTTLE_COUNT) {
             timer.schedule(this, JmDNSImpl.getRandom().nextInt(1 + DNSConstants.PROBE_WAIT_INTERVAL), DNSConstants.PROBE_WAIT_INTERVAL);
-        }
-        else if (!this.getDns().isCanceling() && !this.getDns().isCanceled())
-        {
+        } else if (!this.getDns().isCanceling() && !this.getDns().isCanceled()) {
             timer.schedule(this, DNSConstants.PROBE_CONFLICT_INTERVAL, DNSConstants.PROBE_CONFLICT_INTERVAL);
         }
     }
 
     @Override
-    public boolean cancel()
-    {
+    public boolean cancel() {
         this.removeAssociation();
 
         return super.cancel();
@@ -97,49 +82,40 @@ public class Prober extends DNSStateTask
 
     /*
      * (non-Javadoc)
-     *
      * @see javax.jmdns.impl.tasks.state.DNSStateTask#getTaskDescription()
      */
     @Override
-    public String getTaskDescription()
-    {
+    public String getTaskDescription() {
         return "probing";
     }
 
     /*
      * (non-Javadoc)
-     *
      * @see javax.jmdns.impl.tasks.state.DNSStateTask#checkRunCondition()
      */
     @Override
-    protected boolean checkRunCondition()
-    {
+    protected boolean checkRunCondition() {
         return !this.getDns().isCanceling() && !this.getDns().isCanceled();
     }
 
     /*
      * (non-Javadoc)
-     *
      * @see javax.jmdns.impl.tasks.state.DNSStateTask#createOugoing()
      */
     @Override
-    protected DNSOutgoing createOugoing()
-    {
+    protected DNSOutgoing createOugoing() {
         return new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
     }
 
     /*
      * (non-Javadoc)
-     *
      * @see javax.jmdns.impl.tasks.state.DNSStateTask#buildOutgoingForDNS(javax.jmdns.impl.DNSOutgoing)
      */
     @Override
-    protected DNSOutgoing buildOutgoingForDNS(DNSOutgoing out) throws IOException
-    {
+    protected DNSOutgoing buildOutgoingForDNS(DNSOutgoing out) throws IOException {
         DNSOutgoing newOut = out;
         newOut.addQuestion(DNSQuestion.newQuestion(this.getDns().getLocalHost().getName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-        for (DNSRecord answer : this.getDns().getLocalHost().answers(DNSRecordClass.NOT_UNIQUE, this.getTTL()))
-        {
+        for (DNSRecord answer : this.getDns().getLocalHost().answers(DNSRecordClass.NOT_UNIQUE, this.getTTL())) {
             newOut = this.addAuthoritativeAnswer(newOut, answer);
         }
         return newOut;
@@ -147,12 +123,10 @@ public class Prober extends DNSStateTask
 
     /*
      * (non-Javadoc)
-     *
      * @see javax.jmdns.impl.tasks.state.DNSStateTask#buildOutgoingForInfo(javax.jmdns.impl.ServiceInfoImpl, javax.jmdns.impl.DNSOutgoing)
      */
     @Override
-    protected DNSOutgoing buildOutgoingForInfo(ServiceInfoImpl info, DNSOutgoing out) throws IOException
-    {
+    protected DNSOutgoing buildOutgoingForInfo(ServiceInfoImpl info, DNSOutgoing out) throws IOException {
         DNSOutgoing newOut = out;
         newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
         // the "unique" flag should be not set here because these answers haven't been proven unique yet this means the record will not exactly match the announcement record
@@ -163,26 +137,21 @@ public class Prober extends DNSStateTask
 
     /*
      * (non-Javadoc)
-     *
      * @see javax.jmdns.impl.tasks.state.DNSStateTask#recoverTask(java.lang.Throwable)
      */
     @Override
-    protected void recoverTask(Throwable e)
-    {
+    protected void recoverTask(Throwable e) {
         this.getDns().recover();
     }
 
     /*
      * (non-Javadoc)
-     *
      * @see javax.jmdns.impl.tasks.state.DNSStateTask#advanceTask()
      */
     @Override
-    protected void advanceTask()
-    {
+    protected void advanceTask() {
         this.setTaskState(this.getTaskState().advance());
-        if (!this.getTaskState().isProbing())
-        {
+        if (!this.getTaskState().isProbing()) {
             cancel();
 
             this.getDns().startAnnouncer();

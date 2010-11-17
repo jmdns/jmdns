@@ -8,12 +8,11 @@ import java.util.logging.Logger;
 
 /**
  * DNS Record Class
- *
+ * 
  * @version %I%, %G%
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Rick Blair
  */
-public enum DNSRecordClass
-{
+public enum DNSRecordClass {
     /**
      *
      */
@@ -43,69 +42,64 @@ public enum DNSRecordClass
      */
     CLASS_ANY("any", 255);
 
-    private static Logger logger = Logger.getLogger(DNSRecordClass.class.getName());
+    private static Logger       logger       = Logger.getLogger(DNSRecordClass.class.getName());
 
     /**
      * Multicast DNS uses the bottom 15 bits to identify the record class...<br/>
      * Except for pseudo records like OPT.
      */
-    public final static int CLASS_MASK = 0x7FFF;
+    public final static int     CLASS_MASK   = 0x7FFF;
 
     /**
      * For answers the top bit indicates that all other cached records are now invalid.<br/>
      * For questions it indicates that we should send a unicast response.
      */
-    public final static int CLASS_UNIQUE = 0x8000;
+    public final static int     CLASS_UNIQUE = 0x8000;
 
     /**
      *
      */
-    public final static boolean UNIQUE = true;
+    public final static boolean UNIQUE       = true;
 
     /**
      *
      */
-    public final static boolean NOT_UNIQUE = false;
+    public final static boolean NOT_UNIQUE   = false;
 
-    private final String _externalName;
+    private final String        _externalName;
 
-    private final int _index;
+    private final int           _index;
 
-    DNSRecordClass(String name, int index)
-    {
+    DNSRecordClass(String name, int index) {
         _externalName = name;
         _index = index;
     }
 
     /**
      * Return the string representation of this type
-     *
+     * 
      * @return String
      */
-    public String externalName()
-    {
+    public String externalName() {
         return _externalName;
     }
 
     /**
      * Return the numeric value of this type
-     *
+     * 
      * @return String
      */
-    public int indexValue()
-    {
+    public int indexValue() {
         return _index;
     }
 
     /**
      * Checks if the class is unique
-     *
+     * 
      * @param index
-     *
      * @return <code>true</code> is the class is unique, <code>false</code> otherwise.
      */
-    public boolean isUnique(int index)
-    {
+    public boolean isUnique(int index) {
         return (this != CLASS_UNKNOWN) && ((index & CLASS_UNIQUE) != 0);
     }
 
@@ -113,15 +107,11 @@ public enum DNSRecordClass
      * @param name
      * @return class for name
      */
-    public static DNSRecordClass classForName(String name)
-    {
-        if (name != null)
-        {
+    public static DNSRecordClass classForName(String name) {
+        if (name != null) {
             String aName = name.toLowerCase();
-            for (DNSRecordClass aClass : DNSRecordClass.values())
-            {
-                if (aClass._externalName.equals(aName))
-                    return aClass;
+            for (DNSRecordClass aClass : DNSRecordClass.values()) {
+                if (aClass._externalName.equals(aName)) return aClass;
             }
         }
         logger.log(Level.WARNING, "Could not find record class for name: " + name);
@@ -132,21 +122,17 @@ public enum DNSRecordClass
      * @param index
      * @return class for name
      */
-    public static DNSRecordClass classForIndex(int index)
-    {
+    public static DNSRecordClass classForIndex(int index) {
         int maskedIndex = index & CLASS_MASK;
-        for (DNSRecordClass aClass : DNSRecordClass.values())
-        {
-            if (aClass._index == maskedIndex)
-                return aClass;
+        for (DNSRecordClass aClass : DNSRecordClass.values()) {
+            if (aClass._index == maskedIndex) return aClass;
         }
         logger.log(Level.WARNING, "Could not find record class for index: " + index);
         return CLASS_UNKNOWN;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return this.name() + " index " + this.indexValue();
     }
 

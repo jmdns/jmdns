@@ -16,18 +16,15 @@ import org.junit.Test;
 /**
  *
  */
-public class ServiceInfoTest
-{
+public class ServiceInfoTest {
 
     @Before
-    public void setup()
-    {
+    public void setup() {
         // Placeholder
     }
 
     @Test
-    public void testDecodeQualifiedNameMap()
-    {
+    public void testDecodeQualifiedNameMap() {
         String domain = "test.com";
         String protocol = "udp";
         String application = "ftp";
@@ -46,8 +43,7 @@ public class ServiceInfoTest
     }
 
     @Test
-    public void testDecodeQualifiedNameMapDefaults()
-    {
+    public void testDecodeQualifiedNameMapDefaults() {
         String domain = "local";
         String protocol = "tcp";
         String application = "ftp";
@@ -64,8 +60,7 @@ public class ServiceInfoTest
     }
 
     @Test
-    public void testDecodeServiceType()
-    {
+    public void testDecodeServiceType() {
         String type = "_home-sharing._tcp.local.";
 
         Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(type);
@@ -79,8 +74,7 @@ public class ServiceInfoTest
     }
 
     @Test
-    public void testDecodeServiceTCPType()
-    {
+    public void testDecodeServiceTCPType() {
         String type = "_afpovertcp._tcp.local.";
 
         Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(type);
@@ -93,8 +87,7 @@ public class ServiceInfoTest
     }
 
     @Test
-    public void testDecodeServiceTypeWithSubType()
-    {
+    public void testDecodeServiceTypeWithSubType() {
         String type = "_00000000-0b44-f234-48c8-071c565644b3._sub._home-sharing._tcp.local.";
 
         Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(type);
@@ -107,8 +100,7 @@ public class ServiceInfoTest
     }
 
     @Test
-    public void testDecodeServiceName()
-    {
+    public void testDecodeServiceName() {
         String type = "My New Itunes Service._home-sharing._tcp.local.";
 
         Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(type);
@@ -121,8 +113,7 @@ public class ServiceInfoTest
     }
 
     @Test
-    public void testDecodeDNSMetaQuery()
-    {
+    public void testDecodeDNSMetaQuery() {
         String type = "_services._dns-sd._udp.local.";
 
         Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(type);
@@ -135,8 +126,7 @@ public class ServiceInfoTest
     }
 
     @Test
-    public void testReverseDNSQuery()
-    {
+    public void testReverseDNSQuery() {
         String type = "100.50.168.192.in-addr.arpa.";
 
         Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(type);
@@ -149,8 +139,7 @@ public class ServiceInfoTest
     }
 
     @Test
-    public void testAddress()
-    {
+    public void testAddress() {
         String type = "panoramix.local.";
 
         Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(type);

@@ -10,12 +10,10 @@ import javax.jmdns.NetworkTopologyEvent;
 import javax.jmdns.NetworkTopologyListener;
 
 /**
- *
  * @version %I%, %G%
  * @author C&eacute;drik Lime, Pierre Frisch
  */
-public class NetworkTopologyEventImpl extends NetworkTopologyEvent
-{
+public class NetworkTopologyEventImpl extends NetworkTopologyEvent implements Cloneable {
 
     /**
      *
@@ -29,47 +27,39 @@ public class NetworkTopologyEventImpl extends NetworkTopologyEvent
      *
      * @param jmDNS
      * @param inetAddress
-     *
      * @exception IllegalArgumentException
      *                if source is null.
      */
-    public NetworkTopologyEventImpl(JmDNS jmDNS, InetAddress inetAddress)
-    {
+    public NetworkTopologyEventImpl(JmDNS jmDNS, InetAddress inetAddress) {
         super(jmDNS);
         this._inetAddress = inetAddress;
     }
 
-    NetworkTopologyEventImpl(NetworkTopologyListener jmmDNS, InetAddress inetAddress)
-    {
+    NetworkTopologyEventImpl(NetworkTopologyListener jmmDNS, InetAddress inetAddress) {
         super(jmmDNS);
         this._inetAddress = inetAddress;
     }
 
     /*
      * (non-Javadoc)
-     *
      * @see javax.jmdns.NetworkTopologyEvent#getDNS()
      */
     @Override
-    public JmDNS getDNS()
-    {
+    public JmDNS getDNS() {
         return (this.getSource() instanceof JmDNS ? (JmDNS) getSource() : null);
     }
 
     /*
      * (non-Javadoc)
-     *
      * @see javax.jmdns.NetworkTopologyEvent#getInetAddress()
      */
     @Override
-    public InetAddress getInetAddress()
-    {
+    public InetAddress getInetAddress() {
         return _inetAddress;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         StringBuilder buf = new StringBuilder();
         buf.append("[" + this.getClass().getSimpleName() + "@" + System.identityHashCode(this) + " ");
         buf.append("\n\tinetAddress: '");
@@ -83,12 +73,10 @@ public class NetworkTopologyEventImpl extends NetworkTopologyEvent
 
     /*
      * (non-Javadoc)
-     *
      * @see java.lang.Object#clone()
      */
     @Override
-    public Object clone() throws CloneNotSupportedException
-    {
+    public NetworkTopologyEventImpl clone() throws CloneNotSupportedException {
         return new NetworkTopologyEventImpl(getDNS(), getInetAddress());
     }
 

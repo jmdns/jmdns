@@ -225,7 +225,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 					</excludes>
 				</configuration>
 			</plugin>
-			<plugin>   
+			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
 				<version>2.1.0</version>
@@ -243,9 +243,9 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 					<execution>
 						<id>bundle-manifest</id>
 						<phase>process-classes</phase>
-						<goals>    
+						<goals>
 							<goal>manifest</goal>
-						</goals>   
+						</goals>
 					</execution>
 				</executions>
 			</plugin>			<plugin>
@@ -356,7 +356,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 				<version>2.7</version>
 				<configuration>
 					<links>
-						<link>http://java.sun.com/javase/6/docs/api</link>
+						<link>http://download.oracle.com/javase/6/docs/api/</link>
 						<link>http://logging.apache.org/log4j/1.2/apidocs/</link>
 						<link>http://junit.sourceforge.net/javadoc/</link>
 					</links>
@@ -401,7 +401,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 					<minimumTokens>150</minimumTokens>
 					<linkXref>true</linkXref>
 					<sourceEncoding>utf-8</sourceEncoding>
-					<targetJdk>1.6</targetJdk>
+					<targetJdk>${jvm.version}</targetJdk>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -425,7 +425,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 								<tags>
 									<tag>
 										<matchString>FIXME</matchString>
-										<matchType>exact</matchType>
+										<matchType>ignoreCase</matchType>
 									</tag>
 								</tags>
 							</tagClass>

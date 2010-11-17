@@ -5,12 +5,11 @@ package javax.jmdns.impl.constants;
 
 /**
  * DNS option code.
- *
+ * 
  * @version %I%, %G%
  * @author Arthur van Hoff, Pierre Frisch, Rick Blair
  */
-public enum DNSOptionCode
-{
+public enum DNSOptionCode {
 
     /**
      * Token
@@ -35,31 +34,28 @@ public enum DNSOptionCode
 
     private final String _externalName;
 
-    private final int _index;
+    private final int    _index;
 
-    DNSOptionCode(String name, int index)
-    {
+    DNSOptionCode(String name, int index) {
         _externalName = name;
         _index = index;
     }
 
     /**
      * Return the string representation of this type
-     *
+     * 
      * @return String
      */
-    public String externalName()
-    {
+    public String externalName() {
         return _externalName;
     }
 
     /**
      * Return the numeric value of this type
-     *
+     * 
      * @return String
      */
-    public int indexValue()
-    {
+    public int indexValue() {
         return _index;
     }
 
@@ -67,20 +63,16 @@ public enum DNSOptionCode
      * @param optioncode
      * @return label
      */
-    public static DNSOptionCode resultCodeForFlags(int optioncode)
-    {
+    public static DNSOptionCode resultCodeForFlags(int optioncode) {
         int maskedIndex = optioncode;
-        for (DNSOptionCode aCode : DNSOptionCode.values())
-        {
-            if (aCode._index == maskedIndex)
-                return aCode;
+        for (DNSOptionCode aCode : DNSOptionCode.values()) {
+            if (aCode._index == maskedIndex) return aCode;
         }
         return Unknown;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return this.name() + " index " + this.indexValue();
     }
 
