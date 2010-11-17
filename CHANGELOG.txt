@@ -1,5 +1,6 @@
 CHANGELOG XX XXXX 2011 Pierre Frisch
 Rev the source code to 3.2.3
+Android does not support IOException(String, Throwable) - ID: 3110982
 
 CHANGELOG 16 November 2010 Pierre Frisch
 Rev the source code to 3.2.2

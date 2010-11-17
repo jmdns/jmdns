@@ -236,7 +236,10 @@ public final class DNSIncoming extends DNSMessage {
             }
         } catch (Exception e) {
             logger.log(Level.WARNING, "DNSIncoming() dump " + print(true) + "\n exception ", e);
-            throw new IOException("DNSIncoming corrupted message.", e);
+            // This ugly but some JVM don't implement the cause on IOException
+            IOException ioe = new IOException("DNSIncoming corrupted message");
+            ioe.initCause(e);
+            throw ioe;
         }
     }
 
