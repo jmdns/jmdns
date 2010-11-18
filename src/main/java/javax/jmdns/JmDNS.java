@@ -73,7 +73,9 @@ public abstract class JmDNS implements Closeable {
     }
 
     /**
-     * Create an instance of JmDNS and bind it to a specific network interface given its IP-address.<br/>
+     * <p>
+     * Create an instance of JmDNS and bind it to a specific network interface given its IP-address.
+     * </p>
      * If <code>addr</code> parameter is null this method will try to resolve to a local IP address of the machine using a network discovery:
      * <ol>
      * <li>Check the system property <code>net.mdns.interface</code></li>
