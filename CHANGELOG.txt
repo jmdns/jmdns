@@ -3,6 +3,7 @@ Rev the source code to 3.2.3
 Android does not support IOException(String, Throwable) - ID: 3110982
 Replace dots with dashes in hostname instead of truncating - ID: 3111108
 Moved the NetworkTopologyDiscovery into a stand alone class instead of JmmDNS inner class.
+OSGi Bundle-RequiredExecutionEnvironment broken - ID: 3111738
 
 CHANGELOG 16 November 2010 Pierre Frisch
 Rev the source code to 3.2.2

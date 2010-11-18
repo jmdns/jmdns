@@ -235,7 +235,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 						<Export-Package>javax.jmdns</Export-Package>
 						<Private-Package>javax.jmdns.impl,javax.jmdns.impl.*,com.strangeberry.*,samples</Private-Package>
 						<Import-Package>!javax.swing.*</Import-Package>
-						<Bundle-RequiredExecutionEnvironment>J2SE-${jvm.version}</Bundle-RequiredExecutionEnvironment>
+						<Bundle-RequiredExecutionEnvironment>JavaSE-${jvm.version}</Bundle-RequiredExecutionEnvironment>
 						<Bundle-Vendor>jmdns.sourceforge.net</Bundle-Vendor>
 					</instructions>
 				</configuration>
