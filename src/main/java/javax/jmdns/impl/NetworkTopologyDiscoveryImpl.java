@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.jmdns.JmmDNS.NetworkTopologyDiscovery;
+import javax.jmdns.NetworkTopologyDiscovery;
 
 /**
  * This class implements NetworkTopologyDiscovery.

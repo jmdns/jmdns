@@ -80,7 +80,7 @@ public abstract class JmDNS implements Closeable {
      * <ol>
      * <li>Check the system property <code>net.mdns.interface</code></li>
      * <li>Check the JVM local host</li>
-     * <li>Use the {@link JmmDNS.NetworkTopologyDiscovery} to find a valid network interface and IP.</li>
+     * <li>Use the {@link NetworkTopologyDiscovery} to find a valid network interface and IP.</li>
      * <li>In the last resort bind to the loopback address. This is non functional in most cases.</li>
      * </ol>
      * If <code>name</code> parameter is null this method will try to resolve hostname following these steps:
@@ -91,8 +91,8 @@ public abstract class JmDNS implements Closeable {
      * <li>Add <code>.local.</code> at the end of the name.</li>
      * </ol>
      * <p>
-     * <b>Note:</b> If you need to use a custom {@link JmmDNS.NetworkTopologyDiscovery} it must be setup before any call to this method. This is done by setting up a {@link JmmDNS.NetworkTopologyDiscovery.Factory.ClassDelegate} and installing it
-     * using {@link JmmDNS.NetworkTopologyDiscovery.Factory#setClassDelegate(JmmDNS.NetworkTopologyDiscovery.Factory.ClassDelegate)}. This must be done before creating a {@link JmDNS} or {@link JmmDNS} instance.
+     * <b>Note:</b> If you need to use a custom {@link NetworkTopologyDiscovery} it must be setup before any call to this method. This is done by setting up a {@link NetworkTopologyDiscovery.Factory.ClassDelegate} and installing it
+     * using {@link NetworkTopologyDiscovery.Factory#setClassDelegate(NetworkTopologyDiscovery.Factory.ClassDelegate)}. This must be done before creating a {@link JmDNS} or {@link JmmDNS} instance.
      * </p>
      *
      * @param addr

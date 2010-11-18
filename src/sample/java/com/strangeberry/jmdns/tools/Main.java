@@ -37,7 +37,7 @@ import javax.jmdns.ServiceTypeListener;
 
 /**
  * Main sample program for JmDNS.
- * 
+ *
  * @author Arthur van Hoff, Werner Randelshofer
  * @version %I%, %G%
  */

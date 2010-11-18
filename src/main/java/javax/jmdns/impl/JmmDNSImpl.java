@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.JmmDNS;
+import javax.jmdns.NetworkTopologyDiscovery;
 import javax.jmdns.NetworkTopologyEvent;
 import javax.jmdns.NetworkTopologyListener;
 import javax.jmdns.ServiceInfo;
@@ -69,7 +70,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
         _ListenerExecutor = Executors.newSingleThreadExecutor();
         _jmDNSExecutor = Executors.newCachedThreadPool();
         _timer = new Timer("Multihommed mDNS.Timer", true);
-        (new NetworkChecker(this, JmmDNS.NetworkTopologyDiscovery.Factory.getInstance())).start(_timer);
+        (new NetworkChecker(this, NetworkTopologyDiscovery.Factory.getInstance())).start(_timer);
     }
 
     /*

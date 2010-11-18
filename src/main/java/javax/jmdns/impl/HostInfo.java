@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.jmdns.JmmDNS;
+import javax.jmdns.NetworkTopologyDiscovery;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSState;
@@ -67,7 +67,7 @@ public class HostInfo implements DNSStatefulObject {
                     addr = InetAddress.getLocalHost();
                     if (addr.isLoopbackAddress()) {
                         // Find local address that isn't a loopback address
-                        InetAddress[] addresses = JmmDNS.NetworkTopologyDiscovery.Factory.getInstance().getInetAddresses();
+                        InetAddress[] addresses = NetworkTopologyDiscovery.Factory.getInstance().getInetAddresses();
                         if (addresses.length > 0) {
                             addr = addresses[0];
                         }
