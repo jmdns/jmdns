@@ -84,7 +84,7 @@ public class HostInfo implements DNSStatefulObject {
                 aName = "computer";
             }
             // A host name with "." is illegal. so strip off everything and append .local.
-            aName.replace('.', '-');
+            aName = aName.replace('.', '-');
             aName += ".local.";
             localhost = new HostInfo(addr, aName, dns);
         } catch (final IOException e) {
