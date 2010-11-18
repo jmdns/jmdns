@@ -1,7 +1,6 @@
 // Licensed under Apache License version 2.0
 // Original license LGPL
 
-// %Z%%M%, %I%, %G%
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -31,7 +30,6 @@ import javax.jmdns.ServiceInfo;
  * lines starting with # between records are ignored.
  * 
  * @author Arthur van Hoff
- * @version %I%, %G%
  */
 public class Responder {
     /**

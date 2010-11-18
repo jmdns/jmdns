@@ -33,7 +33,6 @@ import javax.jmdns.impl.tasks.DNSTask;
 /**
  * JmDNS service information.
  *
- * @version %I%, %G%
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer
  */
 public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStatefulObject {

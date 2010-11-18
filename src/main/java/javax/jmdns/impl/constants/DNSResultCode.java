@@ -5,8 +5,7 @@ package javax.jmdns.impl.constants;
 
 /**
  * DNS result code.
- * 
- * @version %I%, %G%
+ *
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Rick Blair
  */
 public enum DNSResultCode {
@@ -106,7 +105,7 @@ public enum DNSResultCode {
 
     /**
      * Return the string representation of this type
-     * 
+     *
      * @return String
      */
     public String externalName() {
@@ -115,7 +114,7 @@ public enum DNSResultCode {
 
     /**
      * Return the numeric value of this type
-     * 
+     *
      * @return String
      */
     public int indexValue() {

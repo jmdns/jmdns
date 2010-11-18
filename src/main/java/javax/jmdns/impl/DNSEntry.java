@@ -17,7 +17,6 @@ import javax.jmdns.impl.constants.DNSRecordType;
 /**
  * DNS entry with a name, type, and class. This is the base class for questions and records.
  *
- * @version %I%, %G%
  * @author Arthur van Hoff, Pierre Frisch, Rick Blair
  */
 public abstract class DNSEntry {

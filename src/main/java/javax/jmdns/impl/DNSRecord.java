@@ -27,7 +27,6 @@ import javax.jmdns.impl.constants.DNSRecordType;
 /**
  * DNS record
  *
- * @version %I%, %G%
  * @author Arthur van Hoff, Rick Blair, Werner Randelshofer, Pierre Frisch
  */
 public abstract class DNSRecord extends DNSEntry {

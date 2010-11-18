@@ -1,6 +1,3 @@
-// %Z%%M%, %I%, %G%
-//
-
 // Licensed under Apache License version 2.0
 // Original license LGPL
 
@@ -34,9 +31,8 @@ import javax.jmdns.ServiceInfo;
  * Sample Code for Listing Services using JmDNS.
  * <p>
  * Run the main method of this class. This class prints a list of available HTTP services every 5 seconds.
- * 
+ *
  * @author Werner Randelshofer
- * @version %I%, %G%
  */
 public class ListServices {
 

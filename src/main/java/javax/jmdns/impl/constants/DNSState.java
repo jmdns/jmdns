@@ -7,7 +7,6 @@ package javax.jmdns.impl.constants;
 /**
  * DNSState defines the possible states for services registered with JmDNS.
  *
- * @version %I%, %G%
  * @author Werner Randelshofer, Rick Blair, Pierre Frisch
  */
 public enum DNSState {

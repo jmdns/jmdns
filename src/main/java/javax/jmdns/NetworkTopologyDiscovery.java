@@ -46,7 +46,6 @@ import javax.jmdns.impl.NetworkTopologyDiscoveryImpl;
  *
  * </p>
  *
- * @version %I%, %G%
  * @author Pierre Frisch
  */
 public interface NetworkTopologyDiscovery {

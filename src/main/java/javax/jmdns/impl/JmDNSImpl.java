@@ -57,7 +57,6 @@ import javax.jmdns.impl.tasks.state.Renewer;
 /**
  * mDNS implementation in Java.
  *
- * @version %I%, %G%
  * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis
  */
 public class JmDNSImpl extends JmDNS implements DNSStatefulObject {

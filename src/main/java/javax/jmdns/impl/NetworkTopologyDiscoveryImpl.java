@@ -18,15 +18,14 @@ import javax.jmdns.NetworkTopologyDiscovery;
 /**
  * This class implements NetworkTopologyDiscovery.
  *
- * @version %I%, %G%
  * @author Pierre Frisch
  */
 public class NetworkTopologyDiscoveryImpl implements NetworkTopologyDiscovery {
     private final static Logger logger = Logger.getLogger(NetworkTopologyDiscoveryImpl.class.getName());
 
-    private final Method  _isUp;
+    private final Method        _isUp;
 
-    private final Method  _supportsMulticast;
+    private final Method        _supportsMulticast;
 
     /**
      *

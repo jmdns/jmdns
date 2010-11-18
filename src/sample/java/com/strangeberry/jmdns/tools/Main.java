@@ -1,7 +1,6 @@
 // Licensed under Apache License version 2.0
 // Original license LGPL
 
-// %Z%%M%, %I%, %G%
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -39,7 +38,6 @@ import javax.jmdns.ServiceTypeListener;
  * Main sample program for JmDNS.
  *
  * @author Arthur van Hoff, Werner Randelshofer
- * @version %I%, %G%
  */
 public class Main {
     static class SampleListener implements ServiceListener, ServiceTypeListener {

@@ -1,7 +1,6 @@
 // Licensed under Apache License version 2.0
 // Original license LGPL
 
-// %Z%%M%, %I%, %G%
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -49,7 +48,6 @@ import javax.swing.table.AbstractTableModel;
  * User Interface for browsing JmDNS services.
  * 
  * @author Arthur van Hoff, Werner Randelshofer
- * @version %I%, %G%
  */
 public class Browser extends JFrame implements ServiceListener, ServiceTypeListener, ListSelectionListener {
     /**

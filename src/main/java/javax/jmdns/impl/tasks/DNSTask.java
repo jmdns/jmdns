@@ -14,8 +14,7 @@ import javax.jmdns.impl.constants.DNSConstants;
 
 /**
  * This is the root class for all task scheduled by the timer in JmDNS.
- * 
- * @version %I%, %G%
+ *
  * @author Pierre Frisch
  */
 public abstract class DNSTask extends TimerTask {
@@ -35,7 +34,7 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Return the DNS associated with this task.
-     * 
+     *
      * @return associated DNS
      */
     public JmDNSImpl getDns() {
@@ -44,7 +43,7 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Start this task.
-     * 
+     *
      * @param timer
      *            task timer.
      */
@@ -52,7 +51,7 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Return this task name.
-     * 
+     *
      * @return task name
      */
     public abstract String getName();
@@ -68,7 +67,7 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Add a question to the message.
-     * 
+     *
      * @param out
      *            outgoing message
      * @param rec
@@ -98,7 +97,7 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Add an answer if it is not suppressed.
-     * 
+     *
      * @param out
      *            outgoing message
      * @param in
@@ -130,7 +129,7 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Add an answer to the message.
-     * 
+     *
      * @param out
      *            outgoing message
      * @param rec
@@ -161,7 +160,7 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Add an authoritative answer to the message.
-     * 
+     *
      * @param out
      *            outgoing message
      * @param rec
@@ -191,7 +190,7 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Add an additional answer to the record. Omit if there is no room.
-     * 
+     *
      * @param out
      *            outgoing message
      * @param in

@@ -15,7 +15,6 @@ import javax.jmdns.impl.constants.DNSRecordClass;
 /**
  * An outgoing DNS message.
  *
- * @version %I%, %G%
  * @author Arthur van Hoff, Rick Blair, Werner Randelshofer
  */
 public final class DNSOutgoing extends DNSMessage {

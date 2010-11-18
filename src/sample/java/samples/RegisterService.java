@@ -1,7 +1,6 @@
 // Licensed under Apache License version 2.0
 // Original license LGPL
 
-// %Z%%M%, %I%, %G%
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -35,27 +34,26 @@ import javax.jmdns.ServiceInfo;
  * Sample Code for Service Registration using JmDNS.
  * <p>
  * To see what happens, launch the TTY browser of JmDNS using the following command:
- * 
+ *
  * <pre>
  * java -jar lib/jmdns.jar -bs _http._tcp local.
  * </pre>
- * 
+ *
  * Then run the main method of this class. When you press 'r' and enter, you should see the following output on the TTY browser:
- * 
+ *
  * <pre>
  * ADD: service[foo._http._tcp.local.,192.168.2.5:1234,path=index.html]
  * </pre>
- * 
+ *
  * Press 'r' and enter, you should see the following output on the TTY browser:
- * 
+ *
  * <pre>
  * ADD: service[foo._http._tcp.local.,192.168.2.5:1234,path=index.html]
  * </pre>
- * 
+ *
  * REMOVE: foo
- * 
+ *
  * @author Werner Randelshofer
- * @version %I%, %G%
  */
 public class RegisterService {
 

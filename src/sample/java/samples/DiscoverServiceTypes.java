@@ -1,7 +1,6 @@
 // Licensed under Apache License version 2.0
 // Original license LGPL
 
-// %Z%%M%, %I%, %G%
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -29,9 +28,8 @@ import javax.jmdns.ServiceTypeListener;
  * Sample Code for Service Type Discovery using JmDNS and a ServiceTypeListener.
  * <p>
  * Run the main method of this class. It lists all service types known on the local network on System.out.
- * 
+ *
  * @author Werner Randelshofer
- * @version %I%, %G%
  */
 public class DiscoverServiceTypes {
 

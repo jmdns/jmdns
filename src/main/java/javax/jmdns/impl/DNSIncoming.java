@@ -23,7 +23,6 @@ import javax.jmdns.impl.constants.DNSResultCode;
 /**
  * Parse an incoming DNS message into its components.
  *
- * @version %I%, %G%
  * @author Arthur van Hoff, Werner Randelshofer, Pierre Frisch, Daniel Bobbert
  */
 public final class DNSIncoming extends DNSMessage {

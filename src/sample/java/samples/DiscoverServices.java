@@ -1,7 +1,6 @@
 // Licensed under Apache License version 2.0
 // Original license LGPL
 
-// %Z%%M%, %I%, %G%
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -32,9 +31,8 @@ import javax.jmdns.ServiceListener;
  * Sample Code for Service Discovery using JmDNS and a ServiceListener.
  * <p>
  * Run the main method of this class. It listens for HTTP services and lists all changes on System.out.
- * 
+ *
  * @author Werner Randelshofer
- * @version %I%, %G%
  */
 public class DiscoverServices {
 

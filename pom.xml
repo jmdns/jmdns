@@ -248,12 +248,13 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 						</goals>
 					</execution>
 				</executions>
-			</plugin>			<plugin>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
 				<configuration>
 					<locales>en</locales>
-					<!--<templateFile>src/site/site.vm</templateFile>-->
+					<!--<templateFile>src/site/site.vm</templateFile> -->
 				</configuration>
 			</plugin>
 			<plugin>
@@ -445,7 +446,10 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 					</reportSet>
 				</reportSets>
 				<configuration>
-					<issueLinkTemplate>http://sourceforge.net/support/tracker.php?aid=%ISSUE%</issueLinkTemplate>
+					<issueLinkTemplatePerSystem>
+						<sourceforge>http://sourceforge.net/support/tracker.php?aid=%ISSUE%</sourceforge>
+					</issueLinkTemplatePerSystem>
+					<publishDateFormat>yyyy-MM-dd HH:mm</publishDateFormat>
 				</configuration>
 			</plugin>
 		</plugins>

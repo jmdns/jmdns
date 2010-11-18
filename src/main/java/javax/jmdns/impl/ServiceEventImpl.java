@@ -12,7 +12,6 @@ import javax.jmdns.ServiceInfo;
  * ServiceEvent.
  *
  * @author Werner Randelshofer, Rick Blair
- * @version %I%, %G%
  */
 public class ServiceEventImpl extends ServiceEvent {
     /**

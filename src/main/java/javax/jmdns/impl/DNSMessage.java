@@ -14,7 +14,6 @@ import javax.jmdns.impl.constants.DNSConstants;
 /**
  * DNSMessage define a DNS message either incoming or outgoing.
  *
- * @version %I%, %G%
  * @author Werner Randelshofer, Rick Blair, Pierre Frisch
  */
 public abstract class DNSMessage {

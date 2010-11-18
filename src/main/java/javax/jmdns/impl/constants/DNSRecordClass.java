@@ -8,8 +8,7 @@ import java.util.logging.Logger;
 
 /**
  * DNS Record Class
- * 
- * @version %I%, %G%
+ *
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Rick Blair
  */
 public enum DNSRecordClass {
@@ -77,7 +76,7 @@ public enum DNSRecordClass {
 
     /**
      * Return the string representation of this type
-     * 
+     *
      * @return String
      */
     public String externalName() {
@@ -86,7 +85,7 @@ public enum DNSRecordClass {
 
     /**
      * Return the numeric value of this type
-     * 
+     *
      * @return String
      */
     public int indexValue() {
@@ -95,7 +94,7 @@ public enum DNSRecordClass {
 
     /**
      * Checks if the class is unique
-     * 
+     *
      * @param index
      * @return <code>true</code> is the class is unique, <code>false</code> otherwise.
      */

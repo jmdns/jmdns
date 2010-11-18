@@ -17,8 +17,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
 
 /**
  * A DNS question.
- * 
- * @version %I%, %G%
+ *
  * @author Arthur van Hoff, Pierre Frisch
  */
 public class DNSQuestion extends DNSEntry {
@@ -221,7 +220,7 @@ public class DNSQuestion extends DNSEntry {
 
     /**
      * Create a question.
-     * 
+     *
      * @param name
      * @param type
      * @param recordClass
@@ -260,7 +259,7 @@ public class DNSQuestion extends DNSEntry {
 
     /**
      * Adds answers to the list for our question.
-     * 
+     *
      * @param jmDNSImpl
      *            DNS holding the records
      * @param answers
@@ -302,7 +301,7 @@ public class DNSQuestion extends DNSEntry {
 
     /**
      * Checks if we are the only to be able to answer that question.
-     * 
+     *
      * @param jmDNSImpl
      *            DNS holding the records
      * @return <code>true</code> if we are the only one with the answer to the question, <code>false</code> otherwise.

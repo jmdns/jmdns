@@ -12,8 +12,7 @@ import javax.jmdns.impl.tasks.DNSTask;
 /**
  * Sets of methods to manage the state machine.<br/>
  * <b>Implementation note:</b> This interface is accessed from multiple threads. The implementation must be thread safe.
- * 
- * @version %I%, %G%
+ *
  * @author Pierre Frisch
  */
 public interface DNSStatefulObject {
@@ -295,14 +294,14 @@ public interface DNSStatefulObject {
 
     /**
      * Returns the DNS associated with this object.
-     * 
+     *
      * @return DNS resolver
      */
     public JmDNSImpl getDns();
 
     /**
      * Sets the task associated with this Object.
-     * 
+     *
      * @param task
      *            associated task
      * @param state
@@ -312,7 +311,7 @@ public interface DNSStatefulObject {
 
     /**
      * Remove the association of the task with this Object.
-     * 
+     *
      * @param task
      *            associated task
      */
@@ -320,7 +319,7 @@ public interface DNSStatefulObject {
 
     /**
      * Checks if this object is associated with the task and in the same state.
-     * 
+     *
      * @param task
      *            associated task
      * @param state
@@ -331,7 +330,7 @@ public interface DNSStatefulObject {
 
     /**
      * Sets the state and notifies all objects that wait on the ServiceInfo.
-     * 
+     *
      * @param task
      *            associated task
      * @return <code>true</code if the state was changed by this thread, <code>false</code> otherwise.
@@ -341,7 +340,7 @@ public interface DNSStatefulObject {
 
     /**
      * Sets the state and notifies all objects that wait on the ServiceInfo.
-     * 
+     *
      * @return <code>true</code if the state was changed by this thread, <code>false</code> otherwise.
      * @see DNSState#revert()
      */
@@ -349,56 +348,56 @@ public interface DNSStatefulObject {
 
     /**
      * Sets the state and notifies all objects that wait on the ServiceInfo.
-     * 
+     *
      * @return <code>true</code if the state was changed by this thread, <code>false</code> otherwise.
      */
     public boolean cancelState();
 
     /**
      * Sets the state and notifies all objects that wait on the ServiceInfo.
-     * 
+     *
      * @return <code>true</code if the state was changed by this thread, <code>false</code> otherwise.
      */
     public boolean recoverState();
 
     /**
      * Returns true, if this is a probing state.
-     * 
+     *
      * @return <code>true</code> if probing state, <code>false</code> otherwise
      */
     public boolean isProbing();
 
     /**
      * Returns true, if this is an announcing state.
-     * 
+     *
      * @return <code>true</code> if announcing state, <code>false</code> otherwise
      */
     public boolean isAnnouncing();
 
     /**
      * Returns true, if this is an announced state.
-     * 
+     *
      * @return <code>true</code> if announced state, <code>false</code> otherwise
      */
     public boolean isAnnounced();
 
     /**
      * Returns true, if this is a canceling state.
-     * 
+     *
      * @return <code>true</code> if canceling state, <code>false</code> otherwise
      */
     public boolean isCanceling();
 
     /**
      * Returns true, if this is a canceled state.
-     * 
+     *
      * @return <code>true</code> if canceled state, <code>false</code> otherwise
      */
     public boolean isCanceled();
 
     /**
      * Waits for the object to be announced.
-     * 
+     *
      * @param timeout
      *            the maximum time to wait in milliseconds.
      * @return <code>true</code> if the object is announced, <code>false</code> otherwise
@@ -407,7 +406,7 @@ public interface DNSStatefulObject {
 
     /**
      * Waits for the object to be canceled.
-     * 
+     *
      * @param timeout
      *            the maximum time to wait in milliseconds.
      * @return <code>true</code> if the object is canceled, <code>false</code> otherwise

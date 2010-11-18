@@ -39,7 +39,6 @@ import javax.jmdns.impl.constants.DNSRecordType;
  *       }
  * </pre>
  *
- * @version %I%, %G%
  * @author Arthur van Hoff, Werner Randelshofer, Rick Blair, Pierre Frisch
  */
 public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>> {

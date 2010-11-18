@@ -7,8 +7,7 @@ import java.util.logging.Logger;
 
 /**
  * DNS Record Type
- * 
- * @version %I%, %G%
+ *
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Rick Blair
  */
 public enum DNSRecordType {
@@ -262,7 +261,7 @@ public enum DNSRecordType {
 
     /**
      * Return the string representation of this type
-     * 
+     *
      * @return String
      */
     public String externalName() {
@@ -271,7 +270,7 @@ public enum DNSRecordType {
 
     /**
      * Return the numeric value of this type
-     * 
+     *
      * @return String
      */
     public int indexValue() {

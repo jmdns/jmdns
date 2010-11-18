@@ -14,7 +14,6 @@ import javax.jmdns.impl.JmDNSImpl;
 /**
  * mDNS implementation in Java.
  *
- * @version %I%, %G%
  * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis, Scott Cytacki
  */
 public abstract class JmDNS implements Closeable {
@@ -24,10 +23,14 @@ public abstract class JmDNS implements Closeable {
     public static final String VERSION = "3.2.3";
 
     /**
-     * Create an instance of JmDNS.<br/>
+     * <p>
+     * Create an instance of JmDNS.
+     * </p>
+     * <p>
      * <b>Note:</b> This is a convenience method. The preferred constructor is {@link #create(InetAddress, String)}.<br/>
      * Check that your platform correctly handle the default localhost IP address and the local hostname. In doubt use the explicit constructor.<br/>
      * This call is equivalent to <code>create(null, null)</code>.
+     * </p>
      *
      * @see #create(InetAddress, String)
      * @return jmDNS instance
@@ -39,10 +42,14 @@ public abstract class JmDNS implements Closeable {
     }
 
     /**
-     * Create an instance of JmDNS and bind it to a specific network interface given its IP-address.<br/>
+     * <p>
+     * Create an instance of JmDNS and bind it to a specific network interface given its IP-address.
+     * </p>
+     * <p>
      * <b>Note:</b> This is a convenience method. The preferred constructor is {@link #create(InetAddress, String)}.<br/>
      * Check that your platform correctly handle the default localhost IP address and the local hostname. In doubt use the explicit constructor.<br/>
      * This call is equivalent to <code>create(addr, null)</code>.
+     * </p>
      *
      * @see #create(InetAddress, String)
      * @param addr
@@ -56,10 +63,14 @@ public abstract class JmDNS implements Closeable {
     }
 
     /**
-     * Create an instance of JmDNS.<br/>
+     * <p>
+     * Create an instance of JmDNS.
+     * </p>
+     * <p>
      * <b>Note:</b> This is a convenience method. The preferred constructor is {@link #create(InetAddress, String)}.<br/>
      * Check that your platform correctly handle the default localhost IP address and the local hostname. In doubt use the explicit constructor.<br/>
      * This call is equivalent to <code>create(null, name)</code>.
+     * </p>
      *
      * @see #create(InetAddress, String)
      * @param name
@@ -91,8 +102,8 @@ public abstract class JmDNS implements Closeable {
      * <li>Add <code>.local.</code> at the end of the name.</li>
      * </ol>
      * <p>
-     * <b>Note:</b> If you need to use a custom {@link NetworkTopologyDiscovery} it must be setup before any call to this method. This is done by setting up a {@link NetworkTopologyDiscovery.Factory.ClassDelegate} and installing it
-     * using {@link NetworkTopologyDiscovery.Factory#setClassDelegate(NetworkTopologyDiscovery.Factory.ClassDelegate)}. This must be done before creating a {@link JmDNS} or {@link JmmDNS} instance.
+     * <b>Note:</b> If you need to use a custom {@link NetworkTopologyDiscovery} it must be setup before any call to this method. This is done by setting up a {@link NetworkTopologyDiscovery.Factory.ClassDelegate} and installing it using
+     * {@link NetworkTopologyDiscovery.Factory#setClassDelegate(NetworkTopologyDiscovery.Factory.ClassDelegate)}. This must be done before creating a {@link JmDNS} or {@link JmmDNS} instance.
      * </p>
      *
      * @param addr
