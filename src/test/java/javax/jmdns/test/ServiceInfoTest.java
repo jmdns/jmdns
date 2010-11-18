@@ -151,4 +151,17 @@ public class ServiceInfoTest {
         assertEquals("We did not get the right subtype:", "", map.get(Fields.Subtype));
     }
 
+    @Test
+    public void testCasePreserving() {
+        String type = "My New Itunes Service._Home-Sharing._TCP.Panoramix.local.";
+
+        Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(type);
+
+        assertEquals("We did not get the right domain:", "Panoramix.local", map.get(Fields.Domain));
+        assertEquals("We did not get the right protocol:", "TCP", map.get(Fields.Protocol));
+        assertEquals("We did not get the right application:", "Home-Sharing", map.get(Fields.Application));
+        assertEquals("We did not get the right name:", "My New Itunes Service", map.get(Fields.Instance));
+        assertEquals("We did not get the right subtype:", "", map.get(Fields.Subtype));
+    }
+
 }

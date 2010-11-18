@@ -229,6 +229,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     public static Map<Fields, String> decodeQualifiedNameMapForType(String type) {
         int index;
 
+        String casePreservedType = type;
+
         String aType = type.toLowerCase();
         String application = aType;
         String protocol = "";
@@ -238,13 +240,13 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
 
         if (aType.contains("in-addr.arpa") || aType.contains("ip6.arpa")) {
             index = (aType.contains("in-addr.arpa") ? aType.indexOf("in-addr.arpa") : aType.indexOf("ip6.arpa"));
-            name = removeSeparators(aType.substring(0, index));
-            domain = aType.substring(index);
+            name = removeSeparators(casePreservedType.substring(0, index));
+            domain = casePreservedType.substring(index);
             application = "";
         } else if ((!aType.contains("_")) && aType.contains(".")) {
             index = aType.indexOf('.');
-            name = removeSeparators(aType.substring(0, index));
-            domain = removeSeparators(aType.substring(index));
+            name = removeSeparators(casePreservedType.substring(0, index));
+            domain = removeSeparators(casePreservedType.substring(index));
             application = "";
         } else {
             // First remove the name if it there.
@@ -252,9 +254,10 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                 index = aType.indexOf('.');
                 if (index > 0) {
                     // We need to preserve the case for the user readable name.
-                    name = type.substring(0, index);
+                    name = casePreservedType.substring(0, index);
                     if (index + 1 < aType.length()) {
                         aType = aType.substring(index + 1);
+                        casePreservedType = casePreservedType.substring(index + 1);
                     }
                 }
             }
@@ -263,16 +266,16 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
             if (index > 0) {
                 int start = index + 2;
                 int end = aType.indexOf('.', start);
-                protocol = aType.substring(start, end);
+                protocol = casePreservedType.substring(start, end);
             }
             if (protocol.length() > 0) {
-                index = aType.indexOf("_" + protocol + ".");
+                index = aType.indexOf("_" + protocol.toLowerCase() + ".");
                 int start = index + protocol.length() + 2;
                 int end = aType.length() - (aType.endsWith(".") ? 1 : 0);
-                domain = aType.substring(start, end);
-                application = aType.substring(0, index - 1);
+                domain = casePreservedType.substring(start, end);
+                application = casePreservedType.substring(0, index - 1);
             }
-            index = application.indexOf("._sub");
+            index = application.toLowerCase().indexOf("._sub");
             if (index > 0) {
                 int start = index + 5;
                 subtype = removeSeparators(application.substring(0, index));
