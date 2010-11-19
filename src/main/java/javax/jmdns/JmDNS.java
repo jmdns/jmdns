@@ -94,10 +94,10 @@ public abstract class JmDNS implements Closeable {
      * <li>Use the {@link NetworkTopologyDiscovery} to find a valid network interface and IP.</li>
      * <li>In the last resort bind to the loopback address. This is non functional in most cases.</li>
      * </ol>
-     * If <code>name</code> parameter is null this method will try to resolve hostname following these steps:
+     * If <code>name</code> parameter is null will use the hostname. The hostname is determined by the following algorithm:
      * <ol>
      * <li>Get the hostname from the InetAdress obtained before.</li>
-     * <li>If the hostname is a reverse lookup default to <code>computer</code></li>
+     * <li>If the hostname is a reverse lookup default to <code>JmDNS name</code> or <code>computer</code> if null.</li>
      * <li>If the name contains <code>'.'</code> replace them by <code>'-'</code></li>
      * <li>Add <code>.local.</code> at the end of the name.</li>
      * </ol>

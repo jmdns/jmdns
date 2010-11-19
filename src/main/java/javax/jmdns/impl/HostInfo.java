@@ -53,11 +53,20 @@ public class HostInfo implements DNSStatefulObject {
 
     }
 
-    public static HostInfo newHostInfo(InetAddress address, JmDNSImpl dns) {
+    /**
+     * @param address
+     *            IP address to bind
+     * @param dns
+     *            JmDNS instance
+     * @param jmdnsName
+     *            JmDNS name
+     * @return new HostInfo
+     */
+    public static HostInfo newHostInfo(InetAddress address, JmDNSImpl dns, String jmdnsName) {
         HostInfo localhost = null;
+        String aName = "";
+        InetAddress addr = address;
         try {
-            InetAddress addr = address;
-            String aName = "";
             if (addr == null) {
                 String ip = System.getProperty("net.mdns.interface");
                 if (ip != null) {
@@ -79,18 +88,19 @@ public class HostInfo implements DNSStatefulObject {
             } else {
                 aName = addr.getHostName();
             }
-            if (aName.contains("in-addr.arpa")) {
-                aName = "computer";
+            if (aName.contains("in-addr.arpa") || (aName.equals(addr.getHostAddress()))) {
+                aName = ((jmdnsName != null) && (!jmdnsName.isEmpty()) ? jmdnsName : addr.getHostAddress());
             }
-            // A host name with "." is illegal. so strip off everything and append .local.
-            aName = aName.replace('.', '-');
-            aName += ".local.";
-            localhost = new HostInfo(addr, aName, dns);
         } catch (final IOException e) {
             logger.log(Level.WARNING, "Could not intialize the host network interface on " + address + "because of an error: " + e.getMessage(), e);
             // This is only used for running unit test on Debian / Ubuntu
-            localhost = new HostInfo(loopbackAddress(), "computer", dns);
+            addr = loopbackAddress();
+            aName = ((jmdnsName != null) && (!jmdnsName.isEmpty()) ? jmdnsName : "computer");
         }
+        // A host name with "." is illegal. so strip off everything and append .local.
+        aName = aName.replace('.', '-');
+        aName += ".local.";
+        localhost = new HostInfo(addr, aName, dns);
         return localhost;
     }
 
@@ -107,7 +117,7 @@ public class HostInfo implements DNSStatefulObject {
      */
     private int hostNameCount;
 
-    public HostInfo(final InetAddress address, final String name, final JmDNSImpl dns) {
+    private HostInfo(final InetAddress address, final String name, final JmDNSImpl dns) {
         super();
         this._state = new HostInfoState(dns);
         this._address = address;
