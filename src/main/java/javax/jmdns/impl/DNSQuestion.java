@@ -33,7 +33,7 @@ public class DNSQuestion extends DNSEntry {
 
         @Override
         public void addAnswers(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers) {
-            DNSRecord answer = jmDNSImpl.getLocalHost().getDNSAddressRecord(this.getRecordType(), this.isUnique(), DNSConstants.DNS_TTL);
+            DNSRecord answer = jmDNSImpl.getLocalHost().getDNSAddressRecord(this.getRecordType(), DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL);
             if (answer != null) {
                 answers.add(answer);
             }
@@ -57,7 +57,7 @@ public class DNSQuestion extends DNSEntry {
 
         @Override
         public void addAnswers(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers) {
-            DNSRecord answer = jmDNSImpl.getLocalHost().getDNSAddressRecord(this.getRecordType(), this.isUnique(), DNSConstants.DNS_TTL);
+            DNSRecord answer = jmDNSImpl.getLocalHost().getDNSAddressRecord(this.getRecordType(), DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL);
             if (answer != null) {
                 answers.add(answer);
             }
@@ -272,8 +272,8 @@ public class DNSQuestion extends DNSEntry {
     protected void addAnswersForServiceInfo(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers, ServiceInfoImpl info) {
         if ((info != null) && info.isAnnounced()) {
             if (this.getName().equalsIgnoreCase(info.getQualifiedName()) || this.getName().equalsIgnoreCase(info.getType())) {
-                answers.addAll(jmDNSImpl.getLocalHost().answers(this.isUnique(), DNSConstants.DNS_TTL));
-                answers.addAll(info.answers(this.isUnique(), DNSConstants.DNS_TTL, jmDNSImpl.getLocalHost()));
+                answers.addAll(jmDNSImpl.getLocalHost().answers(DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL));
+                answers.addAll(info.answers(DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, jmDNSImpl.getLocalHost()));
             }
             if (logger.isLoggable(Level.FINER)) {
                 logger.finer(jmDNSImpl.getName() + " DNSQuestion(" + this.getName() + ").addAnswersForServiceInfo(): info: " + info + "\n" + answers);

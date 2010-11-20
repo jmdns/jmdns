@@ -1112,7 +1112,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         }
 
         // update the cache
-        // if ((newRecord.getRecordType() != DNSRecordType.TYPE_PTR) || (!newRecord.isServicesDiscoveryMetaQuery()))
         if (!newRecord.isServicesDiscoveryMetaQuery() && !newRecord.isDomainDiscoveryQuery()) {
             final DNSRecord cachedRecord = (DNSRecord) this.getCache().getDNSEntry(newRecord);
             if (logger.isLoggable(Level.FINE)) {

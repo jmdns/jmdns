@@ -7,6 +7,7 @@ OSGi Bundle-RequiredExecutionEnvironment broken - ID: 3111738
 JmDNS does not preserve service type case
 Remove call to isEmpty (for Android)  - ID: 3113114
 Remove package.html - ID: 3112613
+Announcer is causing a ServiceType cache flush - ID: 3113073
 
 CHANGELOG 16 November 2010 Pierre Frisch
 Rev the source code to 3.2.2

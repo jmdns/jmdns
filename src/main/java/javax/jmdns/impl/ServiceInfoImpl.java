@@ -1022,9 +1022,9 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     public Collection<DNSRecord> answers(boolean unique, int ttl, HostInfo localHost) {
         List<DNSRecord> list = new ArrayList<DNSRecord>();
         if (this.getSubtype().length() > 0) {
-            list.add(new Pointer(this.getTypeWithSubtype(), DNSRecordClass.CLASS_IN, unique, ttl, this.getQualifiedName()));
+            list.add(new Pointer(this.getTypeWithSubtype(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
         }
-        list.add(new Pointer(this.getType(), DNSRecordClass.CLASS_IN, unique, ttl, this.getQualifiedName()));
+        list.add(new Pointer(this.getType(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
         list.add(new Service(this.getQualifiedName(), DNSRecordClass.CLASS_IN, unique, ttl, _priority, _weight, _port, localHost.getName()));
         list.add(new Text(this.getQualifiedName(), DNSRecordClass.CLASS_IN, unique, ttl, this.getText()));
         return list;
