@@ -89,13 +89,13 @@ public class HostInfo implements DNSStatefulObject {
                 aName = addr.getHostName();
             }
             if (aName.contains("in-addr.arpa") || (aName.equals(addr.getHostAddress()))) {
-                aName = ((jmdnsName != null) && (!jmdnsName.isEmpty()) ? jmdnsName : addr.getHostAddress());
+                aName = ((jmdnsName != null) && (jmdnsName.length() > 0) ? jmdnsName : addr.getHostAddress());
             }
         } catch (final IOException e) {
             logger.log(Level.WARNING, "Could not intialize the host network interface on " + address + "because of an error: " + e.getMessage(), e);
             // This is only used for running unit test on Debian / Ubuntu
             addr = loopbackAddress();
-            aName = ((jmdnsName != null) && (!jmdnsName.isEmpty()) ? jmdnsName : "computer");
+            aName = ((jmdnsName != null) && (jmdnsName.length() > 0) ? jmdnsName : "computer");
         }
         // A host name with "." is illegal. so strip off everything and append .local.
         aName = aName.replace('.', '-');

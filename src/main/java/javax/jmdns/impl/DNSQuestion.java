@@ -100,7 +100,7 @@ public class DNSQuestion extends DNSEntry {
                 }
             } else if (this.isReverseLookup()) {
                 String ipValue = this.getQualifiedNameMap().get(Fields.Instance);
-                if ((ipValue != null) && (!ipValue.isEmpty())) {
+                if ((ipValue != null) && (ipValue.length() > 0)) {
                     InetAddress address = jmDNSImpl.getLocalHost().getInetAddress();
                     String hostIPAddress = (address != null ? address.getHostAddress() : "");
                     if (ipValue.equalsIgnoreCase(hostIPAddress)) {
