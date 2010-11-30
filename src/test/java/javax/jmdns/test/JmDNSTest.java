@@ -290,6 +290,7 @@ public class JmDNSTest {
             assertEquals("Did not get the expected service info: ", service, fetchedServices[0]);
             registry.close();
             registry = null;
+            Thread.sleep(1000);
             fetchedServices = newServiceRegistry.list(service.getType());
             assertEquals("The service was not cancelled after the close:", 0, fetchedServices.length);
         } finally {

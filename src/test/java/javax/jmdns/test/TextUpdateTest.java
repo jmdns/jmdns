@@ -165,6 +165,7 @@ public class TextUpdateTest {
 
     @Test
     public void testListenForTextUpdateOnOtherRegistry() throws IOException, InterruptedException {
+        System.out.println("Unit Test: testListenForTextUpdateOnOtherRegistry()");
         JmDNS registry = null;
         JmDNS newServiceRegistry = null;
         try {
@@ -231,6 +232,7 @@ public class TextUpdateTest {
 
     @Test
     public void testRenewExpiringRequests() throws IOException, InterruptedException {
+        System.out.println("Unit Test: testRenewExpiringRequests()");
         JmDNS registry = null;
         JmDNS newServiceRegistry = null;
         try {
@@ -267,6 +269,7 @@ public class TextUpdateTest {
 
     @Test
     public void testSubtype() throws IOException {
+        System.out.println("Unit Test: testSubtype()");
         JmDNS registry = null;
         JmDNS newServiceRegistry = null;
         try {

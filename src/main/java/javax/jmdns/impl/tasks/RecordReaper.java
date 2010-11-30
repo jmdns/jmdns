@@ -8,10 +8,7 @@ import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.jmdns.impl.DNSEntry;
-import javax.jmdns.impl.DNSRecord;
 import javax.jmdns.impl.JmDNSImpl;
-import javax.jmdns.impl.JmDNSImpl.Operation;
 import javax.jmdns.impl.constants.DNSConstants;
 
 /**
@@ -58,22 +55,7 @@ public class RecordReaper extends DNSTask {
 
         // Remove expired answers from the cache
         // -------------------------------------
-        long now = System.currentTimeMillis();
-        for (DNSEntry entry : this.getDns().getCache().allValues()) {
-            try {
-                DNSRecord record = (DNSRecord) entry;
-                if (record.isStale(now)) {
-                    // we should query for the record we care about i.e. those in the service collectors
-                    this.getDns().renewServiceCollector(record);
-                }
-                if (record.isExpired(now)) {
-                    this.getDns().updateRecord(now, record, Operation.Remove);
-                    this.getDns().getCache().removeDNSEntry(record);
-                }
-            } catch (Exception exception) {
-                logger.log(Level.SEVERE, this.getName() + ".Error while reaping records: " + entry, exception);
-                logger.severe(this.getDns().toString());
-            }
-        }
+        this.getDns().cleanCache();
     }
+
 }

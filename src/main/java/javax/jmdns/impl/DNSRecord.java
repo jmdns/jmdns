@@ -120,6 +120,7 @@ public abstract class DNSRecord extends DNSEntry {
      * Get the expiration time of this record.
      */
     long getExpirationTime(int percent) {
+        // ttl is in seconds the constant 10 is 1000 ms / 100 %
         return _created + (percent * _ttl * 10L);
     }
 
@@ -154,6 +155,14 @@ public abstract class DNSRecord extends DNSEntry {
     void resetTTL(DNSRecord other) {
         _created = other._created;
         _ttl = other._ttl;
+    }
+
+    /**
+     * When a record flushed we don't remove it immediately, but mark it for rapid decay.
+     */
+    void setWillExpireSoon(long now) {
+        _created = now;
+        _ttl = DNSConstants.RECORD_EXPIRY_DELAY;
     }
 
     /**

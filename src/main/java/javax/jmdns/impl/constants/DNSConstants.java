@@ -48,6 +48,7 @@ public final class DNSConstants {
     public final static int    PROBE_THROTTLE_COUNT_INTERVAL  = 5000;                                                         // We only increment the throttle count, if the previous increment is inside this interval.
     public final static int    ANNOUNCE_WAIT_INTERVAL         = 1000;                                                         // milliseconds between Announce loops.
     public final static int    RECORD_REAPER_INTERVAL         = 10000;                                                        // milliseconds between cache cleanups.
+    public final static int    RECORD_EXPIRY_DELAY            = 1;                                                            // This is 1s delay used in ttl and therefore in seconds
     public final static int    KNOWN_ANSWER_TTL               = 120;
     public final static int    ANNOUNCED_RENEWAL_TTL_INTERVAL = DNS_TTL * 500;                                                // 50% of the TTL in milliseconds
 

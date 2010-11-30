@@ -533,6 +533,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
     }
 
     ServiceInfoImpl resolveServiceInfo(String type, String name, String subtype, boolean persistent) {
+        this.cleanCache();
         String lotype = type.toLowerCase();
         this.registerServiceType(lotype);
         if (_serviceCollectors.putIfAbsent(lotype, new ServiceCollector(lotype)) == null) {
@@ -1113,14 +1114,32 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
         // update the cache
         if (!newRecord.isServicesDiscoveryMetaQuery() && !newRecord.isDomainDiscoveryQuery()) {
+            final boolean unique = newRecord.isUnique();
             final DNSRecord cachedRecord = (DNSRecord) this.getCache().getDNSEntry(newRecord);
             if (logger.isLoggable(Level.FINE)) {
                 logger.fine(this.getName() + " handle response cached record: " + cachedRecord);
             }
+            if (unique) {
+                Collection<? extends DNSEntry> entries = this.getCache().getDNSEntryList(newRecord.getKey());
+                if (entries != null) {
+                    for (DNSEntry entry : entries) {
+                        if (newRecord.getRecordType().equals(entry.getRecordType()) && newRecord.getRecordClass().equals(entry.getRecordClass()) && (entry != cachedRecord)) {
+                            ((DNSRecord) entry).setWillExpireSoon(now);
+                        }
+                    }
+                }
+            }
             if (cachedRecord != null) {
                 if (expired) {
-                    cacheOperation = Operation.Remove;
-                    this.getCache().removeDNSEntry(cachedRecord);
+                    // if the record has a 0 ttl that means we have a cancel record we need to delay the removal by 1s
+                    if (newRecord.getTTL() == 0) {
+                        cacheOperation = Operation.Noop;
+                        cachedRecord.setWillExpireSoon(now);
+                        // the actual record will be disposed of by the record reaper.
+                    } else {
+                        cacheOperation = Operation.Remove;
+                        this.getCache().removeDNSEntry(cachedRecord);
+                    }
                 } else {
                     // If the record content has changed we need to inform our listeners.
                     if (!newRecord.sameValue(cachedRecord) || (!newRecord.sameSubtype(cachedRecord) && (newRecord.getSubtype().length() > 0))) {
@@ -1397,6 +1416,26 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         }
     }
 
+    public void cleanCache() {
+        long now = System.currentTimeMillis();
+        for (DNSEntry entry : this.getCache().allValues()) {
+            try {
+                DNSRecord record = (DNSRecord) entry;
+                if (record.isStale(now)) {
+                    // we should query for the record we care about i.e. those in the service collectors
+                    this.renewServiceCollector(record);
+                }
+                if (record.isExpired(now)) {
+                    this.updateRecord(now, record, Operation.Remove);
+                    this.getCache().removeDNSEntry(record);
+                }
+            } catch (Exception exception) {
+                logger.log(Level.SEVERE, this.getName() + ".Error while reaping records: " + entry, exception);
+                logger.severe(this.toString());
+            }
+        }
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -1514,6 +1553,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
      */
     @Override
     public ServiceInfo[] list(String type, long timeout) {
+        this.cleanCache();
         // Implementation note: The first time a list for a given type is
         // requested, a ServiceCollector is created which collects service
         // infos. This greatly speeds up the performance of subsequent calls
