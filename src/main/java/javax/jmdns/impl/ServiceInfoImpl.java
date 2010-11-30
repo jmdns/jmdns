@@ -19,6 +19,8 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
@@ -36,7 +38,7 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer
  */
 public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStatefulObject {
-    // private static Logger logger = Logger.getLogger(ServiceInfoImpl.class.getName());
+    private static Logger          logger = Logger.getLogger(ServiceInfoImpl.class.getName());
 
     private String                 _domain;
     private String                 _protocol;
@@ -581,7 +583,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     @Override
     public Enumeration<String> getPropertyNames() {
-        Map<String, byte[]> properties = getProperties();
+        Map<String, byte[]> properties = this.getProperties();
         Collection<String> names = (properties != null ? properties.keySet() : Collections.<String> emptySet());
         return new Vector<String>(names).elements();
     }
@@ -702,36 +704,41 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     }
 
     synchronized Map<String, byte[]> getProperties() {
-        if ((_props == null) && (getText() != null)) {
+        if ((_props == null) && (this.getText() != null)) {
             Hashtable<String, byte[]> properties = new Hashtable<String, byte[]>();
-            int off = 0;
-            while (off < getText().length) {
-                // length of the next key value pair
-                int len = getText()[off++] & 0xFF;
-                if ((len == 0) || (off + len > getText().length)) {
-                    properties.clear();
-                    break;
-                }
-                // look for the '='
-                int i = 0;
-                for (; (i < len) && (getText()[off + i] != '='); i++) {
-                    /* Stub */
-                }
+            try {
+                int off = 0;
+                while (off < getText().length) {
+                    // length of the next key value pair
+                    int len = getText()[off++] & 0xFF;
+                    if ((len == 0) || (off + len > getText().length)) {
+                        properties.clear();
+                        break;
+                    }
+                    // look for the '='
+                    int i = 0;
+                    for (; (i < len) && (getText()[off + i] != '='); i++) {
+                        /* Stub */
+                    }
 
-                // get the property name
-                String name = readUTF(getText(), off, i);
-                if (name == null) {
-                    properties.clear();
-                    break;
+                    // get the property name
+                    String name = readUTF(getText(), off, i);
+                    if (name == null) {
+                        properties.clear();
+                        break;
+                    }
+                    if (i == len) {
+                        properties.put(name, NO_VALUE);
+                    } else {
+                        byte value[] = new byte[len - ++i];
+                        System.arraycopy(getText(), off + i, value, 0, len - i);
+                        properties.put(name, value);
+                        off += len;
+                    }
                 }
-                if (i == len) {
-                    properties.put(name, NO_VALUE);
-                } else {
-                    byte value[] = new byte[len - ++i];
-                    System.arraycopy(getText(), off + i, value, 0, len - i);
-                    properties.put(name, value);
-                    off += len;
-                }
+            } catch (Exception exception) {
+                // We should get better logging.
+                logger.log(Level.WARNING, "Malformed TXT Field ", exception);
             }
             this._props = properties;
         }
@@ -1059,6 +1066,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     }
 
     private static byte[] textFromProperties(Map<String, ?> props) {
+        byte[] text = null;
         if (props != null) {
             try {
                 ByteArrayOutputStream out = new ByteArrayOutputStream(256);
@@ -1089,16 +1097,16 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                     out.write((byte) data.length);
                     out.write(data, 0, data.length);
                 }
-                return out.toByteArray();
+                text = out.toByteArray();
             } catch (IOException e) {
                 throw new RuntimeException("unexpected exception: " + e);
             }
         }
-        return new byte[0];
+        return (text != null && text.length > 0 ? text : DNSRecord.EMPTY_TXT);
     }
 
     public byte[] getText() {
-        return (this._text != null ? this._text : new byte[] {});
+        return (this._text != null && this._text.length > 0 ? this._text : DNSRecord.EMPTY_TXT);
     }
 
     public void setDns(JmDNSImpl dns) {

@@ -498,13 +498,15 @@ public abstract class DNSRecord extends DNSEntry {
 
     }
 
+    public final static byte[] EMPTY_TXT = new byte[] { 0 };
+
     public static class Text extends DNSRecord {
         // private static Logger logger = Logger.getLogger(Text.class.getName());
         private final byte[] _text;
 
         public Text(String name, DNSRecordClass recordClass, boolean unique, int ttl, byte text[]) {
             super(name, DNSRecordType.TYPE_TXT, recordClass, unique, ttl);
-            this._text = text;
+            this._text = (text != null && text.length > 0 ? text : EMPTY_TXT);
         }
 
         /**

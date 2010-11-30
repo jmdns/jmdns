@@ -4,6 +4,7 @@
 package javax.jmdns.test;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
@@ -224,6 +225,48 @@ public class TextUpdateTest {
             result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
             assertEquals("Did not get the expected service info text: ", text, result.getPropertyString(serviceKey));
 
+        } finally {
+            if (registry != null) registry.close();
+            if (newServiceRegistry != null) newServiceRegistry.close();
+        }
+    }
+
+    @Test
+    public void testRegisterEmptyTXTField() throws IOException, InterruptedException {
+        System.out.println("Unit Test: testRegisterEmptyTXTField()");
+        JmDNS registry = null;
+        JmDNS newServiceRegistry = null;
+        try {
+            registry = JmDNS.create("Listener");
+            registry.addServiceListener(service.getType(), serviceListenerMock);
+            //
+            newServiceRegistry = JmDNS.create("Registry");
+            newServiceRegistry.registerService(service);
+
+            // We get the service added event when we register the service. However the service has not been resolved at this point.
+            // The info associated with the event only has the minimum information i.e. name and type.
+            List<ServiceEvent> servicesAdded = serviceListenerMock.servicesAdded();
+            assertEquals("We did not get the service added event.", 1, servicesAdded.size());
+            ServiceInfo info = servicesAdded.get(servicesAdded.size() - 1).getInfo();
+            assertEquals("We did not get the right name for the resolved service:", service.getName(), info.getName());
+            assertEquals("We did not get the right type for the resolved service:", service.getType(), info.getType());
+            // We get the service added event when we register the service. However the service has not been resolved at this point.
+            // The info associated with the event only has the minimum information i.e. name and type.
+            List<ServiceEvent> servicesResolved = serviceListenerMock.servicesResolved();
+            assertEquals("We did not get the service resolved event.", 1, servicesResolved.size());
+            ServiceInfo result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
+            assertNotNull("Did not get the expected service info: ", result);
+            assertEquals("Did not get the expected service info: ", service, result);
+            assertEquals("Did not get the expected service info text: ", service.getPropertyString(serviceKey), result.getPropertyString(serviceKey));
+
+            serviceListenerMock.reset();
+            Map<String, byte[]> properties = new HashMap<String, byte[]>();
+            service.setText(properties);
+            Thread.sleep(3000);
+            servicesResolved = serviceListenerMock.servicesResolved();
+            assertEquals("We did not get the service text updated event.", 1, servicesResolved.size());
+            result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
+            assertNull("Did not get the expected service info text: ", result.getPropertyString(serviceKey));
         } finally {
             if (registry != null) registry.close();
             if (newServiceRegistry != null) newServiceRegistry.close();
