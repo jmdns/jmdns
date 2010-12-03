@@ -9,6 +9,7 @@ Remove call to isEmpty (for Android)  - ID: 3113114
 Remove package.html - ID: 3112613
 Announcer is causing a ServiceType cache flush - ID: 3113073
 Can't resolve if txt field is empty - ID: 3123622
+TXT Record not updating for getProperty call - ID: 3126952
 
 CHANGELOG 16 November 2010 Pierre Frisch
 Rev the source code to 3.2.2

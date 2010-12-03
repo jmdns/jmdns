@@ -54,6 +54,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     private Inet4Address           _ipv4Addr;
     private Inet6Address           _ipv6Addr;
 
+    private transient String       _key;
+
     private boolean                _persistent;
     private boolean                _needTextAnnouncing;
 
@@ -384,6 +386,16 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     }
 
     /**
+     * @return the key
+     */
+    public String getKey() {
+        if (this._key == null) {
+            this._key = this.getQualifiedName().toLowerCase();
+        }
+        return this._key;
+    }
+
+    /**
      * Sets the service instance name.
      *
      * @param name
@@ -391,6 +403,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     void setName(String name) {
         this._name = name;
+        this._key = null;
     }
 
     /**
@@ -1044,6 +1057,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     public void setText(byte[] text) throws IllegalStateException {
         synchronized (this) {
             this._text = text;
+            this._props = null;
             this.setNeedTextAnnouncing(true);
         }
     }
@@ -1063,6 +1077,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     void _setText(byte[] text) {
         this._text = text;
+        this._props = null;
     }
 
     private static byte[] textFromProperties(Map<String, ?> props) {
