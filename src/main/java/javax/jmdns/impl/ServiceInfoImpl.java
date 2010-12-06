@@ -386,8 +386,9 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     }
 
     /**
-     * @return the key
+     * {@inheritDoc}
      */
+    @Override
     public String getKey() {
         if (this._key == null) {
             this._key = this.getQualifiedName().toLowerCase();

@@ -35,7 +35,7 @@ import javax.jmdns.impl.constants.DNSConstants;
 
 /**
  * This class enable multihomming mDNS. It will open a mDNS per IP address of the machine.
- * 
+ *
  * @author C&eacute;drik Lime, Pierre Frisch
  */
 public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoImpl.Delegate {

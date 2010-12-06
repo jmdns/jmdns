@@ -9,11 +9,13 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.SocketException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +80,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
     /**
      * Used to fix live lock problem on unregister.
      */
-    private volatile boolean                                         _closed   = false;
+    private volatile boolean                                         _closed = false;
 
     /**
      * Holds instances of JmDNS.DNSListener. Must by a synchronized collection, because it is updated from concurrent threads.
@@ -106,34 +108,137 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
     private final ConcurrentMap<String, ServiceInfo>                 _services;
 
     /**
-     * This hashtable holds the service types that have been registered or that have been received in an incoming datagram. Keys are instances of String which hold an all lower-case version of the fully qualified service type. Values hold the fully
-     * qualified service type.
+     * This hashtable holds the service types that have been registered or that have been received in an incoming datagram.<br/>
+     * Keys are instances of String which hold an all lower-case version of the fully qualified service type.<br/>
+     * Values hold the fully qualified service type.
      */
-    private final ConcurrentMap<String, Set<String>>                 _serviceTypes;
+    private final ConcurrentMap<String, ServiceTypeEntry>            _serviceTypes;
+
+    /**
+     * This is used to store type entries. The type is stored as a call variable and the map support the subtypes.<br/>
+     * The key is the lowercase version as the value is the case preserved version.
+     */
+    public static class ServiceTypeEntry extends AbstractMap<String, String> implements Cloneable {
+
+        private final Set<Map.Entry<String, String>> _entrySet;
+
+        private final String                         _type;
+
+        private static class SubTypeEntry extends SimpleImmutableEntry<String, String> {
+
+            private static final long serialVersionUID = 9188503522395855322L;
+
+            public SubTypeEntry(String subtype) {
+                super(subtype.toLowerCase(), subtype);
+            }
+
+        }
+
+        public ServiceTypeEntry(String type) {
+            super();
+            this._type = type;
+            this._entrySet = new HashSet<Map.Entry<String, String>>();
+        }
+
+        /**
+         * The type associated with this entry.
+         *
+         * @return the type
+         */
+        public String getType() {
+            return _type;
+        }
+
+        /*
+         * (non-Javadoc)
+         * @see java.util.AbstractMap#entrySet()
+         */
+        @Override
+        public Set<Map.Entry<String, String>> entrySet() {
+            return _entrySet;
+        }
+
+        /**
+         * Returns <code>true</code> if this set contains the specified element. More formally, returns <code>true</code> if and only if this set contains an element <code>e</code> such that
+         * <code>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</code>.
+         *
+         * @param subtype
+         *            element whose presence in this set is to be tested
+         * @return <code>true</code> if this set contains the specified element
+         */
+        public boolean contains(String subtype) {
+            return subtype != null && this.containsKey(subtype.toLowerCase());
+        }
+
+        /**
+         * Adds the specified element to this set if it is not already present. More formally, adds the specified element <code>e</code> to this set if this set contains no element <code>e2</code> such that
+         * <code>(e==null&nbsp;?&nbsp;e2==null&nbsp;:&nbsp;e.equals(e2))</code>. If this set already contains the element, the call leaves the set unchanged and returns <code>false</code>.
+         *
+         * @param subtype
+         *            element to be added to this set
+         * @return <code>true</code> if this set did not already contain the specified element
+         */
+        public boolean add(String subtype) {
+            if (subtype == null || this.contains(subtype)) {
+                return false;
+            }
+            _entrySet.add(new SubTypeEntry(subtype));
+            return true;
+        }
+
+        /**
+         * Returns an iterator over the elements in this set. The elements are returned in no particular order (unless this set is an instance of some class that provides a guarantee).
+         *
+         * @return an iterator over the elements in this set
+         */
+        public Iterator<String> iterator() {
+            return this.keySet().iterator();
+        }
+
+        /*
+         * (non-Javadoc)
+         * @see java.util.AbstractMap#toString()
+         */
+        @Override
+        public String toString() {
+            final StringBuilder aLog = new StringBuilder(200);
+            if (this.isEmpty()) {
+                aLog.append("empty");
+            } else {
+                for (String value : this.values()) {
+                    aLog.append(value);
+                    aLog.append(", ");
+                }
+                aLog.setLength(aLog.length() - 2);
+            }
+            return aLog.toString();
+        }
+
+    }
 
     /**
      * This is the shutdown hook, we registered with the java runtime.
      */
-    protected Thread                                                 _shutdown;
+    protected Thread                                      _shutdown;
 
     /**
      * Handle on the local host
      */
-    private HostInfo                                                 _localHost;
+    private HostInfo                                      _localHost;
 
-    private Thread                                                   _incomingListener;
+    private Thread                                        _incomingListener;
 
     /**
      * Throttle count. This is used to count the overall number of probes sent by JmDNS. When the last throttle increment happened .
      */
-    private int                                                      _throttle;
+    private int                                           _throttle;
 
     /**
      * Last throttle increment.
      */
-    private long                                                     _lastThrottleIncrement;
+    private long                                          _lastThrottleIncrement;
 
-    private final ExecutorService                                    _executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService                         _executor = Executors.newSingleThreadExecutor();
 
     //
     // 2009-09-16 ldeck: adding docbug patch with slight ammendments
@@ -150,28 +255,28 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
     /**
      * The timer is used to dispatch all outgoing messages of JmDNS. It is also used to dispatch maintenance tasks for the DNS cache.
      */
-    private final Timer                                              _timer;
+    private final Timer                                   _timer;
 
     /**
      * The timer is used to dispatch maintenance tasks for the DNS cache.
      */
-    private final Timer                                              _stateTimer;
+    private final Timer                                   _stateTimer;
 
     /**
      * The source for random values. This is used to introduce random delays in responses. This reduces the potential for collisions on the network.
      */
-    private final static Random                                      _random   = new Random();
+    private final static Random                           _random   = new Random();
 
     /**
      * This lock is used to coordinate processing of incoming and outgoing messages. This is needed, because the Rendezvous Conformance Test does not forgive race conditions.
      */
-    private final ReentrantLock                                      _ioLock   = new ReentrantLock();
+    private final ReentrantLock                           _ioLock   = new ReentrantLock();
 
     /**
      * If an incoming package which needs an answer is truncated, we store it here. We add more incoming DNSRecords to it, until the JmDNS.Responder timer picks it up.<br/>
      * FIXME [PJYF June 8 2010]: This does not work well with multiple planned answers for packages that came in from different clients.
      */
-    private DNSIncoming                                              _plannedAnswer;
+    private DNSIncoming                                   _plannedAnswer;
 
     // State machine
 
@@ -180,9 +285,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
      *
      * @see #list
      */
-    private final ConcurrentMap<String, ServiceCollector>            _serviceCollectors;
+    private final ConcurrentMap<String, ServiceCollector> _serviceCollectors;
 
-    private final String                                             _name;
+    private final String                                  _name;
 
     /**
      * Main method to display API information if run from java -jar
@@ -232,7 +337,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         _serviceCollectors = new ConcurrentHashMap<String, ServiceCollector>();
 
         _services = new ConcurrentHashMap<String, ServiceInfo>(20);
-        _serviceTypes = new ConcurrentHashMap<String, Set<String>>(20);
+        _serviceTypes = new ConcurrentHashMap<String, ServiceTypeEntry>(20);
 
         _localHost = HostInfo.newHostInfo(address, this, name);
         _name = (name != null ? name : _localHost.getName());
@@ -536,7 +641,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         this.cleanCache();
         String lotype = type.toLowerCase();
         this.registerServiceType(lotype);
-        if (_serviceCollectors.putIfAbsent(lotype, new ServiceCollector(lotype)) == null) {
+        if (_serviceCollectors.putIfAbsent(lotype, new ServiceCollector(type)) == null) {
             this.addServiceListener(lotype, _serviceCollectors.get(lotype));
         }
 
@@ -682,7 +787,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
      */
     @Override
     public void addServiceTypeListener(ServiceTypeListener listener) throws IOException {
-        ServiceTypeListenerStatus status = new ServiceTypeListenerStatus(listener);
+        ServiceTypeListenerStatus status = new ServiceTypeListenerStatus(listener, ListenerStatus.ASYNCHONEOUS);
         _typeListeners.add(status);
 
         // report cached service types
@@ -698,7 +803,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
      */
     @Override
     public void removeServiceTypeListener(ServiceTypeListener listener) {
-        ServiceTypeListenerStatus status = new ServiceTypeListenerStatus(listener);
+        ServiceTypeListenerStatus status = new ServiceTypeListenerStatus(listener, ListenerStatus.ASYNCHONEOUS);
         _typeListeners.remove(status);
     }
 
@@ -707,13 +812,18 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
      */
     @Override
     public void addServiceListener(String type, ServiceListener listener) {
-        ServiceListenerStatus status = new ServiceListenerStatus(listener);
+        this.__addServiceListener(type, listener, ListenerStatus.ASYNCHONEOUS);
+    }
+
+    private void __addServiceListener(String type, ServiceListener listener, boolean synch) {
+        ServiceListenerStatus status = new ServiceListenerStatus(listener, synch);
         final String lotype = type.toLowerCase();
         List<ServiceListenerStatus> list = _serviceListeners.get(lotype);
         if (list == null) {
             if (_serviceListeners.putIfAbsent(lotype, new LinkedList<ServiceListenerStatus>()) == null) {
-                if (_serviceCollectors.putIfAbsent(lotype, new ServiceCollector(lotype)) == null) {
-                    this.addServiceListener(lotype, _serviceCollectors.get(lotype));
+                if (_serviceCollectors.putIfAbsent(lotype, new ServiceCollector(type)) == null) {
+                    // We have a problem here. The service collectors must be called synchronously so that their cache get cleaned up immediately or we will report out dated info.
+                    this.__addServiceListener(lotype, _serviceCollectors.get(lotype), ListenerStatus.SYNCHONEOUS);
                 }
             }
             list = _serviceListeners.get(lotype);
@@ -731,7 +841,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         for (DNSEntry entry : dnsEntryLits) {
             final DNSRecord record = (DNSRecord) entry;
             if (record.getRecordType() == DNSRecordType.TYPE_SRV) {
-                if (record.getName().endsWith(type)) {
+                if (record.getKey().endsWith(lotype)) {
                     // Do not used the record embedded method for generating event this will not work.
                     // serviceEvents.add(record.getServiceEvent(this));
                     serviceEvents.add(new ServiceEventImpl(this, type, toUnqualifiedName(type, record.getName()), record.getServiceInfo()));
@@ -751,14 +861,14 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
      */
     @Override
     public void removeServiceListener(String type, ServiceListener listener) {
-        String aType = type.toLowerCase();
-        List<ServiceListenerStatus> list = _serviceListeners.get(aType);
+        String lotype = type.toLowerCase();
+        List<ServiceListenerStatus> list = _serviceListeners.get(lotype);
         if (list != null) {
             synchronized (list) {
-                ServiceListenerStatus status = new ServiceListenerStatus(listener);
+                ServiceListenerStatus status = new ServiceListenerStatus(listener, ListenerStatus.ASYNCHONEOUS);
                 list.remove(status);
                 if (list.isEmpty()) {
-                    _serviceListeners.remove(aType, list);
+                    _serviceListeners.remove(lotype, list);
                 }
             }
         }
@@ -786,7 +896,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         this.waitForAnnounced(0);
 
         this.makeServiceNameUnique(info);
-        while (_services.putIfAbsent(info.getQualifiedName().toLowerCase(), info) != null) {
+        while (_services.putIfAbsent(info.getKey(), info) != null) {
             this.makeServiceNameUnique(info);
         }
 
@@ -803,7 +913,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
      */
     @Override
     public void unregisterService(ServiceInfo infoAbstract) {
-        final ServiceInfoImpl info = (ServiceInfoImpl) _services.get(infoAbstract.getQualifiedName().toLowerCase());
+        final ServiceInfoImpl info = (ServiceInfoImpl) _services.get(infoAbstract.getKey());
 
         if (info != null) {
             info.cancelState();
@@ -812,12 +922,12 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
             // Remind: We get a deadlock here, if the Canceler does not run!
             info.waitForCanceled(0);
 
-            _services.remove(info.getQualifiedName().toLowerCase(), info);
+            _services.remove(info.getKey(), info);
             if (logger.isLoggable(Level.FINE)) {
                 logger.fine("unregisterService() JmDNS unregistered service as " + info);
             }
         } else {
-            logger.warning("Removing unregistered service info: " + infoAbstract.getQualifiedName().toLowerCase());
+            logger.warning("Removing unregistered service info: " + infoAbstract.getKey());
         }
     }
 
@@ -866,12 +976,13 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         String application = map.get(Fields.Application);
         String subtype = map.get(Fields.Subtype);
 
-        String name = (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + "." : "") + domain + ".";
+        final String name = (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + "." : "") + domain + ".";
+        final String loname = name.toLowerCase();
         if (logger.isLoggable(Level.FINE)) {
             logger.fine(this.getName() + ".registering service type: " + type + " as: " + name + (subtype.length() > 0 ? " subtype: " + subtype : ""));
         }
-        if (!_serviceTypes.containsKey(name) && !application.equals("dns-sd") && !domain.endsWith("in-addr.arpa") && !domain.endsWith("ip6.arpa")) {
-            typeAdded = _serviceTypes.putIfAbsent(name, new HashSet<String>()) == null;
+        if (!_serviceTypes.containsKey(loname) && !application.equals("dns-sd") && !domain.endsWith("in-addr.arpa") && !domain.endsWith("ip6.arpa")) {
+            typeAdded = _serviceTypes.putIfAbsent(loname, new ServiceTypeEntry(name)) == null;
             if (typeAdded) {
                 final ServiceTypeListenerStatus[] list = _typeListeners.toArray(new ServiceTypeListenerStatus[_typeListeners.size()]);
                 final ServiceEvent event = new ServiceEventImpl(this, name, "", null);
@@ -887,7 +998,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
             }
         }
         if (subtype.length() > 0) {
-            Set<String> subtypes = _serviceTypes.get(name);
+            ServiceTypeEntry subtypes = _serviceTypes.get(loname);
             if ((subtypes != null) && (!subtypes.contains(subtype))) {
                 synchronized (subtypes) {
                     if (!subtypes.contains(subtype)) {
@@ -917,7 +1028,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
      * @return returns true, if the name of the service info had to be changed.
      */
     private boolean makeServiceNameUnique(ServiceInfoImpl info) {
-        final String originalQualifiedName = info.getQualifiedName();
+        final String originalQualifiedName = info.getKey();
         final long now = System.currentTimeMillis();
 
         boolean collision;
@@ -925,7 +1036,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
             collision = false;
 
             // Check for collision in cache
-            Collection<? extends DNSEntry> entryList = this.getCache().getDNSEntryList(info.getQualifiedName().toLowerCase());
+            Collection<? extends DNSEntry> entryList = this.getCache().getDNSEntryList(info.getKey());
             if (entryList != null) {
                 for (DNSEntry dnsEntry : entryList) {
                     if (DNSRecordType.TYPE_SRV.equals(dnsEntry.getRecordType()) && !dnsEntry.isExpired(now)) {
@@ -943,7 +1054,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
             }
 
             // Check for collision with other service infos published by JmDNS
-            final ServiceInfo selfService = _services.get(info.getQualifiedName().toLowerCase());
+            final ServiceInfo selfService = _services.get(info.getKey());
             if (selfService != null && selfService != info) {
                 info.setName(incrementName(info.getName()));
                 collision = true;
@@ -951,7 +1062,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         }
         while (collision);
 
-        return !(originalQualifiedName.equals(info.getQualifiedName()));
+        return !(originalQualifiedName.equals(info.getKey()));
     }
 
     String incrementName(String name) {
@@ -1058,7 +1169,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
                 }
             }
 
-            List<ServiceListenerStatus> list = _serviceListeners.get(event.getType());
+            List<ServiceListenerStatus> list = _serviceListeners.get(event.getType().toLowerCase());
             final List<ServiceListenerStatus> serviceListenerList;
             if (list != null) {
                 synchronized (list) {
@@ -1076,24 +1187,32 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
                 switch (operation) {
                     case Add:
                         for (final ServiceListenerStatus listener : serviceListenerList) {
-                            _executor.submit(new Runnable() {
-                                /** {@inheritDoc} */
-                                @Override
-                                public void run() {
-                                    listener.serviceAdded(localEvent);
-                                }
-                            });
+                            if (listener.isSynchronous()) {
+                                listener.serviceAdded(localEvent);
+                            } else {
+                                _executor.submit(new Runnable() {
+                                    /** {@inheritDoc} */
+                                    @Override
+                                    public void run() {
+                                        listener.serviceAdded(localEvent);
+                                    }
+                                });
+                            }
                         }
                         break;
                     case Remove:
                         for (final ServiceListenerStatus listener : serviceListenerList) {
-                            _executor.submit(new Runnable() {
-                                /** {@inheritDoc} */
-                                @Override
-                                public void run() {
-                                    listener.serviceRemoved(localEvent);
-                                }
-                            });
+                            if (listener.isSynchronous()) {
+                                listener.serviceRemoved(localEvent);
+                            } else {
+                                _executor.submit(new Runnable() {
+                                    /** {@inheritDoc} */
+                                    @Override
+                                    public void run() {
+                                        listener.serviceRemoved(localEvent);
+                                    }
+                                });
+                            }
                         }
                         break;
                     default:
@@ -1421,13 +1540,12 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         for (DNSEntry entry : this.getCache().allValues()) {
             try {
                 DNSRecord record = (DNSRecord) entry;
-                if (record.isStale(now)) {
-                    // we should query for the record we care about i.e. those in the service collectors
-                    this.renewServiceCollector(record);
-                }
                 if (record.isExpired(now)) {
                     this.updateRecord(now, record, Operation.Remove);
                     this.getCache().removeDNSEntry(record);
+                } else if (record.isStale(now)) {
+                    // we should query for the record we care about i.e. those in the service collectors
+                    this.renewServiceCollector(record);
                 }
             } catch (Exception exception) {
                 logger.log(Level.SEVERE, this.getName() + ".Error while reaping records: " + entry, exception);
@@ -1513,11 +1631,11 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         aLog.append("\n");
         aLog.append("\t---- Types ----");
         for (String key : _serviceTypes.keySet()) {
-            Set<String> subtypes = _serviceTypes.get(key);
+            ServiceTypeEntry subtypes = _serviceTypes.get(key);
             aLog.append("\n\t\tType: ");
-            aLog.append(key);
+            aLog.append(subtypes.getType());
             aLog.append(": ");
-            aLog.append((subtypes == null) || subtypes.isEmpty() ? "no subtypes" : subtypes);
+            aLog.append(subtypes.isEmpty() ? "no subtypes" : subtypes);
         }
         aLog.append("\n");
         aLog.append(_cache.toString());
@@ -1571,7 +1689,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
         ServiceCollector collector = _serviceCollectors.get(aType);
         if (collector == null) {
-            newCollectorCreated = _serviceCollectors.putIfAbsent(aType, new ServiceCollector(aType)) == null;
+            newCollectorCreated = _serviceCollectors.putIfAbsent(aType, new ServiceCollector(type)) == null;
             collector = _serviceCollectors.get(aType);
             if (newCollectorCreated) {
                 this.addServiceListener(aType, collector);
@@ -1599,7 +1717,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
     public Map<String, ServiceInfo[]> listBySubtype(String type, long timeout) {
         Map<String, List<ServiceInfo>> map = new HashMap<String, List<ServiceInfo>>(5);
         for (ServiceInfo info : this.list(type, timeout)) {
-            String subtype = info.getSubtype();
+            String subtype = info.getSubtype().toLowerCase();
             if (!map.containsKey(subtype)) {
                 map.put(subtype, new ArrayList<ServiceInfo>(10));
             }
@@ -1651,6 +1769,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
          */
         private final ConcurrentMap<String, ServiceEvent> _events;
 
+        /**
+         * This is the type we are listening for (only used for debugging).
+         */
         private final String                              _type;
 
         /**
@@ -1831,7 +1952,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         this._localHost = localHost;
     }
 
-    public Map<String, Set<String>> getServiceTypes() {
+    public Map<String, ServiceTypeEntry> getServiceTypes() {
         return _serviceTypes;
     }
 

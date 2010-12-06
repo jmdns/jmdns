@@ -399,6 +399,14 @@ public abstract class ServiceInfo implements Cloneable {
     public abstract String getName();
 
     /**
+     * The key is used to retrieve service info in hash tables.<br/>
+     * The key is the lower case qualified name.
+     *
+     * @return the key
+     */
+    public abstract String getKey();
+
+    /**
      * Fully qualified service name, such as <code>foobar._http._tcp.local.</code> .
      *
      * @return qualified service name
@@ -608,7 +616,7 @@ public abstract class ServiceInfo implements Cloneable {
     @Override
     public ServiceInfo clone() {
         try {
-            return (ServiceInfo)super.clone();
+            return (ServiceInfo) super.clone();
         } catch (CloneNotSupportedException exception) {
             // clone is supported
             return null;

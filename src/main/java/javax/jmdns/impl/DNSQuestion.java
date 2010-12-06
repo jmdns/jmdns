@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceInfo.Fields;
+import javax.jmdns.impl.JmDNSImpl.ServiceTypeEntry;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
@@ -96,7 +97,8 @@ public class DNSQuestion extends DNSEntry {
             }
             if (this.isServicesDiscoveryMetaQuery()) {
                 for (String serviceType : jmDNSImpl.getServiceTypes().keySet()) {
-                    answers.add(new DNSRecord.Pointer("_services._dns-sd._udp.local.", DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, serviceType));
+                    ServiceTypeEntry typeEntry = jmDNSImpl.getServiceTypes().get(serviceType);
+                    answers.add(new DNSRecord.Pointer("_services._dns-sd._udp.local.", DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, typeEntry.getType()));
                 }
             } else if (this.isReverseLookup()) {
                 String ipValue = this.getQualifiedNameMap().get(Fields.Instance);
@@ -129,20 +131,20 @@ public class DNSQuestion extends DNSEntry {
 
         @Override
         public void addAnswers(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers) {
-            String name = this.getName().toLowerCase();
-            if (jmDNSImpl.getLocalHost().getName().equalsIgnoreCase(name)) {
+            String loname = this.getName().toLowerCase();
+            if (jmDNSImpl.getLocalHost().getName().equalsIgnoreCase(loname)) {
                 // type = DNSConstants.TYPE_A;
                 answers.addAll(jmDNSImpl.getLocalHost().answers(this.isUnique(), DNSConstants.DNS_TTL));
                 return;
             }
             // Service type request
-            if (jmDNSImpl.getServiceTypes().containsKey(name)) {
+            if (jmDNSImpl.getServiceTypes().containsKey(loname)) {
                 DNSQuestion question = new Pointer(this.getName(), DNSRecordType.TYPE_PTR, this.getRecordClass(), this.isUnique());
                 question.addAnswers(jmDNSImpl, answers);
                 return;
             }
 
-            this.addAnswersForServiceInfo(jmDNSImpl, answers, (ServiceInfoImpl) jmDNSImpl.getServices().get(name));
+            this.addAnswersForServiceInfo(jmDNSImpl, answers, (ServiceInfoImpl) jmDNSImpl.getServices().get(loname));
         }
 
         @Override
@@ -190,20 +192,20 @@ public class DNSQuestion extends DNSEntry {
 
         @Override
         public void addAnswers(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers) {
-            String name = this.getName().toLowerCase();
-            if (jmDNSImpl.getLocalHost().getName().equalsIgnoreCase(name)) {
+            String loname = this.getName().toLowerCase();
+            if (jmDNSImpl.getLocalHost().getName().equalsIgnoreCase(loname)) {
                 // type = DNSConstants.TYPE_A;
                 answers.addAll(jmDNSImpl.getLocalHost().answers(this.isUnique(), DNSConstants.DNS_TTL));
                 return;
             }
             // Service type request
-            if (jmDNSImpl.getServiceTypes().containsKey(name)) {
+            if (jmDNSImpl.getServiceTypes().containsKey(loname)) {
                 DNSQuestion question = new Pointer(this.getName(), DNSRecordType.TYPE_PTR, this.getRecordClass(), this.isUnique());
                 question.addAnswers(jmDNSImpl, answers);
                 return;
             }
 
-            this.addAnswersForServiceInfo(jmDNSImpl, answers, (ServiceInfoImpl) jmDNSImpl.getServices().get(name));
+            this.addAnswersForServiceInfo(jmDNSImpl, answers, (ServiceInfoImpl) jmDNSImpl.getServices().get(loname));
         }
 
         @Override

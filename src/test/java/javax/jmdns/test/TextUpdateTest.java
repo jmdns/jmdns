@@ -274,6 +274,44 @@ public class TextUpdateTest {
     }
 
     @Test
+    public void testRegisterCaseSensitiveField() throws IOException {
+        System.out.println("Unit Test: testRegisterCaseSensitiveField()");
+        JmDNS registry = null;
+        JmDNS newServiceRegistry = null;
+        try {
+            String text = "Test hypothetical Web Server";
+            Map<String, byte[]> properties = new HashMap<String, byte[]>();
+            properties.put(serviceKey, text.getBytes());
+            service = ServiceInfo.create("_Html._Tcp.local.", "Apache-SomeUniqueId", 80, 0, 0, true, properties);
+
+            registry = JmDNS.create("Listener");
+            registry.addServiceListener(service.getType(), serviceListenerMock);
+            //
+            newServiceRegistry = JmDNS.create("Registry");
+            newServiceRegistry.registerService(service);
+
+            // We get the service added event when we register the service. However the service has not been resolved at this point.
+            // The info associated with the event only has the minimum information i.e. name and type.
+            List<ServiceEvent> servicesAdded = serviceListenerMock.servicesAdded();
+            assertEquals("We did not get the service added event.", 1, servicesAdded.size());
+            ServiceInfo info = servicesAdded.get(servicesAdded.size() - 1).getInfo();
+            assertEquals("We did not get the right name for the resolved service:", service.getName(), info.getName());
+            assertEquals("We did not get the right type for the resolved service:", service.getType(), info.getType());
+            // We get the service added event when we register the service. However the service has not been resolved at this point.
+            // The info associated with the event only has the minimum information i.e. name and type.
+            List<ServiceEvent> servicesResolved = serviceListenerMock.servicesResolved();
+            assertEquals("We did not get the service resolved event.", 1, servicesResolved.size());
+            ServiceInfo result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
+            assertNotNull("Did not get the expected service info: ", result);
+            assertEquals("Did not get the expected service info: ", service, result);
+            assertEquals("Did not get the expected service info text: ", service.getPropertyString(serviceKey), result.getPropertyString(serviceKey));
+        } finally {
+            if (registry != null) registry.close();
+            if (newServiceRegistry != null) newServiceRegistry.close();
+        }
+    }
+
+    @Test
     public void testRenewExpiringRequests() throws IOException, InterruptedException {
         System.out.println("Unit Test: testRenewExpiringRequests()");
         JmDNS registry = null;

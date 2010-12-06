@@ -17,7 +17,7 @@ import javax.jmdns.ServiceTypeListener;
 /**
  * This class track the status of listener.<br/>
  * The main purpose of this class is to collapse consecutive events so that we can guarantee the correct call back sequence.
- * 
+ *
  * @param <T>
  *            listener type
  */
@@ -30,9 +30,12 @@ public class ListenerStatus<T extends EventListener> {
 
         /**
          * @param listener
+         *            listener being tracked.
+         * @param synch
+         *            true if that listener can be called asynchronously
          */
-        public ServiceListenerStatus(ServiceListener listener) {
-            super(listener);
+        public ServiceListenerStatus(ServiceListener listener, boolean synch) {
+            super(listener, synch);
             _addedServices = new ConcurrentHashMap<String, ServiceInfo>(32);
         }
 
@@ -40,14 +43,14 @@ public class ListenerStatus<T extends EventListener> {
          * A service has been added.<br/>
          * <b>Note:</b>This event is only the service added event. The service info associated with this event does not include resolution information.<br/>
          * To get the full resolved information you need to listen to {@link #serviceResolved(ServiceEvent)} or call {@link JmDNS#getServiceInfo(String, String, long)}
-         * 
+         *
          * <pre>
          *  ServiceInfo info = event.getDNS().getServiceInfo(event.getType(), event.getName())
          * </pre>
          * <p>
          * Please note that service resolution may take a few second to resolve.
          * </p>
-         * 
+         *
          * @param event
          *            The ServiceEvent providing the name and fully qualified type of the service.
          */
@@ -66,7 +69,7 @@ public class ListenerStatus<T extends EventListener> {
 
         /**
          * A service has been removed.
-         * 
+         *
          * @param event
          *            The ServiceEvent providing the name and fully qualified type of the service.
          */
@@ -82,7 +85,7 @@ public class ListenerStatus<T extends EventListener> {
         /**
          * A service has been resolved. Its details are now available in the ServiceInfo record.<br/>
          * <b>Note:</b>This call back will never be called if the service does not resolve.<br/>
-         * 
+         *
          * @param event
          *            The ServiceEvent providing the name, the fully qualified type of the service, and the service info record.
          */
@@ -154,15 +157,18 @@ public class ListenerStatus<T extends EventListener> {
 
         /**
          * @param listener
+         *            listener being tracked.
+         * @param synch
+         *            true if that listener can be called asynchronously
          */
-        public ServiceTypeListenerStatus(ServiceTypeListener listener) {
-            super(listener);
+        public ServiceTypeListenerStatus(ServiceTypeListener listener, boolean synch) {
+            super(listener, synch);
             _addedTypes = new ConcurrentHashMap<String, String>(32);
         }
 
         /**
          * A new service type was discovered.
-         * 
+         *
          * @param event
          *            The service event providing the fully qualified type of the service.
          */
@@ -176,11 +182,11 @@ public class ListenerStatus<T extends EventListener> {
 
         /**
          * A new subtype for the service type was discovered.
-         * 
+         *
          * <pre>
          * &lt;sub&gt;._sub.&lt;app&gt;.&lt;protocol&gt;.&lt;servicedomain&gt;.&lt;parentdomain&gt;.
          * </pre>
-         * 
+         *
          * @param event
          *            The service event providing the fully qualified type of the service with subtype.
          */
@@ -216,15 +222,23 @@ public class ListenerStatus<T extends EventListener> {
 
     }
 
-    private final T _listener;
+    public final static boolean SYNCHONEOUS  = true;
+    public final static boolean ASYNCHONEOUS = false;
+
+    private final T             _listener;
+
+    private final boolean       _synch;
 
     /**
      * @param listener
      *            listener being tracked.
+     * @param synch
+     *            true if that listener can be called asynchronously
      */
-    public ListenerStatus(T listener) {
+    public ListenerStatus(T listener, boolean synch) {
         super();
         _listener = listener;
+        _synch = synch;
     }
 
     /**
@@ -232,6 +246,15 @@ public class ListenerStatus<T extends EventListener> {
      */
     public T getListener() {
         return _listener;
+    }
+
+    /**
+     * Return <cod>true</code> if the listener must be called synchronously.
+     *
+     * @return the synch
+     */
+    public boolean isSynchronous() {
+        return _synch;
     }
 
     /*
