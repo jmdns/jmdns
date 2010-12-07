@@ -642,7 +642,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         String lotype = type.toLowerCase();
         this.registerServiceType(lotype);
         if (_serviceCollectors.putIfAbsent(lotype, new ServiceCollector(type)) == null) {
-            this.addServiceListener(lotype, _serviceCollectors.get(lotype));
+            this.addServiceListener(lotype, _serviceCollectors.get(lotype), ListenerStatus.SYNCHONEOUS);
         }
 
         // Check if the answer is in the cache.
@@ -812,18 +812,18 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
      */
     @Override
     public void addServiceListener(String type, ServiceListener listener) {
-        this.__addServiceListener(type, listener, ListenerStatus.ASYNCHONEOUS);
+        this.addServiceListener(type, listener, ListenerStatus.ASYNCHONEOUS);
     }
 
-    private void __addServiceListener(String type, ServiceListener listener, boolean synch) {
+    private void addServiceListener(String type, ServiceListener listener, boolean synch) {
         ServiceListenerStatus status = new ServiceListenerStatus(listener, synch);
         final String lotype = type.toLowerCase();
         List<ServiceListenerStatus> list = _serviceListeners.get(lotype);
         if (list == null) {
             if (_serviceListeners.putIfAbsent(lotype, new LinkedList<ServiceListenerStatus>()) == null) {
                 if (_serviceCollectors.putIfAbsent(lotype, new ServiceCollector(type)) == null) {
-                    // We have a problem here. The service collectors must be called synchronously so that their cache get cleaned up immediately or we will report out dated info.
-                    this.__addServiceListener(lotype, _serviceCollectors.get(lotype), ListenerStatus.SYNCHONEOUS);
+                    // We have a problem here. The service collectors must be called synchronously so that their cache get cleaned up immediately or we will report .
+                    this.addServiceListener(lotype, _serviceCollectors.get(lotype), ListenerStatus.SYNCHONEOUS);
                 }
             }
             list = _serviceListeners.get(lotype);
@@ -1692,7 +1692,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
             newCollectorCreated = _serviceCollectors.putIfAbsent(aType, new ServiceCollector(type)) == null;
             collector = _serviceCollectors.get(aType);
             if (newCollectorCreated) {
-                this.addServiceListener(aType, collector);
+                this.addServiceListener(aType, collector, ListenerStatus.SYNCHONEOUS);
             }
         }
         if (logger.isLoggable(Level.FINER)) {
