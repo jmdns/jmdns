@@ -124,12 +124,74 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
         private final String                         _type;
 
-        private static class SubTypeEntry extends SimpleImmutableEntry<String, String> {
+        private static class SubTypeEntry implements Entry<String, String>, java.io.Serializable {
 
             private static final long serialVersionUID = 9188503522395855322L;
 
+            private final String      _key;
+            private final String      _value;
+
             public SubTypeEntry(String subtype) {
-                super(subtype.toLowerCase(), subtype);
+                super();
+                _value = (subtype != null ? subtype : "");
+                _key = _value.toLowerCase();
+            }
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public String getKey() {
+                return _key;
+            }
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public String getValue() {
+                return _value;
+            }
+
+            /**
+             * Replaces the value corresponding to this entry with the specified value (optional operation). This implementation simply throws <tt>UnsupportedOperationException</tt>, as this class implements an <i>immutable</i> map entry.
+             *
+             * @param value
+             *            new value to be stored in this entry
+             * @return (Does not return)
+             * @throws UnsupportedOperationException
+             *             always
+             */
+            @Override
+            public String setValue(String value) {
+                throw new UnsupportedOperationException();
+            }
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public boolean equals(Object entry) {
+                if (!(entry instanceof Map.Entry)) {
+                    return false;
+                }
+                return this.getKey().equals(((Map.Entry<?, ?>) entry).getKey()) && this.getValue().equals(((Map.Entry<?, ?>) entry).getValue());
+            }
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public int hashCode() {
+                return (_key == null ? 0 : _key.hashCode()) ^ (_value == null ? 0 : _value.hashCode());
+            }
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public String toString() {
+                return _key + "=" + _value;
             }
 
         }
