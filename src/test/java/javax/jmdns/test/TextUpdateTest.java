@@ -305,6 +305,17 @@ public class TextUpdateTest {
             assertNotNull("Did not get the expected service info: ", result);
             assertEquals("Did not get the expected service info: ", service, result);
             assertEquals("Did not get the expected service info text: ", service.getPropertyString(serviceKey), result.getPropertyString(serviceKey));
+
+            ServiceInfo[] infos = registry.list(service.getType());
+            assertEquals("We did not get the right list of service info.", 1, infos.length);
+            assertEquals("Did not get the expected service info: ", service, infos[0]);
+            assertEquals("Did not get the expected service info text: ", service.getPropertyString(serviceKey), infos[0].getPropertyString(serviceKey));
+
+            infos = registry.list(service.getType().toLowerCase());
+            assertEquals("We did not get the right list of service info.", 1, infos.length);
+            assertEquals("Did not get the expected service info: ", service, infos[0]);
+            assertEquals("Did not get the expected service info text: ", service.getPropertyString(serviceKey), infos[0].getPropertyString(serviceKey));
+
         } finally {
             if (registry != null) registry.close();
             if (newServiceRegistry != null) newServiceRegistry.close();

@@ -25,7 +25,9 @@ public abstract class DNSEntry {
 
     private final String         _name;
 
-    private final DNSRecordType  _type;
+    private final String         _type;
+
+    private final DNSRecordType  _recordType;
 
     private final DNSRecordClass _dnsClass;
 
@@ -39,7 +41,7 @@ public abstract class DNSEntry {
     DNSEntry(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique) {
         _name = name;
         // _key = (name != null ? name.trim().toLowerCase() : null);
-        _type = type;
+        _recordType = type;
         _dnsClass = recordClass;
         _unique = unique;
         _qualifiedNameMap = ServiceInfoImpl.decodeQualifiedNameMapForType(this.getName());
@@ -47,7 +49,8 @@ public abstract class DNSEntry {
         String protocol = _qualifiedNameMap.get(Fields.Protocol);
         String application = _qualifiedNameMap.get(Fields.Application);
         String instance = _qualifiedNameMap.get(Fields.Instance).toLowerCase();
-        _key = (instance.length() > 0 ? instance + "." : "") + (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + "." : "") + domain + ".";
+        _type = (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + "." : "") + domain + ".";
+        _key = ((instance.length() > 0 ? instance + "." : "") + _type).toLowerCase();
     }
 
     /*
@@ -104,6 +107,13 @@ public abstract class DNSEntry {
     }
 
     /**
+     * @return the type
+     */
+    public String getType() {
+        return (_type != null ? _type : "");
+    }
+
+    /**
      * Returns the key for this entry. The key is the lower case name.
      *
      * @return key for this entry
@@ -116,7 +126,7 @@ public abstract class DNSEntry {
      * @return record type
      */
     public DNSRecordType getRecordType() {
-        return (_type != null ? _type : DNSRecordType.TYPE_IGNORE);
+        return (_recordType != null ? _recordType : DNSRecordType.TYPE_IGNORE);
     }
 
     /**

@@ -381,4 +381,26 @@ public class JmDNSTest {
         }
     }
 
+    @Test
+    public void testListMyServiceWithToLowerCase() throws IOException {
+        System.out.println("Unit Test: testListMyServiceWithToLowerCase()");
+        String text = "Test hypothetical web server";
+        Map<String, byte[]> properties = new HashMap<String, byte[]>();
+        properties.put(serviceKey, text.getBytes());
+        service = ServiceInfo.create("_html._TCP.local.", "apache-someuniqueid", 80, 0, 0, true, properties);
+        JmDNS registry = null;
+        try {
+            registry = JmDNS.create();
+            registry.registerService(service);
+            ServiceInfo[] services = registry.list(service.getType().toLowerCase());
+            assertEquals("We should see the service we just registered: ", 1, services.length);
+            assertEquals(service, services[0]);
+            services = registry.list(service.getType());
+            assertEquals("We should see the service we just registered: ", 1, services.length);
+            assertEquals(service, services[0]);
+        } finally {
+            if (registry != null) registry.close();
+        }
+    }
+
 }
