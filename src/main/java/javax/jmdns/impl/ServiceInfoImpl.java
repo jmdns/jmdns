@@ -16,8 +16,10 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,6 +55,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     private Map<String, byte[]>    _props;
     private Inet4Address           _ipv4Addr;
     private Inet6Address           _ipv6Addr;
+    private final Set<InetAddress> _addresses;
 
     private transient String       _key;
 
@@ -196,6 +199,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
         this.setNeedTextAnnouncing(false);
         this._state = new ServiceInfoState(this);
         this._persistent = persistent;
+        this._addresses = Collections.synchronizedSet(new LinkedHashSet<InetAddress>());
     }
 
     /**
@@ -203,7 +207,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      *
      * @param info
      */
-    public ServiceInfoImpl(ServiceInfo info) {
+    ServiceInfoImpl(ServiceInfo info) {
+        this._addresses = Collections.synchronizedSet(new LinkedHashSet<InetAddress>());
         if (info != null) {
             this._domain = info.getDomain();
             this._protocol = info.getProtocol();
@@ -217,6 +222,10 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
             this._persistent = info.isPersistent();
             this._ipv4Addr = info.getInet4Address();
             this._ipv6Addr = info.getInet6Address();
+            InetAddress[] addresses = info.getInetAddresses();
+            for (InetAddress address : addresses) {
+                this._addresses.add(address);
+            }
         }
         this._state = new ServiceInfoState(this);
     }
@@ -461,6 +470,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     void setAddress(Inet4Address addr) {
         this._ipv4Addr = addr;
+        addAddress(addr);
     }
 
     /**
@@ -469,6 +479,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     void setAddress(Inet6Address addr) {
         this._ipv6Addr = addr;
+        addAddress(addr);
     }
 
     /**
@@ -649,6 +660,15 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
         return map;
     }
 
+    @Override
+    public InetAddress[] getInetAddresses() {
+        return _addresses.toArray(new InetAddress[_addresses.size()]);
+    }
+
+    private void addAddress(InetAddress address) {
+        _addresses.add(address);
+    }
+
     /**
      * Write a UTF string with a length to a stream.
      */
@@ -774,12 +794,14 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                 case TYPE_A: // IPv4
                     if (rec.getName().equalsIgnoreCase(this.getServer())) {
                         _ipv4Addr = (Inet4Address) ((DNSRecord.Address) rec).getAddress();
+                        addAddress(_ipv4Addr);
                         serviceUpdated = true;
                     }
                     break;
                 case TYPE_AAAA: // IPv6
                     if (rec.getName().equalsIgnoreCase(this.getServer())) {
                         _ipv6Addr = (Inet6Address) ((DNSRecord.Address) rec).getAddress();
+                        addAddress(_ipv6Addr);
                         serviceUpdated = true;
                     }
                     break;
@@ -1001,7 +1023,14 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     @Override
     public ServiceInfoImpl clone() {
-        return new ServiceInfoImpl(this.getQualifiedNameMap(), _port, _weight, _priority, _persistent, _text);
+        ServiceInfoImpl serviceInfo = new ServiceInfoImpl(this.getQualifiedNameMap(), _port, _weight, _priority, _persistent, _text);
+        InetAddress[] addresses = this.getInetAddresses();
+        for (InetAddress address : addresses) {
+            serviceInfo.addAddress(address);
+        }
+        serviceInfo._ipv4Addr = this.getInet4Address();
+        serviceInfo._ipv6Addr = this.getInet6Address();
+        return serviceInfo;
     }
 
     /**
@@ -1014,9 +1043,18 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
         buf.append("name: '");
         buf.append((this.getName().length() > 0 ? this.getName() + "." : "") + this.getTypeWithSubtype());
         buf.append("' address: '");
-        buf.append(this.getInetAddress());
-        buf.append(':');
-        buf.append(this.getPort());
+        InetAddress[] addresses = this.getInetAddresses();
+        if (addresses.length > 0) {
+            for (InetAddress address : addresses) {
+                buf.append(address);
+                buf.append(':');
+                buf.append(this.getPort());
+                buf.append(' ');
+            }
+        } else {
+            buf.append("(null):");
+            buf.append(this.getPort());
+        }
         buf.append("' status: '");
         buf.append(_state.toString());
         buf.append(this.isPersistent() ? "' is persistent," : "',");

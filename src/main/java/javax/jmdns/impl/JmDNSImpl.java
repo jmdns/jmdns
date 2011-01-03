@@ -1564,7 +1564,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
      * Recover jmdns when there is an error.
      */
     public void recover() {
-        logger.finer("recover()");
+        logger.finer(this.getName() + "recover()");
         // We have an IO error so lets try to recover if anything happens lets close it.
         // This should cover the case of the IP address changing under our feet
         if (this.isCanceling() || this.isCanceled()) {
@@ -1577,7 +1577,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
             // Synchronize only if we are not already in process to prevent dead locks
             //
             if (logger.isLoggable(Level.FINER)) {
-                logger.finer("recover() Cleanning up");
+                logger.finer(this.getName() + "recover() Cleanning up");
             }
 
             // Purge the timer
@@ -1601,7 +1601,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
             //
             this.getCache().clear();
             if (logger.isLoggable(Level.FINER)) {
-                logger.finer("recover() All is clean");
+                logger.finer(this.getName() + "recover() All is clean");
             }
             //
             // All is clear now start the services
@@ -1615,9 +1615,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
                 this.openMulticastSocket(this.getLocalHost());
                 this.start(oldServiceInfos);
             } catch (final Exception exception) {
-                logger.log(Level.WARNING, "recover() Start services exception ", exception);
+                logger.log(Level.WARNING, this.getName() + "recover() Start services exception ", exception);
             }
-            logger.log(Level.WARNING, "recover() We are back!");
+            logger.log(Level.WARNING, this.getName() + "recover() We are back!");
         }
     }
 

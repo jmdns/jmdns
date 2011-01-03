@@ -94,6 +94,31 @@ public class JmDNSTest {
     }
 
     @Test
+    public void testUnregisterService() throws IOException, InterruptedException {
+        System.out.println("Unit Test: testUnregisterService()");
+        JmDNS registry = null;
+        try {
+            registry = JmDNS.create();
+            registry.registerService(service);
+
+            ServiceInfo[] services = registry.list(service.getType());
+            assertEquals("We should see the service we just registered: ", 1, services.length);
+            assertEquals(service, services[0]);
+
+            // now unregister and make sure it's gone
+            registry.unregisterService(services[0]);
+
+            // without sleeping for a while, the service would not be unregistered fully
+            Thread.sleep(1000);
+
+            services = registry.list(service.getType());
+            assertTrue("We should not see the service we just unregistered: ", services == null || services.length == 0);
+        } finally {
+            if (registry != null) registry.close();
+        }
+    }
+
+    @Test
     public void testQueryMyService() throws IOException {
         System.out.println("Unit Test: testQueryMyService()");
         JmDNS registry = null;
@@ -382,25 +407,56 @@ public class JmDNSTest {
     }
 
     @Test
-    public void testListMyServiceWithToLowerCase() throws IOException {
+    public void testListMyServiceWithToLowerCase() throws IOException, InterruptedException {
         System.out.println("Unit Test: testListMyServiceWithToLowerCase()");
         String text = "Test hypothetical web server";
         Map<String, byte[]> properties = new HashMap<String, byte[]>();
         properties.put(serviceKey, text.getBytes());
-        service = ServiceInfo.create("_html._TCP.local.", "apache-someuniqueid", 80, 0, 0, true, properties);
+        service = ServiceInfo.create("_HtmL._TcP.lOcAl.", "apache-someUniqueid", 80, 0, 0, true, properties);
         JmDNS registry = null;
         try {
             registry = JmDNS.create();
             registry.registerService(service);
+
+            // with toLowerCase
             ServiceInfo[] services = registry.list(service.getType().toLowerCase());
             assertEquals("We should see the service we just registered: ", 1, services.length);
             assertEquals(service, services[0]);
-            services = registry.list(service.getType());
-            assertEquals("We should see the service we just registered: ", 1, services.length);
-            assertEquals(service, services[0]);
+            // now unregister and make sure it's gone
+            registry.unregisterService(services[0]);
+            // without sleeping for a while, the service would not be unregistered fully
+            Thread.sleep(1000);
+            services = registry.list(service.getType().toLowerCase());
+            assertTrue("We should not see the service we just unregistered: ", services == null || services.length == 0);
         } finally {
             if (registry != null) registry.close();
         }
     }
 
+    @Test
+    public void testListMyServiceWithoutLowerCase() throws IOException, InterruptedException {
+        System.out.println("Unit Test: testListMyServiceWithoutLowerCase()");
+        String text = "Test hypothetical web server";
+        Map<String, byte[]> properties = new HashMap<String, byte[]>();
+        properties.put(serviceKey, text.getBytes());
+        service = ServiceInfo.create("_HtmL._TcP.lOcAl.", "apache-someUniqueid", 80, 0, 0, true, properties);
+        JmDNS registry = null;
+        try {
+            registry = JmDNS.create();
+            registry.registerService(service);
+
+            // without toLowerCase
+            ServiceInfo[] services = registry.list(service.getType());
+            assertEquals("We should see the service we just registered: ", 1, services.length);
+            assertEquals(service, services[0]);
+            // now unregister and make sure it's gone
+            registry.unregisterService(services[0]);
+            // without sleeping for a while, the service would not be unregistered fully
+            Thread.sleep(1000);
+            services = registry.list(service.getType());
+            assertTrue("We should not see the service we just unregistered: ", services == null || services.length == 0);
+        } finally {
+            if (registry != null) registry.close();
+        }
+    }
 }

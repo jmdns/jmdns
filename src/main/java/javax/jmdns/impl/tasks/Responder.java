@@ -149,7 +149,7 @@ public class Responder extends DNSTask {
                 }
                 // this.cancel();
             } catch (Throwable e) {
-                logger.log(Level.WARNING, "run() exception ", e);
+                logger.log(Level.WARNING, this.getName() + "run() exception ", e);
                 this.getDns().close();
             }
         }

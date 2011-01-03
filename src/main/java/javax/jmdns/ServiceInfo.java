@@ -463,6 +463,16 @@ public abstract class ServiceInfo implements Cloneable {
     public abstract Inet6Address getInet6Address();
 
     /**
+     * Returns a list of all InetAddresses that can be used for this service.
+     * <p>
+     * In a multi-homed environment service info can be associated with more than one address.
+     * </p>
+     *
+     * @return list of InetAddress objects
+     */
+    public abstract InetAddress[] getInetAddresses();
+
+    /**
      * Get the port for the service.
      *
      * @return service port

@@ -301,6 +301,15 @@ public abstract class JmDNS implements Closeable {
 
     /**
      * Unregister a service. The service should have been registered.
+     * <p>
+     * <b>Note:</b> Unregistered services will not disappear form the list of services immediately. According to the specification, when unregistering services we send goodbye packets and then wait <b>1s</b> before purging the cache.<br/>
+     * This is support for shared records that can be rescued by some other cooperation DNS.
+     *
+     * <pre>
+     * Clients receiving a Multicast DNS Response with a TTL of zero SHOULD NOT immediately delete the record from the cache, but instead record a TTL of 1 and then delete the record one second later.
+     * </pre>
+     *
+     * </p>
      *
      * @param info
      *            service info to remove
@@ -313,7 +322,10 @@ public abstract class JmDNS implements Closeable {
     public abstract void unregisterAllServices();
 
     /**
-     * Register a service type. If this service type was not already known, all service listeners will be notified of the new service type. Service types are automatically registered as they are discovered.
+     * Register a service type. If this service type was not already known, all service listeners will be notified of the new service type.
+     * <p>
+     * Service types are automatically registered as they are discovered.
+     * </p>
      *
      * @param type
      *            full qualified service type, such as <code>_http._tcp.local.</code>.
