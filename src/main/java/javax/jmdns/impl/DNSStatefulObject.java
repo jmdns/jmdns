@@ -230,9 +230,17 @@ public interface DNSStatefulObject {
                     boolean finished = false;
                     long end = (timeout > 0 ? System.currentTimeMillis() + timeout : Long.MAX_VALUE);
                     while (!finished) {
+                        long now = System.currentTimeMillis();
                         boolean lock = this.tryLock(DNSConstants.ANNOUNCE_WAIT_INTERVAL, TimeUnit.MILLISECONDS);
                         try {
                             finished = (this.isAnnounced() || this.willCancel() ? true : end <= System.currentTimeMillis());
+                            if (!finished) {
+                                // We need to limit the spawning rate
+                                long remaining = DNSConstants.ANNOUNCE_WAIT_INTERVAL - (System.currentTimeMillis() - now);
+                                if (remaining > 0) {
+                                    wait(remaining);
+                                }
+                            }
                         } finally {
                             if (lock) {
                                 this.unlock();
@@ -263,9 +271,17 @@ public interface DNSStatefulObject {
                     boolean finished = false;
                     long end = (timeout > 0 ? System.currentTimeMillis() + timeout : Long.MAX_VALUE);
                     while (!finished) {
+                        long now = System.currentTimeMillis();
                         boolean lock = this.tryLock(DNSConstants.ANNOUNCE_WAIT_INTERVAL, TimeUnit.MILLISECONDS);
                         try {
                             finished = (this.isCanceled() ? true : end <= System.currentTimeMillis());
+                            if (!finished) {
+                                // We need to limit the spawning rate
+                                long remaining = DNSConstants.ANNOUNCE_WAIT_INTERVAL - (System.currentTimeMillis() - now);
+                                if (remaining > 0) {
+                                    wait(remaining);
+                                }
+                            }
                         } finally {
                             if (lock) {
                                 this.unlock();

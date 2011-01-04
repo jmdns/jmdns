@@ -12,6 +12,7 @@ Can't resolve if txt field is empty - ID: 3123622
 TXT Record not updating for getProperty call - ID: 3126952
 ********* JmDNS is now case preserving, which was the intent all along. Check your code as we JmDNS may return mixed case in instances where it was returning lower case. *********
 ServiceInfo doesn't allow more than one IPV4 address.- ID: 3150462
+waitForCancelled and waitForAnnounced can cause bad behavior - ID: 3151408
 
 CHANGELOG 16 November 2010 Pierre Frisch
 Rev the source code to 3.2.2
