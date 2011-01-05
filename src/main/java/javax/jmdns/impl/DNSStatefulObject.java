@@ -238,7 +238,7 @@ public interface DNSStatefulObject {
                                 // We need to limit the spawning rate
                                 long remaining = DNSConstants.ANNOUNCE_WAIT_INTERVAL - (System.currentTimeMillis() - now);
                                 if (remaining > 0) {
-                                    wait(remaining);
+                                    Thread.sleep(remaining);
                                 }
                             }
                         } finally {
@@ -279,7 +279,7 @@ public interface DNSStatefulObject {
                                 // We need to limit the spawning rate
                                 long remaining = DNSConstants.ANNOUNCE_WAIT_INTERVAL - (System.currentTimeMillis() - now);
                                 if (remaining > 0) {
-                                    wait(remaining);
+                                    Thread.sleep(remaining);
                                 }
                             }
                         } finally {
