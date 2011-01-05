@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -405,6 +406,30 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>> {
             }
         }
         return result;
+    }
+
+    /**
+     * Get all matching DNS entries from the table.
+     *
+     * @param name
+     * @param type
+     * @param recordClass
+     * @return list of entries
+     */
+    public synchronized Collection<? extends DNSEntry> getDNSEntryList(String name, DNSRecordType type, DNSRecordClass recordClass) {
+        Collection<? extends DNSEntry> entryList = this.getDNSEntryList(name);
+        if (entryList != null) {
+            entryList = new ArrayList<DNSEntry>(entryList);
+            for (Iterator<? extends DNSEntry> i = entryList.iterator(); i.hasNext();) {
+                DNSEntry testDNSEntry = i.next();
+                if (!testDNSEntry.getRecordType().equals(type) || ((DNSRecordClass.CLASS_ANY != recordClass) && !testDNSEntry.getRecordClass().equals(recordClass))) {
+                    i.remove();
+                }
+            }
+        } else {
+            entryList = Collections.emptyList();
+        }
+        return entryList;
     }
 
     /**

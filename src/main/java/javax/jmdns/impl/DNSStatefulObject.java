@@ -234,16 +234,16 @@ public interface DNSStatefulObject {
                         boolean lock = this.tryLock(DNSConstants.ANNOUNCE_WAIT_INTERVAL, TimeUnit.MILLISECONDS);
                         try {
                             finished = (this.isAnnounced() || this.willCancel() ? true : end <= System.currentTimeMillis());
-                            if (!finished) {
-                                // We need to limit the spawning rate
-                                long remaining = DNSConstants.ANNOUNCE_WAIT_INTERVAL - (System.currentTimeMillis() - now);
-                                if (remaining > 0) {
-                                    Thread.sleep(remaining);
-                                }
-                            }
                         } finally {
                             if (lock) {
                                 this.unlock();
+                            }
+                        }
+                        if (!finished) {
+                            // We need to limit the spawning rate
+                            long remaining = DNSConstants.ANNOUNCE_WAIT_INTERVAL - (System.currentTimeMillis() - now);
+                            if (remaining > 0) {
+                                Thread.sleep(remaining);
                             }
                         }
                     }
@@ -275,16 +275,16 @@ public interface DNSStatefulObject {
                         boolean lock = this.tryLock(DNSConstants.ANNOUNCE_WAIT_INTERVAL, TimeUnit.MILLISECONDS);
                         try {
                             finished = (this.isCanceled() ? true : end <= System.currentTimeMillis());
-                            if (!finished) {
-                                // We need to limit the spawning rate
-                                long remaining = DNSConstants.ANNOUNCE_WAIT_INTERVAL - (System.currentTimeMillis() - now);
-                                if (remaining > 0) {
-                                    Thread.sleep(remaining);
-                                }
-                            }
                         } finally {
                             if (lock) {
                                 this.unlock();
+                            }
+                        }
+                        if (!finished) {
+                            // We need to limit the spawning rate
+                            long remaining = DNSConstants.ANNOUNCE_WAIT_INTERVAL - (System.currentTimeMillis() - now);
+                            if (remaining > 0) {
+                                Thread.sleep(remaining);
                             }
                         }
                     }

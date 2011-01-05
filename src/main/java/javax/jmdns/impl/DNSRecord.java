@@ -206,7 +206,7 @@ public abstract class DNSRecord extends DNSEntry {
         public ServiceInfo getServiceInfo(boolean persistent) {
 
             ServiceInfoImpl info = (ServiceInfoImpl) super.getServiceInfo(persistent);
-            info.setAddress((Inet4Address) _addr);
+            info.addAddress((Inet4Address) _addr);
             return info;
         }
 
@@ -251,7 +251,7 @@ public abstract class DNSRecord extends DNSEntry {
         public ServiceInfo getServiceInfo(boolean persistent) {
 
             ServiceInfoImpl info = (ServiceInfoImpl) super.getServiceInfo(persistent);
-            info.setAddress((Inet6Address) _addr);
+            info.addAddress((Inet6Address) _addr);
             return info;
         }
 
@@ -290,6 +290,11 @@ public abstract class DNSRecord extends DNSEntry {
         @Override
         boolean sameValue(DNSRecord other) {
             return this.getAddress().equals(((Address) other).getAddress());
+        }
+
+        @Override
+        public boolean isSingleValued() {
+            return false;
         }
 
         InetAddress getAddress() {
@@ -430,6 +435,11 @@ public abstract class DNSRecord extends DNSEntry {
         }
 
         @Override
+        public boolean isSingleValued() {
+            return false;
+        }
+
+        @Override
         boolean handleQuery(JmDNSImpl dns, long expirationTime) {
             // Nothing to do (?)
             // I think there is no possibility for conflicts for this record type?
@@ -532,6 +542,11 @@ public abstract class DNSRecord extends DNSEntry {
                     return false;
                 }
             }
+            return true;
+        }
+
+        @Override
+        public boolean isSingleValued() {
             return true;
         }
 
@@ -666,6 +681,11 @@ public abstract class DNSRecord extends DNSEntry {
         boolean sameValue(DNSRecord other) {
             Service s = (Service) other;
             return (_priority == s._priority) && (_weight == s._weight) && (_port == s._port) && _server.equals(s._server);
+        }
+
+        @Override
+        public boolean isSingleValued() {
+            return true;
         }
 
         @Override
@@ -850,6 +870,15 @@ public abstract class DNSRecord extends DNSEntry {
 
         /*
          * (non-Javadoc)
+         * @see javax.jmdns.impl.DNSRecord#isSingleValued()
+         */
+        @Override
+        public boolean isSingleValued() {
+            return true;
+        }
+
+        /*
+         * (non-Javadoc)
          * @see javax.jmdns.impl.DNSRecord#write(javax.jmdns.impl.DNSOutgoing)
          */
         @Override
@@ -892,6 +921,13 @@ public abstract class DNSRecord extends DNSEntry {
         }
 
     }
+
+    /**
+     * Determine if a record can have multiple values in the cache.
+     *
+     * @return <code>false</code> if this record can have multiple values in the cache, <code>true</code> otherwise.
+     */
+    public abstract boolean isSingleValued();
 
     /**
      * Return a service information associated with that record if appropriate.

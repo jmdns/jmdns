@@ -23,6 +23,7 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.GridLayout;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Enumeration;
 
 import javax.jmdns.JmmDNS;
@@ -46,7 +47,7 @@ import javax.swing.table.AbstractTableModel;
 
 /**
  * User Interface for browsing JmDNS services.
- * 
+ *
  * @author Arthur van Hoff, Werner Randelshofer
  */
 public class Browser extends JFrame implements ServiceListener, ServiceTypeListener, ListSelectionListener {
@@ -220,7 +221,7 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
 
     /**
      * List selection changed.
-     * 
+     *
      * @param e
      */
     @Override
@@ -266,10 +267,12 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
                 buf.append(':');
                 buf.append(service.getPort());
                 buf.append('\n');
-                buf.append(service.getInetAddress());
-                buf.append(':');
-                buf.append(service.getPort());
-                buf.append('\n');
+                for (InetAddress address : service.getInetAddresses()) {
+                    buf.append(address);
+                    buf.append(':');
+                    buf.append(service.getPort());
+                    buf.append('\n');
+                }
                 for (Enumeration<String> names = service.getPropertyNames(); names.hasMoreElements();) {
                     String prop = names.nextElement();
                     buf.append(prop);
@@ -330,7 +333,7 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
 
     /**
      * Main program.
-     * 
+     *
      * @param argv
      * @throws IOException
      */

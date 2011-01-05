@@ -6,6 +6,8 @@ package javax.jmdns.impl;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.SocketException;
@@ -764,7 +766,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
                 if (addressEntry instanceof DNSRecord) {
                     ServiceInfo cachedAddressInfo = ((DNSRecord) addressEntry).getServiceInfo(persistent);
                     if (cachedAddressInfo != null) {
-                        cachedInfo.setAddress(cachedAddressInfo.getInet4Address());
+                        for (Inet4Address address : cachedAddressInfo.getInet4Addresses()) {
+                            cachedInfo.addAddress(address);
+                        }
                         cachedInfo._setText(cachedAddressInfo.getTextBytes());
                     }
                 }
@@ -772,7 +776,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
                 if (addressEntry instanceof DNSRecord) {
                     ServiceInfo cachedAddressInfo = ((DNSRecord) addressEntry).getServiceInfo(persistent);
                     if (cachedAddressInfo != null) {
-                        cachedInfo.setAddress(cachedAddressInfo.getInet6Address());
+                        for (Inet6Address address : cachedAddressInfo.getInet6Addresses()) {
+                            cachedInfo.addAddress(address);
+                        }
                         cachedInfo._setText(cachedAddressInfo.getTextBytes());
                     }
                 }
@@ -976,8 +982,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
         // bind the service to this address
         info.setServer(_localHost.getName());
-        info.setAddress(_localHost.getInet4Address());
-        info.setAddress(_localHost.getInet6Address());
+        info.addAddress(_localHost.getInet4Address());
+        info.addAddress(_localHost.getInet6Address());
 
         this.waitForAnnounced(0);
 
@@ -1348,8 +1354,14 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
                 } else {
                     // If the record content has changed we need to inform our listeners.
                     if (!newRecord.sameValue(cachedRecord) || (!newRecord.sameSubtype(cachedRecord) && (newRecord.getSubtype().length() > 0))) {
-                        cacheOperation = Operation.Update;
-                        this.getCache().replaceDNSEntry(newRecord, cachedRecord);
+                        if (newRecord.isSingleValued()) {
+                            cacheOperation = Operation.Update;
+                            this.getCache().replaceDNSEntry(newRecord, cachedRecord);
+                        } else {
+                            // Address record can have more than one value on multi-homed machines
+                            cacheOperation = Operation.Add;
+                            this.getCache().addDNSEntry(newRecord);
+                        }
                     } else {
                         cachedRecord.resetTTL(newRecord);
                         newRecord = cachedRecord;
@@ -1560,6 +1572,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         }
     }
 
+    private final Object _recoverLock = new Object();
+
     /**
      * Recover jmdns when there is an error.
      */
@@ -1571,54 +1585,72 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
             return;
         }
 
-        // Stop JmDNS
-        // This protects against recursive calls
-        if (this.cancelState()) {
-            // Synchronize only if we are not already in process to prevent dead locks
-            //
-            if (logger.isLoggable(Level.FINER)) {
-                logger.finer(this.getName() + "recover() Cleanning up");
+        // We need some definite lock here as we may have multiple timer running in the same thread that will not be stopped by the reentrant lock
+        // in the state object. This is only a problem in this case as we are going to execute in seperate thread so that the timer can clear.
+        synchronized (_recoverLock) {
+            // Stop JmDNS
+            // This protects against recursive calls
+            if (this.cancelState()) {
+                logger.finer(this.getName() + "recover() thread " + Thread.currentThread().getName());
+                Thread recover = new Thread(this.getName() + ".recover()") {
+                    /**
+                     * {@inheritDoc}
+                     */
+                    @Override
+                    public void run() {
+                        __recover();
+                    }
+                };
+                recover.start();
             }
-
-            // Purge the timer
-            _timer.purge();
-
-            // We need to keep a copy for reregistration
-            final Collection<ServiceInfo> oldServiceInfos = new ArrayList<ServiceInfo>(getServices().values());
-
-            // Cancel all services
-            this.unregisterAllServices();
-            this.disposeServiceCollectors();
-
-            this.waitForCanceled(0);
-
-            // Purge the canceler timer
-            _stateTimer.purge();
-
-            //
-            // close multicast socket
-            this.closeMulticastSocket();
-            //
-            this.getCache().clear();
-            if (logger.isLoggable(Level.FINER)) {
-                logger.finer(this.getName() + "recover() All is clean");
-            }
-            //
-            // All is clear now start the services
-            //
-            for (ServiceInfo info : oldServiceInfos) {
-                ((ServiceInfoImpl) info).recoverState();
-            }
-            this.recoverState();
-
-            try {
-                this.openMulticastSocket(this.getLocalHost());
-                this.start(oldServiceInfos);
-            } catch (final Exception exception) {
-                logger.log(Level.WARNING, this.getName() + "recover() Start services exception ", exception);
-            }
-            logger.log(Level.WARNING, this.getName() + "recover() We are back!");
         }
+    }
+
+    void __recover() {
+        // Synchronize only if we are not already in process to prevent dead locks
+        //
+        if (logger.isLoggable(Level.FINER)) {
+            logger.finer(this.getName() + "recover() Cleanning up");
+        }
+
+        // Purge the timer
+        _timer.purge();
+
+        // We need to keep a copy for reregistration
+        final Collection<ServiceInfo> oldServiceInfos = new ArrayList<ServiceInfo>(getServices().values());
+
+        // Cancel all services
+        this.unregisterAllServices();
+        this.disposeServiceCollectors();
+
+        this.waitForCanceled(0);
+
+        // Purge the canceler timer
+        _stateTimer.purge();
+
+        //
+        // close multicast socket
+        this.closeMulticastSocket();
+        //
+        this.getCache().clear();
+        if (logger.isLoggable(Level.FINER)) {
+            logger.finer(this.getName() + "recover() All is clean");
+        }
+        //
+        // All is clear now start the services
+        //
+        for (ServiceInfo info : oldServiceInfos) {
+            ((ServiceInfoImpl) info).recoverState();
+        }
+        this.recoverState();
+
+        try {
+            this.openMulticastSocket(this.getLocalHost());
+            this.start(oldServiceInfos);
+        } catch (final Exception exception) {
+            logger.log(Level.WARNING, this.getName() + "recover() Start services exception ", exception);
+        }
+        logger.log(Level.WARNING, this.getName() + "recover() We are back!");
     }
 
     public void cleanCache() {

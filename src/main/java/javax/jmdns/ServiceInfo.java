@@ -425,15 +425,25 @@ public abstract class ServiceInfo implements Cloneable {
      * <b>Note:</b> This can be either an IPv4 or an IPv6 representation.
      *
      * @return the host raw IP address in a string format.
+     * @deprecated since 3.2.3
+     * @see #getHostAddresses()
      */
+    @Deprecated
     public abstract String getHostAddress();
+
+    /**
+     * Returns the host IP addresses string in textual presentation.
+     *
+     * @return list of host raw IP address in a string format.
+     */
+    public abstract String[] getHostAddresses();
 
     /**
      * Get the host address of the service.<br/>
      *
      * @return host Internet address
      * @deprecated since 3.1.8
-     * @see #getInetAddress()
+     * @see #getInetAddresses()
      */
     @Deprecated
     public abstract InetAddress getAddress();
@@ -443,7 +453,10 @@ public abstract class ServiceInfo implements Cloneable {
      * <b>Note:</b> This return null if the service IP address cannot be resolved.
      *
      * @return Internet address
+     * @deprecated since 3.2.3
+     * @see #getInetAddresses()
      */
+    @Deprecated
     public abstract InetAddress getInetAddress();
 
     /**
@@ -451,7 +464,10 @@ public abstract class ServiceInfo implements Cloneable {
      * <b>Note:</b> This return null if the service IPv4 address cannot be resolved.
      *
      * @return Internet address
+     * @deprecated since 3.2.3
+     * @see #getInet4Addresses()
      */
+    @Deprecated
     public abstract Inet4Address getInet4Address();
 
     /**
@@ -459,7 +475,10 @@ public abstract class ServiceInfo implements Cloneable {
      * <b>Note:</b> This return null if the service IPv6 address cannot be resolved.
      *
      * @return Internet address
+     * @deprecated since 3.2.3
+     * @see #getInet6Addresses()
      */
+    @Deprecated
     public abstract Inet6Address getInet6Address();
 
     /**
@@ -471,6 +490,26 @@ public abstract class ServiceInfo implements Cloneable {
      * @return list of InetAddress objects
      */
     public abstract InetAddress[] getInetAddresses();
+
+    /**
+     * Returns a list of all IPv4 InetAddresses that can be used for this service.
+     * <p>
+     * In a multi-homed environment service info can be associated with more than one address.
+     * </p>
+     *
+     * @return list of InetAddress objects
+     */
+    public abstract Inet4Address[] getInet4Addresses();
+
+    /**
+     * Returns a list of all IPv6 InetAddresses that can be used for this service.
+     * <p>
+     * In a multi-homed environment service info can be associated with more than one address.
+     * </p>
+     *
+     * @return list of InetAddress objects
+     */
+    public abstract Inet6Address[] getInet6Addresses();
 
     /**
      * Get the port for the service.
@@ -517,8 +556,18 @@ public abstract class ServiceInfo implements Cloneable {
      * Get the URL for this service. An http URL is created by combining the address, port, and path properties.
      *
      * @return service URL
+     * @deprecated since 3.2.3
+     * @see #getURLs()
      */
+    @Deprecated
     public abstract String getURL();
+
+    /**
+     * Get the list of URL for this service. An http URL is created by combining the address, port, and path properties.
+     *
+     * @return list of service URL
+     */
+    public abstract String[] getURLs();
 
     /**
      * Get the URL for this service. An URL is created by combining the protocol, address, port, and path properties.
@@ -526,8 +575,20 @@ public abstract class ServiceInfo implements Cloneable {
      * @param protocol
      *            requested protocol
      * @return service URL
+     * @deprecated since 3.2.3
+     * @see #getURLs()
      */
+    @Deprecated
     public abstract String getURL(String protocol);
+
+    /**
+     * Get the list of URL for this service. An URL is created by combining the protocol, address, port, and path properties.
+     *
+     * @param protocol
+     *            requested protocol
+     * @return list of service URL
+     */
+    public abstract String[] getURLs(String protocol);
 
     /**
      * Get a property of the service. This involves decoding the text bytes into a property list. Returns null if the property is not found or the text data could not be decoded correctly.
