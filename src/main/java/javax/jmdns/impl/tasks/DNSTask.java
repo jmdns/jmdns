@@ -14,7 +14,7 @@ import javax.jmdns.impl.constants.DNSConstants;
 
 /**
  * This is the root class for all task scheduled by the timer in JmDNS.
- *
+ * 
  * @author Pierre Frisch
  */
 public abstract class DNSTask extends TimerTask {
@@ -34,7 +34,7 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Return the DNS associated with this task.
-     *
+     * 
      * @return associated DNS
      */
     public JmDNSImpl getDns() {
@@ -43,7 +43,7 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Start this task.
-     *
+     * 
      * @param timer
      *            task timer.
      */
@@ -51,7 +51,7 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Return this task name.
-     *
+     * 
      * @return task name
      */
     public abstract String getName();
@@ -67,13 +67,13 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Add a question to the message.
-     *
+     * 
      * @param out
      *            outgoing message
      * @param rec
      *            DNS question
      * @return outgoing message for the next question
-     * @throws IOException
+     * @exception IOException
      */
     public DNSOutgoing addQuestion(DNSOutgoing out, DNSQuestion rec) throws IOException {
         DNSOutgoing newOut = out;
@@ -97,7 +97,7 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Add an answer if it is not suppressed.
-     *
+     * 
      * @param out
      *            outgoing message
      * @param in
@@ -105,7 +105,7 @@ public abstract class DNSTask extends TimerTask {
      * @param rec
      *            DNS record answer
      * @return outgoing message for the next answer
-     * @throws IOException
+     * @exception IOException
      */
     public DNSOutgoing addAnswer(DNSOutgoing out, DNSIncoming in, DNSRecord rec) throws IOException {
         DNSOutgoing newOut = out;
@@ -129,14 +129,14 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Add an answer to the message.
-     *
+     * 
      * @param out
      *            outgoing message
      * @param rec
      *            DNS record answer
      * @param now
      * @return outgoing message for the next answer
-     * @throws IOException
+     * @exception IOException
      */
     public DNSOutgoing addAnswer(DNSOutgoing out, DNSRecord rec, long now) throws IOException {
         DNSOutgoing newOut = out;
@@ -160,13 +160,13 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Add an authoritative answer to the message.
-     *
+     * 
      * @param out
      *            outgoing message
      * @param rec
      *            DNS record answer
      * @return outgoing message for the next answer
-     * @throws IOException
+     * @exception IOException
      */
     public DNSOutgoing addAuthoritativeAnswer(DNSOutgoing out, DNSRecord rec) throws IOException {
         DNSOutgoing newOut = out;
@@ -190,7 +190,7 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Add an additional answer to the record. Omit if there is no room.
-     *
+     * 
      * @param out
      *            outgoing message
      * @param in
@@ -198,7 +198,7 @@ public abstract class DNSTask extends TimerTask {
      * @param rec
      *            DNS record answer
      * @return outgoing message for the next answer
-     * @throws IOException
+     * @exception IOException
      */
     public DNSOutgoing addAdditionalAnswer(DNSOutgoing out, DNSIncoming in, DNSRecord rec) throws IOException {
         DNSOutgoing newOut = out;

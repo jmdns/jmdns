@@ -5,7 +5,7 @@ package javax.jmdns.impl.constants;
 
 /**
  * DNS label.
- *
+ * 
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Rick Blair
  */
 public enum DNSLabel {
@@ -29,8 +29,8 @@ public enum DNSLabel {
     /**
      * DNS label types are encoded on the first 2 bits
      */
-    final static int     LABEL_MASK     = 0xC0;
-    final static int     LABEL_NOT_MASK = 0x3F;
+    static final int     LABEL_MASK     = 0xC0;
+    static final int     LABEL_NOT_MASK = 0x3F;
 
     private final String _externalName;
 
@@ -43,7 +43,7 @@ public enum DNSLabel {
 
     /**
      * Return the string representation of this type
-     *
+     * 
      * @return String
      */
     public String externalName() {
@@ -52,7 +52,7 @@ public enum DNSLabel {
 
     /**
      * Return the numeric value of this type
-     *
+     * 
      * @return String
      */
     public int indexValue() {

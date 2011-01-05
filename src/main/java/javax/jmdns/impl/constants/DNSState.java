@@ -6,7 +6,7 @@ package javax.jmdns.impl.constants;
 
 /**
  * DNSState defines the possible states for services registered with JmDNS.
- *
+ * 
  * @author Werner Randelshofer, Rick Blair, Pierre Frisch
  */
 public enum DNSState {
@@ -76,7 +76,7 @@ public enum DNSState {
      * Returns the next advanced state.<br/>
      * In general, this advances one step in the following sequence: PROBING_1, PROBING_2, PROBING_3, ANNOUNCING_1, ANNOUNCING_2, ANNOUNCED.<br/>
      * or CANCELING_1, CANCELING_2, CANCELING_3, CANCELED Does not advance for ANNOUNCED and CANCELED state.
-     *
+     * 
      * @return next state
      */
     public final DNSState advance() {
@@ -109,7 +109,7 @@ public enum DNSState {
 
     /**
      * Returns to the next reverted state. All states except CANCELED revert to PROBING_1. Status CANCELED does not revert.
-     *
+     * 
      * @return reverted state
      */
     public final DNSState revert() {
@@ -135,7 +135,7 @@ public enum DNSState {
 
     /**
      * Returns true, if this is a probing state.
-     *
+     * 
      * @return <code>true</code> if probing state, <code>false</code> otherwise
      */
     public final boolean isProbing() {
@@ -144,7 +144,7 @@ public enum DNSState {
 
     /**
      * Returns true, if this is an announcing state.
-     *
+     * 
      * @return <code>true</code> if announcing state, <code>false</code> otherwise
      */
     public final boolean isAnnouncing() {
@@ -153,7 +153,7 @@ public enum DNSState {
 
     /**
      * Returns true, if this is an announced state.
-     *
+     * 
      * @return <code>true</code> if announced state, <code>false</code> otherwise
      */
     public final boolean isAnnounced() {
@@ -162,7 +162,7 @@ public enum DNSState {
 
     /**
      * Returns true, if this is a canceling state.
-     *
+     * 
      * @return <code>true</code> if canceling state, <code>false</code> otherwise
      */
     public final boolean isCanceling() {
@@ -171,7 +171,7 @@ public enum DNSState {
 
     /**
      * Returns true, if this is a canceled state.
-     *
+     * 
      * @return <code>true</code> if canceled state, <code>false</code> otherwise
      */
     public final boolean isCanceled() {

@@ -13,7 +13,7 @@ import javax.jmdns.impl.tasks.DNSTask;
 
 /**
  * This is the root class for all resolver tasks.
- *
+ * 
  * @author Pierre Frisch
  */
 public abstract class DNSResolverTask extends DNSTask {
@@ -87,28 +87,28 @@ public abstract class DNSResolverTask extends DNSTask {
     /**
      * Overridden by subclasses to add questions to the message.<br/>
      * <b>Note:</b> Because of message size limitation the returned message may be different than the message parameter.
-     *
+     * 
      * @param out
      *            outgoing message
      * @return the outgoing message.
-     * @throws IOException
+     * @exception IOException
      */
     protected abstract DNSOutgoing addQuestions(DNSOutgoing out) throws IOException;
 
     /**
      * Overridden by subclasses to add questions to the message.<br/>
      * <b>Note:</b> Because of message size limitation the returned message may be different than the message parameter.
-     *
+     * 
      * @param out
      *            outgoing message
      * @return the outgoing message.
-     * @throws IOException
+     * @exception IOException
      */
     protected abstract DNSOutgoing addAnswers(DNSOutgoing out) throws IOException;
 
     /**
      * Returns a description of the resolver for debugging
-     *
+     * 
      * @return resolver description
      */
     protected abstract String description();

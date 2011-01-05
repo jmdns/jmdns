@@ -22,7 +22,7 @@ import javax.jmdns.impl.constants.DNSResultCode;
 
 /**
  * Parse an incoming DNS message into its components.
- *
+ * 
  * @author Arthur van Hoff, Werner Randelshofer, Pierre Frisch, Daniel Bobbert
  */
 public final class DNSIncoming extends DNSMessage {
@@ -176,9 +176,9 @@ public final class DNSIncoming extends DNSMessage {
 
     /**
      * Parse a message from a datagram packet.
-     *
+     * 
      * @param packet
-     * @throws IOException
+     * @exception IOException
      */
     public DNSIncoming(DatagramPacket packet) throws IOException {
         super(0, 0, packet.getPort() == DNSConstants.MDNS_PORT);
@@ -501,9 +501,9 @@ public final class DNSIncoming extends DNSMessage {
 
     /**
      * Appends answers to this Incoming.
-     *
-     * @throws IllegalArgumentException
-     *             If not a query or if Truncated.
+     * 
+     * @exception IllegalArgumentException
+     *                If not a query or if Truncated.
      */
     void append(DNSIncoming that) {
         if (this.isQuery() && this.isTruncated() && that.isQuery()) {
@@ -522,7 +522,7 @@ public final class DNSIncoming extends DNSMessage {
 
     /**
      * This will return the default UDP payload except if an OPT record was found with a different size.
-     *
+     * 
      * @return the senderUDPPayload
      */
     public int getSenderUDPPayload() {
@@ -533,7 +533,7 @@ public final class DNSIncoming extends DNSMessage {
 
     /**
      * Returns a hex-string for printing
-     *
+     * 
      * @param bytes
      * @return Returns a hex-string which can be used within a SQL expression
      */

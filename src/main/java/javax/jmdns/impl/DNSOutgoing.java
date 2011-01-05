@@ -14,7 +14,7 @@ import javax.jmdns.impl.constants.DNSRecordClass;
 
 /**
  * An outgoing DNS message.
- *
+ * 
  * @author Arthur van Hoff, Rick Blair, Werner Randelshofer
  */
 public final class DNSOutgoing extends DNSMessage {
@@ -26,7 +26,7 @@ public final class DNSOutgoing extends DNSMessage {
 
         /**
          * Creates a new message stream, with a buffer capacity of the specified size, in bytes.
-         *
+         * 
          * @param size
          *            the initial size.
          * @exception IllegalArgumentException
@@ -189,7 +189,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Create an outgoing multicast query or response.
-     *
+     * 
      * @param flags
      */
     public DNSOutgoing(int flags) {
@@ -198,7 +198,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Create an outgoing query or response.
-     *
+     * 
      * @param flags
      * @param multicast
      */
@@ -208,7 +208,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Create an outgoing query or response.
-     *
+     * 
      * @param flags
      * @param multicast
      * @param senderUDPPayload
@@ -226,7 +226,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Return the number of byte available in the message.
-     *
+     * 
      * @return available space
      */
     public int availableSpace() {
@@ -235,9 +235,9 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Add a question to the message.
-     *
+     * 
      * @param rec
-     * @throws IOException
+     * @exception IOException
      */
     public void addQuestion(DNSQuestion rec) throws IOException {
         MessageOutputStream record = new MessageOutputStream(512, this);
@@ -253,10 +253,10 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Add an answer if it is not suppressed.
-     *
+     * 
      * @param in
      * @param rec
-     * @throws IOException
+     * @exception IOException
      */
     public void addAnswer(DNSIncoming in, DNSRecord rec) throws IOException {
         if ((in == null) || !rec.suppressedBy(in)) {
@@ -266,10 +266,10 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Add an answer to the message.
-     *
+     * 
      * @param rec
      * @param now
-     * @throws IOException
+     * @exception IOException
      */
     public void addAnswer(DNSRecord rec, long now) throws IOException {
         if (rec != null) {
@@ -289,9 +289,9 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Add an authoritative answer to the message.
-     *
+     * 
      * @param rec
-     * @throws IOException
+     * @exception IOException
      */
     public void addAuthorativeAnswer(DNSRecord rec) throws IOException {
         MessageOutputStream record = new MessageOutputStream(512, this);
@@ -307,10 +307,10 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Add an additional answer to the record. Omit if there is no room.
-     *
+     * 
      * @param in
      * @param rec
-     * @throws IOException
+     * @exception IOException
      */
     public void addAdditionalAnswer(DNSIncoming in, DNSRecord rec) throws IOException {
         MessageOutputStream record = new MessageOutputStream(512, this);
@@ -326,7 +326,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Builds the final message buffer to be send and returns it.
-     *
+     * 
      * @return bytes to send.
      */
     public byte[] data() {

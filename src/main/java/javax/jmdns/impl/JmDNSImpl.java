@@ -60,7 +60,7 @@ import javax.jmdns.impl.tasks.state.Renewer;
 
 /**
  * mDNS implementation in Java.
- *
+ * 
  * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis
  */
 public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
@@ -159,12 +159,12 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
             /**
              * Replaces the value corresponding to this entry with the specified value (optional operation). This implementation simply throws <tt>UnsupportedOperationException</tt>, as this class implements an <i>immutable</i> map entry.
-             *
+             * 
              * @param value
              *            new value to be stored in this entry
              * @return (Does not return)
-             * @throws UnsupportedOperationException
-             *             always
+             * @exception UnsupportedOperationException
+             *                always
              */
             @Override
             public String setValue(String value) {
@@ -218,7 +218,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
         /**
          * The type associated with this entry.
-         *
+         * 
          * @return the type
          */
         public String getType() {
@@ -237,7 +237,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         /**
          * Returns <code>true</code> if this set contains the specified element. More formally, returns <code>true</code> if and only if this set contains an element <code>e</code> such that
          * <code>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</code>.
-         *
+         * 
          * @param subtype
          *            element whose presence in this set is to be tested
          * @return <code>true</code> if this set contains the specified element
@@ -249,7 +249,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         /**
          * Adds the specified element to this set if it is not already present. More formally, adds the specified element <code>e</code> to this set if this set contains no element <code>e2</code> such that
          * <code>(e==null&nbsp;?&nbsp;e2==null&nbsp;:&nbsp;e.equals(e2))</code>. If this set already contains the element, the call leaves the set unchanged and returns <code>false</code>.
-         *
+         * 
          * @param subtype
          *            element to be added to this set
          * @return <code>true</code> if this set did not already contain the specified element
@@ -264,7 +264,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
         /**
          * Returns an iterator over the elements in this set. The elements are returned in no particular order (unless this set is an instance of some class that provides a guarantee).
-         *
+         * 
          * @return an iterator over the elements in this set
          */
         public Iterator<String> iterator() {
@@ -371,7 +371,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * This hashtable is used to maintain a list of service types being collected by this JmDNS instance. The key of the hashtable is a service type name, the value is an instance of JmDNS.ServiceCollector.
-     *
+     * 
      * @see #list
      */
     private final ConcurrentMap<String, ServiceCollector> _serviceCollectors;
@@ -380,7 +380,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Main method to display API information if run from java -jar
-     *
+     * 
      * @param argv
      *            the command line arguments
      */
@@ -405,12 +405,12 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Create an instance of JmDNS and bind it to a specific network interface given its IP-address.
-     *
+     * 
      * @param address
      *            IP address to bind to.
      * @param name
      *            name of the newly created JmDNS
-     * @throws IOException
+     * @exception IOException
      */
     public JmDNSImpl(InetAddress address, String name) throws IOException {
         super();
@@ -651,7 +651,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Return the DNSCache associated with the cache variable
-     *
+     * 
      * @return DNS cache
      */
     public DNSCache getCache() {
@@ -676,7 +676,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Returns the local host info
-     *
+     * 
      * @return local host info
      */
     public HostInfo getLocalHost() {
@@ -1116,7 +1116,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Generate a possibly unique name for a service using the information we have in the cache.
-     *
+     * 
      * @return returns true, if the name of the service info had to be changed.
      */
     private boolean makeServiceNameUnique(ServiceInfoImpl info) {
@@ -1175,7 +1175,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Add a listener for a question. The listener will receive updates of answers to the question as they arrive, or from the cache if they are already available.
-     *
+     * 
      * @param listener
      *            DSN listener
      * @param question
@@ -1205,7 +1205,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Remove a listener from all outstanding questions. The listener will no longer receive any updates.
-     *
+     * 
      * @param listener
      *            DSN listener
      */
@@ -1215,7 +1215,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Renew a service when the record become stale. If there is no service collector for the type this method does nothing.
-     *
+     * 
      * @param record
      *            DNS record
      */
@@ -1230,7 +1230,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
     // Remind: Method updateRecord should receive a better name.
     /**
      * Notify all listeners that a record was updated.
-     *
+     * 
      * @param now
      *            update date
      * @param rec
@@ -1401,8 +1401,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Handle an incoming response. Cache answers, and pass them on to the appropriate questions.
-     *
-     * @throws IOException
+     * 
+     * @exception IOException
      */
     void handleResponse(DNSIncoming msg) throws IOException {
         final long now = System.currentTimeMillis();
@@ -1428,11 +1428,11 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Handle an incoming query. See if we can answer any part of it given our service infos.
-     *
+     * 
      * @param in
      * @param addr
      * @param port
-     * @throws IOException
+     * @exception IOException
      */
     void handleQuery(DNSIncoming in, InetAddress addr, int port) throws IOException {
         if (logger.isLoggable(Level.FINE)) {
@@ -1484,14 +1484,14 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Add an answer to a question. Deal with the case when the outgoing packet overflows
-     *
+     * 
      * @param in
      * @param addr
      * @param port
      * @param out
      * @param rec
      * @return outgoing answer
-     * @throws IOException
+     * @exception IOException
      */
     public DNSOutgoing addAnswer(DNSIncoming in, InetAddress addr, int port, DNSOutgoing out, DNSRecord rec) throws IOException {
         DNSOutgoing newOut = out;
@@ -1513,9 +1513,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Send an outgoing multicast DNS message.
-     *
+     * 
      * @param out
-     * @throws IOException
+     * @exception IOException
      */
     public void send(DNSOutgoing out) throws IOException {
         if (!out.isEmpty()) {
@@ -1853,7 +1853,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * This method disposes all ServiceCollector instances which have been created by calls to method <code>list(type)</code>.
-     *
+     * 
      * @see #list
      */
     private void disposeServiceCollectors() {
@@ -1871,7 +1871,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Instances of ServiceCollector are used internally to speed up the performance of method <code>list(type)</code>.
-     *
+     * 
      * @see #list
      */
     private static class ServiceCollector implements ServiceListener {
@@ -1907,7 +1907,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
         /**
          * A service has been added.
-         *
+         * 
          * @param event
          *            service event
          */
@@ -1931,7 +1931,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
         /**
          * A service has been removed.
-         *
+         * 
          * @param event
          *            service event
          */
@@ -1945,7 +1945,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
         /**
          * A service has been resolved. Its details are now available in the ServiceInfo record.
-         *
+         * 
          * @param event
          *            service event
          */
@@ -1959,7 +1959,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
         /**
          * Returns an array of all service infos which have been collected by this ServiceCollector.
-         *
+         * 
          * @param timeout
          *            timeout if the info list is empty.
          * @return Service Info array

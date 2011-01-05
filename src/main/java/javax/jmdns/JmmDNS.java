@@ -26,7 +26,10 @@ import javax.jmdns.impl.JmmDNSImpl;
  */
 public interface JmmDNS extends Closeable {
 
-    public static class Factory {
+    /**
+     * JmmDNS.Factory enable the creation of new instance of JmmDNS.
+     */
+    public static final class Factory {
         private static volatile JmmDNS _instance;
 
         /**
@@ -124,7 +127,7 @@ public interface JmmDNS extends Closeable {
      * Return the list of addresses of the interface to which this instance of JmmDNS is bound.
      *
      * @return list of Internet Address
-     * @throws IOException
+     * @exception IOException
      * @see javax.jmdns.JmDNS#getInterface()
      */
     public abstract InetAddress[] getInterfaces() throws IOException;
@@ -250,7 +253,7 @@ public interface JmmDNS extends Closeable {
      *
      * @param listener
      *            listener for service types
-     * @throws IOException
+     * @exception IOException
      * @see javax.jmdns.JmDNS#addServiceTypeListener(javax.jmdns.ServiceTypeListener)
      */
     public abstract void addServiceTypeListener(ServiceTypeListener listener) throws IOException;
@@ -292,7 +295,7 @@ public interface JmmDNS extends Closeable {
      *
      * @param info
      *            service info to register
-     * @throws IOException
+     * @exception IOException
      * @see javax.jmdns.JmDNS#registerService(javax.jmdns.ServiceInfo)
      */
     public abstract void registerService(ServiceInfo info) throws IOException;

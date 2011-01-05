@@ -23,7 +23,7 @@ public class NetworkTopologyEventImpl extends NetworkTopologyEvent implements Cl
 
     /**
      * Constructs a Network Topology Event.
-     *
+     * 
      * @param jmDNS
      * @param inetAddress
      * @exception IllegalArgumentException

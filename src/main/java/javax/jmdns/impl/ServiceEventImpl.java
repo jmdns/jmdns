@@ -10,8 +10,11 @@ import javax.jmdns.ServiceInfo;
 
 /**
  * ServiceEvent.
- *
+ * 
  * @author Werner Randelshofer, Rick Blair
+ */
+/**
+ *
  */
 public class ServiceEventImpl extends ServiceEvent {
     /**
@@ -34,7 +37,7 @@ public class ServiceEventImpl extends ServiceEvent {
 
     /**
      * Creates a new instance.
-     *
+     * 
      * @param jmDNS
      *            the JmDNS instance which originated the event.
      * @param type
@@ -51,7 +54,8 @@ public class ServiceEventImpl extends ServiceEvent {
         this._info = info;
     }
 
-    /**
+    /*
+     * (non-Javadoc)
      * @see javax.jmdns.ServiceEvent#getDNS()
      */
     @Override
@@ -59,7 +63,8 @@ public class ServiceEventImpl extends ServiceEvent {
         return (JmDNS) getSource();
     }
 
-    /**
+    /*
+     * (non-Javadoc)
      * @see javax.jmdns.ServiceEvent#getType()
      */
     @Override
@@ -67,7 +72,8 @@ public class ServiceEventImpl extends ServiceEvent {
         return _type;
     }
 
-    /**
+    /*
+     * (non-Javadoc)
      * @see javax.jmdns.ServiceEvent#getName()
      */
     @Override
@@ -75,8 +81,9 @@ public class ServiceEventImpl extends ServiceEvent {
         return _name;
     }
 
-    /**
-     * @see javax.jmdns.ServiceEvent#toString()
+    /*
+     * (non-Javadoc)
+     * @see java.util.EventObject#toString()
      */
     @Override
     public String toString() {
@@ -95,6 +102,10 @@ public class ServiceEventImpl extends ServiceEvent {
         return buf.toString();
     }
 
+    /*
+     * (non-Javadoc)
+     * @see javax.jmdns.ServiceEvent#getInfo()
+     */
     @Override
     public ServiceInfo getInfo() {
         return _info;
@@ -102,10 +113,10 @@ public class ServiceEventImpl extends ServiceEvent {
 
     /*
      * (non-Javadoc)
-     * @see java.lang.Object#clone()
+     * @see javax.jmdns.ServiceEvent#clone()
      */
     @Override
-    public ServiceEventImpl clone() throws CloneNotSupportedException {
+    public ServiceEventImpl clone() {
         ServiceInfoImpl newInfo = new ServiceInfoImpl(this.getInfo());
         return new ServiceEventImpl((JmDNSImpl) this.getDNS(), this.getType(), this.getName(), newInfo);
     }

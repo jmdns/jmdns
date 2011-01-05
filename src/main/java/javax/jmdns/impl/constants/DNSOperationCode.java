@@ -5,7 +5,7 @@ package javax.jmdns.impl.constants;
 
 /**
  * DNS operation code.
- *
+ * 
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Rick Blair
  */
 public enum DNSOperationCode {
@@ -37,7 +37,7 @@ public enum DNSOperationCode {
     /**
      * DNS RCode types are encoded on the last 4 bits
      */
-    final static int     OpCode_MASK = 0x7800;
+    static final int     OpCode_MASK = 0x7800;
 
     private final String _externalName;
 
@@ -50,7 +50,7 @@ public enum DNSOperationCode {
 
     /**
      * Return the string representation of this type
-     *
+     * 
      * @return String
      */
     public String externalName() {
@@ -59,7 +59,7 @@ public enum DNSOperationCode {
 
     /**
      * Return the numeric value of this type
-     *
+     * 
      * @return String
      */
     public int indexValue() {

@@ -25,7 +25,7 @@ import javax.jmdns.impl.tasks.DNSTask;
 
 /**
  * HostInfo information on the local host to be able to cope with change of addresses.
- *
+ * 
  * @author Pierre Frisch, Werner Randelshofer
  */
 public class HostInfo implements DNSStatefulObject {

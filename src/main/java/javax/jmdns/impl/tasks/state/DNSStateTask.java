@@ -18,7 +18,7 @@ import javax.jmdns.impl.tasks.DNSTask;
 
 /**
  * This is the root class for all state tasks. These tasks work with objects that implements the {@link javax.jmdns.impl.DNSStatefulObject} interface and therefore participate in the state machine.
- *
+ * 
  * @author Pierre Frisch
  */
 public abstract class DNSStateTask extends DNSTask {
@@ -44,7 +44,7 @@ public abstract class DNSStateTask extends DNSTask {
 
     /**
      * For testing only do not use in production.
-     *
+     * 
      * @param value
      */
     public static void setDefaultTTL(int value) {
@@ -69,7 +69,7 @@ public abstract class DNSStateTask extends DNSTask {
 
     /**
      * Associate the DNS host and the service infos with this task if not already associated and in the same state.
-     *
+     * 
      * @param state
      *            target state
      */

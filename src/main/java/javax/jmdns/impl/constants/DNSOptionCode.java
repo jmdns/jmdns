@@ -5,7 +5,7 @@ package javax.jmdns.impl.constants;
 
 /**
  * DNS option code.
- *
+ * 
  * @author Arthur van Hoff, Pierre Frisch, Rick Blair
  */
 public enum DNSOptionCode {
@@ -42,7 +42,7 @@ public enum DNSOptionCode {
 
     /**
      * Return the string representation of this type
-     *
+     * 
      * @return String
      */
     public String externalName() {
@@ -51,7 +51,7 @@ public enum DNSOptionCode {
 
     /**
      * Return the numeric value of this type
-     *
+     * 
      * @return String
      */
     public int indexValue() {

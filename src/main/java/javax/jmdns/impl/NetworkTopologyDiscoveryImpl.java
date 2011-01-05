@@ -17,7 +17,7 @@ import javax.jmdns.NetworkTopologyDiscovery;
 
 /**
  * This class implements NetworkTopologyDiscovery.
- *
+ * 
  * @author Pierre Frisch
  */
 public class NetworkTopologyDiscoveryImpl implements NetworkTopologyDiscovery {

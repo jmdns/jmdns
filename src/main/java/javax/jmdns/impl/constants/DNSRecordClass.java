@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 
 /**
  * DNS Record Class
- *
+ * 
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Rick Blair
  */
 public enum DNSRecordClass {
@@ -17,7 +17,7 @@ public enum DNSRecordClass {
      */
     CLASS_UNKNOWN("?", 0),
     /**
-     * Final Static Internet
+     * static final Internet
      */
     CLASS_IN("in", 1),
     /**
@@ -47,23 +47,23 @@ public enum DNSRecordClass {
      * Multicast DNS uses the bottom 15 bits to identify the record class...<br/>
      * Except for pseudo records like OPT.
      */
-    public final static int     CLASS_MASK   = 0x7FFF;
+    public static final int     CLASS_MASK   = 0x7FFF;
 
     /**
      * For answers the top bit indicates that all other cached records are now invalid.<br/>
      * For questions it indicates that we should send a unicast response.
      */
-    public final static int     CLASS_UNIQUE = 0x8000;
+    public static final int     CLASS_UNIQUE = 0x8000;
 
     /**
      *
      */
-    public final static boolean UNIQUE       = true;
+    public static final boolean UNIQUE       = true;
 
     /**
      *
      */
-    public final static boolean NOT_UNIQUE   = false;
+    public static final boolean NOT_UNIQUE   = false;
 
     private final String        _externalName;
 
@@ -76,7 +76,7 @@ public enum DNSRecordClass {
 
     /**
      * Return the string representation of this type
-     *
+     * 
      * @return String
      */
     public String externalName() {
@@ -85,7 +85,7 @@ public enum DNSRecordClass {
 
     /**
      * Return the numeric value of this type
-     *
+     * 
      * @return String
      */
     public int indexValue() {
@@ -94,7 +94,7 @@ public enum DNSRecordClass {
 
     /**
      * Checks if the class is unique
-     *
+     * 
      * @param index
      * @return <code>true</code> is the class is unique, <code>false</code> otherwise.
      */

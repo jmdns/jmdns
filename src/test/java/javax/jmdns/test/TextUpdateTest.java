@@ -53,11 +53,7 @@ public class TextUpdateTest {
          */
         @Override
         public void serviceAdded(ServiceEvent event) {
-            try {
-                _serviceAdded.add(event.clone());
-            } catch (CloneNotSupportedException exception) {
-                //
-            }
+            _serviceAdded.add(event.clone());
         }
 
         /*
@@ -66,11 +62,7 @@ public class TextUpdateTest {
          */
         @Override
         public void serviceRemoved(ServiceEvent event) {
-            try {
-                _serviceRemoved.add(event.clone());
-            } catch (CloneNotSupportedException exception) {
-                //
-            }
+            _serviceRemoved.add(event.clone());
         }
 
         /*
@@ -79,11 +71,7 @@ public class TextUpdateTest {
          */
         @Override
         public void serviceResolved(ServiceEvent event) {
-            try {
-                _serviceResolved.add(event.clone());
-            } catch (CloneNotSupportedException exception) {
-                //
-            }
+            _serviceResolved.add(event.clone());
         }
 
         public List<ServiceEvent> servicesAdded() {

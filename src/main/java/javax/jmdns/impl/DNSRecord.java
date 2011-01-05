@@ -26,7 +26,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
 
 /**
  * DNS record
- *
+ * 
  * @author Arthur van Hoff, Rick Blair, Werner Randelshofer, Pierre Frisch
  */
 public abstract class DNSRecord extends DNSEntry {
@@ -71,14 +71,14 @@ public abstract class DNSRecord extends DNSEntry {
 
     /**
      * Handles a query represented by this record.
-     *
+     * 
      * @return Returns true if a conflict with one of the services registered with JmDNS or with the hostname occured.
      */
     abstract boolean handleQuery(JmDNSImpl dns, long expirationTime);
 
     /**
      * Handles a response represented by this record.
-     *
+     * 
      * @return Returns true if a conflict with one of the services registered with JmDNS or with the hostname occured.
      */
     abstract boolean handleResponse(JmDNSImpl dns);
@@ -924,14 +924,14 @@ public abstract class DNSRecord extends DNSEntry {
 
     /**
      * Determine if a record can have multiple values in the cache.
-     *
+     * 
      * @return <code>false</code> if this record can have multiple values in the cache, <code>true</code> otherwise.
      */
     public abstract boolean isSingleValued();
 
     /**
      * Return a service information associated with that record if appropriate.
-     *
+     * 
      * @return service information
      */
     public ServiceInfo getServiceInfo() {
@@ -940,7 +940,7 @@ public abstract class DNSRecord extends DNSEntry {
 
     /**
      * Return a service information associated with that record if appropriate.
-     *
+     * 
      * @param persistent
      *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
      * @return service information
@@ -949,7 +949,7 @@ public abstract class DNSRecord extends DNSEntry {
 
     /**
      * Creates and return a service event for this record.
-     *
+     * 
      * @param dns
      *            DNS serviced by this event
      * @return service event
