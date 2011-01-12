@@ -24,6 +24,8 @@ import javax.jmdns.impl.tasks.state.Renewer;
  * <p>
  * <b>Note: </b> This is not considered as part of the general public API of JmDNS.
  * </p>
+ *
+ * @author Pierre Frisch
  */
 public interface DNSTaskStarter {
 
@@ -134,17 +136,17 @@ public interface DNSTaskStarter {
 
     public static final class DNSTaskStarterImpl implements DNSTaskStarter {
 
-        private final JmDNSImpl   _jmDNSImpl;
+        private final JmDNSImpl _jmDNSImpl;
 
         /**
          * The timer is used to dispatch all outgoing messages of JmDNS. It is also used to dispatch maintenance tasks for the DNS cache.
          */
-        private final Timer _timer;
+        private final Timer     _timer;
 
         /**
          * The timer is used to dispatch maintenance tasks for the DNS cache.
          */
-        private final Timer _stateTimer;
+        private final Timer     _stateTimer;
 
         public DNSTaskStarterImpl(JmDNSImpl jmDNSImpl) {
             super();

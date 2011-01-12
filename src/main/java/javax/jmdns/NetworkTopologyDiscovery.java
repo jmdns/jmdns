@@ -10,42 +10,42 @@ import javax.jmdns.impl.NetworkTopologyDiscoveryImpl;
  * This class is used to resolve the list of Internet address to use when attaching JmDNS to the network.
  * <p>
  * To create you own filtering class for Internet Addresses you will need to implement the class and the factory delegate. These must be called before any other call to JmDNS.
- * 
+ *
  * <pre>
  * public static class MyNetworkTopologyDiscovery implements NetworkTopologyDiscovery {
- * 
+ *
  *     &#064;Override
  *     public InetAddress[] getInetAddresses() {
  *         // TODO Auto-generated method stub
  *         return null;
  *     }
- * 
+ *
  *     &#064;Override
  *     public boolean useInetAddress(NetworkInterface networkInterface, InetAddress interfaceAddress) {
  *         // TODO Auto-generated method stub
  *         return false;
  *     }
- * 
+ *
  * }
- * 
+ *
  * public static class MyClass implements NetworkTopologyDiscovery.Factory.ClassDelegate {
  *     public MyClass() {
  *         super();
  *         NetworkTopologyDiscovery.Factory.setClassDelegate(this);
- * 
+ *
  *         // Access JmDNS or JmmDNS
  *     }
- * 
+ *
  *     &#064;Override
  *     public NetworkTopologyDiscovery newNetworkTopologyDiscovery() {
  *         return new MyNetworkTopologyDiscovery();
  *     }
- * 
+ *
  * }
  * </pre>
- * 
+ *
  * </p>
- * 
+ *
  * @author Pierre Frisch
  */
 public interface NetworkTopologyDiscovery {
@@ -57,13 +57,13 @@ public interface NetworkTopologyDiscovery {
         private static volatile NetworkTopologyDiscovery _instance;
 
         /**
-         * This interface defines a delegate to the EOClassDescriptionRegister class to enable subclassing.
+         * This interface defines a delegate to the NetworkTopologyDiscovery.Factory class to enable subclassing.
          */
         public static interface ClassDelegate {
 
             /**
              * Allows the delegate the opportunity to construct and return a different NetworkTopologyDiscovery.
-             * 
+             *
              * @return Should return a new NetworkTopologyDiscovery Object.
              * @see #classDelegate()
              * @see #setClassDelegate(ClassDelegate anObject)
@@ -79,7 +79,7 @@ public interface NetworkTopologyDiscovery {
 
         /**
          * Assigns <code>delegate</code> as NetworkTopologyDiscovery's class delegate. The class delegate is optional.
-         * 
+         *
          * @param delegate
          *            The object to set as NetworkTopologyDiscovery's class delegate.
          * @see #classDelegate()
@@ -91,7 +91,7 @@ public interface NetworkTopologyDiscovery {
 
         /**
          * Returns NetworkTopologyDiscovery's class delegate.
-         * 
+         *
          * @return NetworkTopologyDiscovery's class delegate.
          * @see #setClassDelegate(ClassDelegate anObject)
          * @see JmmDNS.Factory.ClassDelegate
@@ -102,7 +102,7 @@ public interface NetworkTopologyDiscovery {
 
         /**
          * Returns a new instance of NetworkTopologyDiscovery using the class delegate if it exists.
-         * 
+         *
          * @return new instance of NetworkTopologyDiscovery
          */
         protected static NetworkTopologyDiscovery newNetworkTopologyDiscovery() {
@@ -116,7 +116,7 @@ public interface NetworkTopologyDiscovery {
 
         /**
          * Return the instance of the Multihommed Multicast DNS.
-         * 
+         *
          * @return the JmmDNS
          */
         public static NetworkTopologyDiscovery getInstance() {
@@ -133,14 +133,14 @@ public interface NetworkTopologyDiscovery {
 
     /**
      * Get all local Internet Addresses for the machine.
-     * 
+     *
      * @return Set of InetAddress
      */
     public abstract InetAddress[] getInetAddresses();
 
     /**
      * Check if a given InetAddress should be used for mDNS
-     * 
+     *
      * @param networkInterface
      * @param interfaceAddress
      * @return <code>true</code> is the address is to be used, <code>false</code> otherwise.
