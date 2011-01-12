@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
-import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
@@ -46,24 +45,15 @@ import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSState;
 import javax.jmdns.impl.tasks.DNSTask;
-import javax.jmdns.impl.tasks.RecordReaper;
-import javax.jmdns.impl.tasks.Responder;
-import javax.jmdns.impl.tasks.resolver.ServiceInfoResolver;
-import javax.jmdns.impl.tasks.resolver.ServiceResolver;
-import javax.jmdns.impl.tasks.resolver.TypeResolver;
-import javax.jmdns.impl.tasks.state.Announcer;
-import javax.jmdns.impl.tasks.state.Canceler;
-import javax.jmdns.impl.tasks.state.Prober;
-import javax.jmdns.impl.tasks.state.Renewer;
 
 // REMIND: multiple IP addresses
 
 /**
  * mDNS implementation in Java.
- * 
+ *
  * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis
  */
-public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
+public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarter {
     private static Logger logger = Logger.getLogger(JmDNSImpl.class.getName());
 
     public enum Operation {
@@ -159,7 +149,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
             /**
              * Replaces the value corresponding to this entry with the specified value (optional operation). This implementation simply throws <tt>UnsupportedOperationException</tt>, as this class implements an <i>immutable</i> map entry.
-             * 
+             *
              * @param value
              *            new value to be stored in this entry
              * @return (Does not return)
@@ -218,7 +208,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
         /**
          * The type associated with this entry.
-         * 
+         *
          * @return the type
          */
         public String getType() {
@@ -237,7 +227,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         /**
          * Returns <code>true</code> if this set contains the specified element. More formally, returns <code>true</code> if and only if this set contains an element <code>e</code> such that
          * <code>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</code>.
-         * 
+         *
          * @param subtype
          *            element whose presence in this set is to be tested
          * @return <code>true</code> if this set contains the specified element
@@ -249,7 +239,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         /**
          * Adds the specified element to this set if it is not already present. More formally, adds the specified element <code>e</code> to this set if this set contains no element <code>e2</code> such that
          * <code>(e==null&nbsp;?&nbsp;e2==null&nbsp;:&nbsp;e.equals(e2))</code>. If this set already contains the element, the call leaves the set unchanged and returns <code>false</code>.
-         * 
+         *
          * @param subtype
          *            element to be added to this set
          * @return <code>true</code> if this set did not already contain the specified element
@@ -264,7 +254,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
         /**
          * Returns an iterator over the elements in this set. The elements are returned in no particular order (unless this set is an instance of some class that provides a guarantee).
-         * 
+         *
          * @return an iterator over the elements in this set
          */
         public Iterator<String> iterator() {
@@ -342,16 +332,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
     // ---------------------------------------------------
 
     /**
-     * The timer is used to dispatch all outgoing messages of JmDNS. It is also used to dispatch maintenance tasks for the DNS cache.
-     */
-    private final Timer                                   _timer;
-
-    /**
-     * The timer is used to dispatch maintenance tasks for the DNS cache.
-     */
-    private final Timer                                   _stateTimer;
-
-    /**
      * The source for random values. This is used to introduce random delays in responses. This reduces the potential for collisions on the network.
      */
     private final static Random                           _random   = new Random();
@@ -371,7 +351,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * This hashtable is used to maintain a list of service types being collected by this JmDNS instance. The key of the hashtable is a service type name, the value is an instance of JmDNS.ServiceCollector.
-     * 
+     *
      * @see #list
      */
     private final ConcurrentMap<String, ServiceCollector> _serviceCollectors;
@@ -380,7 +360,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Main method to display API information if run from java -jar
-     * 
+     *
      * @param argv
      *            the command line arguments
      */
@@ -405,7 +385,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Create an instance of JmDNS and bind it to a specific network interface given its IP-address.
-     * 
+     *
      * @param address
      *            IP address to bind to.
      * @param name
@@ -430,8 +410,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         _localHost = HostInfo.newHostInfo(address, this, name);
         _name = (name != null ? name : _localHost.getName());
 
-        _timer = new Timer("JmDNS(" + _name + ").Timer", true);
-        _stateTimer = new Timer("JmDNS(" + _name + ").State.Timer", false);
         // _cancelerTimer = new Timer("JmDNS.cancelerTimer");
 
         // (ldeck 2.1.1) preventing shutdown blocking thread
@@ -445,7 +423,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         this.openMulticastSocket(this.getLocalHost());
         this.start(this.getServices().values());
 
-        new RecordReaper(this).start(_timer);
+        this.startReaper();
     }
 
     private void start(Collection<? extends ServiceInfo> serviceInfos) {
@@ -651,7 +629,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Return the DNSCache associated with the cache variable
-     * 
+     *
      * @return DNS cache
      */
     public DNSCache getCache() {
@@ -676,7 +654,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Returns the local host info
-     * 
+     *
      * @return local host info
      */
     public HostInfo getLocalHost() {
@@ -736,7 +714,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         // Check if the answer is in the cache.
         final ServiceInfoImpl info = this.getServiceInfoFromCache(type, name, subtype, persistent);
         // We still run the resolver to do the dispatch but if the info is already there it will quit immediately
-        new ServiceInfoResolver(this, info).start(_timer);
+        this.startServiceInfoResolver(info);
 
         return info;
     }
@@ -887,7 +865,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
             status.serviceTypeAdded(new ServiceEventImpl(this, type, "", null));
         }
 
-        new TypeResolver(this).start(_timer);
+        this.startTypeResolver();
     }
 
     /**
@@ -945,7 +923,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
             status.serviceAdded(serviceEvent);
         }
         // Create/start ServiceResolver
-        new ServiceResolver(this, type).start(_timer);
+        this.startServiceResolver(type);
     }
 
     /**
@@ -1116,7 +1094,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Generate a possibly unique name for a service using the information we have in the cache.
-     * 
+     *
      * @return returns true, if the name of the service info had to be changed.
      */
     private boolean makeServiceNameUnique(ServiceInfoImpl info) {
@@ -1175,7 +1153,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Add a listener for a question. The listener will receive updates of answers to the question as they arrive, or from the cache if they are already available.
-     * 
+     *
      * @param listener
      *            DSN listener
      * @param question
@@ -1205,7 +1183,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Remove a listener from all outstanding questions. The listener will no longer receive any updates.
-     * 
+     *
      * @param listener
      *            DSN listener
      */
@@ -1215,7 +1193,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Renew a service when the record become stale. If there is no service collector for the type this method does nothing.
-     * 
+     *
      * @param record
      *            DNS record
      */
@@ -1223,14 +1201,14 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         ServiceInfo info = record.getServiceInfo();
         if (_serviceCollectors.containsKey(info.getType().toLowerCase())) {
             // Create/start ServiceResolver
-            new ServiceResolver(this, info.getType()).start(_timer);
+            this.startServiceResolver(info.getType());
         }
     }
 
     // Remind: Method updateRecord should receive a better name.
     /**
      * Notify all listeners that a record was updated.
-     * 
+     *
      * @param now
      *            update date
      * @param rec
@@ -1401,7 +1379,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Handle an incoming response. Cache answers, and pass them on to the appropriate questions.
-     * 
+     *
      * @exception IOException
      */
     void handleResponse(DNSIncoming msg) throws IOException {
@@ -1428,7 +1406,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Handle an incoming query. See if we can answer any part of it given our service infos.
-     * 
+     *
      * @param in
      * @param addr
      * @param port
@@ -1454,7 +1432,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
                 if (in.isTruncated()) {
                     _plannedAnswer = in;
                 }
-                new Responder(this, in, port).start(_timer);
+                this.startResponder(in, port);
             }
 
         } finally {
@@ -1484,7 +1462,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Add an answer to a question. Deal with the case when the outgoing packet overflows
-     * 
+     *
      * @param in
      * @param addr
      * @param port
@@ -1513,7 +1491,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Send an outgoing multicast DNS message.
-     * 
+     *
      * @param out
      * @exception IOException
      */
@@ -1539,20 +1517,121 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * @see javax.jmdns.impl.DNSTaskStarter#purgeTimer()
+     */
+    @Override
+    public void purgeTimer() {
+        DNSTaskStarter.Factory.getInstance().getStarter(this.getDns()).purgeTimer();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see javax.jmdns.impl.DNSTaskStarter#purgeStateTimer()
+     */
+    @Override
+    public void purgeStateTimer() {
+        DNSTaskStarter.Factory.getInstance().getStarter(this.getDns()).purgeStateTimer();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see javax.jmdns.impl.DNSTaskStarter#cancelTimer()
+     */
+    @Override
+    public void cancelTimer() {
+        DNSTaskStarter.Factory.getInstance().getStarter(this.getDns()).cancelTimer();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see javax.jmdns.impl.DNSTaskStarter#cancelStateTimer()
+     */
+    @Override
+    public void cancelStateTimer() {
+        DNSTaskStarter.Factory.getInstance().getStarter(this.getDns()).cancelStateTimer();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see javax.jmdns.impl.DNSTaskStarter#startProber()
+     */
+    @Override
     public void startProber() {
-        new Prober(this).start(_stateTimer);
+        DNSTaskStarter.Factory.getInstance().getStarter(this.getDns()).startProber();
     }
 
+    /*
+     * (non-Javadoc)
+     * @see javax.jmdns.impl.DNSTaskStarter#startAnnouncer()
+     */
+    @Override
     public void startAnnouncer() {
-        new Announcer(this).start(_stateTimer);
+        DNSTaskStarter.Factory.getInstance().getStarter(this.getDns()).startAnnouncer();
     }
 
+    /*
+     * (non-Javadoc)
+     * @see javax.jmdns.impl.DNSTaskStarter#startRenewer()
+     */
+    @Override
     public void startRenewer() {
-        new Renewer(this).start(_stateTimer);
+        DNSTaskStarter.Factory.getInstance().getStarter(this.getDns()).startRenewer();
     }
 
+    /*
+     * (non-Javadoc)
+     * @see javax.jmdns.impl.DNSTaskStarter#startCanceler()
+     */
+    @Override
     public void startCanceler() {
-        new Canceler(this).start(_stateTimer);
+        DNSTaskStarter.Factory.getInstance().getStarter(this.getDns()).startCanceler();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see javax.jmdns.impl.DNSTaskStarter#startReaper()
+     */
+    @Override
+    public void startReaper() {
+        DNSTaskStarter.Factory.getInstance().getStarter(this.getDns()).startReaper();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see javax.jmdns.impl.DNSTaskStarter#startServiceInfoResolver(javax.jmdns.impl.ServiceInfoImpl)
+     */
+    @Override
+    public void startServiceInfoResolver(ServiceInfoImpl info) {
+        DNSTaskStarter.Factory.getInstance().getStarter(this.getDns()).startServiceInfoResolver(info);
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see javax.jmdns.impl.DNSTaskStarter#startTypeResolver()
+     */
+    @Override
+    public void startTypeResolver() {
+        DNSTaskStarter.Factory.getInstance().getStarter(this.getDns()).startTypeResolver();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see javax.jmdns.impl.DNSTaskStarter#startServiceResolver(java.lang.String)
+     */
+    @Override
+    public void startServiceResolver(String type) {
+        DNSTaskStarter.Factory.getInstance().getStarter(this.getDns()).startServiceResolver(type);
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see javax.jmdns.impl.DNSTaskStarter#startResponder(javax.jmdns.impl.DNSIncoming, int)
+     */
+    @Override
+    public void startResponder(DNSIncoming in, int port) {
+        DNSTaskStarter.Factory.getInstance().getStarter(this.getDns()).startResponder(in, port);
     }
 
     // REMIND: Why is this not an anonymous inner class?
@@ -1614,7 +1693,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         }
 
         // Purge the timer
-        _timer.purge();
+        this.purgeTimer();
 
         // We need to keep a copy for reregistration
         final Collection<ServiceInfo> oldServiceInfos = new ArrayList<ServiceInfo>(getServices().values());
@@ -1626,7 +1705,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
         this.waitForCanceled(0);
 
         // Purge the canceler timer
-        _stateTimer.purge();
+        this.purgeStateTimer();
 
         //
         // close multicast socket
@@ -1690,7 +1769,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
             // We got the tie break now clean up
 
             // Stop the timer
-            _timer.cancel();
+            this.cancelTimer();
 
             // Cancel all services
             this.unregisterAllServices();
@@ -1702,7 +1781,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
             this.waitForCanceled(DNSConstants.CLOSE_TIMEOUT);
 
             // Stop the canceler timer
-            _stateTimer.cancel();
+            this.cancelStateTimer();
 
             // Stop the executor
             _executor.shutdown();
@@ -1853,7 +1932,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * This method disposes all ServiceCollector instances which have been created by calls to method <code>list(type)</code>.
-     * 
+     *
      * @see #list
      */
     private void disposeServiceCollectors() {
@@ -1871,7 +1950,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
     /**
      * Instances of ServiceCollector are used internally to speed up the performance of method <code>list(type)</code>.
-     * 
+     *
      * @see #list
      */
     private static class ServiceCollector implements ServiceListener {
@@ -1907,7 +1986,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
         /**
          * A service has been added.
-         * 
+         *
          * @param event
          *            service event
          */
@@ -1931,7 +2010,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
         /**
          * A service has been removed.
-         * 
+         *
          * @param event
          *            service event
          */
@@ -1945,7 +2024,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
         /**
          * A service has been resolved. Its details are now available in the ServiceInfo record.
-         * 
+         *
          * @param event
          *            service event
          */
@@ -1959,7 +2038,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject {
 
         /**
          * Returns an array of all service infos which have been collected by this ServiceCollector.
-         * 
+         *
          * @param timeout
          *            timeout if the info list is empty.
          * @return Service Info array
