@@ -965,7 +965,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         info.addAddress(_localHost.getInet4Address());
         info.addAddress(_localHost.getInet6Address());
 
-        this.waitForAnnounced(0);
+        this.waitForAnnounced(DNSConstants.SERVICE_INFO_TIMEOUT);
 
         this.makeServiceNameUnique(info);
         while (_services.putIfAbsent(info.getKey(), info) != null) {
@@ -973,7 +973,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         }
 
         this.startProber();
-        info.waitForAnnounced(0);
+        info.waitForAnnounced(DNSConstants.SERVICE_INFO_TIMEOUT);
 
         if (logger.isLoggable(Level.FINE)) {
             logger.fine("registerService() JmDNS registered service as " + info);
