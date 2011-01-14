@@ -36,7 +36,7 @@ import javax.jmdns.impl.tasks.DNSTask;
 
 /**
  * JmDNS service information.
- * 
+ *
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer
  */
 public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStatefulObject {
@@ -93,7 +93,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                 try {
                     if ((this._task == null) && _info.needTextAnnouncing()) {
                         if (this._state.isAnnounced()) {
-                            this._state = DNSState.ANNOUNCING_1;
+                            this.setState(DNSState.ANNOUNCING_1);
                             if (this.getDns() != null) {
                                 this.getDns().startAnnouncer();
                             }
@@ -204,7 +204,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
 
     /**
      * During recovery we need to duplicate service info to reregister them
-     * 
+     *
      * @param info
      */
     ServiceInfoImpl(ServiceInfo info) {
@@ -410,7 +410,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
 
     /**
      * Sets the service instance name.
-     * 
+     *
      * @param name
      *            unqualified service instance name, such as <code>foobar</code>
      */
@@ -852,7 +852,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
 
     /**
      * JmDNS callback to update a DNS record.
-     * 
+     *
      * @param dnsCache
      * @param now
      * @param rec
@@ -930,7 +930,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
 
     /**
      * Returns true if the service info is filled with data.
-     * 
+     *
      * @return <code>true</code> if the service info has data, <code>false</code> otherwise.
      */
     @Override
@@ -1191,7 +1191,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
 
     /**
      * This is used internally by the framework
-     * 
+     *
      * @param text
      */
     void _setText(byte[] text) {

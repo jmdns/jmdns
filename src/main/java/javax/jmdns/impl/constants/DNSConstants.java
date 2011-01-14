@@ -6,7 +6,7 @@ package javax.jmdns.impl.constants;
 
 /**
  * DNS constants.
- * 
+ *
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Rick Blair
  */
 public final class DNSConstants {

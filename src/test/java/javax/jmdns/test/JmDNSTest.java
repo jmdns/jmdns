@@ -108,8 +108,9 @@ public class JmDNSTest {
             // now unregister and make sure it's gone
             registry.unregisterService(services[0]);
 
+            // According to the spec the record disappears from the cache 1s after it has been unregistered
             // without sleeping for a while, the service would not be unregistered fully
-            Thread.sleep(1000);
+            Thread.sleep(1500);
 
             services = registry.list(service.getType());
             assertTrue("We should not see the service we just unregistered: ", services == null || services.length == 0);
@@ -315,7 +316,9 @@ public class JmDNSTest {
             assertEquals("Did not get the expected service info: ", service, fetchedServices[0]);
             registry.close();
             registry = null;
-            Thread.sleep(1000);
+            // According to the spec the record disappears from the cache 1s after it has been unregistered
+            // without sleeping for a while, the service would not be unregistered fully
+            Thread.sleep(1500);
             fetchedServices = newServiceRegistry.list(service.getType());
             assertEquals("The service was not cancelled after the close:", 0, fetchedServices.length);
         } finally {
@@ -424,8 +427,9 @@ public class JmDNSTest {
             assertEquals(service, services[0]);
             // now unregister and make sure it's gone
             registry.unregisterService(services[0]);
+            // According to the spec the record disappears from the cache 1s after it has been unregistered
             // without sleeping for a while, the service would not be unregistered fully
-            Thread.sleep(1000);
+            Thread.sleep(1500);
             services = registry.list(service.getType().toLowerCase());
             assertTrue("We should not see the service we just unregistered: ", services == null || services.length == 0);
         } finally {
@@ -451,8 +455,9 @@ public class JmDNSTest {
             assertEquals(service, services[0]);
             // now unregister and make sure it's gone
             registry.unregisterService(services[0]);
+            // According to the spec the record disappears from the cache 1s after it has been unregistered
             // without sleeping for a while, the service would not be unregistered fully
-            Thread.sleep(1000);
+            Thread.sleep(1500);
             services = registry.list(service.getType());
             assertTrue("We should not see the service we just unregistered: ", services == null || services.length == 0);
         } finally {

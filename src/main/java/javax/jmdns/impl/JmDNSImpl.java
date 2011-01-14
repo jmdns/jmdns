@@ -106,6 +106,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      */
     private final ConcurrentMap<String, ServiceTypeEntry>            _serviceTypes;
 
+    private volatile Delegate                                        _delegate;
+
     /**
      * This is used to store type entries. The type is stored as a call variable and the map support the subtypes.
      * <p>
@@ -988,9 +990,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         if (info != null) {
             info.cancelState();
             this.startCanceler();
-
-            // Remind: We get a deadlock here, if the Canceler does not run!
-            info.waitForCanceled(0);
+            info.waitForCanceled(DNSConstants.CLOSE_TIMEOUT);
 
             _services.remove(info.getKey(), info);
             if (logger.isLoggable(Level.FINE)) {
@@ -1702,7 +1702,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         this.unregisterAllServices();
         this.disposeServiceCollectors();
 
-        this.waitForCanceled(0);
+        this.waitForCanceled(DNSConstants.CLOSE_TIMEOUT);
 
         // Purge the canceler timer
         this.purgeStateTimer();
@@ -1710,26 +1710,37 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         //
         // close multicast socket
         this.closeMulticastSocket();
+
         //
         this.getCache().clear();
         if (logger.isLoggable(Level.FINER)) {
             logger.finer(this.getName() + "recover() All is clean");
         }
-        //
-        // All is clear now start the services
-        //
-        for (ServiceInfo info : oldServiceInfos) {
-            ((ServiceInfoImpl) info).recoverState();
-        }
-        this.recoverState();
 
-        try {
-            this.openMulticastSocket(this.getLocalHost());
-            this.start(oldServiceInfos);
-        } catch (final Exception exception) {
-            logger.log(Level.WARNING, this.getName() + "recover() Start services exception ", exception);
+        if (this.isCanceled()) {
+            //
+            // All is clear now start the services
+            //
+            for (ServiceInfo info : oldServiceInfos) {
+                ((ServiceInfoImpl) info).recoverState();
+            }
+            this.recoverState();
+
+            try {
+                this.openMulticastSocket(this.getLocalHost());
+                this.start(oldServiceInfos);
+            } catch (final Exception exception) {
+                logger.log(Level.WARNING, this.getName() + "recover() Start services exception ", exception);
+            }
+            logger.log(Level.WARNING, this.getName() + "recover() We are back!");
+        } else {
+            // We have a problem. We could not clear the state.
+            logger.log(Level.WARNING, this.getName() + "recover() Could not recover we are Down!");
+            if (this.getDelegate() != null) {
+                this.getDelegate().cannotRecoverFromIOError(this.getDns(), oldServiceInfos);
+            }
         }
-        logger.log(Level.WARNING, this.getName() + "recover() We are back!");
+
     }
 
     public void cleanCache() {
@@ -2169,6 +2180,18 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
     public InetAddress getGroup() {
         return _group;
+    }
+
+    @Override
+    public Delegate getDelegate() {
+        return this._delegate;
+    }
+
+    @Override
+    public Delegate setDelegate(Delegate delegate) {
+        Delegate previous = this._delegate;
+        this._delegate = delegate;
+        return previous;
     }
 
 }

@@ -14,6 +14,7 @@ TXT Record not updating for getProperty call - ID: 3126952
 ServiceInfo doesn't allow more than one IPV4 address.- ID: 3150462
 waitForCancelled and waitForAnnounced can cause bad behavior - ID: 3151408
 Add support for MANET that need to override timer definition
+Reworked the waitForXXX method to make them event driven. Quite a bit more efficient.
 
 CHANGELOG 16 November 2010 Pierre Frisch
 Rev the source code to 3.2.2

@@ -45,6 +45,7 @@ public interface JmmDNS extends Closeable {
              * @see #setClassDelegate(ClassDelegate anObject)
              */
             public JmmDNS newJmmDNS();
+
         }
 
         private static final AtomicReference<ClassDelegate> _databaseClassDelegate = new AtomicReference<ClassDelegate>();

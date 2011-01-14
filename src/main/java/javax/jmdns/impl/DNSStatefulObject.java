@@ -1,38 +1,42 @@
 // Licensed under Apache License version 2.0
 package javax.jmdns.impl;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
-import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSState;
 import javax.jmdns.impl.tasks.DNSTask;
 
 /**
  * Sets of methods to manage the state machine.<br/>
  * <b>Implementation note:</b> This interface is accessed from multiple threads. The implementation must be thread safe.
- * 
+ *
  * @author Pierre Frisch
  */
 public interface DNSStatefulObject {
 
     public static class DefaultImplementation extends ReentrantLock implements DNSStatefulObject {
-        private static Logger       logger           = Logger.getLogger(DefaultImplementation.class.getName());
+        private static Logger                    logger           = Logger.getLogger(DefaultImplementation.class.getName());
 
-        private static final long   serialVersionUID = -3264781576883412227L;
+        private static final long                serialVersionUID = -3264781576883412227L;
 
-        private volatile JmDNSImpl  _dns;
+        private volatile JmDNSImpl               _dns;
 
-        protected volatile DNSTask  _task;
+        protected volatile DNSTask               _task;
 
-        protected volatile DNSState _state;
+        protected volatile DNSState              _state;
+
+        private final DNSStatefulObjectSemaphore _announcing;
+
+        private final DNSStatefulObjectSemaphore _canceling;
 
         public DefaultImplementation() {
             super();
             _dns = null;
             _task = null;
             _state = DNSState.PROBING_1;
+            _announcing = new DNSStatefulObjectSemaphore("Announce");
+            _canceling = new DNSStatefulObjectSemaphore("Cancel");
         }
 
         /**
@@ -99,6 +103,27 @@ public interface DNSStatefulObject {
         }
 
         /**
+         * @param state
+         *            the state to set
+         */
+        protected void setState(DNSState state) {
+            this.lock();
+            try {
+                this._state = state;
+                if (this.isAnnounced()) {
+                    _announcing.signalEvent();
+                }
+                if (this.isCanceled()) {
+                    _canceling.signalEvent();
+                    // clear any waiting announcing
+                    _announcing.signalEvent();
+                }
+            } finally {
+                this.unlock();
+            }
+        }
+
+        /**
          * {@inheritDoc}
          */
         @Override
@@ -108,7 +133,7 @@ public interface DNSStatefulObject {
                 this.lock();
                 try {
                     if (this._task == task) {
-                        this._state = this._state.advance();
+                        this.setState(this._state.advance());
                     } else {
                         logger.warning("Trying to advance state whhen not the owner. owner: " + this._task + " perpetrator: " + task);
                     }
@@ -129,7 +154,7 @@ public interface DNSStatefulObject {
                 this.lock();
                 try {
                     if (!this.willCancel()) {
-                        this._state = this._state.revert();
+                        this.setState(this._state.revert());
                         this.setTask(null);
                     }
                 } finally {
@@ -149,7 +174,7 @@ public interface DNSStatefulObject {
                 this.lock();
                 try {
                     if (!this.willCancel()) {
-                        this._state = DNSState.CANCELING_1;
+                        this.setState(DNSState.CANCELING_1);
                         this.setTask(null);
                         result = true;
                     }
@@ -168,7 +193,7 @@ public interface DNSStatefulObject {
             boolean result = false;
             this.lock();
             try {
-                this._state = DNSState.PROBING_1;
+                this.setState(DNSState.PROBING_1);
                 this.setTask(null);
             } finally {
                 this.unlock();
@@ -226,30 +251,7 @@ public interface DNSStatefulObject {
         @Override
         public boolean waitForAnnounced(long timeout) {
             if (!this.isAnnounced() && !this.willCancel()) {
-                try {
-                    boolean finished = false;
-                    long end = (timeout > 0 ? System.currentTimeMillis() + timeout : Long.MAX_VALUE);
-                    while (!finished) {
-                        long now = System.currentTimeMillis();
-                        boolean lock = this.tryLock(DNSConstants.ANNOUNCE_WAIT_INTERVAL, TimeUnit.MILLISECONDS);
-                        try {
-                            finished = (this.isAnnounced() || this.willCancel() ? true : end <= System.currentTimeMillis());
-                        } finally {
-                            if (lock) {
-                                this.unlock();
-                            }
-                        }
-                        if (!finished) {
-                            // We need to limit the spawning rate
-                            long remaining = DNSConstants.ANNOUNCE_WAIT_INTERVAL - (System.currentTimeMillis() - now);
-                            if (remaining > 0) {
-                                Thread.sleep(remaining);
-                            }
-                        }
-                    }
-                } catch (final InterruptedException e) {
-                    // empty
-                }
+                _announcing.waitForEvent(timeout);
             }
             if (!this.isAnnounced()) {
                 if (this.willCancel()) {
@@ -267,30 +269,7 @@ public interface DNSStatefulObject {
         @Override
         public boolean waitForCanceled(long timeout) {
             if (!this.isCanceled()) {
-                try {
-                    boolean finished = false;
-                    long end = (timeout > 0 ? System.currentTimeMillis() + timeout : Long.MAX_VALUE);
-                    while (!finished) {
-                        long now = System.currentTimeMillis();
-                        boolean lock = this.tryLock(DNSConstants.ANNOUNCE_WAIT_INTERVAL, TimeUnit.MILLISECONDS);
-                        try {
-                            finished = (this.isCanceled() ? true : end <= System.currentTimeMillis());
-                        } finally {
-                            if (lock) {
-                                this.unlock();
-                            }
-                        }
-                        if (!finished) {
-                            // We need to limit the spawning rate
-                            long remaining = DNSConstants.ANNOUNCE_WAIT_INTERVAL - (System.currentTimeMillis() - now);
-                            if (remaining > 0) {
-                                Thread.sleep(remaining);
-                            }
-                        }
-                    }
-                } catch (final InterruptedException e) {
-                    // empty
-                }
+                _canceling.waitForEvent(timeout);
             }
             if (!this.isCanceled()) {
                 logger.warning("Wait for canceled timed out: " + this);
@@ -310,14 +289,14 @@ public interface DNSStatefulObject {
 
     /**
      * Returns the DNS associated with this object.
-     * 
+     *
      * @return DNS resolver
      */
     public JmDNSImpl getDns();
 
     /**
      * Sets the task associated with this Object.
-     * 
+     *
      * @param task
      *            associated task
      * @param state
@@ -327,7 +306,7 @@ public interface DNSStatefulObject {
 
     /**
      * Remove the association of the task with this Object.
-     * 
+     *
      * @param task
      *            associated task
      */
@@ -335,7 +314,7 @@ public interface DNSStatefulObject {
 
     /**
      * Checks if this object is associated with the task and in the same state.
-     * 
+     *
      * @param task
      *            associated task
      * @param state
@@ -346,7 +325,7 @@ public interface DNSStatefulObject {
 
     /**
      * Sets the state and notifies all objects that wait on the ServiceInfo.
-     * 
+     *
      * @param task
      *            associated task
      * @return <code>true</code if the state was changed by this thread, <code>false</code> otherwise.
@@ -356,7 +335,7 @@ public interface DNSStatefulObject {
 
     /**
      * Sets the state and notifies all objects that wait on the ServiceInfo.
-     * 
+     *
      * @return <code>true</code if the state was changed by this thread, <code>false</code> otherwise.
      * @see DNSState#revert()
      */
@@ -364,56 +343,56 @@ public interface DNSStatefulObject {
 
     /**
      * Sets the state and notifies all objects that wait on the ServiceInfo.
-     * 
+     *
      * @return <code>true</code if the state was changed by this thread, <code>false</code> otherwise.
      */
     public boolean cancelState();
 
     /**
      * Sets the state and notifies all objects that wait on the ServiceInfo.
-     * 
+     *
      * @return <code>true</code if the state was changed by this thread, <code>false</code> otherwise.
      */
     public boolean recoverState();
 
     /**
      * Returns true, if this is a probing state.
-     * 
+     *
      * @return <code>true</code> if probing state, <code>false</code> otherwise
      */
     public boolean isProbing();
 
     /**
      * Returns true, if this is an announcing state.
-     * 
+     *
      * @return <code>true</code> if announcing state, <code>false</code> otherwise
      */
     public boolean isAnnouncing();
 
     /**
      * Returns true, if this is an announced state.
-     * 
+     *
      * @return <code>true</code> if announced state, <code>false</code> otherwise
      */
     public boolean isAnnounced();
 
     /**
      * Returns true, if this is a canceling state.
-     * 
+     *
      * @return <code>true</code> if canceling state, <code>false</code> otherwise
      */
     public boolean isCanceling();
 
     /**
      * Returns true, if this is a canceled state.
-     * 
+     *
      * @return <code>true</code> if canceled state, <code>false</code> otherwise
      */
     public boolean isCanceled();
 
     /**
      * Waits for the object to be announced.
-     * 
+     *
      * @param timeout
      *            the maximum time to wait in milliseconds.
      * @return <code>true</code> if the object is announced, <code>false</code> otherwise
@@ -422,7 +401,7 @@ public interface DNSStatefulObject {
 
     /**
      * Waits for the object to be canceled.
-     * 
+     *
      * @param timeout
      *            the maximum time to wait in milliseconds.
      * @return <code>true</code> if the object is canceled, <code>false</code> otherwise
