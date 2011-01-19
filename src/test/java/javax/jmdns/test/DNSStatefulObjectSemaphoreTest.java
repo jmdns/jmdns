@@ -75,7 +75,7 @@ public class DNSStatefulObjectSemaphoreTest {
         thread.start();
         Thread.sleep(1);
         assertFalse("The thread should be waiting.", thread.hasFinished());
-        Thread.sleep(1500);
+        Thread.sleep(150);
         assertTrue("The thread should have finished.", thread.hasFinished());
     }
 
