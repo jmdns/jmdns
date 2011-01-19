@@ -46,12 +46,14 @@ public class DNSStatefulObjectSemaphore {
         }
 
         /**
-         * Returns the expiry date of this entry
+         * Checks if the entry is expired.
          *
-         * @return the expiry date of this entry
+         * @param now
+         *            current time in milliseconds
+         * @return <code>true</code> if the entry is expired, <code>false</code> otherwise.
          */
-        long getExpiryDate() {
-            return this._expiry;
+        boolean isExpired(long now) {
+            return this._expiry <= now;
         }
 
         /**
@@ -75,7 +77,8 @@ public class DNSStatefulObjectSemaphore {
 
         @Override
         public String toString() {
-            return "Semaphore: " + this._semaphore + " timeout: " + (this._expiry - System.currentTimeMillis());
+            long now = System.currentTimeMillis();
+            return "Semaphore: " + this._semaphore + (this.isExpired(now) ? " expired." : " expires in: " + (this._expiry - now) + "ms.");
         }
     }
 
@@ -117,6 +120,9 @@ public class DNSStatefulObjectSemaphore {
      */
     public void waitForEvent(long timeout) {
         long end = (timeout > 0 ? System.currentTimeMillis() + timeout : Long.MAX_VALUE);
+        if (timeout > 0) {
+            _timer.schedule(new ClearExpiredEntriesTask(this), timeout);
+        }
         Thread thread = Thread.currentThread();
         Entry semaphoreEntry = _semaphores.get(thread);
         if (semaphoreEntry == null) {
@@ -128,9 +134,6 @@ public class DNSStatefulObjectSemaphore {
             semaphoreEntry.getSemaphore().acquire();
         } catch (InterruptedException exception) {
             logger.log(Level.FINER, "Exception ", exception);
-        }
-        if (timeout > 0) {
-            _timer.schedule(new ClearExpiredEntriesTask(this), timeout);
         }
     }
 
@@ -152,7 +155,7 @@ public class DNSStatefulObjectSemaphore {
         long now = System.currentTimeMillis();
         Collection<Entry> entries = _semaphores.values();
         for (Entry semaphoreEntry : entries) {
-            if (semaphoreEntry.getExpiryDate() < now) {
+            if (semaphoreEntry.isExpired(now)) {
                 semaphoreEntry.getSemaphore().release();
                 entries.remove(semaphoreEntry);
             }
@@ -161,7 +164,22 @@ public class DNSStatefulObjectSemaphore {
 
     @Override
     public String toString() {
-        return "Semaphore: " + this._name;
+        StringBuilder aLog = new StringBuilder(1000);
+        aLog.append("Semaphore: ");
+        aLog.append(this._name);
+        if (_semaphores.size() == 0) {
+            aLog.append(" no entries.");
+        } else {
+            aLog.append(" entries:\n");
+            for (Thread thread : _semaphores.keySet()) {
+                aLog.append("\tThread: ");
+                aLog.append(thread.getName());
+                aLog.append(' ');
+                aLog.append(_semaphores.get(thread));
+                aLog.append('\n');
+            }
+        }
+        return aLog.toString();
     }
 
 }

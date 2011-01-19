@@ -35,7 +35,7 @@ import javax.jmdns.impl.constants.DNSConstants;
 
 /**
  * This class enable multihomming mDNS. It will open a mDNS per IP address of the machine.
- * 
+ *
  * @author C&eacute;drik Lime, Pierre Frisch
  */
 public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoImpl.Delegate {
@@ -478,9 +478,8 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
         try {
             synchronized (this) {
                 if (!_knownMDNS.containsKey(address)) {
-                    JmDNS mDNS = JmDNS.create(address);
-                    _knownMDNS.put(address, mDNS);
-                    final NetworkTopologyEvent jmdnsEvent = new NetworkTopologyEventImpl(mDNS, address);
+                    _knownMDNS.put(address, JmDNS.create(address));
+                    final NetworkTopologyEvent jmdnsEvent = new NetworkTopologyEventImpl(_knownMDNS.get(address), address);
                     for (final NetworkTopologyListener listener : this.networkListeners()) {
                         _ListenerExecutor.submit(new Runnable() {
                             /**
@@ -509,8 +508,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
         try {
             synchronized (this) {
                 if (_knownMDNS.containsKey(address)) {
-                    JmDNS mDNS = JmDNS.create(address);
-                    _knownMDNS.remove(address);
+                    JmDNS mDNS = _knownMDNS.remove(address);
                     mDNS.close();
                     final NetworkTopologyEvent jmdnsEvent = new NetworkTopologyEventImpl(mDNS, address);
                     for (final NetworkTopologyListener listener : this.networkListeners()) {
