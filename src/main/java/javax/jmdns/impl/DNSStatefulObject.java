@@ -1,7 +1,13 @@
 // Licensed under Apache License version 2.0
 package javax.jmdns.impl;
 
+import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.jmdns.impl.constants.DNSState;
@@ -14,6 +20,86 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @author Pierre Frisch
  */
 public interface DNSStatefulObject {
+
+    /**
+     * This class define a semaphore. On this multiple threads can wait the arrival of one event. Thread wait for a maximum defined by the timeout.
+     * <p>
+     * Implementation note: this class is based on {@link java.util.concurrent.Semaphore} so that they can be released by the timeout timer.
+     * </p>
+     *
+     * @author Pierre Frisch
+     */
+    public static final class DNSStatefulObjectSemaphore {
+        private static Logger                          logger = Logger.getLogger(DNSStatefulObjectSemaphore.class.getName());
+
+        private final String                           _name;
+
+        private final ConcurrentMap<Thread, Semaphore> _semaphores;
+
+        /**
+         * @param name
+         *            Semaphore name for debugging purposes.
+         */
+        public DNSStatefulObjectSemaphore(String name) {
+            super();
+            _name = name;
+            _semaphores = new ConcurrentHashMap<Thread, Semaphore>(50);
+        }
+
+        /**
+         * Blocks the current thread until the event arrives or the timeout expires.
+         *
+         * @param timeout
+         *            wait period for the event
+         */
+        public void waitForEvent(long timeout) {
+            Thread thread = Thread.currentThread();
+            Semaphore semaphore = _semaphores.get(thread);
+            if (semaphore == null) {
+                semaphore = new Semaphore(1, true);
+                semaphore.drainPermits();
+                _semaphores.putIfAbsent(thread, semaphore);
+            }
+            semaphore = _semaphores.get(thread);
+            try {
+                semaphore.tryAcquire(timeout, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException exception) {
+                logger.log(Level.FINER, "Exception ", exception);
+            }
+        }
+
+        /**
+         * Signals the semaphore when the event arrives.
+         */
+        public void signalEvent() {
+            Collection<Semaphore> semaphores = _semaphores.values();
+            for (Semaphore semaphore : semaphores) {
+                semaphore.release();
+                semaphores.remove(semaphore);
+            }
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder aLog = new StringBuilder(1000);
+            aLog.append("Semaphore: ");
+            aLog.append(this._name);
+            if (_semaphores.size() == 0) {
+                aLog.append(" no semaphores.");
+            } else {
+                aLog.append(" semaphores:\n");
+                for (Thread thread : _semaphores.keySet()) {
+                    aLog.append("\tThread: ");
+                    aLog.append(thread.getName());
+                    aLog.append(' ');
+                    aLog.append(_semaphores.get(thread));
+                    aLog.append('\n');
+                }
+            }
+            return aLog.toString();
+        }
+
+    }
 
     public static class DefaultImplementation extends ReentrantLock implements DNSStatefulObject {
         private static Logger                    logger           = Logger.getLogger(DefaultImplementation.class.getName());

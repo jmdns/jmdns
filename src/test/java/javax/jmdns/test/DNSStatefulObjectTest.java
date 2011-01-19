@@ -6,7 +6,7 @@ package javax.jmdns.test;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 
-import javax.jmdns.impl.DNSStatefulObjectSemaphore;
+import javax.jmdns.impl.DNSStatefulObject.DNSStatefulObjectSemaphore;
 
 import org.junit.After;
 import org.junit.Before;
@@ -15,7 +15,7 @@ import org.junit.Test;
 /**
  *
  */
-public class DNSStatefulObjectSemaphoreTest {
+public class DNSStatefulObjectTest {
 
     public static final class WaitingThread extends Thread {
 
