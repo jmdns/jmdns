@@ -17,7 +17,7 @@
 	<property name="buildlib" value="${build}/lib" />
 	<property name="doc" value="${build}/docs" />
 	<property name="jdk" value="1.6" />
-	<property name="version" value="3.4.0" />
+	<property name="version" value="3.4.1" />
 	<property name="release" value="${build}/jmdns-${version}" />
 
 	<target name="help" description="Prints brief help message to screen">
