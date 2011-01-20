@@ -70,11 +70,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     private volatile MulticastSocket                                 _socket;
 
     /**
-     * Used to fix live lock problem on unregister.
-     */
-    private volatile boolean                                         _closed = false;
-
-    /**
      * Holds instances of JmDNS.DNSListener. Must by a synchronized collection, because it is updated from concurrent threads.
      */
     private final List<DNSListener>                                  _listeners;
@@ -537,6 +532,14 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      * {@inheritDoc}
      */
     @Override
+    public boolean closeState() {
+        return this._localHost.closeState();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean recoverState() {
         return this._localHost.recoverState();
     }
@@ -611,6 +614,22 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     @Override
     public boolean isCanceled() {
         return this._localHost.isCanceled();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isClosing() {
+        return this._localHost.isClosing();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isClosed() {
+        return this._localHost.isClosed();
     }
 
     /**
@@ -951,6 +970,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      */
     @Override
     public void registerService(ServiceInfo infoAbstract) throws IOException {
+        if (this.isClosing() || this.isClosed()) {
+            throw new IllegalStateException("This DNS is closed.");
+        }
         final ServiceInfoImpl info = (ServiceInfoImpl) infoAbstract;
 
         if ((info.getDns() != null) && (info.getDns() != this)) {
@@ -1660,7 +1682,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         logger.finer(this.getName() + "recover()");
         // We have an IO error so lets try to recover if anything happens lets close it.
         // This should cover the case of the IP address changing under our feet
-        if (this.isCanceling() || this.isCanceled()) {
+        if (this.isClosing() || this.isClosed() || this.isCanceling() || this.isCanceled()) {
             return;
         }
 
@@ -1692,6 +1714,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             logger.finer(this.getName() + "recover() Cleanning up");
         }
 
+        logger.warning("RECOVERING");
         // Purge the timer
         this.purgeTimer();
 
@@ -1767,7 +1790,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      */
     @Override
     public void close() {
-        if (this.isCanceling() || this.isCanceled()) {
+        if (this.isClosing()) {
             return;
         }
 
@@ -1776,10 +1799,11 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         }
         // Stop JmDNS
         // This protects against recursive calls
-        if (this.cancelState()) {
+        if (this.closeState()) {
             // We got the tie break now clean up
 
             // Stop the timer
+            logger.finer("Canceling the timer");
             this.cancelTimer();
 
             // Cancel all services
@@ -1792,6 +1816,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             this.waitForCanceled(DNSConstants.CLOSE_TIMEOUT);
 
             // Stop the canceler timer
+            logger.finer("Canceling the state timer");
             this.cancelStateTimer();
 
             // Stop the executor
@@ -1809,6 +1834,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 logger.finer("JmDNS closed.");
             }
         }
+        advanceState(null);
     }
 
     /**
@@ -2164,14 +2190,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
     public Map<String, ServiceTypeEntry> getServiceTypes() {
         return _serviceTypes;
-    }
-
-    public void setClosed(boolean closed) {
-        this._closed = closed;
-    }
-
-    public boolean isClosed() {
-        return _closed;
     }
 
     public MulticastSocket getSocket() {

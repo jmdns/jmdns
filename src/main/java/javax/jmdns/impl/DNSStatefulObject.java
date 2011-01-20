@@ -275,6 +275,27 @@ public interface DNSStatefulObject {
          * {@inheritDoc}
          */
         @Override
+        public boolean closeState() {
+            boolean result = false;
+            if (!this.willClose()) {
+                this.lock();
+                try {
+                    if (!this.willClose()) {
+                        this.setState(DNSState.CLOSING);
+                        this.setTask(null);
+                        result = true;
+                    }
+                } finally {
+                    this.unlock();
+                }
+            }
+            return result;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public boolean recoverState() {
             boolean result = false;
             this.lock();
@@ -327,8 +348,28 @@ public interface DNSStatefulObject {
             return this._state.isCanceled();
         }
 
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean isClosing() {
+            return this._state.isClosing();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean isClosed() {
+            return this._state.isClosed();
+        }
+
         private boolean willCancel() {
             return this._state.isCanceled() || this._state.isCanceling();
+        }
+
+        private boolean willClose() {
+            return this._state.isClosed() || this._state.isClosing();
         }
 
         /**
@@ -340,7 +381,7 @@ public interface DNSStatefulObject {
                 _announcing.waitForEvent(timeout);
             }
             if (!this.isAnnounced()) {
-                if (this.willCancel()) {
+                if (this.willCancel() || this.willClose()) {
                     logger.warning("Wait for announced cancelled: " + this);
                 } else {
                     logger.warning("Wait for announced timed out: " + this);
@@ -357,7 +398,7 @@ public interface DNSStatefulObject {
             if (!this.isCanceled()) {
                 _canceling.waitForEvent(timeout);
             }
-            if (!this.isCanceled()) {
+            if (!this.isCanceled() && !this.willClose()) {
                 logger.warning("Wait for canceled timed out: " + this);
             }
             return this.isCanceled();
@@ -439,6 +480,13 @@ public interface DNSStatefulObject {
      *
      * @return <code>true</code if the state was changed by this thread, <code>false</code> otherwise.
      */
+    public boolean closeState();
+
+    /**
+     * Sets the state and notifies all objects that wait on the ServiceInfo.
+     *
+     * @return <code>true</code if the state was changed by this thread, <code>false</code> otherwise.
+     */
     public boolean recoverState();
 
     /**
@@ -475,6 +523,20 @@ public interface DNSStatefulObject {
      * @return <code>true</code> if canceled state, <code>false</code> otherwise
      */
     public boolean isCanceled();
+
+    /**
+     * Returns true, if this is a closing state.
+     *
+     * @return <code>true</code> if closing state, <code>false</code> otherwise
+     */
+    public boolean isClosing();
+
+    /**
+     * Returns true, if this is a closed state.
+     *
+     * @return <code>true</code> if closed state, <code>false</code> otherwise
+     */
+    public boolean isClosed();
 
     /**
      * Waits for the object to be announced.

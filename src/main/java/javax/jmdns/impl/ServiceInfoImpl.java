@@ -973,6 +973,14 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      * {@inheritDoc}
      */
     @Override
+    public boolean closeState() {
+        return this._state.closeState();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean recoverState() {
         return this._state.recoverState();
     }
@@ -1039,6 +1047,22 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     @Override
     public boolean isCanceled() {
         return _state.isCanceled();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isClosing() {
+        return _state.isClosing();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isClosed() {
+        return _state.isClosed();
     }
 
     /**

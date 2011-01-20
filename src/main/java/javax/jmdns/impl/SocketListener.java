@@ -39,7 +39,7 @@ class SocketListener extends Thread {
             while (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled()) {
                 packet.setLength(buf.length);
                 this._jmDNSImpl.getSocket().receive(packet);
-                if (this._jmDNSImpl.isCanceling() || this._jmDNSImpl.isCanceled()) {
+                if (this._jmDNSImpl.isCanceling() || this._jmDNSImpl.isCanceled() || this._jmDNSImpl.isClosing() || this._jmDNSImpl.isClosed()) {
                     break;
                 }
                 try {
@@ -64,7 +64,7 @@ class SocketListener extends Thread {
                 }
             }
         } catch (IOException e) {
-            if (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled()) {
+            if (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled() && !this._jmDNSImpl.isClosing() && !this._jmDNSImpl.isClosed()) {
                 logger.log(Level.WARNING, this.getName() + ".run() exception ", e);
                 this._jmDNSImpl.recover();
             }

@@ -25,7 +25,7 @@ import javax.jmdns.impl.tasks.DNSTask;
 
 /**
  * HostInfo information on the local host to be able to cope with change of addresses.
- * 
+ *
  * @author Pierre Frisch, Werner Randelshofer
  */
 public class HostInfo implements DNSStatefulObject {
@@ -331,6 +331,14 @@ public class HostInfo implements DNSStatefulObject {
      * {@inheritDoc}
      */
     @Override
+    public boolean closeState() {
+        return this._state.closeState();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean recoverState() {
         return this._state.recoverState();
     }
@@ -373,6 +381,22 @@ public class HostInfo implements DNSStatefulObject {
     @Override
     public boolean isCanceled() {
         return this._state.isCanceled();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isClosing() {
+        return this._state.isClosing();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isClosed() {
+        return this._state.isClosed();
     }
 
     /**
