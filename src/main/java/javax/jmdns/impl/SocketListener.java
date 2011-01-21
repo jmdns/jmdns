@@ -69,17 +69,8 @@ class SocketListener extends Thread {
                 this._jmDNSImpl.recover();
             }
         }
-        // jP: 20010-01-18. Per issue #2933183. If this thread was stopped
-        // by closeMulticastSocket, we need to signal the other party via
-        // the jmDNS monitor. The other guy will then check to see if this
-        // thread has died.
-        // Note: This is placed here to avoid locking the IoLock object and
-        // 'this' instance together.
         if (logger.isLoggable(Level.FINEST)) {
             logger.finest(this.getName() + ".run() exiting.");
-        }
-        synchronized (this._jmDNSImpl) {
-            this._jmDNSImpl.notifyAll();
         }
     }
 

@@ -120,6 +120,37 @@ public class JmDNSTest {
     }
 
     @Test
+    public void testUnregisterAndReregisterService() throws IOException, InterruptedException {
+        System.out.println("Unit Test: testUnregisterAndReregisterService()");
+        JmDNS registry = null;
+        try {
+            registry = JmDNS.create();
+            registry.registerService(service);
+
+            ServiceInfo[] services = registry.list(service.getType());
+            assertEquals("We should see the service we just registered: ", 1, services.length);
+            assertEquals(service, services[0]);
+
+            // now unregister and make sure it's gone
+            registry.unregisterService(services[0]);
+
+            // According to the spec the record disappears from the cache 1s after it has been unregistered
+            // without sleeping for a while, the service would not be unregistered fully
+            Thread.sleep(1500);
+
+            services = registry.list(service.getType());
+            assertTrue("We should not see the service we just unregistered: ", services == null || services.length == 0);
+
+            registry.registerService(service);
+            Thread.sleep(5000);
+            services = registry.list(service.getType());
+            assertTrue("We should see the service we just reregistered: ", services != null && services.length > 0);
+        } finally {
+            if (registry != null) registry.close();
+        }
+    }
+
+    @Test
     public void testQueryMyService() throws IOException {
         System.out.println("Unit Test: testQueryMyService()");
         JmDNS registry = null;
