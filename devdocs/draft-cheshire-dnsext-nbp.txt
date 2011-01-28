@@ -1,11 +1,15 @@
-Document: draft-cheshire-dnsext-nbp-08.txt               Stuart Cheshire
+
+
+
+
+Document: draft-cheshire-dnsext-nbp-10.txt               Stuart Cheshire
 Internet-Draft                                             Marc Krochmal
 Category: Informational                                       Apple Inc.
-Expires: 8 September 2010                                   8 March 2010
+Expires: 16 July 2011                                    12 January 2011
 
           Requirements for a Protocol to Replace AppleTalk NBP
 
-                   <draft-cheshire-dnsext-nbp-08.txt>
+                   <draft-cheshire-dnsext-nbp-10.txt>
 
 Status of this Memo
 
@@ -28,7 +32,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on 8th September 2010.
+   This Internet-Draft will expire on 16th July 2011.
 
 
 Abstract
@@ -38,7 +42,8 @@ Abstract
    AppleTalk Name Binding Protocol, and to replace them with an IP-based
    solution. This document presents a brief overview of the capabilities
    of AppleTalk NBP, and outlines the properties required of an IP-based
-   replacement.
+   replacement. The views expressed in this Informational document
+   represent the opinions of the authors, not IETF consensus.
 
 
 
@@ -50,14 +55,9 @@ Abstract
 
 
 
-
-
-
-
-
-Expires 8th September 2010          Cheshire                    [Page 1]
+Expires 16th July 2011            Cheshire & Krochmal           [Page 1]
 
-Internet Draft       Replacement of AppleTalk             8th March 2010
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
 
 
 Table of Contents
@@ -85,9 +85,8 @@ Table of Contents
    6.   Security Considerations.......................................14
    7.   IANA Considerations...........................................15
    8.   Copyright Notice..............................................15
-   9.   Intellectual Property Notice..................................15
-   10.  Informative References........................................16
-   11.  Author's Address..............................................17
+   9.   Informative References........................................15
+   10.  Author's Address..............................................16
 
 
 
@@ -113,9 +112,10 @@ Table of Contents
 
 
 
-Expires 8th September 2010          Cheshire                    [Page 2]
+
+Expires 16th July 2011            Cheshire & Krochmal           [Page 2]
 
-Internet Draft       Replacement of AppleTalk             8th March 2010
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
 
 
 1. Introduction
@@ -128,13 +128,15 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    There are many who are experts in the area of DNS who know nothing
    about NBP, and without some background on how AppleTalk and NBP
    worked, it may be difficult to understand the reasoning and
-   motivations that led to some of the design decisions.
+   motivations that led to some of the design decisions in Multicast
+   DNS, and DNS-Based Service Discovery.
 
    This document seeks to remedy this problem by clearly stating the
    requirements for an IP-based replacement for AppleTalk and NBP.
-   Replacing NBP is not the sole goal of Multicast DNS, and therefore
+   Replacing NBP was not the sole goal of Multicast DNS, and therefore
    these requirements are not the sole design considerations. However,
-   replacing NBP is a major motivation behind the work in Multicast DNS.
+   replacing NBP was a major motivation behind the work in Multicast
+   DNS.
 
    In most cases, the requirements presented in this document are simply
    a restatement of what AppleTalk NBP currently does. However, this
@@ -144,13 +146,12 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    In some cases, the requirements for a viable IP-based replacement go
    beyond NBP. For example, AppleTalk NBP uses Apple Extended ASCII for
    its character set. It is clear that an IP-based replacement being
-   designed today should use Unicode, in the form of UTF-8. AppleTalk
-   NBP has no built-in security provisions; an IP-based replacement
-   should not have that same error. AppleTalk NBP has a reputation,
-   partially deserved, partially not, for being too 'chatty' on the
-   network. An IP-based replacement should not have this same failing.
-   The intent is to learn from NBP and build a superset of its
-   functionality, not to replicate it precisely with all the same flaws.
+   designed today should use Unicode, in the form of UTF-8 [RFC 3629].
+   AppleTalk NBP has a reputation, partially deserved, partially not,
+   for being too 'chatty' on the network. An IP-based replacement should
+   not have this same failing. The intent is to learn from NBP and build
+   a superset of its functionality, not to replicate it precisely with
+   all the same flaws.
 
    The protocols specified in "Multicast DNS" [mDNS] and "DNS-Based
    Service Discovery" [DNS-SD], taken together, describe a solution
@@ -158,6 +159,8 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    in response to requests for more background information explaining
    the rationale behind the design of those protocols.
 
+   The design principles and requirements outlined in this Informational
+   document represent the opinions of the authors, not IETF consensus.
 
 
 
@@ -168,12 +171,9 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 
-
-
-
-Expires 8th September 2010          Cheshire                    [Page 3]
+Expires 16th July 2011            Cheshire & Krochmal           [Page 3]
 
-Internet Draft       Replacement of AppleTalk             8th March 2010
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
 
 
 2. Zero Configuration Networking
@@ -188,7 +188,7 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    as small as just two laptop computers connected via an Ethernet
    cable, or wirelessly.
 
-   IP now has self-assigned link-local addresses [RFC 2462] [RFC 3927],
+   IP now has self-assigned link-local addresses [RFC 3927] [RFC 4862],
    which enable IP-based networking in the absence of external
    configuration. What remains is the need for Zero Configuration
    name-to-address translation and service discovery, both capabilities
@@ -229,9 +229,9 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 
-Expires 8th September 2010          Cheshire                    [Page 4]
+Expires 16th July 2011            Cheshire & Krochmal           [Page 4]
 
-Internet Draft       Replacement of AppleTalk             8th March 2010
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
 
 
 3. Requirements
@@ -287,9 +287,9 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    implements those services. There may be a single machine hosting both
 
 
-Expires 8th September 2010          Cheshire                    [Page 5]
+Expires 16th July 2011            Cheshire & Krochmal           [Page 5]
 
-Internet Draft       Replacement of AppleTalk             8th March 2010
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
 
 
    services, or there may be two separate machines. The end user doesn't
@@ -319,7 +319,7 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    service names, the result today of doing a conventional ("A" or
    "AAAA") DNS lookup for those names gives you only the IP address
    of the hardware where the service is located. To communicate with
-   the desired service, you also need to know the TCP or UDP port number
+   the desired service, you also need to know the port number
    at which the service can be reached, not just the IP address.
 
    This means that the port number has to be communicated out-of-band,
@@ -345,40 +345,40 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    host. In contrast, if an lpr print server offers three print queues,
 
 
-Expires 8th September 2010          Cheshire                    [Page 6]
+Expires 16th July 2011            Cheshire & Krochmal           [Page 6]
 
-Internet Draft       Replacement of AppleTalk             8th March 2010
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
 
 
    all three print queues are typically reached through the same
-   well-known port number, and then the lpr protocol has to use its
-   own demultiplexing capability (the print queue name) in order to
-   determine which print queue is sought. This makes it especially
+   well-known port number (515), and then the lpr protocol has to use
+   its own demultiplexing capability (the print queue name) in order
+   to determine which print queue is sought. This makes it especially
    difficult to run two different pieces of print queue software from
    different vendors on the same machine, because they cannot both use
    the same well-known port.
 
-   A similar trick is used in HTTP 1.1, where the "Host" header is
-   used to allow multiple logical http services to run at the same
+   A similar trick is used in HTTP 1.1, where the "Host" header line
+   is used to allow multiple logical http services to run at the same
    IP address. Again, this works for a single-vendor solution, but if
    you have an image server, a database program, an http email access
-   gateway, and a regular http server, they can't all run on the same
+   gateway, and a standard http server, they can't all run on the same
    TCP port on the same machine.
 
    Yet another problem of well-known ports is that port numbers are a
-   finite resource. Originally, port numbers 0-1023 were reserved for
-   well-known services, and the remaining 98% of the port space was free
-   for dynamic allocation. Since then, the range of "Registered Ports"
-   has crept upwards until today, ports 0-49151 are reserved, and only
-   25% of the space remains available for dynamic allocation. Even
-   though 65535 may seem like a lot of available port numbers, with the
-   pace of software development today, if every new protocol gets its
-   own private port number, we will eventually run out. To avoid having
-   to do application-level demultiplexing, protocols like the X Window
-   System wisely use a range of port numbers, and let TCP do the
-   demultiplexing for them. The X Window System uses 64 ports, in
-   the range 6000-6063. If every new protocol were to get its own
-   chunk of 64 ports, we would run out even faster.
+   finite resource. Originally, port numbers 0-255 were reserved for
+   well-known services and the remaining 99.6% of the port space was
+   free for dynamic allocation [RFC 1122]. Since then, the range of
+   "Registered Ports" has crept upwards until today, ports 0-49151 are
+   reserved, and only 25% of the space remains available for dynamic
+   allocation. Even though 65535 may seem like a lot of available port
+   numbers, with the pace of software development today, if every new
+   protocol gets its own private port number, we will eventually
+   run out. To avoid having to do application-level demultiplexing,
+   protocols like the X Window System wisely use a range of port
+   numbers, and let TCP do the demultiplexing for them. The X Window
+   System uses 64 ports, in the range 6000-6063. If every new protocol
+   were to get its own chunk of 64 ports, we would run out even faster.
 
    Any NBP replacement needs to provide, not just the network number,
    subnet number, and host number within that subnet (i.e. the IP
@@ -403,9 +403,9 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 
-Expires 8th September 2010          Cheshire                    [Page 7]
+Expires 16th July 2011            Cheshire & Krochmal           [Page 7]
 
-Internet Draft       Replacement of AppleTalk             8th March 2010
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
 
 
 3.4 Typed Name Space
@@ -442,8 +442,8 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    Zone: The Zone is an organizational or geographical grouping of named
    services. Typical AppleTalk Zone Names are things like "Engineering",
    "Sales", and "Building 1, 3rd floor, North". The equivalent concept
-   in DNS could be a subdomain such as "Engineering.company.com.",
-   "Sales.company.com." or "Building 1, 3rd floor, North.company.com."
+   in DNS could be a subdomain such as "Engineering.example.com.",
+   "Sales.example.com." or "Building 1, 3rd floor, North.example.com."
 
    Each {Type,Zone} pair defines a name space in which service names
    can be registered. It is not a name conflict to have a printer
@@ -461,9 +461,9 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 
-Expires 8th September 2010          Cheshire                    [Page 8]
+Expires 16th July 2011            Cheshire & Krochmal           [Page 8]
 
-Internet Draft       Replacement of AppleTalk             8th March 2010
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
 
 
 3.5 User-Friendly Names
@@ -476,14 +476,14 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    repeatedly typed in on a keyboard, there is no reason for them to
    be restricted so. Users should be able to give their printers names
    like "Sales", "Marketing", and "3rd Floor Copy Room", not just
-   "printer1.ietf.org." Of course a user is free to restrict their
-   Service Names to lower-case letters without spaces if they wish,
+   "printer1.example.com." Of course a user is free to name a particular
+   service using only lower-case letters and no spaces if they wish,
    but they should not be forced to do that.
 
    Any NBP replacement needs to support a full range of rich text
    characters, including upper case, lower case, spaces, accented
    characters, and so on. The correct solution is likely to be UTF-8
-   Unicode.
+   Unicode [RFC 3629].
 
    Note that this requirement for user-friendly rich-text names applies
    equally to the Zones/domains in which services are registered and
@@ -491,7 +491,7 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
 
    Note that although the characters ':' and '@' are used when writing
    AppleTalk NBP names, they are simply a notational convenience in
-   written text. In the on-the wire protocol and in the software data
+   written text. In the on-the-wire protocol and in the software data
    structures, NBP Name, Type and Zone strings are all allowed to
    contain almost any character, including ':' and '@'. The naming
    scheme provided by an NBP replacement must allow use of any desired
@@ -508,20 +508,20 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    service running on the router, instead of by flooding the entire
    network with multicast packets to every host.
 
-   Any NBP replacement needs to operate in the absence of external
-   network infrastructure. It should also be possible to take advantage
-   of appropriate external network infrastructure, where present, to
-   perform queries via unicast instead of multicast.
+   Any NBP replacement needs to be able to operate in the absence of
+   external network infrastructure. However, this should not be the only
+   mode of operation. In larger managed networks, it should also be
+   possible to take advantage of appropriate external network
+   infrastructure when present, to perform queries via unicast instead
+   of multicast.
 
 
 
 
 
-
-
-Expires 8th September 2010          Cheshire                    [Page 9]
+Expires 16th July 2011            Cheshire & Krochmal           [Page 9]
 
-Internet Draft       Replacement of AppleTalk             8th March 2010
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
 
 
 3.7 Name Space Management
@@ -577,9 +577,9 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    then assume that the names will remain unique indefinitely.
 
 
-Expires 8th September 2010          Cheshire                   [Page 10]
+Expires 16th July 2011            Cheshire & Krochmal          [Page 10]
 
-Internet Draft       Replacement of AppleTalk             8th March 2010
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
 
 
    If the Zeroconf naming mechanism is integrated with the existing
@@ -602,7 +602,7 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    print service.
 
    On a network using DHCP [RFC 2131] or self-assigned link-local
-   addresses [RFC 2462] [RFC 3927], a device's IP address may change
+   addresses [RFC 3927] [RFC 4862], a device's IP address may change
    from day to day. By deferring binding of name to address until actual
    use, this allows the client to get the correct IP address at the time
    the service is used.
@@ -635,9 +635,9 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    protocol(s).
 
 
-Expires 8th September 2010          Cheshire                   [Page 11]
+Expires 16th July 2011            Cheshire & Krochmal          [Page 11]
 
-Internet Draft       Replacement of AppleTalk             8th March 2010
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
 
 
 3.11 Browsing and Registration Guidance
@@ -693,9 +693,9 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 
-Expires 8th September 2010          Cheshire                   [Page 12]
+Expires 16th July 2011            Cheshire & Krochmal          [Page 12]
 
-Internet Draft       Replacement of AppleTalk             8th March 2010
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
 
 
 3.13 Protocol Agnostic
@@ -738,7 +738,10 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    environment as they happen. If the user is waiting for a particular
    service to become available, they should be able simply to watch
    until it appears, with no "Refresh" button that they need to keep
-   clicking.
+   clicking. A protocol to replace AppleTalk NBP must be able to meet
+   these requirement for timeliness of information discovery, and
+   liveness of information updating, without placing undue burden
+   on the network.
 
 
 
@@ -748,12 +751,9 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 
-
-
-
-Expires 8th September 2010          Cheshire                   [Page 13]
+Expires 16th July 2011            Cheshire & Krochmal          [Page 13]
 
-Internet Draft       Replacement of AppleTalk             8th March 2010
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
 
 
 4. Existing Protocols
@@ -774,7 +774,7 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    "ipp://epson-stylus-900n.local./" is slightly less opaque (though
    still not very user-friendly), but to do even this SLP would have
    to depend on Multicast DNS or something similar to resolve names
-   to addresses absence of a conventional DNS server.
+   to addresses in the absence of a conventional DNS server.
 
    SLP provides fine-grained query capabilities, such as the ability to
    prune a long list of printers to show only those that have blue paper
@@ -784,7 +784,7 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
 
    In summary, SLP alone fails to meet most of the requirements,
    and provides vastly more mechanism than necessary in the area of
-   Requirement 3.10.
+   Requirement 10.
 
 
 5. IPv6 Considerations
@@ -795,47 +795,33 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
 
 6. Security Considerations
 
-   AppleTalk Name Binding Protocol has no inherent security mechanism.
-   This would not be acceptable in an IP replacement. It should be
-   possible for a client to verify the authenticity of the information
-   it is receiving. It may also be useful for a server to be able to
-   verify that a client has authority to request that information, and
-   it may be useful to have a way to encrypt the data in transit to
-   protect it against eavesdropping.
-
-   A solution based on or derived from DNS could use DNSSEC [RFC 2535]
-   to meet these requirements.
-
-
+   AppleTalk Name Binding Protocol was developed in an era where little
+   consideration was given to security issues. In today's world this
+   would no longer be appropriate. Any modern replacement for AppleTalk
+   NBP should have security measures appropriate to the environment in
+   which it will be used. Given that this document is a broad historical
+   overview of how AppleTalk NBP worked, and does not specify any new
+   protocol(s), detailed discussion of possible network environments,
+   what protocols would be appropriate in each, and what security
+   measures would be expected of each such protocol, is beyond the scope
+   of this document.
 
 
-Expires 8th September 2010          Cheshire                   [Page 14]
+
+
+Expires 16th July 2011            Cheshire & Krochmal          [Page 14]
 
-Internet Draft       Replacement of AppleTalk             8th March 2010
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
 
 
 7. IANA Considerations
 
-   AppleTalk Name Binding Protocol defines a name space for Zones, a
-   name space for service Types, and name spaces for named instances
-   of those services. Each name space uses 32-character ASCII text
-   strings, so the name space for Type names is sufficiently large and
-   sufficiently sparsely used that Apple never bothered with maintaining
-   an official registry of assigned NBP service Type names.
-
-   IANA should probably manage the name space of service type names,
-   to prevent unintended name collisions. However, the name space of
-   textual names is large enough that type names would not be a precious
-   resource, so they could be handed out freely to anyone who needs one,
-   effectively without limit, on a First Come First Served basis
-   [RFC 2434].
-
-   The name space of instance names is managed locally at each site.
+   No IANA actions are required by this document.
 
 
 8. Copyright Notice
 
-   Copyright (c) 2010 IETF Trust and the persons identified as the
+   Copyright (c) 2011 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -846,44 +832,21 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    to this document.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Expires 8th September 2010          Cheshire                   [Page 15]
-
-Internet Draft       Replacement of AppleTalk             8th March 2010
-
-
-10. Informative References
+9. Informative References
 
    [DNS-SD]   Cheshire, S., and M. Krochmal, "DNS-Based Service
               Discovery", Internet-Draft (work in progress),
-              draft-cheshire-dnsext-dns-sd-06.txt, March 2010.
+              draft-cheshire-dnsext-dns-sd-08.txt, January 2011.
 
    [mDNS]     Cheshire, S., and M. Krochmal, "Multicast DNS",
               Internet-Draft (work in progress),
-              draft-cheshire-dnsext-multicastdns-09.txt, March 2010.
+              draft-cheshire-dnsext-multicastdns-13.txt, January 2011.
 
    [RFC 792]  Postel, J., "Internet Control Message Protocol",
               STD 5, RFC 792,September 1981.
+
+   [RFC 1122] Braden, R. (Editor), "Requirements for Internet Hosts --
+              Communication Layers", STD 3, RFC 1122, October 1989.
 
    [RFC 1918] Rekhter, Y., et al., "Address Allocation for Private
               Internets", RFC 1918, February 1996.
@@ -891,46 +854,25 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
    [RFC 2131] Droms, R., "Dynamic Host Configuration Protocol",
               RFC 2131, March 1997.
 
-   [RFC 2434] Narten, T., and H. Alvestrand, "Guidelines for Writing
-              an IANA Considerations Section in RFCs", RFC 2434,
-              October 1998.
-
-   [RFC 2535] Eastlake, D. "Domain Name System Security Extensions",
-              RFC 2535, March 1999.
-
-   [RFC 2462] S. Thomson and T. Narten, "IPv6 Stateless Address
-              Autoconfiguration", RFC 2462, December 1998.
-
    [RFC 2608] Guttman, Perkins, Veizades & Day, "Service Location
               Protocol, Version 2", RFC 2608, June 1999.
+
+   [RFC 3629] Yergeau, F., "UTF-8, a transformation format of ISO
+              10646", RFC 3629, November 2003.
 
    [RFC 3927] Cheshire, S., B. Aboba, and E. Guttman,
               "Dynamic Configuration of IPv4 Link-Local Addresses",
               RFC 3927, May 2005.
 
+   [RFC 4862] Thomson, S., Narten, T., and T. Jinmei, "IPv6 Stateless
+              Address Autoconfiguration", RFC 4862, September 2007.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Expires 8th September 2010          Cheshire                   [Page 16]
+Expires 16th July 2011            Cheshire & Krochmal          [Page 15]
 
-Internet Draft       Replacement of AppleTalk             8th March 2010
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
 
 
-11. Author's Address
+10. Author's Address
 
    Stuart Cheshire
    Apple Inc.
@@ -983,4 +925,4 @@ Internet Draft       Replacement of AppleTalk             8th March 2010
 
 
 
-Expires 8th September 2010          Cheshire                   [Page 17]
+Expires 16th July 2011            Cheshire & Krochmal          [Page 16]
