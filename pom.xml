@@ -11,6 +11,11 @@
 		<version>4</version>
 		<!-- https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide -->
 		<!-- http://www.sonatype.com/people/2010/01/how-to-generate-pgp-signatures-with-maven/ -->
+		<!-- mvn release:clean -->
+		<!-- mvn release:prepare -->
+		<!-- mvn release:perform -->
+		<!-- mvn nexus:staging-close -->
+		<!-- mvn nexus:staging-promote -->
 	</parent>
 	<description>JmDNS is a Java implementation of multi-cast DNS and can be used for service registration and discovery in local area networks. JmDNS is fully compatible with Apple's Bonjour.
 The project was originally started in December 2002 by Arthur van Hoff at Strangeberry. In November 2003 the project was moved to SourceForge, and the name was changed from JRendezvous to JmDNS for legal reasons.
@@ -315,6 +320,15 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 				<configuration>
 					<tagBase>https://jmdns.svn.sourceforge.net/svnroot/jmdns/tags/</tagBase>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-maven-plugin</artifactId>
+				<version>1.6</version>
+				<!-- mvn nexus:staging-close -->
+				<!-- mvn nexus:staging-list -->
+				<!-- mvn nexus:staging-drop -->
+				<!-- mvn nexus:staging-promote -->
 			</plugin>
 		</plugins>
 	</build>
