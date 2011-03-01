@@ -23,7 +23,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
  * Storing multiple entries with the same name is implemented using a linked list. This is hidden from the user and can change in later implementation.
  * <p/>
  * Here's how to iterate over all entries:
- * 
+ *
  * <pre>
  *       for (Iterator i=dnscache.allValues().iterator(); i.hasNext(); ) {
  *             DNSEntry entry = i.next();
@@ -32,14 +32,14 @@ import javax.jmdns.impl.constants.DNSRecordType;
  * </pre>
  * <p/>
  * And here's how to iterate over all entries having a given name:
- * 
+ *
  * <pre>
  *       for (Iterator i=dnscache.getDNSEntryList(name).iterator(); i.hasNext(); ) {
  *             DNSEntry entry = i.next();
  *           ...do something with entry...
  *       }
  * </pre>
- * 
+ *
  * @author Arthur van Hoff, Werner Randelshofer, Rick Blair, Pierre Frisch
  */
 public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>> {
@@ -203,7 +203,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>> {
 
         /**
          * Returns <tt>true</tt> if this list contains no elements.
-         * 
+         *
          * @return <tt>true</tt> if this list contains no elements
          */
         public boolean isEmpty() {
@@ -269,7 +269,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>> {
 
     /**
      * Create a table with a given initial size.
-     * 
+     *
      * @param initialCapacity
      */
     public DNSCache(int initialCapacity) {
@@ -341,7 +341,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>> {
 
     /**
      * Returns all entries in the cache
-     * 
+     *
      * @return all entries in the cache
      */
     public synchronized Collection<DNSEntry> allValues() {
@@ -356,24 +356,34 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>> {
 
     /**
      * Iterate only over items with matching name. Returns an list of DNSEntry or null. To retrieve all entries, one must iterate over this linked list.
-     * 
+     *
      * @param name
      * @return list of DNSEntries
      */
     public synchronized Collection<? extends DNSEntry> getDNSEntryList(String name) {
+        Collection<? extends DNSEntry> entryList = this._getDNSEntryList(name);
+        if (entryList != null) {
+            entryList = new ArrayList<DNSEntry>(entryList);
+        } else {
+            entryList = Collections.emptyList();
+        }
+        return entryList;
+    }
+
+    private Collection<? extends DNSEntry> _getDNSEntryList(String name) {
         return this.get(name != null ? name.toLowerCase() : null);
     }
 
     /**
      * Get a matching DNS entry from the table (using isSameEntry). Returns the entry that was found.
-     * 
+     *
      * @param dnsEntry
      * @return DNSEntry
      */
     public synchronized DNSEntry getDNSEntry(DNSEntry dnsEntry) {
         DNSEntry result = null;
         if (dnsEntry != null) {
-            Collection<? extends DNSEntry> entryList = this.getDNSEntryList(dnsEntry.getKey());
+            Collection<? extends DNSEntry> entryList = this._getDNSEntryList(dnsEntry.getKey());
             if (entryList != null) {
                 for (DNSEntry testDNSEntry : entryList) {
                     if (testDNSEntry.isSameEntry(dnsEntry)) {
@@ -388,7 +398,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>> {
 
     /**
      * Get a matching DNS entry from the table.
-     * 
+     *
      * @param name
      * @param type
      * @param recordClass
@@ -396,7 +406,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>> {
      */
     public synchronized DNSEntry getDNSEntry(String name, DNSRecordType type, DNSRecordClass recordClass) {
         DNSEntry result = null;
-        Collection<? extends DNSEntry> entryList = this.getDNSEntryList(name);
+        Collection<? extends DNSEntry> entryList = this._getDNSEntryList(name);
         if (entryList != null) {
             for (DNSEntry testDNSEntry : entryList) {
                 if (testDNSEntry.getRecordType().equals(type) && ((DNSRecordClass.CLASS_ANY == recordClass) || testDNSEntry.getRecordClass().equals(recordClass))) {
@@ -410,14 +420,14 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>> {
 
     /**
      * Get all matching DNS entries from the table.
-     * 
+     *
      * @param name
      * @param type
      * @param recordClass
      * @return list of entries
      */
     public synchronized Collection<? extends DNSEntry> getDNSEntryList(String name, DNSRecordType type, DNSRecordClass recordClass) {
-        Collection<? extends DNSEntry> entryList = this.getDNSEntryList(name);
+        Collection<? extends DNSEntry> entryList = this._getDNSEntryList(name);
         if (entryList != null) {
             entryList = new ArrayList<DNSEntry>(entryList);
             for (Iterator<? extends DNSEntry> i = entryList.iterator(); i.hasNext();) {
@@ -434,7 +444,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>> {
 
     /**
      * Adds an entry to the table.
-     * 
+     *
      * @param dnsEntry
      * @return true if the entry was added
      */
@@ -464,7 +474,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>> {
 
     /**
      * Removes a specific entry from the table. Returns true if the entry was found.
-     * 
+     *
      * @param dnsEntry
      * @return true if the entry was removed
      */
@@ -486,7 +496,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>> {
     /**
      * Replace an existing entry by a new one.<br/>
      * <b>Note:</b> the 2 entries must have the same key.
-     * 
+     *
      * @param newDNSEntry
      * @param existingDNSEntry
      * @return <code>true</code> if the entry has been replace, <code>false</code> otherwise.

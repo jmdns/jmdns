@@ -2,6 +2,8 @@ CHANGELOG XX XXXX 2011 Pierre Frisch
 Rev the source code to 3.4.1
 unregisterService() prevents subsequent registerService() - ID: 3163605
 Sometimes race condition causes to use a canceled timer - ID: 3183116
+How should addServiceListener be expected to work? - ID: 3186552
+ConcurrentModificationException is possible - ID: 3195594
 
 CHANGELOG 20 January 2011 Pierre Frisch
 Rev the source code to 3.4.0
