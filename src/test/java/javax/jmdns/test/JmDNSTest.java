@@ -2,6 +2,7 @@ package javax.jmdns.test;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.*;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -114,6 +115,23 @@ public class JmDNSTest {
 
             services = registry.list(service.getType());
             assertTrue("We should not see the service we just unregistered: ", services == null || services.length == 0);
+        } finally {
+            if (registry != null) registry.close();
+        }
+    }
+
+    @Test
+    public void testRegisterServiceTwice() throws IOException {
+        System.out.println("Unit Test: testRegisterService()");
+        JmDNS registry = null;
+        try {
+            registry = JmDNS.create();
+            registry.registerService(service);
+            // This should cause an exception
+            registry.registerService(service);
+            fail("Registering the same service info should fail.");
+        } catch (IllegalStateException exception) {
+            // Expected exception.
         } finally {
             if (registry != null) registry.close();
         }
