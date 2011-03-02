@@ -382,7 +382,7 @@ public interface DNSStatefulObject {
             }
             if (!this.isAnnounced()) {
                 if (this.willCancel() || this.willClose()) {
-                    logger.warning("Wait for announced cancelled: " + this);
+                    logger.fine("Wait for announced cancelled: " + this);
                 } else {
                     logger.warning("Wait for announced timed out: " + this);
                 }
