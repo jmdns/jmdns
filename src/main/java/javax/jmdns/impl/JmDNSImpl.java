@@ -976,7 +976,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         final ServiceInfoImpl info = (ServiceInfoImpl) infoAbstract;
 
         if ((info.getDns() != null) && (info.getDns() != this)) {
-            throw new IllegalStateException("This service information is already registered with another DNS.");
+            throw new IllegalStateException("A service information can only be registered with a single instamce of JmDNS.");
         }
         info.setDns(this);
 
