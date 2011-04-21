@@ -465,10 +465,14 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     @Override
     public String[] getHostAddresses() {
-        InetAddress[] addresses = this.getInetAddresses();
-        String[] names = new String[addresses.length];
-        for (int i = 0; i < addresses.length; i++) {
-            names[i] = addresses[i].getHostAddress();
+        Inet4Address[] ip4Aaddresses = this.getInet4Addresses();
+        Inet6Address[] ip6Aaddresses = this.getInet6Addresses();
+        String[] names = new String[ip4Aaddresses.length + ip6Aaddresses.length];
+        for (int i = 0; i < ip4Aaddresses.length; i++) {
+            names[i] = ip4Aaddresses[i].getHostAddress();
+        }
+        for (int i = 0; i < ip6Aaddresses.length; i++) {
+            names[i + ip4Aaddresses.length] = "[" + ip6Aaddresses[i].getHostAddress() + "]";
         }
         return names;
     }
