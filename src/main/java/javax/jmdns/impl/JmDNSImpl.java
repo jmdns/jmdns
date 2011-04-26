@@ -440,7 +440,11 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
     private void openMulticastSocket(HostInfo hostInfo) throws IOException {
         if (_group == null) {
-            _group = InetAddress.getByName(DNSConstants.MDNS_GROUP);
+            if (hostInfo.getInetAddress() instanceof Inet6Address) {
+                _group = InetAddress.getByName(DNSConstants.MDNS_GROUP_IPV6);
+            } else {
+                _group = InetAddress.getByName(DNSConstants.MDNS_GROUP);
+            }
         }
         if (_socket != null) {
             this.closeMulticastSocket();
