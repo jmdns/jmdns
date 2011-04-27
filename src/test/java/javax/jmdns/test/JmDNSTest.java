@@ -12,7 +12,9 @@ import static org.easymock.EasyMock.verify;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.Inet6Address;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -188,6 +190,29 @@ public class JmDNSTest {
         JmDNS registry = null;
         try {
             registry = JmDNS.create();
+            registry.registerService(service);
+            ServiceInfo[] services = registry.list(service.getType());
+            assertEquals("We should see the service we just registered: ", 1, services.length);
+            assertEquals(service, services[0]);
+        } finally {
+            if (registry != null) registry.close();
+        }
+    }
+
+    @Test
+    public void testListMyServiceIPV6() throws IOException {
+        System.out.println("Unit Test: testListMyServiceIPV6()");
+        JmDNS registry = null;
+        try {
+            InetAddress address = InetAddress.getLocalHost();
+            NetworkInterface interfaze = NetworkInterface.getByInetAddress(address);
+            for (Enumeration<InetAddress> iaenum = interfaze.getInetAddresses(); iaenum.hasMoreElements();) {
+                InetAddress interfaceAddress = iaenum.nextElement();
+                if (interfaceAddress instanceof Inet6Address) {
+                    address = interfaceAddress;
+                }
+            }
+            registry = JmDNS.create(address);
             registry.registerService(service);
             ServiceInfo[] services = registry.list(service.getType());
             assertEquals("We should see the service we just registered: ", 1, services.length);
