@@ -1443,20 +1443,21 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             conflictDetected |= answer.handleQuery(this, expirationTime);
         }
 
-        _ioLock.lock();
+        this.ioLock();
         try {
 
             if (_plannedAnswer != null) {
                 _plannedAnswer.append(in);
             } else {
+                DNSIncoming plannedAnswer = in.clone();
                 if (in.isTruncated()) {
-                    _plannedAnswer = in;
+                    _plannedAnswer = plannedAnswer;
                 }
-                this.startResponder(in, port);
+                this.startResponder(plannedAnswer, port);
             }
 
         } finally {
-            _ioLock.unlock();
+            this.ioUnlock();
         }
 
         final long now = System.currentTimeMillis();
@@ -1470,13 +1471,13 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     }
 
     public void respondToQuery(DNSIncoming in) {
-        _ioLock.lock();
+        this.ioLock();
         try {
             if (_plannedAnswer == in) {
                 _plannedAnswer = null;
             }
         } finally {
-            _ioLock.unlock();
+            this.ioUnlock();
         }
     }
 

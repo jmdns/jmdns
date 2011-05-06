@@ -8,6 +8,7 @@ Registering twice same ServiceInfo blocks - ID: 3195632
 Error message on second register - ID: 3195656
 ServiceInfoImpl returns invalid IPV6 addresses - ID: 3290692
 Queries are sent over IPv4 even when binding to IPv6 address - ID: 3293105
+Synchronization issue - ID: 3298376
 
 CHANGELOG 20 January 2011 Pierre Frisch
 Rev the source code to 3.4.0

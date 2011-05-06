@@ -22,7 +22,7 @@ import javax.jmdns.impl.constants.DNSResultCode;
 
 /**
  * Parse an incoming DNS message into its components.
- * 
+ *
  * @author Arthur van Hoff, Werner Randelshofer, Pierre Frisch, Daniel Bobbert
  */
 public final class DNSIncoming extends DNSMessage {
@@ -176,7 +176,7 @@ public final class DNSIncoming extends DNSMessage {
 
     /**
      * Parse a message from a datagram packet.
-     * 
+     *
      * @param packet
      * @exception IOException
      */
@@ -242,6 +242,31 @@ public final class DNSIncoming extends DNSMessage {
         }
     }
 
+    private DNSIncoming(int flags, int id, boolean multicast, DatagramPacket packet, long receivedTime) {
+        super(flags, id, multicast);
+        this._packet = packet;
+        this._messageInputStream = new MessageInputStream(packet.getData(), packet.getLength());
+        this._receivedTime = receivedTime;
+    }
+
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#clone()
+     */
+    @Override
+    public DNSIncoming clone() {
+        DNSIncoming in = new DNSIncoming(this.getFlags(), this.getId(), this.isMulticast(), this._packet, this._receivedTime);
+         in._senderUDPPayload = this._senderUDPPayload;
+         in._questions.addAll(this._questions);
+         in._answers.addAll(this._answers);
+         in._authoritativeAnswers.addAll(this._authoritativeAnswers);
+         in._additionals.addAll(this._additionals);
+         return in;
+    }
+
+
     private DNSQuestion readQuestion() {
         String domain = _messageInputStream.readName();
         DNSRecordType type = DNSRecordType.typeForIndex(_messageInputStream.readUnsignedShort());
@@ -284,7 +309,7 @@ public final class DNSIncoming extends DNSMessage {
                 if (service.length() > 0) {
                     rec = new DNSRecord.Pointer(domain, recordClass, unique, ttl, service);
                 } else {
-                    logger.log(Level.WARNING, "There was a problem reading the service name of the answer for domain:" + domain);
+                    logger.log(Level.WARNING, "PTR record of class: " + recordClass + ", there was a problem reading the service name of the answer for domain:" + domain);
                 }
                 break;
             case TYPE_TXT:
@@ -501,7 +526,7 @@ public final class DNSIncoming extends DNSMessage {
 
     /**
      * Appends answers to this Incoming.
-     * 
+     *
      * @exception IllegalArgumentException
      *                If not a query or if Truncated.
      */
@@ -522,7 +547,7 @@ public final class DNSIncoming extends DNSMessage {
 
     /**
      * This will return the default UDP payload except if an OPT record was found with a different size.
-     * 
+     *
      * @return the senderUDPPayload
      */
     public int getSenderUDPPayload() {
@@ -533,7 +558,7 @@ public final class DNSIncoming extends DNSMessage {
 
     /**
      * Returns a hex-string for printing
-     * 
+     *
      * @param bytes
      * @return Returns a hex-string which can be used within a SQL expression
      */
