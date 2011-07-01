@@ -18,6 +18,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.jmdns.NetworkTopologyDiscovery;
+import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSState;
@@ -155,6 +156,14 @@ public class HostInfo implements DNSStatefulObject {
 
     public NetworkInterface getInterface() {
         return _interfaze;
+    }
+
+    public boolean conflictWithRecord(DNSRecord.Address record) {
+        DNSRecord.Address hostAddress = this.getDNSAddressRecord(record.getRecordType(), record.isUnique(), DNSConstants.DNS_TTL);
+        if (hostAddress != null) {
+            return hostAddress.sameType(record) && hostAddress.sameName(record) && (!hostAddress.sameValue(record));
+        }
+        return false;
     }
 
     synchronized String incrementHostName() {
