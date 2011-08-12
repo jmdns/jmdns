@@ -147,4 +147,18 @@ public interface NetworkTopologyDiscovery {
      */
     public boolean useInetAddress(NetworkInterface networkInterface, InetAddress interfaceAddress);
 
+    /**
+     * Locks the given InetAddress if the device requires it.
+     *
+     * @param interfaceAddress
+     */
+    public void lockInetAddress(InetAddress interfaceAddress);
+
+    /**
+     * Locks the given InetAddress if the device requires it.
+     *
+     * @param interfaceAddress
+     */
+    public void unlockInetAddress(InetAddress interfaceAddress);
+
 }

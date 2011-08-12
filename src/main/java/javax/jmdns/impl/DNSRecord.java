@@ -280,16 +280,26 @@ public abstract class DNSRecord extends DNSEntry {
         }
 
         boolean same(DNSRecord other) {
+            if (! (other instanceof Address) ) {
+                return false;
+            }
             return ((sameName(other)) && ((sameValue(other))));
         }
 
         boolean sameName(DNSRecord other) {
-            return this.getName().equalsIgnoreCase(((Address) other).getName());
+            return this.getName().equalsIgnoreCase(other.getName());
         }
 
         @Override
         boolean sameValue(DNSRecord other) {
-            return this.getAddress().equals(((Address) other).getAddress());
+            if (! (other instanceof Address) ) {
+                return false;
+            }
+            Address address = (Address) other;
+            if ((this.getAddress() == null) && (address.getAddress() != null)) {
+                return false;
+            }
+            return this.getAddress().equals(address.getAddress());
         }
 
         @Override
@@ -437,7 +447,14 @@ public abstract class DNSRecord extends DNSEntry {
 
         @Override
         boolean sameValue(DNSRecord other) {
-            return _alias.equals(((Pointer) other)._alias);
+            if (! (other instanceof Pointer) ) {
+                return false;
+            }
+            Pointer pointer = (Pointer) other;
+            if ((_alias == null) && (pointer._alias != null)) {
+                return false;
+            }
+            return _alias.equals(pointer._alias);
         }
 
         @Override
@@ -539,7 +556,13 @@ public abstract class DNSRecord extends DNSEntry {
 
         @Override
         boolean sameValue(DNSRecord other) {
+            if (! (other instanceof Text) ) {
+                return false;
+            }
             Text txt = (Text) other;
+            if ((_text == null) && (txt._text != null)) {
+                return false;
+            }
             if (txt._text.length != _text.length) {
                 return false;
             }
@@ -685,6 +708,9 @@ public abstract class DNSRecord extends DNSEntry {
 
         @Override
         boolean sameValue(DNSRecord other) {
+            if (! (other instanceof Service) ) {
+                return false;
+            }
             Service s = (Service) other;
             return (_priority == s._priority) && (_weight == s._weight) && (_port == s._port) && _server.equals(s._server);
         }
@@ -870,7 +896,16 @@ public abstract class DNSRecord extends DNSEntry {
          */
         @Override
         boolean sameValue(DNSRecord other) {
+            if (! (other instanceof HostInformation) ) {
+                return false;
+            }
             HostInformation hinfo = (HostInformation) other;
+            if ((_cpu == null) && (hinfo._cpu != null)) {
+                return false;
+            }
+            if ((_os == null) && (hinfo._os != null)) {
+                return false;
+            }
             return _cpu.equals(hinfo._cpu) && _os.equals(hinfo._os);
         }
 
