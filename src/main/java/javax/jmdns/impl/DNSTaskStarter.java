@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.jmdns.JmmDNS;
 import javax.jmdns.impl.tasks.RecordReaper;
 import javax.jmdns.impl.tasks.Responder;
 import javax.jmdns.impl.tasks.resolver.ServiceInfoResolver;
@@ -69,7 +68,7 @@ public interface DNSTaskStarter {
          * @param delegate
          *            The object to set as DNSTaskStarter's class delegate.
          * @see #classDelegate()
-         * @see JmmDNS.Factory.ClassDelegate
+         * @see DNSTaskStarter.Factory.ClassDelegate
          */
         public static void setClassDelegate(Factory.ClassDelegate delegate) {
             _databaseClassDelegate.set(delegate);
@@ -80,7 +79,7 @@ public interface DNSTaskStarter {
          *
          * @return DNSTaskStarter's class delegate.
          * @see #setClassDelegate(ClassDelegate anObject)
-         * @see JmmDNS.Factory.ClassDelegate
+         * @see DNSTaskStarter.Factory.ClassDelegate
          */
         public static Factory.ClassDelegate classDelegate() {
             return _databaseClassDelegate.get();
