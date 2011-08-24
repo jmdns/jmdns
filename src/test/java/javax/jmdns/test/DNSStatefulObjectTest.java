@@ -62,10 +62,10 @@ public class DNSStatefulObjectTest {
     public void testWaitAndSignal() throws InterruptedException {
         WaitingThread thread = new WaitingThread(_semaphore, 0);
         thread.start();
-        Thread.sleep(1);
+        Thread.sleep(2);
         assertFalse("The thread should be waiting.", thread.hasFinished());
         _semaphore.signalEvent();
-        Thread.sleep(1);
+        Thread.sleep(2);
         assertTrue("The thread should have finished.", thread.hasFinished());
     }
 

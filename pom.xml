@@ -34,7 +34,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 	<distributionManagement>
 		<site>
 			<id>jmdns.sf.net</id>
-			<url>scp://shell.sourceforge.net/home/groups/j/jm/jmdns/htdocs</url>
+			<url>scp://shell.sourceforge.net/home/project-web/jmdns/htdocs</url>
 			<!-- http://maven.apache.org/plugins/maven-site-plugin/examples/site-deploy-to-sourceforge.net.html -->
 		</site>
 	</distributionManagement>
