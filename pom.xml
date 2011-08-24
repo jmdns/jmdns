@@ -9,6 +9,7 @@
 		<groupId>org.sonatype.oss</groupId>
 		<artifactId>oss-parent</artifactId>
 		<version>7</version>
+		<relativePath>.../parent/pom.xml</relativePath>
 		<!-- https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide -->
 		<!-- http://www.sonatype.com/people/2010/01/how-to-generate-pgp-signatures-with-maven/ -->
 		<!-- mvn release:clean -->
@@ -271,6 +272,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
+				<version>3</version>
 				<configuration>
 					<locales>en</locales>
 					<!--<templateFile>src/site/site.vm</templateFile> -->
