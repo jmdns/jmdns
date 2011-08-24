@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
 		<artifactId>oss-parent</artifactId>
-		<version>4</version>
+		<version>7</version>
 		<!-- https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide -->
 		<!-- http://www.sonatype.com/people/2010/01/how-to-generate-pgp-signatures-with-maven/ -->
 		<!-- mvn release:clean -->
@@ -261,7 +261,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 				<executions>
 					<execution>
 						<id>bundle-manifest</id>
-						<phase>process-classes</phase>
+      					<phase>process-classes</phase>
 						<goals>
 							<goal>manifest</goal>
 						</goals>
@@ -316,7 +316,6 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
-				<version>2.0</version>
 				<configuration>
 					<tagBase>https://jmdns.svn.sourceforge.net/svnroot/jmdns/tags/</tagBase>
 				</configuration>
@@ -331,6 +330,35 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 				<!-- mvn nexus:staging-promote -->
 			</plugin>
 		</plugins>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.apache.felix</groupId>
+										<artifactId>maven-bundle-plugin</artifactId>
+										<versionRange>[2.1.0,)</versionRange>
+										<goals>
+											<goal>manifest</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 	<reporting>
 		<outputDirectory>target/site</outputDirectory>
