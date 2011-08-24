@@ -1,0 +1,335 @@
+
+
+
+Internet Engineering Task Force                              S. Cheshire
+Internet-Draft                                               M. Krochmal
+Intended status: Standards Track                              Apple Inc.
+Expires: July 16, 2011                                      Jan 12, 2011
+
+
+                        Special-Use Domain Names
+                 draft-cheshire-dnsext-special-names-01
+
+Abstract
+
+   This document describes what it means to say that a DNS name is
+   reserved for special use, when reserving such a name is appropriate,
+   and the procedure for doing so.
+
+Status of this Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF). Note that other groups may also distribute working
+   documents as Internet-Drafts. The list of current Internet-Drafts is
+   at http://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time. It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on July 16, 2011.
+
+Copyright Notice
+
+   Copyright (c) 2011 IETF Trust and the persons identified as the
+   document authors. All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document. Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document. Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+
+
+
+
+Cheshire & Krochmal       Expires July 16, 2011                 [Page 1]
+
+Internet-Draft          Special-Use Domain Names                Jan 2011
+
+
+1.  Introduction
+
+   Certain individual IP addresses and IP address ranges are treated
+   specially by network implementations, and consequently are not
+   suitable for use as unicast addresses. For example, IPv4 addresses
+   224.0.0.0 to 239.255.255.255 are multicast addresses [RFC2606], with
+   224.0.0.1 being the "all hosts" multicast address [RFC1112]
+   [RFC5771]. Another example is 127.0.0.1, the IPv4 "local host"
+   address [RFC5735].
+
+   Analogous to Special-Use IPv4 Addresses [RFC5735], DNS has its own
+   concept of reserved names, such as "example.com", "example.net", and
+   "example.org", or any name falling under the top level pseudo-domain
+   "invalid" [RFC2606]. However, "Reserved Top Level DNS Names"
+   [RFC2606] does not state whether implementations are expected to
+   treat such names differently, and if so, in what way.
+
+
+2.  Applicability
+
+   When IP multicast was created [RFC1112], implementations had to be
+   updated to understand what a multicast address means and what to do
+   with it. Adding IP multicast to a networking stack entailed more than
+   merely adding the right routing table entries for those addresses.
+   Moreover, supporting IP multicast entails some level of commonality
+   that is consistent across all conformant hosts, independent of what
+   networks those hosts may be connected to. While it is possible to
+   build a private isolated network using whatever valid unicast IP
+   addresses and routing topology you choose (regardless of whether
+   those unicast IP addresses are already in use by other hosts on the
+   public Internet) the IPv4 multicast address 224.0.0.1 is always the
+   "all hosts" multicast address and that's not a local decision.
+
+   Similarly, if a domain name has special properties that affect the
+   way hardware and software implementations handle the name, which
+   apply universally regardless of what network the implementation may
+   be connected to, then that may be a candidate for having the IETF
+   declare the name to be a Special-Use Domain Name and specify what
+   special treatment implementations should give to that name. If
+   declaring a given name to be special would result in no change to any
+   implementations, then that suggests that the name may not be special
+   in any material way, and it may be more appropriate to use the
+   existing DNS mechanisms [RFC1034] to provide the desired delegation,
+   data, or lack-of-data for the name in question. Where the desired
+   behaviour can be achieved via the existing domain name registration
+   processes, that process should be used. Reservation of a Special-Use
+   Domain Names is not a mechanism for circumventing normal domain name
+   registration processes.
+
+
+
+Cheshire & Krochmal       Expires July 16, 2011                 [Page 2]
+
+Internet-Draft          Special-Use Domain Names                Jan 2011
+
+
+3.  Procedure
+
+   If it is determined that special handling of a name is required in
+   order to implement some desired new functionality, then an IETF
+   "Standards Action" RFC [RFC5226] needs to be published describing the
+   new functionality, and:
+
+    o The RFC needs to state how implementations determine that the
+      special handling is required for any given name. This is typically
+      done by stating that any fully-qualified domain names ending in a
+      certain suffix (i.e. falling within a specified parent pseudo-
+      domain) will receive the special behaviour. In effect this carves
+      off a sub-tree of the DNS namespace in which the modified name
+      treatment rules apply, analogous to how IP multicast [RFC1112] or
+      IP link-local addresses [RFC3927] [RFC4862] carve off chunks of
+      the IP address space in which their respective modified address
+      treatment rules apply.
+
+    o The RFC needs to state, in each of the seven categories below,
+      what special treatment, if any, is to be applied. If the answer in
+      all seven categories is "none", then possibly no special treatment
+      is required and requesting reservation of a Special-Use Domain
+      Name may not be appropriate.
+
+
+4.  Domain Name Reservation Considerations
+
+   An IETF "Standards Action" RFC specifying some new naming behaviour,
+   which requires a Special-Use Domain Name be reserved to implement
+   this desired new behaviour, needs to contain a "Domain Name
+   Reservation Considerations" section giving answers in the following
+   seven categories:
+
+   1. Users:
+
+      Are human users expected to recognize these names as special and
+      use them differently? In what way?
+
+   2. Application Software:
+
+      Are writers of application software expected to make their
+      software recognize these names as special and treat them
+      differently? In what way? (e.g. if a human users enters such a
+      name, should the application software reject it with an error
+      message?)
+
+
+
+
+
+
+Cheshire & Krochmal       Expires July 16, 2011                 [Page 3]
+
+Internet-Draft          Special-Use Domain Names                Jan 2011
+
+
+   3. Name Resolution APIs and libraries:
+
+      Are writers of name resolution APIs and libraries expected to make
+      their software recognize these names as special and treat them
+      differently? If so, how?
+
+   4. Caching DNS Servers:
+
+      Are developers of caching DNS name servers expected to make their
+      implementations recognize these names as special and treat them
+      differently? If so, how?
+
+   5. Authoritative DNS Servers:
+
+      Are developers of authoritative DNS name servers expected to make
+      their implementations recognize these names as special and treat
+      them differently? If so, how?
+
+   6. DNS Server Operators:
+
+      Does this reserved Special-Use Domain Name have any potential
+      impact on DNS server operators? If they try to configure their
+      authoritative DNS server as authoritative for this reserved name
+      will compliant name server software reject it as invalid? Do DNS
+      server operators need to know about that and understand why? Even
+      if the name server software doesn't prevent them from using this
+      reserved name, are there other ways that it may not work as
+      expected, which the DNS server operator should be aware of?
+
+   7. DNS Registrars:
+
+      How should DNS Registrars treat requests to register this reserved
+      domain name? Should such requests be denied? Should such requests
+      be allowed, but only to a specially-designated entity? (For
+      example, the name "www.example.org" is reserved for documentation
+      examples and is not available for registration; however, the name
+      is in fact registered; and there is even a web site at that name,
+      which states circularly that the name is reserved for use in
+      documentation and cannot be registered!)
+
+
+
+
+
+
+
+
+
+
+
+
+Cheshire & Krochmal       Expires July 16, 2011                 [Page 4]
+
+Internet-Draft          Special-Use Domain Names                Jan 2011
+
+
+5.  Security Considerations
+
+   This document outlines the circumstances in which reserving a domain
+   name for special-use is appropriate, and the procedure for having
+   that Special-Use Domain Name recorded by IANA. Any document
+   requesting such a Special-Use Domain Name needs to contain an
+   appropriate "Security Considerations" section which describes any
+   security issues relevant to that special use.
+
+
+6.  IANA Considerations
+
+   IANA needs to create a new registry of Special-Use Domain Names.
+
+   When IANA receives a request to record a new "Special-Use Domain
+   Name" it should verify that the IETF "Standards Action" RFC [RFC5226]
+   includes the required "Domain Name Reservation Considerations"
+   section stating how the special meaning of this name affects the
+   behaviour of hardware, software, and humans in the seven categories,
+   and if so, record in the registry the Special-Use Domain Name and a
+   reference to the RFC that documents it.
+
+
+7.  Informative References
+
+   [RFC1034]  Mockapetris, P., "Domain names - concepts and facilities",
+              STD 13, RFC 1034, November 1987.
+
+   [RFC1112]  Deering, S., "Host extensions for IP multicasting", STD 5,
+              RFC 1112, August 1989.
+
+   [RFC2606]  Eastlake, D. and A. Panitz, "Reserved Top Level DNS
+              Names", BCP 32, RFC 2606, June 1999.
+
+   [RFC3927]  Cheshire, S., Aboba, B., and E. Guttman, "Dynamic
+              Configuration of IPv4 Link-Local Addresses", RFC 3927,
+              May 2005.
+
+   [RFC4862]  Thomson, S., Narten, T., and T. Jinmei, "IPv6 Stateless
+              Address Autoconfiguration", RFC 4862, September 2007.
+
+   [RFC5226]  Narten, T. and H. Alvestrand, "Guidelines for Writing an
+              IANA Considerations Section in RFCs", BCP 26, RFC 5226,
+              May 2008.
+
+   [RFC5735]  Cotton, M. and L. Vegoda, "Special Use IPv4 Addresses",
+              BCP 153, RFC 5735, January 2010.
+
+
+
+
+Cheshire & Krochmal       Expires July 16, 2011                 [Page 5]
+
+Internet-Draft          Special-Use Domain Names                Jan 2011
+
+
+   [RFC5771]  Cotton, M., Vegoda, L., and D. Meyer, "IANA Guidelines for
+              IPv4 Multicast Address Assignments", BCP 51, RFC 5771,
+              March 2010.
+
+
+Authors' Addresses
+
+   Stuart Cheshire
+   Apple Inc.
+   1 Infinite Loop
+   Cupertino, California  95014
+   USA
+
+   Phone: +1 408 974 3207
+   Email: cheshire@apple.com
+
+
+   Marc Krochmal
+   Apple Inc.
+   1 Infinite Loop
+   Cupertino, California  95014
+   USA
+
+   Phone: +1 408 974 4368
+   Email: marc@apple.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Cheshire & Krochmal       Expires July 16, 2011                 [Page 6]

@@ -1,0 +1,928 @@
+
+
+
+
+Document: draft-cheshire-dnsext-nbp-10.txt               Stuart Cheshire
+Internet-Draft                                             Marc Krochmal
+Category: Informational                                       Apple Inc.
+Expires: 16 July 2011                                    12 January 2011
+
+          Requirements for a Protocol to Replace AppleTalk NBP
+
+                   <draft-cheshire-dnsext-nbp-10.txt>
+
+Status of this Memo
+
+   This Internet-Draft is submitted to IETF in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt.
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+   This Internet-Draft will expire on 16th July 2011.
+
+
+Abstract
+
+   One of the goals of the authors of Multicast DNS (mDNS) and DNS-Based
+   Service Discovery (DNS-SD) was the desire to retire AppleTalk and the
+   AppleTalk Name Binding Protocol, and to replace them with an IP-based
+   solution. This document presents a brief overview of the capabilities
+   of AppleTalk NBP, and outlines the properties required of an IP-based
+   replacement. The views expressed in this Informational document
+   represent the opinions of the authors, not IETF consensus.
+
+
+
+
+
+
+
+
+
+
+
+Expires 16th July 2011            Cheshire & Krochmal           [Page 1]
+
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
+
+
+Table of Contents
+
+   1.   Introduction...................................................3
+   2.   Zero Configuration Networking..................................4
+   3.   Requirements...................................................5
+   3.1  Name-to-Address Mapping........................................5
+   3.2  Name Services, not Hardware....................................5
+   3.3  Address Services, not Hardware.................................6
+   3.4  Typed Name Space...............................................8
+   3.5  User-Friendly Names............................................9
+   3.6  Zeroconf Operation.............................................9
+   3.7  Name Space Management.........................................10
+   3.8  Late Binding..................................................11
+   3.9  Simplicity....................................................11
+   3.10 Network Browsing..............................................11
+   3.11 Browsing and Registration Guidance............................12
+   3.12 Power Management Support......................................12
+   3.13 Protocol Agnostic.............................................13
+   3.14 Distributed Cache Coherency Protocol..........................13
+   3.15 Immediate and Ongoing Information Presentation................13
+   4.   Existing Protocols............................................14
+   5.   IPv6 Considerations...........................................14
+   6.   Security Considerations.......................................14
+   7.   IANA Considerations...........................................15
+   8.   Copyright Notice..............................................15
+   9.   Informative References........................................15
+   10.  Author's Address..............................................16
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Expires 16th July 2011            Cheshire & Krochmal           [Page 2]
+
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
+
+
+1. Introduction
+
+   A important goal of the participants working on Zeroconf, Multicast
+   DNS, and DNS-Based Service Discovery was to provide a viable IP-based
+   replacement for AppleTalk and the AppleTalk Name Binding Protocol
+   (NBP).
+
+   There are many who are experts in the area of DNS who know nothing
+   about NBP, and without some background on how AppleTalk and NBP
+   worked, it may be difficult to understand the reasoning and
+   motivations that led to some of the design decisions in Multicast
+   DNS, and DNS-Based Service Discovery.
+
+   This document seeks to remedy this problem by clearly stating the
+   requirements for an IP-based replacement for AppleTalk and NBP.
+   Replacing NBP was not the sole goal of Multicast DNS, and therefore
+   these requirements are not the sole design considerations. However,
+   replacing NBP was a major motivation behind the work in Multicast
+   DNS.
+
+   In most cases, the requirements presented in this document are simply
+   a restatement of what AppleTalk NBP currently does. However, this
+   document is not restricted to describing only what NBP currently
+   does. Achieving at least equivalent functionality to NBP is a
+   necessary but not sufficient condition for a viable replacement.
+   In some cases, the requirements for a viable IP-based replacement go
+   beyond NBP. For example, AppleTalk NBP uses Apple Extended ASCII for
+   its character set. It is clear that an IP-based replacement being
+   designed today should use Unicode, in the form of UTF-8 [RFC 3629].
+   AppleTalk NBP has a reputation, partially deserved, partially not,
+   for being too 'chatty' on the network. An IP-based replacement should
+   not have this same failing. The intent is to learn from NBP and build
+   a superset of its functionality, not to replicate it precisely with
+   all the same flaws.
+
+   The protocols specified in "Multicast DNS" [mDNS] and "DNS-Based
+   Service Discovery" [DNS-SD], taken together, describe a solution
+   that meets these requirements. This document is written, in part,
+   in response to requests for more background information explaining
+   the rationale behind the design of those protocols.
+
+   The design principles and requirements outlined in this Informational
+   document represent the opinions of the authors, not IETF consensus.
+
+
+
+
+
+
+
+
+
+
+Expires 16th July 2011            Cheshire & Krochmal           [Page 3]
+
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
+
+
+2. Zero Configuration Networking
+
+   Historically TCP/IP networking required configuration, either in the
+   form of manual configuration by a human operator, or in the form
+   of automated configuration provided by a DHCP server [RFC 2131].
+
+   One of the characteristics of AppleTalk was that it could operate
+   without any dependency on manual configuration of a network service
+   to provide automated configuration. An AppleTalk network could be
+   as small as just two laptop computers connected via an Ethernet
+   cable, or wirelessly.
+
+   IP now has self-assigned link-local addresses [RFC 3927] [RFC 4862],
+   which enable IP-based networking in the absence of external
+   configuration. What remains is the need for Zero Configuration
+   name-to-address translation and service discovery, both capabilities
+   that AppleTalk NBP offered.
+
+   It is not necessarily the case that Zero Configuration Networking
+   protocols will always be used in all three areas (addressing, naming,
+   service discovery) simultaneously on any given network. For example,
+   even on networks with a DHCP server to provide address configuration,
+   users may still use Zero Configuration protocols for name-to-address
+   translation and service discovery. Indeed, on a single network, users
+   may use conventional Unicast DNS for looking up the addresses of
+   Internet web sites while at the same time using Multicast DNS for
+   looking up the addresses of peers on the local link. Therefore, Zero
+   Configuration Networking protocols must coexist peacefully with
+   conventional configured IP networking when used together on the same
+   network.
+
+   Networks change state over time. Hosts and services may come and go.
+   Connectivity, addresses and names change. In a manually configured
+   network a human operator can remedy errors when they arise. In a Zero
+   Configuration Network, no such human operator is available to
+   diagnose and troubleshoot problems, so Zero Configuration protocols
+   need to be self-correcting, automatically accommodating changing
+   network conditions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Expires 16th July 2011            Cheshire & Krochmal           [Page 4]
+
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
+
+
+3. Requirements
+
+   This section lists the 15 requirements for an IP-based replacement
+   for AppleTalk NBP.
+
+
+3.1 Name-to-Address Mapping
+
+   NBP's primary function is translating names to addresses.
+
+   NBP stands for Name Binding Protocol, not Network Browsing Protocol.
+   Many people know NBP only as "that thing that used to let you browse
+   the network in the old Macintosh Chooser". While browsing is an
+   important facility of NBP, it is secondary to NBP's primary function
+   of translating names to addresses.
+
+   Every time a user prints using AppleTalk, the printing software takes
+   the name of the currently selected printer, looks up the current
+   AppleTalk address associated with that named service, and establishes
+   a connection to that service on the network. The user may invoke
+   NBP's browsing capability once when first selecting the desired
+   printer in the Chooser, but then after that, every time something
+   is printed, it is a simple efficient name-to-address lookup
+   that is being performed, not a full-fledged browsing operation.
+
+   Any NBP replacement needs to support, as it's primary function,
+   an efficient name-to-address lookup operation.
+
+
+3.2 Name Services, not Hardware
+
+   The primary named entities in NBP are services, not "hosts",
+   "machines", "devices", or pieces of hardware of any kind. This
+   concept is more subtle than it may seem at first, so it bears some
+   discussion.
+
+   The AppleTalk NBP philosophy is that naming a piece of hardware on
+   the network is of little use if you can't communicate with that piece
+   of hardware. To communicate with a piece of hardware, there needs
+   to be a piece of software running on that hardware which sends and
+   receives network packets conforming to some specific protocol. This
+   means that whenever you communicate with a machine, you are really
+   communicating with some piece of software on that machine. Even if
+   you just 'ping' a machine to see if it is responding, it is not
+   really the machine that you are 'pinging', it is the software on
+   that machine that generates ICMP Echo Responses [RFC 792].
+
+   Consequently, this means that the only thing worth naming is the
+   software entities with which you can communicate. A user who wants to
+   use a print server or a file server needn't care about what hardware
+   implements those services. There may be a single machine hosting both
+
+
+Expires 16th July 2011            Cheshire & Krochmal           [Page 5]
+
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
+
+
+   services, or there may be two separate machines. The end user doesn't
+   need to care.
+
+   The one exception to this is network managers, who may want to name
+   physical hardware for the purpose of tracking physical inventory.
+   However, even this can be recast into a service-oriented view of the
+   world by saying that what you're naming is not the hardware, but the
+   ICMP Echo Responder that runs (or is assumed to be running) on every
+   piece of IP hardware.
+
+
+3.3 Address Services, not Hardware
+    -or-
+    Escape the Tyranny of Well Known Ports
+
+   The reader may argue that DNS already supports the philosophy
+   of naming services instead of hosts. When we see names like
+   "www.example.com.", "pop.example.com.", "smtp.example.com.",
+   "news.example.com." and "time.example.com.", we do not assume that
+   each of those names refer to a different host. They are clearly
+   intended to be logical service names, and could in fact all refer
+   to the same IP address.
+
+   The shortcoming here is that although the names are clearly logical
+   service names, the result today of doing a conventional ("A" or
+   "AAAA") DNS lookup for those names gives you only the IP address
+   of the hardware where the service is located. To communicate with
+   the desired service, you also need to know the port number
+   at which the service can be reached, not just the IP address.
+
+   This means that the port number has to be communicated out-of-band,
+   in some other way. One way is for the port number to be a specific
+   well-known constant for any given protocol. This makes it hard
+   to run more than one instance of a service on a single piece of
+   hardware. Another way is for the user to explicitly type in the
+   port number, for example, "www.example.com.:8080" instead of
+   "www.example.com.", but needing to know and type in a port number
+   is as ugly and fragile as needing to know and type in an IP address.
+
+   Another aspect of the difficulty of running more than one instance of
+   a service on a single piece of hardware is that it forces application
+   programmers to write their own demultiplexing capability. AppleTalk
+   did not suffer this limitation. If an AppleTalk print server offered
+   three print queues, each print queue ran as its own independent
+   service, listening on its own port number (called a socket number
+   in AppleTalk terminology), each advertised as a separate independent
+   named NBP entity. When a client looks up the address of that named
+   NBP entity, the reply encodes not only on which net and subnet the
+   service resides, and on which host on that subnet (like an IP address
+   does), but also on which socket number (port number) within that
+   host. In contrast, if an lpr print server offers three print queues,
+
+
+Expires 16th July 2011            Cheshire & Krochmal           [Page 6]
+
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
+
+
+   all three print queues are typically reached through the same
+   well-known port number (515), and then the lpr protocol has to use
+   its own demultiplexing capability (the print queue name) in order
+   to determine which print queue is sought. This makes it especially
+   difficult to run two different pieces of print queue software from
+   different vendors on the same machine, because they cannot both use
+   the same well-known port.
+
+   A similar trick is used in HTTP 1.1, where the "Host" header line
+   is used to allow multiple logical http services to run at the same
+   IP address. Again, this works for a single-vendor solution, but if
+   you have an image server, a database program, an http email access
+   gateway, and a standard http server, they can't all run on the same
+   TCP port on the same machine.
+
+   Yet another problem of well-known ports is that port numbers are a
+   finite resource. Originally, port numbers 0-255 were reserved for
+   well-known services and the remaining 99.6% of the port space was
+   free for dynamic allocation [RFC 1122]. Since then, the range of
+   "Registered Ports" has crept upwards until today, ports 0-49151 are
+   reserved, and only 25% of the space remains available for dynamic
+   allocation. Even though 65535 may seem like a lot of available port
+   numbers, with the pace of software development today, if every new
+   protocol gets its own private port number, we will eventually
+   run out. To avoid having to do application-level demultiplexing,
+   protocols like the X Window System wisely use a range of port
+   numbers, and let TCP do the demultiplexing for them. The X Window
+   System uses 64 ports, in the range 6000-6063. If every new protocol
+   were to get its own chunk of 64 ports, we would run out even faster.
+
+   Any NBP replacement needs to provide, not just the network number,
+   subnet number, and host number within that subnet (i.e. the IP
+   address) but also the port number within that host where the service
+   is located. Furthermore, since many existing IP services such as
+   lpr *do* already use additional application-layer demultiplexing
+   information such as a print queue name, an NBP replacement needs
+   to support this too by including this information as part of the
+   complete package of addressing information provided to the client
+   to enable it to use the service. The NBP replacement needs to name
+   individual print queues as first-class entities in their own right.
+   It is not sufficient merely to name a print server, within which
+   separate print queues can then be found by some other mechanism.
+
+   One possible answer here is that an IP-based NBP replacement could
+   use a solution derived from DNS SRV records instead of "A" records,
+   since SRV records *do* provide a port number. However, this alone is
+   not a complete solution, because SRV records cannot tell you an lpr
+   print queue name.
+
+
+
+
+
+Expires 16th July 2011            Cheshire & Krochmal           [Page 7]
+
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
+
+
+3.4 Typed Name Space
+
+   AppleTalk NBP names are structured names, generally written as:
+
+      Name : Type @ Zone
+
+   Name: The Name is the user-visible name of the service.
+
+   Type: The Type is an opaque identifier which identifies the service
+   protocol and semantics. The user may think of the Type as identifying
+   the end-user function that the device performs (e.g. "printing"), and
+   for the typical end-user this may be an adequate mental model, but
+   strictly speaking, from a protocol-design perspective, the Type
+   identifies the semantic application protocol the service speaks,
+   no more, no less. For convenience, the opaque Type identifier is
+   generally constructed using descriptive ASCII text, but this text has
+   no meaning to the protocol, and care should be taken in inferring too
+   much meaning from it. For example, the NBP Service Type "LaserWriter"
+   means "any service that speaks PostScript over PAP/ATP/DDP (AppleTalk
+   Printer Access Protocol over AppleTalk Transaction Protocol over
+   AppleTalk Datagram Delivery Protocol)". It does not necessarily mean
+   an Apple-branded "LaserWriter" printer; nor does the service even
+   have to be a printer. A device that archives documents to digital
+   media could advertise itself as a "LaserWriter", meaning that it
+   speaks PostScript over PAP, not necessarily that it prints that
+   document on paper when it gets it. The end-user never directly sees
+   the Service Type. It is implicit in the user's action; e.g. when
+   printing, the printing software knows what protocol(s) it speaks and
+   consequently what Service Type(s) it should be looking for -- the
+   user doesn't have to tell it.
+
+   Zone: The Zone is an organizational or geographical grouping of named
+   services. Typical AppleTalk Zone Names are things like "Engineering",
+   "Sales", and "Building 1, 3rd floor, North". The equivalent concept
+   in DNS could be a subdomain such as "Engineering.example.com.",
+   "Sales.example.com." or "Building 1, 3rd floor, North.example.com."
+
+   Each {Type,Zone} pair defines a name space in which service names
+   can be registered. It is not a name conflict to have a printer
+   called "Sales" and a file server called "Sales", because one is
+   "Sales:LaserWriter@Zone" and the other is "Sales:AFPServer@Zone".
+
+   Any NBP replacement needs to provide a mechanism that allows names
+   to be grouped into organizational or geographical "zones", and within
+   each "zone", to provide an independent name space for each service
+   type.
+
+
+
+
+
+
+
+Expires 16th July 2011            Cheshire & Krochmal           [Page 8]
+
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
+
+
+3.5 User-Friendly Names
+
+   When repeatedly typing in names on command-line systems, it is
+   helpful to have names that are short, all lower-case, with no spaces
+   or other unusual characters.
+
+   Since Service Names are intended to be selected from a list, not
+   repeatedly typed in on a keyboard, there is no reason for them to
+   be restricted so. Users should be able to give their printers names
+   like "Sales", "Marketing", and "3rd Floor Copy Room", not just
+   "printer1.example.com." Of course a user is free to name a particular
+   service using only lower-case letters and no spaces if they wish,
+   but they should not be forced to do that.
+
+   Any NBP replacement needs to support a full range of rich text
+   characters, including upper case, lower case, spaces, accented
+   characters, and so on. The correct solution is likely to be UTF-8
+   Unicode [RFC 3629].
+
+   Note that this requirement for user-friendly rich-text names applies
+   equally to the Zones/domains in which services are registered and
+   discovered.
+
+   Note that although the characters ':' and '@' are used when writing
+   AppleTalk NBP names, they are simply a notational convenience in
+   written text. In the on-the-wire protocol and in the software data
+   structures, NBP Name, Type and Zone strings are all allowed to
+   contain almost any character, including ':' and '@'. The naming
+   scheme provided by an NBP replacement must allow use of any desired
+   characters in service names, including dots ('.'), spaces, percent
+   signs, etc.
+
+
+3.6 Zeroconf Operation
+
+   AppleTalk NBP is self-configuring. On a network of just two hosts,
+   they communicate peer-to-peer using multicast. On a large managed
+   network, AppleTalk routers automatically perform an aggregation
+   function, allowing name lookups to be performed via unicast to a
+   service running on the router, instead of by flooding the entire
+   network with multicast packets to every host.
+
+   Any NBP replacement needs to be able to operate in the absence of
+   external network infrastructure. However, this should not be the only
+   mode of operation. In larger managed networks, it should also be
+   possible to take advantage of appropriate external network
+   infrastructure when present, to perform queries via unicast instead
+   of multicast.
+
+
+
+
+
+Expires 16th July 2011            Cheshire & Krochmal           [Page 9]
+
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
+
+
+3.7 Name Space Management
+    -or-
+    Name Conflict Detection
+
+   Because an NBP replacement needs to operate in a Zeroconf
+   environment, it cannot be assumed that a central network
+   administrator is managing the network. In a managed network normal
+   administrative controls may apply, but in the Zeroconf case an NBP
+   replacement must make it easy for users to name their devices as
+   they wish, without the inconvenience or expense of having to seek
+   permission or pay some organization like a domain name registry for
+   the privilege. However, this ease of naming and freedom to choose any
+   desired name means that two users may independently decide to run a
+   personal file server on their laptop computers, and (unimaginatively)
+   name it "My Computer". When these two users later attend the next
+   IETF meeting and find themselves part of the same wireless network,
+   there may be problems.
+
+   Similarly, every Brother network printer may ship from the factory
+   with its Service Name set to "Brother Printer". On a typical small
+   home network where there is only one printer this is not a problem,
+   but it could be a problem if two or more such printers are connected
+   to the same network.
+
+   Any NBP replacement needs to detect such conflicts, and handle
+   them appropriately. In the case of the laptop computers, which have
+   keyboards, screens, and human users, the software should display a
+   message telling one or both users that they need to select a new
+   name.
+
+   In the case of the printers which have no keyboard or screen, the
+   software should automatically select a new unique name, perhaps by
+   appending an integer to the end of the existing name, e.g. "Brother
+   Printer 2". Note that although this programmatically-derived name
+   should be recorded persistently for use next time the device is
+   powered on, the user is not forced to use that name as the long-term
+   name for the service/device. In a network with more than one printer,
+   the typical user will assign human-meaningful names to those
+   printers, such as "Upstairs Printer" and "Downstairs Printer", but
+   the ability to rename the printer using some configuration tool (e.g.
+   a Web Browser) depends on the ability to find the printer and connect
+   to it in the first place. Hence the programmatically-derived unique
+   name serves a vital bootstrapping role, even if its use in that role
+   is short-lived.
+
+   Because of the potentially transient nature of connectivity on small
+   portable devices that are becoming more and more common (especially
+   when used with wireless networks), this name conflict detection
+   needs to be an ongoing process. It is not sufficient to simply verify
+   uniqueness of names for a few seconds during the boot process and
+   then assume that the names will remain unique indefinitely.
+
+
+Expires 16th July 2011            Cheshire & Krochmal          [Page 10]
+
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
+
+
+   If the Zeroconf naming mechanism is integrated with the existing
+   global DNS naming mechanism, then it would be beneficial for a sub-
+   tree of that global namespace to be designated as having only local
+   significance, for use without charge by cooperating peers, much
+   as portions of the IPv4 address space are already designated as
+   local-significance-only, available for organizations to use locally
+   without charge as they wish [RFC 1918].
+
+
+3.8 Late Binding
+
+   When the user selects their default printer, the software should not
+   store the IP address and port number, but just the name. Then, every
+   time the user prints, the software should look up the name to find
+   the current IP address and port number for that service. This allows
+   a named logical service to be moved from one piece of hardware to
+   another without disrupting the user's ability to print to that named
+   print service.
+
+   On a network using DHCP [RFC 2131] or self-assigned link-local
+   addresses [RFC 3927] [RFC 4862], a device's IP address may change
+   from day to day. By deferring binding of name to address until actual
+   use, this allows the client to get the correct IP address at the time
+   the service is used.
+
+   Similarly, with a service using a dynamic port number instead of a
+   fixed well-known port, the service may not get the same port number
+   every time it is started or restarted. By deferring binding of name
+   to port number until actual use, this allows the client to get the
+   correct port number at the time the service is used.
+
+
+3.9 Simplicity
+
+   Any NBP replacement needs to be simple enough that vendors of even
+   a low-cost network ink-jet printer can afford to implement it in the
+   device's limited firmware.
+
+
+3.10 Network Browsing
+
+   AppleTalk NBP offers certain limited wild-card functionality. For
+   example, the service name "=" means "any name". This allows a client
+   to perform an NBP lookup such as "=:LaserWriter@My Zone" and receive
+   back in response a list of all the PAP (AppleTalk Printer Access
+   Protocol) printers in the Zone called "My Zone".
+
+   Any NBP replacement needs to allow a piece of software, such as a
+   printing client, or a file server client, to enumerate all the named
+   instances of services in a specified zone (domain) which speak its
+   protocol(s).
+
+
+Expires 16th July 2011            Cheshire & Krochmal          [Page 11]
+
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
+
+
+3.11 Browsing and Registration Guidance
+
+   AppleTalk NBP provides certain meta-information to the client.
+
+   On a network with multiple AppleTalk Zones, the AppleTalk network
+   infrastructure informs the client of the list of Zones that are
+   available for browsing. It also informs the client of the default
+   Zone, which defines the client's logical "home" location. This is
+   the Zone that is selected by default when the Macintosh Chooser is
+   opened, and is usually the Zone where the user is most likely to find
+   services like printers that are physically nearby, but the user is
+   still free to browse any Zone in the offered list that they wish.
+
+   A Brother printer may be pre-configured at the factory with the
+   Service Name "Brother Printer", but they do not know on which network
+   the printer will eventually be installed, so the printer will have to
+   learn this from the network on arrival. On a network with multiple
+   AppleTalk Zones, the AppleTalk network infrastructure informs the
+   client of a single default Zone within which it may register Service
+   Names. In the case of a device with a human user, the AppleTalk
+   network infrastructure may also inform the client of a list of Zones
+   within which the client may register Service Names, and the user may
+   choose to register Service Names in any one of those Zones instead of
+   in the suggested default Zone.
+
+   Any NBP replacement needs to provide the following information to
+   the client:
+
+   * The suggested zone (domain) in which to register Service Names.
+   * A list of recommended available zones (domains) in which Service
+     Names may be optionally registered.
+   * The suggested default zone (domain) for network browsing.
+   * A list of available zones (domains) which may be browsed.
+
+   Note that because the domains used in this context are intended
+   for service browsing in a graphical user interface, they should
+   be permitted to be full user-friendly rich text, just like the
+   rest of a service name.
+
+
+3.12 Power Management Support
+
+   Many modern network devices have the ability to go into a low-power
+   mode where only a small part of the Ethernet hardware remains
+   powered, and the device can be woken up by sending a specially
+   formatted Ethernet frame which the device's power-management hardware
+   recognizes. A modern service discovery protocol should provide
+   facilities to enable this low-power mode to be used effectively
+   without sacrificing network functionality, such as the ability to
+   wake a device up when it is needed.
+
+
+
+Expires 16th July 2011            Cheshire & Krochmal          [Page 12]
+
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
+
+
+3.13 Protocol Agnostic
+
+   Fashions come and go in the computer industry, but a service
+   discovery protocol, being one of the foundation components on which
+   everything else rests, has to be able to outlive these swings of
+   fashion. A useful service discovery protocol should be agnostic to
+   the protocols being used by the higher-layer software it serves. If a
+   service discovery protocol requires all the higher layer software to
+   be written in a new computer language, or requires all the higher
+   layer protocols to embrace some trendy new data representation format
+   that is currently in vogue, then that service discovery protocol is
+   likely to have limited utility after the fashion changes and computer
+   industry moves on to its next infatuation.
+
+
+3.14 Distributed Cache Coherency Protocol
+
+   Any modern service discovery protocol must use some kind of caching
+   for efficiency. Any time a distributed cache is maintained, a cache
+   coherency protocol is required to control the effects of stale data.
+   Thus a useful service discovery protocol needs to include cache
+   coherency mechanisms.
+
+
+3.15 Immediate and Ongoing Information Presentation
+
+   Many current discovery mechanisms display an hourglass or a "Please
+   Wait" message for five or ten seconds, and then present a list of
+   results to the user. At this point, the list of results is static,
+   and does not update in response to changes in the environment.
+   To see current information the user is forced to click a "Refresh"
+   button repeatedly, waiting another five to ten seconds each time.
+
+   Neither limitation is acceptable in a protocol that is to replace
+   NBP. When a user initiates a browsing operation, the user interface
+   should take at most one second to present the list of results.
+   In addition, the list should update in response to changes in the
+   environment as they happen. If the user is waiting for a particular
+   service to become available, they should be able simply to watch
+   until it appears, with no "Refresh" button that they need to keep
+   clicking. A protocol to replace AppleTalk NBP must be able to meet
+   these requirement for timeliness of information discovery, and
+   liveness of information updating, without placing undue burden
+   on the network.
+
+
+
+
+
+
+
+
+
+Expires 16th July 2011            Cheshire & Krochmal          [Page 13]
+
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
+
+
+4. Existing Protocols
+
+   The question has been asked, "Isn't SLP the IETF replacement for
+   NBP?"
+
+   SLP [RFC 2608] provides extremely rich and flexible facilities in
+   the area of Requirement 10, "Network Browsing". However, SLP provides
+   none of the service naming, automatic name conflict detection, or
+   efficient name-to-address lookup which form the majority of what
+   AppleTalk NBP does.
+
+   SLP returns results in the form of URLs. In the absence of DNS, URLs
+   cannot usefully contain DNS names. Discovering a list of service URLs
+   of the form "ipp://169.254.17.202/" is not particularly informative
+   to the user. Discovering a list of service URLs of the form
+   "ipp://epson-stylus-900n.local./" is slightly less opaque (though
+   still not very user-friendly), but to do even this SLP would have
+   to depend on Multicast DNS or something similar to resolve names
+   to addresses in the absence of a conventional DNS server.
+
+   SLP provides fine-grained query capabilities, such as the ability to
+   prune a long list of printers to show only those that have blue paper
+   in the top tray, which could be useful on extremely large networks
+   with very many printers, but are certainly unnecessary for a typical
+   home or small office with only one or two printers.
+
+   In summary, SLP alone fails to meet most of the requirements,
+   and provides vastly more mechanism than necessary in the area of
+   Requirement 10.
+
+
+5. IPv6 Considerations
+
+   An IP replacement for AppleTalk Name Binding Protocol needs to
+   support IPv6 as well as IPv4.
+
+
+6. Security Considerations
+
+   AppleTalk Name Binding Protocol was developed in an era where little
+   consideration was given to security issues. In today's world this
+   would no longer be appropriate. Any modern replacement for AppleTalk
+   NBP should have security measures appropriate to the environment in
+   which it will be used. Given that this document is a broad historical
+   overview of how AppleTalk NBP worked, and does not specify any new
+   protocol(s), detailed discussion of possible network environments,
+   what protocols would be appropriate in each, and what security
+   measures would be expected of each such protocol, is beyond the scope
+   of this document.
+
+
+
+
+Expires 16th July 2011            Cheshire & Krochmal          [Page 14]
+
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
+
+
+7. IANA Considerations
+
+   No IANA actions are required by this document.
+
+
+8. Copyright Notice
+
+   Copyright (c) 2011 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.
+
+
+9. Informative References
+
+   [DNS-SD]   Cheshire, S., and M. Krochmal, "DNS-Based Service
+              Discovery", Internet-Draft (work in progress),
+              draft-cheshire-dnsext-dns-sd-08.txt, January 2011.
+
+   [mDNS]     Cheshire, S., and M. Krochmal, "Multicast DNS",
+              Internet-Draft (work in progress),
+              draft-cheshire-dnsext-multicastdns-13.txt, January 2011.
+
+   [RFC 792]  Postel, J., "Internet Control Message Protocol",
+              STD 5, RFC 792,September 1981.
+
+   [RFC 1122] Braden, R. (Editor), "Requirements for Internet Hosts --
+              Communication Layers", STD 3, RFC 1122, October 1989.
+
+   [RFC 1918] Rekhter, Y., et al., "Address Allocation for Private
+              Internets", RFC 1918, February 1996.
+
+   [RFC 2131] Droms, R., "Dynamic Host Configuration Protocol",
+              RFC 2131, March 1997.
+
+   [RFC 2608] Guttman, Perkins, Veizades & Day, "Service Location
+              Protocol, Version 2", RFC 2608, June 1999.
+
+   [RFC 3629] Yergeau, F., "UTF-8, a transformation format of ISO
+              10646", RFC 3629, November 2003.
+
+   [RFC 3927] Cheshire, S., B. Aboba, and E. Guttman,
+              "Dynamic Configuration of IPv4 Link-Local Addresses",
+              RFC 3927, May 2005.
+
+   [RFC 4862] Thomson, S., Narten, T., and T. Jinmei, "IPv6 Stateless
+              Address Autoconfiguration", RFC 4862, September 2007.
+
+Expires 16th July 2011            Cheshire & Krochmal          [Page 15]
+
+Internet Draft       Replacement of AppleTalk NBP      12th January 2011
+
+
+10. Author's Address
+
+   Stuart Cheshire
+   Apple Inc.
+   1 Infinite Loop
+   Cupertino
+   California 95014
+   USA
+
+   Phone: +1 408 974 3207
+   EMail: cheshire@apple.com
+
+   Marc Krochmal
+   Apple Inc.
+   1 Infinite Loop
+   Cupertino
+   California 95014
+   USA
+
+   Phone: +1 408 974 4368
+   EMail: marc@apple.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Expires 16th July 2011            Cheshire & Krochmal          [Page 16]

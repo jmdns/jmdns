@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/DECORATION/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.0 http://maven.apache.org/xsd/decoration-1.0.0.xsd">
+	<skin>
+		<groupId>org.apache.maven.skins</groupId>
+		<artifactId>maven-default-skin</artifactId>
+		<version>1.0</version>
+	</skin>
+	<bannerLeft>
+		<name>JmDNS</name>
+		<src>images/logos/logo.png</src>
+		<href>http://jmdns.sourceforge.net/</href>
+	</bannerLeft>
+	<bannerRight>
+		<name>JmDNS</name>
+		<href>http://jmdns.sourceforge.net/</href>
+	</bannerRight>
+	<body>
+		<links>
+			<item name="Bonjour" href="http://developer.apple.com/macosx/rendezvous/" />
+			<item name="Zeroconf" href="http://www.zeroconf.org/" />
+			<item name="DNS-SD" href="http://www.dns-sd.org/" />
+		</links>
+		<menu name="JmDNS Overview">
+			<item name="Description and Usage" href="index.html" />
+			<!--item name="Goals" href="plugin-info.html"/> <item name="Usage" href="usage.html"/> <item name="FAQ" href="faq.html"/ -->
+		</menu>
+		<menu ref="reports" name="Reports" />
+
+	</body>
+</project>
