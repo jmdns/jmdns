@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>javax.jmdns</groupId>
 	<artifactId>jmdns</artifactId>
-	<version>3.4.1</version>
+	<version>3.4.1-SNAPSHOT</version>
 	<name>JmDNS</name>
 	<packaging>jar</packaging>
 	<parent>
@@ -28,9 +28,9 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 		<url>http://jmdns.sourceforge.net/</url>
 	</organization>
 	<scm>
-		<connection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns/tags/jmdns-3.4.1</connection>
-		<developerConnection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns/tags/jmdns-3.4.1</developerConnection>
-		<url>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns/tags/jmdns-3.4.1</url>
+		<connection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns/trunk</connection>
+		<developerConnection>scm:svn:https://jmdns.svn.sourceforge.net/svnroot/jmdns/trunk</developerConnection>
+		<url>https://jmdns.svn.sourceforge.net/svnroot/jmdns</url>
 	</scm>
 	<distributionManagement>
 		<site>
@@ -353,7 +353,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 										</goals>
 									</pluginExecutionFilter>
 									<action>
-										<ignore />
+										<ignore></ignore>
 									</action>
 								</pluginExecution>
 							</pluginExecutions>
