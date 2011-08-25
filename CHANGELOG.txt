@@ -1,3 +1,6 @@
+CHANGELOG XX XXX 2011 Pierre Frisch
+Rev the source code to 3.4.2
+
 CHANGELOG 24 August 2011 Pierre Frisch
 Rev the source code to 3.4.1
 unregisterService() prevents subsequent registerService() - ID: 3163605

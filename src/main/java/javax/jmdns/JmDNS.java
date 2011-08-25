@@ -39,7 +39,7 @@ public abstract class JmDNS implements Closeable {
     /**
      * The version of JmDNS.
      */
-    public static final String VERSION = "3.4.1";
+    public static final String VERSION = "3.4.2";
 
     /**
      * <p>
