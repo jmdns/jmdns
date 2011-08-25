@@ -8,7 +8,8 @@
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
 		<artifactId>oss-parent</artifactId>
-		<version>4</version>
+		<version>7</version>
+		<relativePath>.../parent/pom.xml</relativePath>
 		<!-- https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide -->
 		<!-- http://www.sonatype.com/people/2010/01/how-to-generate-pgp-signatures-with-maven/ -->
 		<!-- mvn release:clean -->
@@ -34,7 +35,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 	<distributionManagement>
 		<site>
 			<id>jmdns.sf.net</id>
-			<url>scp://shell.sourceforge.net/home/groups/j/jm/jmdns/htdocs</url>
+			<url>scp://shell.sourceforge.net/home/project-web/jmdns/htdocs</url>
 			<!-- http://maven.apache.org/plugins/maven-site-plugin/examples/site-deploy-to-sourceforge.net.html -->
 		</site>
 	</distributionManagement>
@@ -168,7 +169,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.1</version>
+				<version>2.3.2</version>
 				<configuration>
 					<source>${jvm.version}</source>
 					<target>${jvm.version}</target>
@@ -177,7 +178,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>buildnumber-maven-plugin</artifactId>
-				<version>1.0-beta-4</version>
+				<version>1.0</version>
 				<executions>
 					<execution>
 						<phase>validate</phase>
@@ -247,9 +248,10 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
-				<version>2.1.0</version>
+				<version>2.3.5</version>
 				<extensions>true</extensions>
 				<configuration>
+					<manifestLocation>${project.build.outputDirectory}/META-INF</manifestLocation>
 					<instructions>
 						<Export-Package>javax.jmdns</Export-Package>
 						<Private-Package>javax.jmdns.impl,javax.jmdns.impl.*,com.strangeberry.*,samples</Private-Package>
@@ -261,7 +263,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 				<executions>
 					<execution>
 						<id>bundle-manifest</id>
-						<phase>process-classes</phase>
+      					<phase>process-classes</phase>
 						<goals>
 							<goal>manifest</goal>
 						</goals>
@@ -271,6 +273,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
+				<version>3.0</version>
 				<configuration>
 					<locales>en</locales>
 					<!--<templateFile>src/site/site.vm</templateFile> -->
@@ -316,7 +319,6 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
-				<version>2.0</version>
 				<configuration>
 					<tagBase>https://jmdns.svn.sourceforge.net/svnroot/jmdns/tags/</tagBase>
 				</configuration>
@@ -324,13 +326,42 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
 				<artifactId>nexus-maven-plugin</artifactId>
-				<version>1.6</version>
+				<version>1.9.2.1</version>
 				<!-- mvn nexus:staging-close -->
 				<!-- mvn nexus:staging-list -->
 				<!-- mvn nexus:staging-drop -->
 				<!-- mvn nexus:staging-promote -->
 			</plugin>
 		</plugins>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.apache.felix</groupId>
+										<artifactId>maven-bundle-plugin</artifactId>
+										<versionRange>[2.1.0,)</versionRange>
+										<goals>
+											<goal>manifest</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 	<reporting>
 		<outputDirectory>target/site</outputDirectory>
