@@ -278,11 +278,18 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 					<locales>en</locales>
 					<!--<templateFile>src/site/site.vm</templateFile> -->
 				</configuration>
+				<dependencies>
+					<dependency><!-- add support for ssh/scp -->
+						<groupId>org.apache.maven.wagon</groupId>
+						<artifactId>wagon-ssh</artifactId>
+						<version>1.0</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>com.atlassian.maven.plugins</groupId>
 				<artifactId>maven-clover2-plugin</artifactId>
-				<version>3.0.2</version>
+				<version>3.1.0</version>
 				<configuration>
 					<includes>
 						<include>javax/**/*.java</include>
@@ -384,7 +391,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 			<plugin>
 				<groupId>com.atlassian.maven.plugins</groupId>
 				<artifactId>maven-clover2-plugin</artifactId>
-				<version>3.0.2</version>
+				<version>3.1.0</version>
 				<configuration>
 					<licenseLocation>clover.license.txt</licenseLocation>
 					<generatePdf>false</generatePdf>
