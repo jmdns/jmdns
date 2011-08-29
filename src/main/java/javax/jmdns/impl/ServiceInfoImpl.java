@@ -905,6 +905,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                     if (rec.getName().equalsIgnoreCase(this.getQualifiedName())) {
                         DNSRecord.Text txt = (DNSRecord.Text) rec;
                         _text = txt.getText();
+                        _props = null; // set it null for apply update text data
                         serviceUpdated = true;
                     }
                     break;
