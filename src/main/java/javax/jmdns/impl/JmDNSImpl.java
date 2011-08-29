@@ -690,6 +690,15 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      * {@inheritDoc}
      */
     @Override
+    public InetAddress getInetAddress() throws IOException {
+        return _localHost.getInetAddress();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Deprecated
     public InetAddress getInterface() throws IOException {
         return _socket.getInterface();
     }

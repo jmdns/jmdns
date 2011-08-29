@@ -138,9 +138,23 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
 
     /*
      * (non-Javadoc)
+     * @see javax.jmdns.JmmDNS#getInetAddresses()
+     */
+    @Override
+    public InetAddress[] getInetAddresses() throws IOException {
+        Set<InetAddress> result = new HashSet<InetAddress>();
+        for (JmDNS mDNS : _knownMDNS.values()) {
+            result.add(mDNS.getInetAddress());
+        }
+        return result.toArray(new InetAddress[result.size()]);
+    }
+
+    /*
+     * (non-Javadoc)
      * @see javax.jmdns.JmmDNS#getInterfaces()
      */
     @Override
+    @Deprecated
     public InetAddress[] getInterfaces() throws IOException {
         Set<InetAddress> result = new HashSet<InetAddress>();
         for (JmDNS mDNS : _knownMDNS.values()) {

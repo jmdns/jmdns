@@ -729,7 +729,7 @@ public abstract class DNSRecord extends DNSEntry {
 
                 // This block is useful for debugging race conditions when jmdns is responding to itself.
                 try {
-                    if (dns.getInterface().equals(getRecordSource())) {
+                    if (dns.getInetAddress().equals(getRecordSource())) {
                         logger1.warning("Got conflicting probe from ourselves\n" + "incoming: " + this.toString() + "\n" + "local   : " + localService.toString());
                     }
                 } catch (IOException e) {

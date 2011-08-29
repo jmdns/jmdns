@@ -158,6 +158,17 @@ public abstract class JmDNS implements Closeable {
      * @exception IOException
      *                if there is an error in the underlying protocol, such as a TCP error.
      */
+    public abstract InetAddress getInetAddress() throws IOException;
+
+    /**
+     * Return the address of the interface to which this instance of JmDNS is bound.
+     *
+     * @return Internet Address
+     * @exception IOException
+     *                if there is an error in the underlying protocol, such as a TCP error.
+     * @deprecated do not use this implementation yields unpredictable results use {@link #getInetAddress()}
+     */
+    @Deprecated
     public abstract InetAddress getInterface() throws IOException;
 
     /**

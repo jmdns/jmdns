@@ -129,8 +129,19 @@ public interface JmmDNS extends Closeable {
      *
      * @return list of Internet Address
      * @exception IOException
-     * @see javax.jmdns.JmDNS#getInterface()
+     * @see javax.jmdns.JmDNS#getInetAddress()
      */
+    public abstract InetAddress[] getInetAddresses() throws IOException;
+
+    /**
+     * Return the list of addresses of the interface to which this instance of JmmDNS is bound.
+     *
+     * @return list of Internet Address
+     * @exception IOException
+     * @see javax.jmdns.JmDNS#getInterface()
+     * @deprecated do not use this implementation yields unpredictable results use {@link #getInetAddresses()}
+     */
+    @Deprecated
     public abstract InetAddress[] getInterfaces() throws IOException;
 
     /**
