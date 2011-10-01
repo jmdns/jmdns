@@ -164,4 +164,18 @@ public class ServiceInfoTest {
         assertEquals("We did not get the right subtype:", "", map.get(Fields.Subtype));
     }
 
+    @Test
+    public void testDecodeServiceTypeMissingDomain() {
+        String type = "myservice._ftp._tcp.";
+
+        Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(type);
+
+        assertEquals("We did not get the right domain:", "", map.get(Fields.Domain));
+        assertEquals("We did not get the right protocol:", "tcp", map.get(Fields.Protocol));
+        assertEquals("We did not get the right application:", "ftp", map.get(Fields.Application));
+        assertEquals("We did not get the right name:", "myservice", map.get(Fields.Instance));
+        assertEquals("We did not get the right subtype:", "", map.get(Fields.Subtype));
+
+    }
+
 }
