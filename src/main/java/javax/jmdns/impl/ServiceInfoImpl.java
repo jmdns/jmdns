@@ -291,7 +291,11 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                 if (end > start) {
                     domain = casePreservedType.substring(start, end);
                 }
-                application = casePreservedType.substring(0, index - 1);
+                if (index > 0) {
+                    application = casePreservedType.substring(0, index - 1);
+                } else {
+                    application = "";
+                }
             }
             index = application.toLowerCase().indexOf("._sub");
             if (index > 0) {
