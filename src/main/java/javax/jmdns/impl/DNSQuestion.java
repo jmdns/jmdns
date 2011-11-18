@@ -18,7 +18,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
 
 /**
  * A DNS question.
- * 
+ *
  * @author Arthur van Hoff, Pierre Frisch
  */
 public class DNSQuestion extends DNSEntry {
@@ -222,7 +222,7 @@ public class DNSQuestion extends DNSEntry {
 
     /**
      * Create a question.
-     * 
+     *
      * @param name
      *            DNS name to be resolved
      * @param type
@@ -265,7 +265,7 @@ public class DNSQuestion extends DNSEntry {
 
     /**
      * Adds answers to the list for our question.
-     * 
+     *
      * @param jmDNSImpl
      *            DNS holding the records
      * @param answers
@@ -277,7 +277,7 @@ public class DNSQuestion extends DNSEntry {
 
     protected void addAnswersForServiceInfo(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers, ServiceInfoImpl info) {
         if ((info != null) && info.isAnnounced()) {
-            if (this.getName().equalsIgnoreCase(info.getQualifiedName()) || this.getName().equalsIgnoreCase(info.getType())) {
+            if (this.getName().equalsIgnoreCase(info.getQualifiedName()) || this.getName().equalsIgnoreCase(info.getType()) || this.getName().equalsIgnoreCase(info.getTypeWithSubtype())) {
                 answers.addAll(jmDNSImpl.getLocalHost().answers(DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL));
                 answers.addAll(info.answers(DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, jmDNSImpl.getLocalHost()));
             }
@@ -307,7 +307,7 @@ public class DNSQuestion extends DNSEntry {
 
     /**
      * Checks if we are the only to be able to answer that question.
-     * 
+     *
      * @param jmDNSImpl
      *            DNS holding the records
      * @return <code>true</code> if we are the only one with the answer to the question, <code>false</code> otherwise.

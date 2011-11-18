@@ -4,6 +4,7 @@ Update service text - ID: 3400063
 Interface Discovery - ID: 3399444
 Question about function in HostInfo.java - ID: 3400651
 StringIndexOutOfBounds in ServiceInfoImpl.java - ID: 3393338
+JmDNS 3.4.1 does not answer to PTR requests on sub-types - ID: 3437695
 
 CHANGELOG 24 August 2011 Pierre Frisch
 Rev the source code to 3.4.1
