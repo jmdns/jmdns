@@ -35,6 +35,7 @@ public final class DNSConstants {
     public static final int    FLAGS_Z                        = 0x0040;                                                       // Zero
     public static final int    FLAGS_AD                       = 0x0020;                                                       // Authentic data
     public static final int    FLAGS_CD                       = 0x0010;                                                       // Checking disabled
+    public static final int    FLAGS_RCODE                    = 0x000F;                                                       // Response code
 
     // Time Intervals for various functions
 

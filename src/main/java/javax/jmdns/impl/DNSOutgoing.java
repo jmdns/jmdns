@@ -14,7 +14,7 @@ import javax.jmdns.impl.constants.DNSRecordClass;
 
 /**
  * An outgoing DNS message.
- * 
+ *
  * @author Arthur van Hoff, Rick Blair, Werner Randelshofer
  */
 public final class DNSOutgoing extends DNSMessage {
@@ -26,7 +26,7 @@ public final class DNSOutgoing extends DNSMessage {
 
         /**
          * Creates a new message stream, with a buffer capacity of the specified size, in bytes.
-         * 
+         *
          * @param size
          *            the initial size.
          * @exception IllegalArgumentException
@@ -189,7 +189,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Create an outgoing multicast query or response.
-     * 
+     *
      * @param flags
      */
     public DNSOutgoing(int flags) {
@@ -198,7 +198,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Create an outgoing query or response.
-     * 
+     *
      * @param flags
      * @param multicast
      */
@@ -208,7 +208,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Create an outgoing query or response.
-     * 
+     *
      * @param flags
      * @param multicast
      * @param senderUDPPayload
@@ -226,7 +226,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Return the number of byte available in the message.
-     * 
+     *
      * @return available space
      */
     public int availableSpace() {
@@ -235,7 +235,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Add a question to the message.
-     * 
+     *
      * @param rec
      * @exception IOException
      */
@@ -253,7 +253,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Add an answer if it is not suppressed.
-     * 
+     *
      * @param in
      * @param rec
      * @exception IOException
@@ -266,7 +266,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Add an answer to the message.
-     * 
+     *
      * @param rec
      * @param now
      * @exception IOException
@@ -289,7 +289,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Add an authoritative answer to the message.
-     * 
+     *
      * @param rec
      * @exception IOException
      */
@@ -307,7 +307,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Add an additional answer to the record. Omit if there is no room.
-     * 
+     *
      * @param in
      * @param rec
      * @exception IOException
@@ -326,7 +326,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     /**
      * Builds the final message buffer to be send and returns it.
-     * 
+     *
      * @return bytes to send.
      */
     public byte[] data() {
@@ -355,11 +355,6 @@ public final class DNSOutgoing extends DNSMessage {
         return message.toByteArray();
     }
 
-    @Override
-    public boolean isQuery() {
-        return (this.getFlags() & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_QUERY;
-    }
-
     /**
      * Debugging.
      */
@@ -381,13 +376,13 @@ public final class DNSOutgoing extends DNSMessage {
         if (this.getFlags() != 0) {
             buf.append(", flags=0x");
             buf.append(Integer.toHexString(this.getFlags()));
-            if ((this.getFlags() & DNSConstants.FLAGS_QR_RESPONSE) != 0) {
+            if (this.isResponse()) {
                 buf.append(":r");
             }
-            if ((this.getFlags() & DNSConstants.FLAGS_AA) != 0) {
+            if (this.isAuthoritativeAnswer()) {
                 buf.append(":aa");
             }
-            if ((this.getFlags() & DNSConstants.FLAGS_TC) != 0) {
+            if (this.isTruncated()) {
                 buf.append(":tc");
             }
         }
