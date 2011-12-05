@@ -267,7 +267,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
         } else {
             // First remove the name if it there.
             if (!aType.startsWith("_") || aType.startsWith("_services")) {
-                index = aType.indexOf('.');
+                index = aType.indexOf("._");
                 if (index > 0) {
                     // We need to preserve the case for the user readable name.
                     name = casePreservedType.substring(0, index);
