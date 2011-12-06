@@ -233,6 +233,10 @@ public final class DNSIncoming extends DNSMessage {
                     }
                 }
             }
+            // We should have drained the entire stream by now
+            if (_messageInputStream.available() > 0) {
+                throw new IOException("Received a message with the wrong length.");
+            }
         } catch (Exception e) {
             logger.log(Level.WARNING, "DNSIncoming() dump " + print(true) + "\n exception ", e);
             // This ugly but some JVM don't implement the cause on IOException

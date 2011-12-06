@@ -7,8 +7,7 @@ StringIndexOutOfBounds in ServiceInfoImpl.java - ID: 3393338
 JmDNS 3.4.1 does not answer to PTR requests on sub-types - ID: 3437695
 problem with . in name
 Incorrect behavior for a query with non-zero RCODE value - ID: 3451306
-
-
+Incorrect behavior for packets with inconsistent field size - ID: 3451316
 
 CHANGELOG 24 August 2011 Pierre Frisch
 Rev the source code to 3.4.1
