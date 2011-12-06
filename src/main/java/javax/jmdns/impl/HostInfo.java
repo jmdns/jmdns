@@ -272,14 +272,14 @@ public class HostInfo implements DNSStatefulObject {
         return buf.toString();
     }
 
-    public Collection<DNSRecord> answers(boolean unique, int ttl) {
+    public Collection<DNSRecord> answers(DNSRecordClass recordClass, boolean unique, int ttl) {
         List<DNSRecord> list = new ArrayList<DNSRecord>();
         DNSRecord answer = this.getDNS4AddressRecord(unique, ttl);
-        if (answer != null) {
+        if ((answer != null) && answer.matchRecordClass(recordClass)) {
             list.add(answer);
         }
         answer = this.getDNS6AddressRecord(unique, ttl);
-        if (answer != null) {
+        if ((answer != null) && answer.matchRecordClass(recordClass)) {
             list.add(answer);
         }
         return list;

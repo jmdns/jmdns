@@ -1193,14 +1193,27 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
         return buf.toString();
     }
 
-    public Collection<DNSRecord> answers(boolean unique, int ttl, HostInfo localHost) {
+    /**
+     * Create a series of answer that correspond with the give service info.
+     *
+     * @param recordClass
+     *            record class of the query
+     * @param unique
+     * @param ttl
+     * @param localHost
+     * @return collection of answers
+     */
+    public Collection<DNSRecord> answers(DNSRecordClass recordClass, boolean unique, int ttl, HostInfo localHost) {
         List<DNSRecord> list = new ArrayList<DNSRecord>();
-        if (this.getSubtype().length() > 0) {
-            list.add(new Pointer(this.getTypeWithSubtype(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
+        // [PJYF Dec 6 2011] This is bad hack as I don't know what the spec should really means in this case. i.e. what is the class of our registered services.
+        if ((recordClass == DNSRecordClass.CLASS_ANY) || (recordClass == DNSRecordClass.CLASS_IN)) {
+            if (this.getSubtype().length() > 0) {
+                list.add(new Pointer(this.getTypeWithSubtype(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
+            }
+            list.add(new Pointer(this.getType(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
+            list.add(new Service(this.getQualifiedName(), DNSRecordClass.CLASS_IN, unique, ttl, _priority, _weight, _port, localHost.getName()));
+            list.add(new Text(this.getQualifiedName(), DNSRecordClass.CLASS_IN, unique, ttl, this.getTextBytes()));
         }
-        list.add(new Pointer(this.getType(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
-        list.add(new Service(this.getQualifiedName(), DNSRecordClass.CLASS_IN, unique, ttl, _priority, _weight, _port, localHost.getName()));
-        list.add(new Text(this.getQualifiedName(), DNSRecordClass.CLASS_IN, unique, ttl, this.getTextBytes()));
         return list;
     }
 

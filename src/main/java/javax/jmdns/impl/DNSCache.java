@@ -409,7 +409,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>> {
         Collection<? extends DNSEntry> entryList = this._getDNSEntryList(name);
         if (entryList != null) {
             for (DNSEntry testDNSEntry : entryList) {
-                if (testDNSEntry.getRecordType().equals(type) && ((DNSRecordClass.CLASS_ANY == recordClass) || testDNSEntry.getRecordClass().equals(recordClass))) {
+                if (testDNSEntry.matchRecordType(type) && testDNSEntry.matchRecordClass(recordClass)) {
                     result = testDNSEntry;
                     break;
                 }
@@ -432,7 +432,7 @@ public class DNSCache extends AbstractMap<String, List<? extends DNSEntry>> {
             entryList = new ArrayList<DNSEntry>(entryList);
             for (Iterator<? extends DNSEntry> i = entryList.iterator(); i.hasNext();) {
                 DNSEntry testDNSEntry = i.next();
-                if (!testDNSEntry.getRecordType().equals(type) || ((DNSRecordClass.CLASS_ANY != recordClass) && !testDNSEntry.getRecordClass().equals(recordClass))) {
+                if (!testDNSEntry.matchRecordType(type) || (!testDNSEntry.matchRecordClass(recordClass))) {
                     i.remove();
                 }
             }

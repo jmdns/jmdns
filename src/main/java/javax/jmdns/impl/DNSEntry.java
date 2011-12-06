@@ -16,7 +16,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
 
 /**
  * DNS entry with a name, type, and class. This is the base class for questions and records.
- * 
+ *
  * @author Arthur van Hoff, Pierre Frisch, Rick Blair
  */
 public abstract class DNSEntry {
@@ -69,17 +69,17 @@ public abstract class DNSEntry {
 
     /**
      * Check if two entries have exactly the same name, type, and class.
-     * 
+     *
      * @param entry
      * @return <code>true</code> if the two entries have are for the same record, <code>false</code> otherwise
      */
     public boolean isSameEntry(DNSEntry entry) {
-        return this.getKey().equals(entry.getKey()) && this.getRecordType().equals(entry.getRecordType()) && ((DNSRecordClass.CLASS_ANY == entry.getRecordClass()) || this.getRecordClass().equals(entry.getRecordClass()));
+        return this.getKey().equals(entry.getKey()) && this.matchRecordType(entry.getRecordType()) && this.matchRecordClass(entry.getRecordClass());
     }
 
     /**
      * Check if two entries have the same subtype.
-     * 
+     *
      * @param other
      * @return <code>true</code> if the two entries have are for the same subtype, <code>false</code> otherwise
      */
@@ -88,8 +88,28 @@ public abstract class DNSEntry {
     }
 
     /**
+     * Check if the requested record class match the current record class
+     *
+     * @param recordClass
+     * @return <code>true</code> if the two entries have compatible class, <code>false</code> otherwise
+     */
+    public boolean matchRecordClass(DNSRecordClass recordClass) {
+        return (DNSRecordClass.CLASS_ANY == recordClass) || (DNSRecordClass.CLASS_ANY == this.getRecordClass()) || this.getRecordClass().equals(recordClass);
+    }
+
+    /**
+     * Check if the requested record tyep match the current record type
+     *
+     * @param recordType
+     * @return <code>true</code> if the two entries have compatible type, <code>false</code> otherwise
+     */
+    public boolean matchRecordType(DNSRecordType recordType) {
+        return this.getRecordType().equals(recordType);
+    }
+
+    /**
      * Returns the subtype of this entry
-     * 
+     *
      * @return subtype of this entry
      */
     public String getSubtype() {
@@ -99,7 +119,7 @@ public abstract class DNSEntry {
 
     /**
      * Returns the name of this entry
-     * 
+     *
      * @return name of this entry
      */
     public String getName() {
@@ -115,7 +135,7 @@ public abstract class DNSEntry {
 
     /**
      * Returns the key for this entry. The key is the lower case name.
-     * 
+     *
      * @return key for this entry
      */
     public String getKey() {
@@ -179,7 +199,7 @@ public abstract class DNSEntry {
 
     /**
      * Check if the record is stale, i.e. it has outlived more than half of its TTL.
-     * 
+     *
      * @param now
      *            update date
      * @return <code>true</code> is the record is stale, <code>false</code> otherwise.
@@ -188,7 +208,7 @@ public abstract class DNSEntry {
 
     /**
      * Check if the record is expired.
-     * 
+     *
      * @param now
      *            update date
      * @return <code>true</code> is the record is expired, <code>false</code> otherwise.
@@ -197,7 +217,7 @@ public abstract class DNSEntry {
 
     /**
      * Check that 2 entries are of the same class.
-     * 
+     *
      * @param entry
      * @return <code>true</code> is the two class are the same, <code>false</code> otherwise.
      */
@@ -207,7 +227,7 @@ public abstract class DNSEntry {
 
     /**
      * Check that 2 entries are of the same type.
-     * 
+     *
      * @param entry
      * @return <code>true</code> is the two type are the same, <code>false</code> otherwise.
      */
@@ -227,7 +247,7 @@ public abstract class DNSEntry {
 
     /**
      * Creates a byte array representation of this record. This is needed for tie-break tests according to draft-cheshire-dnsext-multicastdns-04.txt chapter 9.2.
-     * 
+     *
      * @return byte array representation
      */
     protected byte[] toByteArray() {
@@ -244,7 +264,7 @@ public abstract class DNSEntry {
 
     /**
      * Does a lexicographic comparison of the byte array representation of this record and that record. This is needed for tie-break tests according to draft-cheshire-dnsext-multicastdns-04.txt chapter 9.2.
-     * 
+     *
      * @param that
      * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than the specified object.
      */

@@ -115,7 +115,7 @@ public class Prober extends DNSStateTask {
     protected DNSOutgoing buildOutgoingForDNS(DNSOutgoing out) throws IOException {
         DNSOutgoing newOut = out;
         newOut.addQuestion(DNSQuestion.newQuestion(this.getDns().getLocalHost().getName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-        for (DNSRecord answer : this.getDns().getLocalHost().answers(DNSRecordClass.NOT_UNIQUE, this.getTTL())) {
+        for (DNSRecord answer : this.getDns().getLocalHost().answers(DNSRecordClass.CLASS_ANY, DNSRecordClass.NOT_UNIQUE, this.getTTL())) {
             newOut = this.addAuthoritativeAnswer(newOut, answer);
         }
         return newOut;
