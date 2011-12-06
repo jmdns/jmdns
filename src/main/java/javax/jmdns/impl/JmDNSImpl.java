@@ -1034,10 +1034,10 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
             _services.remove(info.getKey(), info);
             if (logger.isLoggable(Level.FINE)) {
-                logger.fine("unregisterService() JmDNS unregistered service as " + info);
+                logger.fine("unregisterService() JmDNS " + this.getName() + " unregistered service as " + info);
             }
         } else {
-            logger.warning("Removing unregistered service info: " + infoAbstract.getKey());
+            logger.warning(this.getName() + " removing unregistered service info: " + infoAbstract.getKey());
         }
     }
 
@@ -1860,6 +1860,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     @Override
     public String toString() {
         final StringBuilder aLog = new StringBuilder(2048);
+        aLog.append("\n");
         aLog.append("\t---- Local Host -----");
         aLog.append("\n\t");
         aLog.append(_localHost);
@@ -1926,6 +1927,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
         boolean newCollectorCreated = false;
         if (this.isCanceling() || this.isCanceled()) {
+            System.out.println("JmDNS Cancelling.");
             return new ServiceInfo[0];
         }
 
@@ -1938,7 +1940,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             }
         }
         if (logger.isLoggable(Level.FINER)) {
-            logger.finer(this.getName() + ".collector: " + collector);
+            logger.finer(this.getName() + "-collector: " + collector);
         }
         // At this stage the collector should never be null but it keeps findbugs happy.
         return (collector != null ? collector.list(timeout) : new ServiceInfo[0]);

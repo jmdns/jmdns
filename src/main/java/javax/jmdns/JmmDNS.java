@@ -106,6 +106,18 @@ public interface JmmDNS extends Closeable {
             }
             return _instance;
         }
+
+        /**
+         * Closes the instance if still running and discard it.
+         *
+         * @throws IOException
+         */
+        public static void close() throws IOException {
+            synchronized (Factory.class) {
+                _instance.close();
+                _instance = null;
+            }
+        }
     }
 
     /**

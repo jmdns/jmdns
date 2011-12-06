@@ -7,9 +7,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +22,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,25 +42,44 @@ import javax.jmdns.impl.constants.DNSConstants;
  * @author C&eacute;drik Lime, Pierre Frisch
  */
 public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoImpl.Delegate {
-    private static Logger                            logger = Logger.getLogger(JmmDNSImpl.class.getName());
+    private static Logger                                      logger = Logger.getLogger(JmmDNSImpl.class.getName());
 
-    private final Set<NetworkTopologyListener>       _networkListeners;
+    private final Set<NetworkTopologyListener>                 _networkListeners;
 
     /**
      * Every JmDNS created.
      */
-    private final ConcurrentMap<InetAddress, JmDNS>  _knownMDNS;
+    private final ConcurrentMap<InetAddress, JmDNS>            _knownMDNS;
 
     /**
      * This enable the service info text update.
      */
-    private final ConcurrentMap<String, ServiceInfo> _services;
+    private final ConcurrentMap<String, ServiceInfo>           _services;
 
-    private final ExecutorService                    _ListenerExecutor;
+    /**
+     * List of registered services
+     */
+    private final Set<String>                                  _serviceTypes;
 
-    private final ExecutorService                    _jmDNSExecutor;
+    /**
+     * Holds instances of ServiceListener's. Keys are Strings holding a fully qualified service type. Values are LinkedList's of ServiceListener's.
+     */
+    private final ConcurrentMap<String, List<ServiceListener>> _serviceListeners;
 
-    private final Timer                              _timer;
+    /**
+     * Holds instances of ServiceTypeListener's.
+     */
+    private final Set<ServiceTypeListener>                     _typeListeners;
+
+    private final ExecutorService                              _ListenerExecutor;
+
+    private final ExecutorService                              _jmDNSExecutor;
+
+    private final Timer                                        _timer;
+
+    private final AtomicBoolean                                _isClosing;
+
+    private final AtomicBoolean                                _closed;
 
     /**
      *
@@ -70,7 +92,12 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
         _ListenerExecutor = Executors.newSingleThreadExecutor();
         _jmDNSExecutor = Executors.newCachedThreadPool();
         _timer = new Timer("Multihommed mDNS.Timer", true);
+        _serviceListeners = new ConcurrentHashMap<String, List<ServiceListener>>();
+        _typeListeners = Collections.synchronizedSet(new HashSet<ServiceTypeListener>());
+        _serviceTypes = Collections.synchronizedSet(new HashSet<String>());
         (new NetworkChecker(this, NetworkTopologyDiscovery.Factory.getInstance())).start(_timer);
+        _isClosing = new AtomicBoolean(false);
+        _closed = new AtomicBoolean(false);
     }
 
     /*
@@ -79,35 +106,43 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
      */
     @Override
     public void close() throws IOException {
-        if (logger.isLoggable(Level.FINER)) {
-            logger.finer("Cancelling JmmDNS: " + this);
-        }
-        _timer.cancel();
-        _ListenerExecutor.shutdown();
-        // We need to cancel all the DNS
-        ExecutorService executor = Executors.newCachedThreadPool();
-        for (final JmDNS mDNS : _knownMDNS.values()) {
-            executor.submit(new Runnable() {
-                /**
-                 * {@inheritDoc}
-                 */
-                @Override
-                public void run() {
-                    try {
-                        mDNS.close();
-                    } catch (IOException exception) {
-                        // JmDNS never throws this is only because of the closeable interface
+        if (_isClosing.compareAndSet(false, true)) {
+            if (logger.isLoggable(Level.FINER)) {
+                logger.finer("Cancelling JmmDNS: " + this);
+            }
+            _timer.cancel();
+            _ListenerExecutor.shutdown();
+            // We need to cancel all the DNS
+            ExecutorService executor = Executors.newCachedThreadPool();
+            for (final JmDNS mDNS : _knownMDNS.values()) {
+                executor.submit(new Runnable() {
+                    /**
+                     * {@inheritDoc}
+                     */
+                    @Override
+                    public void run() {
+                        try {
+                            mDNS.close();
+                        } catch (IOException exception) {
+                            // JmDNS never throws this is only because of the closeable interface
+                        }
                     }
-                }
-            });
+                });
+            }
+            executor.shutdown();
+            try {
+                executor.awaitTermination(DNSConstants.CLOSE_TIMEOUT, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException exception) {
+                logger.log(Level.WARNING, "Exception ", exception);
+            }
+            _knownMDNS.clear();
+            _services.clear();
+            _serviceListeners.clear();
+            _typeListeners.clear();
+            _serviceTypes.clear();
+            _closed.set(true);
+            JmmDNS.Factory.close();
         }
-        executor.shutdown();
-        try {
-            executor.awaitTermination(DNSConstants.CLOSE_TIMEOUT, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException exception) {
-            logger.log(Level.WARNING, "Exception ", exception);
-        }
-        _knownMDNS.clear();
     }
 
     /*
@@ -272,6 +307,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
      */
     @Override
     public void addServiceTypeListener(ServiceTypeListener listener) throws IOException {
+        _typeListeners.add(listener);
         for (JmDNS mDNS : _knownMDNS.values()) {
             mDNS.addServiceTypeListener(listener);
         }
@@ -283,6 +319,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
      */
     @Override
     public void removeServiceTypeListener(ServiceTypeListener listener) {
+        _typeListeners.remove(listener);
         for (JmDNS mDNS : _knownMDNS.values()) {
             mDNS.removeServiceTypeListener(listener);
         }
@@ -294,6 +331,19 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
      */
     @Override
     public void addServiceListener(String type, ServiceListener listener) {
+        final String loType = type.toLowerCase();
+        List<ServiceListener> list = _serviceListeners.get(loType);
+        if (list == null) {
+            _serviceListeners.putIfAbsent(loType, new LinkedList<ServiceListener>());
+            list = _serviceListeners.get(loType);
+        }
+        if (list != null) {
+            synchronized (list) {
+                if (!list.contains(listener)) {
+                    list.add(listener);
+                }
+            }
+        }
         for (JmDNS mDNS : _knownMDNS.values()) {
             mDNS.addServiceListener(type, listener);
         }
@@ -305,6 +355,16 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
      */
     @Override
     public void removeServiceListener(String type, ServiceListener listener) {
+        String loType = type.toLowerCase();
+        List<ServiceListener> list = _serviceListeners.get(loType);
+        if (list != null) {
+            synchronized (list) {
+                list.remove(listener);
+                if (list.isEmpty()) {
+                    _serviceListeners.remove(loType, list);
+                }
+            }
+        }
         for (JmDNS mDNS : _knownMDNS.values()) {
             mDNS.removeServiceListener(type, listener);
         }
@@ -351,11 +411,11 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
     @Override
     public void unregisterService(ServiceInfo info) {
         synchronized (_services) {
+            _services.remove(info.getQualifiedName());
             for (JmDNS mDNS : _knownMDNS.values()) {
                 mDNS.unregisterService(info);
             }
             ((ServiceInfoImpl) info).setDelegate(null);
-            _services.remove(info.getQualifiedName());
         }
     }
 
@@ -366,10 +426,10 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
     @Override
     public void unregisterAllServices() {
         synchronized (_services) {
+            _services.clear();
             for (JmDNS mDNS : _knownMDNS.values()) {
                 mDNS.unregisterAllServices();
             }
-            _services.clear();
         }
     }
 
@@ -379,6 +439,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
      */
     @Override
     public void registerServiceType(String type) {
+        _serviceTypes.add(type);
         for (JmDNS mDNS : _knownMDNS.values()) {
             mDNS.registerServiceType(type);
         }
@@ -415,7 +476,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
         }
         executor.shutdown();
         try {
-            executor.awaitTermination(timeout, TimeUnit.MILLISECONDS);
+            executor.awaitTermination(timeout * 2, TimeUnit.MILLISECONDS);
         } catch (InterruptedException exception) {
             logger.log(Level.WARNING, "Exception ", exception);
         }
@@ -491,8 +552,50 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
         InetAddress address = event.getInetAddress();
         try {
             synchronized (this) {
-                if (!_knownMDNS.containsKey(address)) {
-                    _knownMDNS.put(address, JmDNS.create(address));
+                if (_knownMDNS.putIfAbsent(address, JmDNS.create(address)) == null) {
+                    // We need to register the services and listeners with the new JmDNS
+                    final JmDNS dns = _knownMDNS.get(address);
+                    final Collection<String> types = _serviceTypes;
+                    final Collection<ServiceInfo> infos = _services.values();
+                    final Collection<ServiceTypeListener> typeListeners = _typeListeners;
+                    final Map<String, List<ServiceListener>> serviceListeners = _serviceListeners;
+                    _jmDNSExecutor.submit(new Runnable() {
+                        /**
+                         * {@inheritDoc}
+                         */
+                        @Override
+                        public void run() {
+                            // Register Types
+                            for (String type : types) {
+                                dns.registerServiceType(type);
+                            }
+                            // Register services
+                            for (ServiceInfo info : infos) {
+                                try {
+                                    dns.registerService(info.clone());
+                                } catch (IOException exception) {
+                                    // logger.warning("Unexpected unhandled exception: " + exception);
+                                }
+                            }
+                            // Add ServiceType Listeners
+                            for (ServiceTypeListener listener : typeListeners) {
+                                try {
+                                    dns.addServiceTypeListener(listener);
+                                } catch (IOException exception) {
+                                    // logger.warning("Unexpected unhandled exception: " + exception);
+                                }
+                            }
+                            // Add Service Listeners
+                            for (String type : serviceListeners.keySet()) {
+                                List<ServiceListener> listeners = serviceListeners.get(type);
+                                synchronized (listeners) {
+                                    for (ServiceListener listener : listeners) {
+                                        dns.addServiceListener(type, listener);
+                                    }
+                                }
+                            }
+                        }
+                    });
                     final NetworkTopologyEvent jmdnsEvent = new NetworkTopologyEventImpl(_knownMDNS.get(address), address);
                     for (final NetworkTopologyListener listener : this.networkListeners()) {
                         _ListenerExecutor.submit(new Runnable() {

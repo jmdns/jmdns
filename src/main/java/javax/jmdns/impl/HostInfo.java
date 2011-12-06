@@ -99,6 +99,11 @@ public class HostInfo implements DNSStatefulObject {
             aName = ((jmdnsName != null) && (jmdnsName.length() > 0) ? jmdnsName : "computer");
         }
         // A host name with "." is illegal. so strip off everything and append .local.
+        // We also need to be carefull that the .local may already be there
+        int index = aName.indexOf(".local");
+        if (index > 0) {
+            aName = aName.substring(0, index);
+        }
         aName = aName.replace('.', '-');
         aName += ".local.";
         localhost = new HostInfo(addr, aName, dns);

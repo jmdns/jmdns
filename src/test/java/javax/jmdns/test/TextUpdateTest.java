@@ -250,7 +250,7 @@ public class TextUpdateTest {
             serviceListenerMock.reset();
             Map<String, byte[]> properties = new HashMap<String, byte[]>();
             service.setText(properties);
-            Thread.sleep(3000);
+            Thread.sleep(4000);
             servicesResolved = serviceListenerMock.servicesResolved();
             assertEquals("We did not get the service text updated event.", 1, servicesResolved.size());
             result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
