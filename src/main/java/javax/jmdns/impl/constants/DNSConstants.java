@@ -27,6 +27,7 @@ public final class DNSConstants {
     public static final int    FLAGS_QR_QUERY                 = 0x0000;                                                       // Query
     public static final int    FLAGS_QR_RESPONSE              = 0x8000;                                                       // Response
 
+    public static final int    FLAGS_OPCODE                   = 0x7800;                                                       // Operation code
     public static final int    FLAGS_AA                       = 0x0400;                                                       // Authorative answer
     public static final int    FLAGS_TC                       = 0x0200;                                                       // Truncated
     public static final int    FLAGS_RD                       = 0x0100;                                                       // Recursion desired

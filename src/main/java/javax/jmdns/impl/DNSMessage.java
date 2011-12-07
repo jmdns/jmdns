@@ -192,6 +192,15 @@ public abstract class DNSMessage {
     }
 
     /**
+     * Returns the operation code value. Currently only standard query 0 is valid.
+     *
+     * @return The operation code value.
+     */
+    public int getOperationCode() {
+        return (_flags & DNSConstants.FLAGS_OPCODE) >> 11;
+    }
+
+    /**
      * Check if the message is truncated.
      *
      * @return true if the message was truncated
