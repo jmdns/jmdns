@@ -172,10 +172,27 @@ public class HostInfo implements DNSStatefulObject {
     }
 
     synchronized String incrementHostName() {
-        hostNameCount++;
         int plocal = _name.indexOf(".local.");
         int punder = _name.lastIndexOf('-');
-        _name = _name.substring(0, (punder == -1 ? plocal : punder)) + "-" + hostNameCount + ".local.";
+        StringBuilder givenName = new StringBuilder(_name.length() + 3);
+        if (punder < 0) {
+            hostNameCount = 1;
+            givenName.append(_name.substring(0, plocal));
+        } else {
+            try {
+                int value = Integer.parseInt(_name.substring(punder + 1));
+                hostNameCount = value + 1;
+                givenName.append(_name.substring(0, punder));
+            } catch (Exception e) {
+                // If we got an exception this means that we have a name with a "-"
+                hostNameCount = 1;
+                givenName.append(_name.substring(0, plocal));
+            }
+        }
+        givenName.append('-');
+        givenName.append(hostNameCount);
+        givenName.append(".local.");
+        _name = givenName.toString();
         return _name;
     }
 
