@@ -9,7 +9,6 @@ import java.net.DatagramPacket;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.SocketException;
 import java.util.AbstractMap;
@@ -450,7 +449,16 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         if (_socket != null) {
             this.closeMulticastSocket();
         }
-        _socket = new MulticastSocket(new InetSocketAddress((_localHost != null ? _localHost.getInetAddress() : null), DNSConstants.MDNS_PORT));
+        // SocketAddress address = new InetSocketAddress((hostInfo != null ? hostInfo.getInetAddress() : null), DNSConstants.MDNS_PORT);
+        // System.out.println("Socket Address: " + address);
+        // try {
+        // _socket = new MulticastSocket(address);
+        // } catch (Exception exception) {
+        // logger.log(Level.WARNING, "openMulticastSocket() Open socket exception Address: " + address + ", ", exception);
+        // // The most likely cause is a duplicate address lets open without specifying the address
+        // _socket = new MulticastSocket(DNSConstants.MDNS_PORT);
+        // }
+        _socket = new MulticastSocket(DNSConstants.MDNS_PORT);
         if ((hostInfo != null) && (hostInfo.getInterface() != null)) {
             try {
                 _socket.setNetworkInterface(hostInfo.getInterface());
