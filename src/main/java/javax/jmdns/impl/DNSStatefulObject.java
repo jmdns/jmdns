@@ -1,6 +1,7 @@
 // Licensed under Apache License version 2.0
 package javax.jmdns.impl;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -409,7 +410,11 @@ public interface DNSStatefulObject {
          */
         @Override
         public String toString() {
-            return (_dns != null ? "DNS: " + _dns.getName() : "NO DNS") + " state: " + _state + " task: " + _task;
+            try {
+                return (_dns != null ? "DNS: " + _dns.getName() + " [" + _dns.getInetAddress() + "]" : "NO DNS") + " state: " + _state + " task: " + _task;
+            } catch (IOException exception) {
+                return (_dns != null ? "DNS: " + _dns.getName() : "NO DNS") + " state: " + _state + " task: " + _task;
+            }
         }
 
     }

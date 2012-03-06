@@ -74,6 +74,20 @@ public class ServiceInfoTest {
     }
 
     @Test
+    public void testDecodeServiceWithUnderscoreType() {
+        String type = "_x_lumenera_mjpeg1._udp.local.";
+
+        Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(type);
+
+        assertEquals("We did not get the right domain:", "local", map.get(Fields.Domain));
+        assertEquals("We did not get the right protocol:", "udp", map.get(Fields.Protocol));
+        assertEquals("We did not get the right application:", "x_lumenera_mjpeg1", map.get(Fields.Application));
+        assertEquals("We did not get the right name:", "", map.get(Fields.Instance));
+        assertEquals("We did not get the right subtype:", "", map.get(Fields.Subtype));
+
+    }
+
+    @Test
     public void testDecodeServiceTCPType() {
         String type = "_afpovertcp._tcp.local.";
 

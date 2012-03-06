@@ -280,7 +280,7 @@ public abstract class DNSRecord extends DNSEntry {
         }
 
         boolean same(DNSRecord other) {
-            if (! (other instanceof Address) ) {
+            if (!(other instanceof Address)) {
                 return false;
             }
             return ((sameName(other)) && ((sameValue(other))));
@@ -292,7 +292,7 @@ public abstract class DNSRecord extends DNSEntry {
 
         @Override
         boolean sameValue(DNSRecord other) {
-            if (! (other instanceof Address) ) {
+            if (!(other instanceof Address)) {
                 return false;
             }
             Address address = (Address) other;
@@ -447,7 +447,7 @@ public abstract class DNSRecord extends DNSEntry {
 
         @Override
         boolean sameValue(DNSRecord other) {
-            if (! (other instanceof Pointer) ) {
+            if (!(other instanceof Pointer)) {
                 return false;
             }
             Pointer pointer = (Pointer) other;
@@ -556,7 +556,7 @@ public abstract class DNSRecord extends DNSEntry {
 
         @Override
         boolean sameValue(DNSRecord other) {
-            if (! (other instanceof Text) ) {
+            if (!(other instanceof Text)) {
                 return false;
             }
             Text txt = (Text) other;
@@ -708,7 +708,7 @@ public abstract class DNSRecord extends DNSEntry {
 
         @Override
         boolean sameValue(DNSRecord other) {
-            if (! (other instanceof Service) ) {
+            if (!(other instanceof Service)) {
                 return false;
             }
             Service s = (Service) other;
@@ -751,7 +751,7 @@ public abstract class DNSRecord extends DNSEntry {
                 if (info.isProbing() && comparison > 0) {
                     // We lost the tie break
                     String oldName = info.getQualifiedName().toLowerCase();
-                    info.setName(dns.incrementName(info.getName()));
+                    info.setName(NameRegister.Factory.getRegistry().incrementName(dns.getLocalHost().getInetAddress(), info.getName(), NameRegister.NameType.SERVICE));
                     dns.getServices().remove(oldName);
                     dns.getServices().put(info.getQualifiedName().toLowerCase(), info);
                     logger1.finer("handleQuery() Lost tie break: new unique name chosen:" + info.getName());
@@ -778,7 +778,7 @@ public abstract class DNSRecord extends DNSEntry {
 
                 if (info.isProbing()) {
                     String oldName = info.getQualifiedName().toLowerCase();
-                    info.setName(dns.incrementName(info.getName()));
+                    info.setName(NameRegister.Factory.getRegistry().incrementName(dns.getLocalHost().getInetAddress(), info.getName(), NameRegister.NameType.SERVICE));
                     dns.getServices().remove(oldName);
                     dns.getServices().put(info.getQualifiedName().toLowerCase(), info);
                     logger1.finer("handleResponse() New unique name chose:" + info.getName());
@@ -896,7 +896,7 @@ public abstract class DNSRecord extends DNSEntry {
          */
         @Override
         boolean sameValue(DNSRecord other) {
-            if (! (other instanceof HostInformation) ) {
+            if (!(other instanceof HostInformation)) {
                 return false;
             }
             HostInformation hinfo = (HostInformation) other;

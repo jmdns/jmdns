@@ -1162,7 +1162,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                         if (logger.isLoggable(Level.FINER)) {
                             logger.finer("makeServiceNameUnique() JmDNS.makeServiceNameUnique srv collision:" + dnsEntry + " s.server=" + s.getServer() + " " + _localHost.getName() + " equals:" + (s.getServer().equals(_localHost.getName())));
                         }
-                        info.setName(incrementName(info.getName()));
+                        info.setName(NameRegister.Factory.getRegistry().incrementName(_localHost.getInetAddress(), info.getName(), NameRegister.NameType.SERVICE));
                         collision = true;
                         break;
                     }
@@ -1172,29 +1172,13 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             // Check for collision with other service infos published by JmDNS
             final ServiceInfo selfService = _services.get(info.getKey());
             if (selfService != null && selfService != info) {
-                info.setName(incrementName(info.getName()));
+                info.setName(NameRegister.Factory.getRegistry().incrementName(_localHost.getInetAddress(), info.getName(), NameRegister.NameType.SERVICE));
                 collision = true;
             }
         }
         while (collision);
 
         return !(originalQualifiedName.equals(info.getKey()));
-    }
-
-    String incrementName(String name) {
-        String aName = name;
-        try {
-            final int l = aName.lastIndexOf('(');
-            final int r = aName.lastIndexOf(')');
-            if ((l >= 0) && (l < r)) {
-                aName = aName.substring(0, l) + "(" + (Integer.parseInt(aName.substring(l + 1, r)) + 1) + ")";
-            } else {
-                aName += " (2)";
-            }
-        } catch (final NumberFormatException e) {
-            aName += " (2)";
-        }
-        return aName;
     }
 
     /**

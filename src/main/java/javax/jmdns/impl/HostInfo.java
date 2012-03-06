@@ -65,7 +65,7 @@ public class HostInfo implements DNSStatefulObject {
      */
     public static HostInfo newHostInfo(InetAddress address, JmDNSImpl dns, String jmdnsName) {
         HostInfo localhost = null;
-        String aName = "";
+        String aName = (jmdnsName != null ? jmdnsName : "");
         InetAddress addr = address;
         try {
             if (addr == null) {
@@ -82,11 +82,11 @@ public class HostInfo implements DNSStatefulObject {
                         }
                     }
                 }
-                aName = addr.getHostName();
                 if (addr.isLoopbackAddress()) {
                     logger.warning("Could not find any address beside the loopback.");
                 }
-            } else {
+            }
+            if (aName.length() == 0) {
                 aName = addr.getHostName();
             }
             if (aName.contains("in-addr.arpa") || (aName.equals(addr.getHostAddress()))) {
@@ -117,11 +117,6 @@ public class HostInfo implements DNSStatefulObject {
             return null;
         }
     }
-
-    /**
-     * This is used to create a unique name for the host name.
-     */
-    private int hostNameCount;
 
     private HostInfo(final InetAddress address, final String name, final JmDNSImpl dns) {
         super();
@@ -172,27 +167,7 @@ public class HostInfo implements DNSStatefulObject {
     }
 
     synchronized String incrementHostName() {
-        int plocal = _name.indexOf(".local.");
-        int punder = _name.lastIndexOf('-');
-        StringBuilder givenName = new StringBuilder(_name.length() + 3);
-        if (punder < 0) {
-            hostNameCount = 1;
-            givenName.append(_name.substring(0, plocal));
-        } else {
-            try {
-                int value = Integer.parseInt(_name.substring(punder + 1));
-                hostNameCount = value + 1;
-                givenName.append(_name.substring(0, punder));
-            } catch (Exception e) {
-                // If we got an exception this means that we have a name with a "-"
-                hostNameCount = 1;
-                givenName.append(_name.substring(0, plocal));
-            }
-        }
-        givenName.append('-');
-        givenName.append(hostNameCount);
-        givenName.append(".local.");
-        _name = givenName.toString();
+        _name = NameRegister.Factory.getRegistry().incrementName(this.getInetAddress(), _name, NameRegister.NameType.HOST);
         return _name;
     }
 
@@ -201,13 +176,24 @@ public class HostInfo implements DNSStatefulObject {
         if (this.getInetAddress() != null) {
             InetAddress from = packet.getAddress();
             if (from != null) {
-                if (from.isLinkLocalAddress() && (!this.getInetAddress().isLinkLocalAddress())) {
-                    // Ignore linklocal packets on regular interfaces, unless this is
-                    // also a linklocal interface. This is to avoid duplicates. This is
-                    // a terrible hack caused by the lack of an API to get the address
-                    // of the interface on which the packet was received.
+                if ((this.getInetAddress().isLinkLocalAddress() || this.getInetAddress().isMCLinkLocal()) && (!from.isLinkLocalAddress())) {
+                    // A host sending Multicast DNS queries to a link-local destination
+                    // address (including the 224.0.0.251 and FF02::FB link-local multicast
+                    // addresses) MUST only accept responses to that query that originate
+                    // from the local link, and silently discard any other response packets.
+                    // Without this check, it could be possible for remote rogue hosts to
+                    // send spoof answer packets (perhaps unicast to the victim host) which
+                    // the receiving machine could misinterpret as having originated on the
+                    // local link.
                     result = true;
                 }
+//                if (from.isLinkLocalAddress() && (!this.getInetAddress().isLinkLocalAddress())) {
+//                    // Ignore linklocal packets on regular interfaces, unless this is
+//                    // also a linklocal interface. This is to avoid duplicates. This is
+//                    // a terrible hack caused by the lack of an API to get the address
+//                    // of the interface on which the packet was received.
+//                    result = true;
+//                }
                 if (from.isLoopbackAddress() && (!this.getInetAddress().isLoopbackAddress())) {
                     // Ignore loopback packets on a regular interface unless this is also a loopback interface.
                     result = true;
