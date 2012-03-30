@@ -1831,6 +1831,10 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 Runtime.getRuntime().removeShutdownHook(_shutdown);
             }
 
+            // earlier we did a DNSTaskStarter.Factory.getInstance().getStarter(this.getDns())
+            // now we must release the resources associated with the starter for this JmDNS instance
+            DNSTaskStarter.Factory.getInstance().disposeStarter(this.getDns());
+
             if (logger.isLoggable(Level.FINER)) {
                 logger.finer("JmDNS closed.");
             }

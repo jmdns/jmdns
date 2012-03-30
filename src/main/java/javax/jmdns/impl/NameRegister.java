@@ -114,7 +114,8 @@ public interface NameRegister {
         public boolean checkName(InetAddress networkInterface, String name, NameType type) {
             switch (type) {
                 case HOST:
-                    return _hostNames.containsKey(networkInterface);
+                    String hostname = _hostNames.get(networkInterface);
+                    return hostname != null && hostname.equals(name);
                 case SERVICE:
                     Set<String> names = _serviceNames.get(networkInterface);
                     return names != null && names.contains(names);

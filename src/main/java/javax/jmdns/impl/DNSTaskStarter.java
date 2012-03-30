@@ -133,6 +133,16 @@ public interface DNSTaskStarter {
             return starter;
         }
 
+        /**
+         * Dispose of the DNSTaskStarter instance associated with this JmDNS.
+         *
+         * @param jmDNSImpl
+         *            jmDNS instance
+         */
+        public void disposeStarter(JmDNSImpl jmDNSImpl) {
+            _instances.remove(jmDNSImpl);
+        }
+
     }
 
     public static final class DNSTaskStarterImpl implements DNSTaskStarter {
