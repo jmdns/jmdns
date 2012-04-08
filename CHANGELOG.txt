@@ -13,6 +13,7 @@ Incorrect behavior for a query with non-zero OPCODE value - ID: 3451758
 incorrect handling of conflicting hostnames which contain"-" - ID: 3454363
 Multicast query sending on wrong NIC - ID: 3463811
 free Factory's DNSTaskStarter when calling JmDNS.close() - ID: 3513302
+multiple ip addresses problem - ID: 3499483
 
 CHANGELOG 24 August 2011 Pierre Frisch
 Rev the source code to 3.4.1

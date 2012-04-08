@@ -17,11 +17,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -232,24 +236,35 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
     @Override
     public ServiceInfo[] getServiceInfos(final String type, final String name, final boolean persistent, final long timeout) {
         // We need to run this in parallel to respect the timeout.
-        final Set<ServiceInfo> result = Collections.synchronizedSet(new HashSet<ServiceInfo>(_knownMDNS.size()));
-        ExecutorService executor = Executors.newCachedThreadPool();
-        for (final JmDNS mDNS : _knownMDNS.values()) {
-            executor.submit(new Runnable() {
-                /**
-                 * {@inheritDoc}
-                 */
-                @Override
-                public void run() {
-                    result.add(mDNS.getServiceInfo(type, name, persistent, timeout));
+        final Set<ServiceInfo> result = new HashSet<ServiceInfo>(_knownMDNS.size());
+        if (_knownMDNS.size() > 0) {
+            ExecutorService executor = Executors.newFixedThreadPool(_knownMDNS.size());
+            List<Future<ServiceInfo>> results = new ArrayList<Future<ServiceInfo>>(_knownMDNS.size());
+            for (final JmDNS mDNS : _knownMDNS.values()) {
+                Callable<ServiceInfo> worker = new Callable<ServiceInfo>() {
+
+                    @Override
+                    public ServiceInfo call() throws Exception {
+                         return mDNS.getServiceInfo(type, name, persistent, timeout);
+                    }
+
+                };
+                results.add(executor.submit(worker));
+            }
+
+            for (Future<ServiceInfo> future : results) {
+                try {
+                    result.add(future.get(timeout, TimeUnit.MILLISECONDS));
+                } catch (InterruptedException exception) {
+                    logger.log(Level.WARNING, "Exception ", exception);
+                } catch (ExecutionException exception) {
+                    logger.log(Level.WARNING, "Exception ", exception);
+                } catch (TimeoutException exception) {
+                    logger.log(Level.WARNING, "Exception ", exception);
                 }
-            });
-        }
-        executor.shutdown();
-        try {
-            executor.awaitTermination(timeout, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException exception) {
-            logger.log(Level.WARNING, "Exception ", exception);
+            }
+
+            executor.shutdown();
         }
         return result.toArray(new ServiceInfo[result.size()]);
     }
@@ -461,24 +476,35 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
     @Override
     public ServiceInfo[] list(final String type, final long timeout) {
         // We need to run this in parallel to respect the timeout.
-        final Set<ServiceInfo> result = Collections.synchronizedSet(new HashSet<ServiceInfo>(_knownMDNS.size() * 5));
-        ExecutorService executor = Executors.newCachedThreadPool();
-        for (final JmDNS mDNS : _knownMDNS.values()) {
-            executor.submit(new Runnable() {
-                /**
-                 * {@inheritDoc}
-                 */
-                @Override
-                public void run() {
-                    result.addAll(Arrays.asList(mDNS.list(type, timeout)));
+        final Set<ServiceInfo> result = new HashSet<ServiceInfo>(_knownMDNS.size() * 5);
+        if (_knownMDNS.size() > 0) {
+            ExecutorService executor = Executors.newFixedThreadPool(_knownMDNS.size());
+            List<Future<List<ServiceInfo>>> results = new ArrayList<Future<List<ServiceInfo>>>(_knownMDNS.size());
+            for (final JmDNS mDNS : _knownMDNS.values()) {
+                Callable<List<ServiceInfo>> worker = new Callable<List<ServiceInfo>>() {
+
+                    @Override
+                    public List<ServiceInfo> call() throws Exception {
+                        return Arrays.asList(mDNS.list(type, timeout));
+                    }
+
+                };
+                results.add(executor.submit(worker));
+            }
+
+            for (Future<List<ServiceInfo>> future : results) {
+                try {
+                    result.addAll(future.get(timeout, TimeUnit.MILLISECONDS));
+                } catch (InterruptedException exception) {
+                    logger.log(Level.WARNING, "Exception ", exception);
+                } catch (ExecutionException exception) {
+                    logger.log(Level.WARNING, "Exception ", exception);
+                } catch (TimeoutException exception) {
+                    logger.log(Level.WARNING, "Exception ", exception);
                 }
-            });
-        }
-        executor.shutdown();
-        try {
-            executor.awaitTermination(timeout * 2, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException exception) {
-            logger.log(Level.WARNING, "Exception ", exception);
+            }
+
+            executor.shutdown();
         }
         return result.toArray(new ServiceInfo[result.size()]);
     }

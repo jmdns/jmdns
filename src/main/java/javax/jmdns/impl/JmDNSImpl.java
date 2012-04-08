@@ -783,24 +783,26 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                         server = cachedServiceEntryInfo.getServer();
                     }
                 }
-                DNSEntry addressEntry = this.getCache().getDNSEntry(server, DNSRecordType.TYPE_A, DNSRecordClass.CLASS_ANY);
-                if (addressEntry instanceof DNSRecord) {
-                    ServiceInfo cachedAddressInfo = ((DNSRecord) addressEntry).getServiceInfo(persistent);
-                    if (cachedAddressInfo != null) {
-                        for (Inet4Address address : cachedAddressInfo.getInet4Addresses()) {
-                            cachedInfo.addAddress(address);
+                for (DNSEntry addressEntry : this.getCache().getDNSEntryList(server, DNSRecordType.TYPE_A, DNSRecordClass.CLASS_ANY)) {
+                    if (addressEntry instanceof DNSRecord) {
+                        ServiceInfo cachedAddressInfo = ((DNSRecord) addressEntry).getServiceInfo(persistent);
+                        if (cachedAddressInfo != null) {
+                            for (Inet4Address address : cachedAddressInfo.getInet4Addresses()) {
+                                cachedInfo.addAddress(address);
+                            }
+                            cachedInfo._setText(cachedAddressInfo.getTextBytes());
                         }
-                        cachedInfo._setText(cachedAddressInfo.getTextBytes());
                     }
                 }
-                addressEntry = this.getCache().getDNSEntry(server, DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_ANY);
-                if (addressEntry instanceof DNSRecord) {
-                    ServiceInfo cachedAddressInfo = ((DNSRecord) addressEntry).getServiceInfo(persistent);
-                    if (cachedAddressInfo != null) {
-                        for (Inet6Address address : cachedAddressInfo.getInet6Addresses()) {
-                            cachedInfo.addAddress(address);
+                for (DNSEntry addressEntry : this.getCache().getDNSEntryList(server, DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_ANY)) {
+                    if (addressEntry instanceof DNSRecord) {
+                        ServiceInfo cachedAddressInfo = ((DNSRecord) addressEntry).getServiceInfo(persistent);
+                        if (cachedAddressInfo != null) {
+                            for (Inet6Address address : cachedAddressInfo.getInet6Addresses()) {
+                                cachedInfo.addAddress(address);
+                            }
+                            cachedInfo._setText(cachedAddressInfo.getTextBytes());
                         }
-                        cachedInfo._setText(cachedAddressInfo.getTextBytes());
                     }
                 }
                 DNSEntry textEntry = this.getCache().getDNSEntry(cachedInfo.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_ANY);

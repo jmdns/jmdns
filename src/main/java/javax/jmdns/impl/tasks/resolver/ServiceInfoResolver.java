@@ -6,6 +6,7 @@ package javax.jmdns.impl.tasks.resolver;
 
 import java.io.IOException;
 
+import javax.jmdns.impl.DNSEntry;
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSQuestion;
 import javax.jmdns.impl.DNSRecord;
@@ -65,8 +66,12 @@ public class ServiceInfoResolver extends DNSResolverTask {
             newOut = this.addAnswer(newOut, (DNSRecord) this.getDns().getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN), now);
             newOut = this.addAnswer(newOut, (DNSRecord) this.getDns().getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN), now);
             if (_info.getServer().length() > 0) {
-                newOut = this.addAnswer(newOut, (DNSRecord) this.getDns().getCache().getDNSEntry(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN), now);
-                newOut = this.addAnswer(newOut, (DNSRecord) this.getDns().getCache().getDNSEntry(_info.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN), now);
+                for (DNSEntry addressEntry : this.getDns().getCache().getDNSEntryList(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN)) {
+                    newOut = this.addAnswer(newOut, (DNSRecord) addressEntry, now);
+                }
+                for (DNSEntry addressEntry : this.getDns().getCache().getDNSEntryList(_info.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN)) {
+                    newOut = this.addAnswer(newOut, (DNSRecord) addressEntry, now);
+                }
             }
         }
         return newOut;

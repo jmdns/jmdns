@@ -82,7 +82,7 @@ public class JmmDNSTest {
             registry = JmmDNS.Factory.getInstance();
             registry.registerService(service);
 
-            Thread.sleep(1000);
+            Thread.sleep(20000);
             ServiceInfo[] services = registry.list(service.getType());
             assertTrue("We should see the service we just registered: ", services.length > 0);
             assertEquals(service, services[0]);
