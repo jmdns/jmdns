@@ -5,8 +5,10 @@ package javax.jmdns.test;
 
 import static junit.framework.Assert.assertEquals;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceInfo.Fields;
 import javax.jmdns.impl.ServiceInfoImpl;
 
@@ -189,6 +191,26 @@ public class ServiceInfoTest {
         assertEquals("We did not get the right application:", "ftp", map.get(Fields.Application));
         assertEquals("We did not get the right name:", "myservice", map.get(Fields.Instance));
         assertEquals("We did not get the right subtype:", "", map.get(Fields.Subtype));
+
+    }
+
+    @Test
+    public void testEncodeDecodeProperties() {
+
+        String service_type = "_ros-master._tcp.local.";
+        String service_name = "RosMaster";
+        int service_port = 8888;
+        String service_key = "description"; // Max 9 chars
+        String service_text = "Hypothetical ros master";
+        Map<String, byte[]> properties = new HashMap<String, byte[]>();
+        properties.put(service_key, service_text.getBytes());
+        ServiceInfo service_info = null;
+        service_info = ServiceInfo.create(service_type, service_name, service_port, ""); // case 1, no text
+        assertEquals("We should have got the same properties (Empty):", null, service_info.getPropertyString(service_key));
+        service_info = ServiceInfo.create(service_type, service_name, service_port, 0, 0, true, service_key + "=" + service_text); // case 2, textual description
+        assertEquals("We should have got the same properties (String):", service_text, service_info.getPropertyString(service_key));
+        service_info = ServiceInfo.create(service_type, service_name, service_port, 0, 0, true, properties); // case 3, properties assigned textual description
+        assertEquals("We should have got the same properties (Map):", service_text, service_info.getPropertyString(service_key));
 
     }
 

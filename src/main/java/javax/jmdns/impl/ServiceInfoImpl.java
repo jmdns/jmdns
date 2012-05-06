@@ -127,13 +127,23 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     public ServiceInfoImpl(String type, String name, String subtype, int port, int weight, int priority, boolean persistent, String text) {
         this(ServiceInfoImpl.decodeQualifiedNameMap(type, name, subtype), port, weight, priority, persistent, (byte[]) null);
         _server = text;
+
+        byte[] encodedText = null;
         try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream(text.length());
-            writeUTF(out, text);
-            this._text = out.toByteArray();
+            ByteArrayOutputStream out = new ByteArrayOutputStream(256);
+            ByteArrayOutputStream out2 = new ByteArrayOutputStream(100);
+            writeUTF(out2, text);
+            byte data[] = out2.toByteArray();
+            if (data.length > 255) {
+                throw new IOException("Cannot have individual values larger that 255 chars. Offending value: " + text);
+            }
+            out.write((byte) data.length);
+            out.write(data, 0, data.length);
+            encodedText = out.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException("unexpected exception: " + e);
         }
+        this._text = (encodedText != null && encodedText.length > 0 ? encodedText : DNSRecord.EMPTY_TXT);
     }
 
     /**
@@ -927,8 +937,12 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
             if (serviceUpdated && this.hasData()) {
                 JmDNSImpl dns = this.getDns();
                 if (dns != null) {
-                    ServiceEvent event = ((DNSRecord) rec).getServiceEvent(dns);
-                    event = new ServiceEventImpl(dns, event.getType(), event.getName(), this);
+                    // ServiceEvent event = ((DNSRecord) rec).getServiceEvent(dns);
+                    // event = new ServiceEventImpl(dns, event.getType(), event.getName(), this);
+                    // Failure to resolve services - ID: 3517826
+                    ServiceEvent event = new ServiceEventImpl(dns, this.getType(), this.getName(), this);
+                    System.out.println("event type: " + event.getType() + " sevice type: " + this.getType());
+                    System.out.println("event name: " + event.getName() + " sevice name: " + this.getName());
                     dns.handleServiceResolved(event);
                 }
             }
