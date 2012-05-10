@@ -941,8 +941,6 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                     // event = new ServiceEventImpl(dns, event.getType(), event.getName(), this);
                     // Failure to resolve services - ID: 3517826
                     ServiceEvent event = new ServiceEventImpl(dns, this.getType(), this.getName(), this);
-                    System.out.println("event type: " + event.getType() + " sevice type: " + this.getType());
-                    System.out.println("event name: " + event.getName() + " sevice name: " + this.getName());
                     dns.handleServiceResolved(event);
                 }
             }
