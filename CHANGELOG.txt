@@ -17,6 +17,7 @@ multiple ip addresses problem - ID: 3499483
 Failure to resolve services - ID: 3517826
 ConcurrentModificationException - ID: 3509434
 Failing to resolve jmdns registered services - ID: 3435220
+UDP portscan causes JmDNS to log excessively - ID: 3529498
 
 CHANGELOG 24 August 2011 Pierre Frisch
 Rev the source code to 3.4.1
