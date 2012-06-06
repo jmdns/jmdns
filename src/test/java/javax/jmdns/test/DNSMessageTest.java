@@ -6,17 +6,12 @@ package javax.jmdns.test;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Date;
-import java.util.Enumeration;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
 
 import javax.jmdns.impl.DNSIncoming;
 import javax.jmdns.impl.DNSOutgoing;
@@ -37,29 +32,33 @@ public class DNSMessageTest {
     @Before
     public void setup() {
         //
-        ConsoleHandler handler = new ConsoleHandler();
-        handler.setLevel(Level.FINEST);
-        for (Enumeration<String> enumerator = LogManager.getLogManager().getLoggerNames(); enumerator.hasMoreElements();) {
-            String loggerName = enumerator.nextElement();
-            Logger logger = Logger.getLogger(loggerName);
-            logger.addHandler(handler);
-            logger.setLevel(Level.FINEST);
-        }
+        // ConsoleHandler handler = new ConsoleHandler();
+        // handler.setLevel(Level.FINEST);
+        // for (Enumeration<String> enumerator = LogManager.getLogManager().getLoggerNames(); enumerator.hasMoreElements();) {
+        // String loggerName = enumerator.nextElement();
+        // Logger logger = Logger.getLogger(loggerName);
+        // logger.addHandler(handler);
+        // logger.setLevel(Level.FINEST);
+        // }
     }
 
     private static final byte[] nmap_scan_package = new byte[] { 0x30, (byte) 0x82, 0x00, 0x2f, 0x02, 0x01, 0x00, 0x04, 0x06, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x63, (byte) 0xa0, (byte) 0x82, 0x00, 0x20, 0x02, 0x04, 0x4c, 0x33, (byte) 0xa7, 0x56, 0x02,
             0x01, 0x00, 0x02, 0x01, 0x00, 0x30, (byte) 0x82, 0x00, 0x10, 0x30, (byte) 0x82, 0x00, 0x0c, 0x06, 0x08, 0x2b, 0x06, 0x01, 0x02, 0x01, 0x01, 0x05, 0x00, 0x05, 0x00 };
 
     @Test
-    public void testIncomingOverflow() throws UnknownHostException, IOException {
-        // The DNSIncoming constructor should probably do bounds checking on the following parts of the
-        // package: questions, answers, authorities, additionals
-        // The package above results in these values
-        // questions -> 513
-        // answers -> 4
-        // authorities -> 1648
-        // additionals -> 30050
-        new DNSIncoming(new DatagramPacket(nmap_scan_package, nmap_scan_package.length, InetAddress.getByName(DNSConstants.MDNS_GROUP), DNSConstants.MDNS_PORT));
+    public void testIncomingOverflow() {
+        try {
+            // The DNSIncoming constructor should probably do bounds checking on the following parts of the package: questions, answers, authorities, additionals
+            // The package above results in these values
+            // questions -> 513
+            // answers -> 4
+            // authorities -> 1648
+            // additionals -> 30050
+            new DNSIncoming(new DatagramPacket(nmap_scan_package, nmap_scan_package.length, InetAddress.getByName(DNSConstants.MDNS_GROUP), DNSConstants.MDNS_PORT));
+            fail("This message should have triggered an IO exception");
+        } catch (Exception exception) {
+            // All is OK
+        }
     }
 
     @Test
