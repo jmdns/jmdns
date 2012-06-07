@@ -42,7 +42,7 @@ import javax.jmdns.impl.constants.DNSConstants;
 
 /**
  * This class enable multihomming mDNS. It will open a mDNS per IP address of the machine.
- *
+ * 
  * @author C&eacute;drik Lime, Pierre Frisch
  */
 public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoImpl.Delegate {
@@ -245,7 +245,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
 
                     @Override
                     public ServiceInfo call() throws Exception {
-                         return mDNS.getServiceInfo(type, name, persistent, timeout);
+                        return mDNS.getServiceInfo(type, name, persistent, timeout);
                     }
 
                 };
@@ -478,33 +478,43 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
         // We need to run this in parallel to respect the timeout.
         final Set<ServiceInfo> result = new HashSet<ServiceInfo>(_knownMDNS.size() * 5);
         if (_knownMDNS.size() > 0) {
-            ExecutorService executor = Executors.newFixedThreadPool(_knownMDNS.size());
-            List<Future<List<ServiceInfo>>> results = new ArrayList<Future<List<ServiceInfo>>>(_knownMDNS.size());
+            List<Callable<List<ServiceInfo>>> tasks = new ArrayList<Callable<List<ServiceInfo>>>(_knownMDNS.size());
             for (final JmDNS mDNS : _knownMDNS.values()) {
-                Callable<List<ServiceInfo>> worker = new Callable<List<ServiceInfo>>() {
-
+                tasks.add(new Callable<List<ServiceInfo>>() {
                     @Override
                     public List<ServiceInfo> call() throws Exception {
                         return Arrays.asList(mDNS.list(type, timeout));
                     }
-
-                };
-                results.add(executor.submit(worker));
+                });
             }
 
-            for (Future<List<ServiceInfo>> future : results) {
+            ExecutorService executor = Executors.newFixedThreadPool(tasks.size());
+            try {
+                List<Future<List<ServiceInfo>>> results = Collections.emptyList();
                 try {
-                    result.addAll(future.get(timeout, TimeUnit.MILLISECONDS));
+                    results = executor.invokeAll(tasks, timeout, TimeUnit.MILLISECONDS);
                 } catch (InterruptedException exception) {
-                    logger.log(Level.WARNING, "Exception ", exception);
-                } catch (ExecutionException exception) {
-                    logger.log(Level.WARNING, "Exception ", exception);
-                } catch (TimeoutException exception) {
-                    logger.log(Level.WARNING, "Exception ", exception);
+                    logger.log(Level.FINE, "Interrupted ", exception);
+                    Thread.currentThread().interrupt();
+                    // Will terminate next loop early.
                 }
-            }
 
-            executor.shutdown();
+                for (Future<List<ServiceInfo>> future : results) {
+                    if (future.isCancelled()) {
+                        continue;
+                    }
+                    try {
+                        result.addAll(future.get());
+                    } catch (InterruptedException exception) {
+                        logger.log(Level.FINE, "Interrupted ", exception);
+                        Thread.currentThread().interrupt();
+                    } catch (ExecutionException exception) {
+                        logger.log(Level.WARNING, "Exception ", exception);
+                    }
+                }
+            } finally {
+                executor.shutdown();
+            }
         }
         return result.toArray(new ServiceInfo[result.size()]);
     }
@@ -693,7 +703,9 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
         }
 
         public void start(Timer timer) {
-            timer.schedule(this, 0, DNSConstants.NETWORK_CHECK_INTERVAL);
+            // Run once up-front otherwise the list of servers will only appear after a delay.
+            run();
+            timer.schedule(this, DNSConstants.NETWORK_CHECK_INTERVAL, DNSConstants.NETWORK_CHECK_INTERVAL);
         }
 
         /**
