@@ -102,9 +102,6 @@ public class NetworkTopologyDiscoveryImpl implements NetworkTopologyDiscovery {
                     // We should hide that exception.
                 }
             }
-            if (interfaceAddress.isLoopbackAddress()) {
-                return false;
-            }
             return true;
         } catch (Exception exception) {
             return false;

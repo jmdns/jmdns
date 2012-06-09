@@ -330,30 +330,32 @@ public abstract class DNSRecord extends DNSEntry {
         boolean handleQuery(JmDNSImpl dns, long expirationTime) {
             if (dns.getLocalHost().conflictWithRecord(this)) {
                 DNSRecord.Address localAddress = dns.getLocalHost().getDNSAddressRecord(this.getRecordType(), this.isUnique(), DNSConstants.DNS_TTL);
-                int comparison = this.compareTo(localAddress);
+                if (localAddress != null) {
+                    int comparison = this.compareTo(localAddress);
 
-                if (comparison == 0) {
-                    // the 2 records are identical this probably means we are seeing our own record.
-                    // With multiple interfaces on a single computer it is possible to see our
-                    // own records come in on different interfaces than the ones they were sent on.
-                    // see section "10. Conflict Resolution" of mdns draft spec.
-                    logger1.finer("handleQuery() Ignoring an identical address query");
-                    return false;
-                }
-
-                logger1.finer("handleQuery() Conflicting query detected.");
-                // Tie breaker test
-                if (dns.isProbing() && comparison > 0) {
-                    // We lost the tie-break. We have to choose a different name.
-                    dns.getLocalHost().incrementHostName();
-                    dns.getCache().clear();
-                    for (ServiceInfo serviceInfo : dns.getServices().values()) {
-                        ServiceInfoImpl info = (ServiceInfoImpl) serviceInfo;
-                        info.revertState();
+                    if (comparison == 0) {
+                        // the 2 records are identical this probably means we are seeing our own record.
+                        // With multiple interfaces on a single computer it is possible to see our
+                        // own records come in on different interfaces than the ones they were sent on.
+                        // see section "10. Conflict Resolution" of mdns draft spec.
+                        logger1.finer("handleQuery() Ignoring an identical address query");
+                        return false;
                     }
+
+                    logger1.finer("handleQuery() Conflicting query detected.");
+                    // Tie breaker test
+                    if (dns.isProbing() && comparison > 0) {
+                        // We lost the tie-break. We have to choose a different name.
+                        dns.getLocalHost().incrementHostName();
+                        dns.getCache().clear();
+                        for (ServiceInfo serviceInfo : dns.getServices().values()) {
+                            ServiceInfoImpl info = (ServiceInfoImpl) serviceInfo;
+                            info.revertState();
+                        }
+                    }
+                    dns.revertState();
+                    return true;
                 }
-                dns.revertState();
-                return true;
             }
             return false;
         }

@@ -91,6 +91,10 @@ public class JmDNSTest {
         try {
             registry = JmDNS.create();
             registry.registerService(service);
+
+            ServiceInfo[] services = registry.list(service.getType());
+            assertEquals("We should see the service we just registered: ", 1, services.length);
+            assertEquals(service, services[0]);
         } finally {
             if (registry != null) registry.close();
         }

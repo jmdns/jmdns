@@ -92,7 +92,7 @@ public interface JmmDNS extends Closeable {
         }
 
         /**
-         * Return the instance of the Multihommed Multicast DNS.
+         * Return the instance of the Multihomed Multicast DNS.
          *
          * @return the JmmDNS
          */
@@ -155,6 +155,13 @@ public interface JmmDNS extends Closeable {
      */
     @Deprecated
     public abstract InetAddress[] getInterfaces() throws IOException;
+
+    /**
+     * Return a list of all the registered JmDNS instances
+     *
+     * @return list of JmDNS instances
+     */
+    public abstract JmDNS[] getDNS();
 
     /**
      * Get service information. If the information is not cached, the method will block until updated information is received on all DNS.

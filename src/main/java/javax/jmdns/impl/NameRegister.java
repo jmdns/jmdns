@@ -40,7 +40,7 @@ public interface NameRegister {
                 givenName.append(name.substring(0, plocal));
             } else {
                 try {
-                    int value = Integer.parseInt(name.substring(punder + 1));
+                    int value = Integer.parseInt(name.substring(punder + 1, plocal));
                     hostNameCount = value + 1;
                     givenName.append(name.substring(0, punder));
                 } catch (Exception e) {

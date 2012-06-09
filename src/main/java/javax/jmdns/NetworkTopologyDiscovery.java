@@ -115,7 +115,7 @@ public interface NetworkTopologyDiscovery {
         }
 
         /**
-         * Return the instance of the Multihommed Multicast DNS.
+         * Return the instance of the Multihomed Multicast DNS.
          *
          * @return the JmmDNS
          */

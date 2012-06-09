@@ -187,13 +187,13 @@ public class HostInfo implements DNSStatefulObject {
                     // local link.
                     result = true;
                 }
-//                if (from.isLinkLocalAddress() && (!this.getInetAddress().isLinkLocalAddress())) {
-//                    // Ignore linklocal packets on regular interfaces, unless this is
-//                    // also a linklocal interface. This is to avoid duplicates. This is
-//                    // a terrible hack caused by the lack of an API to get the address
-//                    // of the interface on which the packet was received.
-//                    result = true;
-//                }
+                // if (from.isLinkLocalAddress() && (!this.getInetAddress().isLinkLocalAddress())) {
+                // // Ignore linklocal packets on regular interfaces, unless this is
+                // // also a linklocal interface. This is to avoid duplicates. This is
+                // // a terrible hack caused by the lack of an API to get the address
+                // // of the interface on which the packet was received.
+                // result = true;
+                // }
                 if (from.isLoopbackAddress() && (!this.getInetAddress().isLoopbackAddress())) {
                     // Ignore loopback packets on a regular interface unless this is also a loopback interface.
                     result = true;
@@ -216,7 +216,7 @@ public class HostInfo implements DNSStatefulObject {
     }
 
     private DNSRecord.Address getDNS4AddressRecord(boolean unique, int ttl) {
-        if ((this.getInetAddress() instanceof Inet4Address) || ((this.getInetAddress() instanceof Inet6Address) && (((Inet6Address) this.getInetAddress()).isIPv4CompatibleAddress()))) {
+        if (this.getInetAddress() instanceof Inet4Address) {
             return new DNSRecord.IPv4Address(this.getName(), DNSRecordClass.CLASS_IN, unique, ttl, this.getInetAddress());
         }
         return null;
@@ -244,11 +244,6 @@ public class HostInfo implements DNSStatefulObject {
     private DNSRecord.Pointer getDNS4ReverseAddressRecord(boolean unique, int ttl) {
         if (this.getInetAddress() instanceof Inet4Address) {
             return new DNSRecord.Pointer(this.getInetAddress().getHostAddress() + ".in-addr.arpa.", DNSRecordClass.CLASS_IN, unique, ttl, this.getName());
-        }
-        if ((this.getInetAddress() instanceof Inet6Address) && (((Inet6Address) this.getInetAddress()).isIPv4CompatibleAddress())) {
-            byte[] rawAddress = this.getInetAddress().getAddress();
-            String address = (rawAddress[12] & 0xff) + "." + (rawAddress[13] & 0xff) + "." + (rawAddress[14] & 0xff) + "." + (rawAddress[15] & 0xff);
-            return new DNSRecord.Pointer(address + ".in-addr.arpa.", DNSRecordClass.CLASS_IN, unique, ttl, this.getName());
         }
         return null;
     }
