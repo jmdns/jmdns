@@ -379,13 +379,17 @@ public interface DNSStatefulObject {
         @Override
         public boolean waitForAnnounced(long timeout) {
             if (!this.isAnnounced() && !this.willCancel()) {
-                _announcing.waitForEvent(timeout);
+                _announcing.waitForEvent(timeout + 10);
             }
             if (!this.isAnnounced()) {
-                if (this.willCancel() || this.willClose()) {
-                    logger.fine("Wait for announced cancelled: " + this);
-                } else {
-                    logger.warning("Wait for announced timed out: " + this);
+                // When we run multihomed we need to check twice
+                _announcing.waitForEvent(10);
+                if (!this.isAnnounced()) {
+                    if (this.willCancel() || this.willClose()) {
+                        logger.fine("Wait for announced cancelled: " + this);
+                    } else {
+                        logger.warning("Wait for announced timed out: " + this);
+                    }
                 }
             }
             return this.isAnnounced();
@@ -399,8 +403,12 @@ public interface DNSStatefulObject {
             if (!this.isCanceled()) {
                 _canceling.waitForEvent(timeout);
             }
-            if (!this.isCanceled() && !this.willClose()) {
-                logger.warning("Wait for canceled timed out: " + this);
+            if (!this.isCanceled()) {
+                // When we run multihomed we need to check twice
+                _canceling.waitForEvent(10);
+                if (!this.isCanceled() && !this.willClose()) {
+                    logger.warning("Wait for canceled timed out: " + this);
+                }
             }
             return this.isCanceled();
         }
