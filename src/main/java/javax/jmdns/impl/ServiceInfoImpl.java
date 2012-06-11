@@ -664,9 +664,13 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     @Override
     public String[] getURLs(String protocol) {
         InetAddress[] addresses = this.getInetAddresses();
-        String[] urls = new String[addresses.length];
-        for (int i = 0; i < addresses.length; i++) {
-            String url = protocol + "://" + addresses[i].getHostAddress() + ":" + getPort();
+        List<String> urls = new ArrayList<String>(addresses.length);
+        for (InetAddress address : addresses) {
+            String hostAddress = address.getHostAddress();
+            if (address instanceof Inet6Address) {
+                hostAddress = "[" + hostAddress + "]";
+            }
+            String url = protocol + "://" + hostAddress + ":" + getPort();
             String path = getPropertyString("path");
             if (path != null) {
                 if (path.indexOf("://") >= 0) {
@@ -675,9 +679,9 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                     url += path.startsWith("/") ? path : "/" + path;
                 }
             }
-            urls[i] = url;
+            urls.add(url);
         }
-        return urls;
+        return urls.toArray(new String[urls.size()]);
     }
 
     /**

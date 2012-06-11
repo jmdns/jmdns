@@ -21,6 +21,7 @@ UDP portscan causes JmDNS to log excessively - ID: 3529498
 JmmDNS improvements - ID: 3532626
 Non-daemon threads prevent application shutdown - ID: 3533221
 JmmDNS wasn't requesting on loopback - ID: 3532647
+getURLs with ipv6 - ID: 3480140
 
 CHANGELOG 24 August 2011 Pierre Frisch
 Rev the source code to 3.4.1
