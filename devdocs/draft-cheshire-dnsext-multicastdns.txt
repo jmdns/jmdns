@@ -4,11 +4,11 @@
 Internet Engineering Task Force                              S. Cheshire
 Internet-Draft                                               M. Krochmal
 Intended status: Standards Track                              Apple Inc.
-Expires: July 16, 2011                                      Jan 12, 2011
+Expires: June 11, 2012                                       Dec 9, 2011
 
 
                              Multicast DNS
-                 draft-cheshire-dnsext-multicastdns-13
+                 draft-cheshire-dnsext-multicastdns-15
 
 Abstract
 
@@ -46,15 +46,15 @@ Status of this Memo
    time. It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on July 16, 2011.
+   This Internet-Draft will expire on June 11, 2012.
 
 Copyright Notice
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                 [Page 1]
+Cheshire & Krochmal       Expires June 11, 2012                 [Page 1]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    Copyright (c) 2011 IETF Trust and the persons identified as the
@@ -108,9 +108,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                 [Page 2]
+Cheshire & Krochmal       Expires June 11, 2012                 [Page 2]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 Table of Contents
@@ -138,11 +138,10 @@ Table of Contents
    20. IPv6 Considerations  . . . . . . . . . . . . . . . . . . . . . 52
    21. Security Considerations  . . . . . . . . . . . . . . . . . . . 52
    22. IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 54
-   23. Domain Name Reservation Considerations . . . . . . . . . . . . 55
-   24. Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . . 56
-   25. References . . . . . . . . . . . . . . . . . . . . . . . . . . 57
-     25.1.  Normative References  . . . . . . . . . . . . . . . . . . 57
-     25.2.  Informative References  . . . . . . . . . . . . . . . . . 57
+   23. Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . . 56
+   24. References . . . . . . . . . . . . . . . . . . . . . . . . . . 57
+     24.1.  Normative References  . . . . . . . . . . . . . . . . . . 57
+     24.2.  Informative References  . . . . . . . . . . . . . . . . . 57
    Appendix A.  Design Rationale for Choice of UDP Port Number  . . . 60
    Appendix B.  Design Rationale for Not Using Hashed Multicast
                 Addresses . . . . . . . . . . . . . . . . . . . . . . 61
@@ -164,9 +163,10 @@ Table of Contents
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                 [Page 3]
+
+Cheshire & Krochmal       Expires June 11, 2012                 [Page 3]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 1.  Introduction
@@ -178,11 +178,13 @@ Internet-Draft                Multicast DNS                     Jan 2011
    Zero Configuration Networking [Zeroconf] and automatic link-local
    addressing [RFC3927] [RFC4862] is helpful.
 
-   This document specifies no change to the structure of DNS messages,
-   no new operation codes or response codes, and no new resource record
-   types. This document describes how clients send DNS-like queries via
-   IP multicast, and how a collection of hosts cooperate to collectively
-   answer those queries in a useful manner.
+   Multicast DNS borrows heavily from the existing DNS protocol
+   [RFC1034][RFC1035][RFC5395], using the existing DNS message
+   structure, name syntax, and resource record types. This document
+   specifies no new operation codes or response codes. This document
+   describes how clients send DNS-like queries via IP multicast, and how
+   a collection of hosts cooperate to collectively answer those queries
+   in a useful manner.
 
 
 2.  Conventions and Terminology Used in this Document
@@ -215,16 +217,16 @@ Internet-Draft                Multicast DNS                     Jan 2011
    DNS-format messages contain a header, a Question Section, then
    Answer, Authority, and Additional Record Sections. The Answer,
    Authority, and Additional Record Sections all hold resource records
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                 [Page 4]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    in the same format. Where this document describes issues that apply
    equally to all three sections, it uses the term "Resource Record
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                 [Page 4]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
-
    Sections" to refer collectively to these three sections.
 
    This document uses the terms "shared" and "unique" when referring to
@@ -271,16 +273,16 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
    To remedy this problem, this document allows any computer user to
    elect to give their computers link-local Multicast DNS host names of
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                 [Page 5]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    the form: "single-dns-label.local." For example, a laptop computer
    may answer to the name "MyComputer.local." Any computer user is
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                 [Page 5]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
-
    granted the authority to name their computer this way, provided that
    the chosen host name is not already in use on that link. Having named
    their computer this way, the user has the authority to continue using
@@ -327,16 +329,16 @@ Internet-Draft                Multicast DNS                     Jan 2011
    the mDNS multicast address, if no other conventional DNS server is
    available. This can allow hosts on the same link to continue
    communicating using each other's globally unique DNS names during
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                 [Page 6]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    network outages which disrupt communication with the greater
    Internet. When resolving global names via local multicast, it is even
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                 [Page 6]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
-
    more important to use DNSSEC [RFC4033] or other security mechanisms
    to ensure that the response is trustworthy. Resolving global names
    via local multicast is a contentious issue, and this document does
@@ -380,17 +382,22 @@ Internet-Draft                Multicast DNS                     Jan 2011
      local link is the best place to find information pertaining to
      those names.
 
+
+
+
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                 [Page 7]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
      Likewise, any DNS query for a name within the reverse mapping
      domains for IPv6 Link-Local addresses ("8.e.f.ip6.arpa.",
      "9.e.f.ip6.arpa.", "a.e.f.ip6.arpa.", and "b.e.f.ip6.arpa.") MUST
      be sent to the IPv6 mDNS link-local multicast address FF02::FB or
      the IPv4 mDNS multicast address 224.0.0.251.
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                 [Page 7]
-
-Internet-Draft                Multicast DNS                     Jan 2011
 
 
 5.  Querying
@@ -435,19 +442,17 @@ Internet-Draft                Multicast DNS                     Jan 2011
    their printer, then the protocol has met the user's needs in this
    case.
 
+
+
+Cheshire & Krochmal       Expires June 11, 2012                 [Page 8]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    While a basic DNS resolver like this may be adequate for simple host
    name lookup, it may not get ideal behavior in other cases. Additional
    refinements to create a fully-compliant Multicast DNS Querier are
    described below.
-
-
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                 [Page 8]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
 
 5.2.  Continuous Multicast DNS Querying
 
@@ -492,19 +497,19 @@ Internet-Draft                Multicast DNS                     Jan 2011
    MUST be at least one second, the intervals between successive queries
    MUST increase by at least a factor of two, and the querier MUST
    implement Known-Answer Suppression, as described below in
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                 [Page 9]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    Section 7.1. Known-Answer Suppression indicates to Responders who
    have already replied that their responses have been received, and
    they don't need to send them again in response to this repeated
    query. Failure to implement Known-Answer Suppression can result in
    unacceptable levels of network traffic. When the interval between
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                 [Page 9]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
-
    queries reaches or exceeds 60 minutes, a querier MAY cap the interval
    to a maximum of 60 minutes, and perform subsequent queries at a
    steady-state rate of one query per hour. To avoid accidental
@@ -548,19 +553,19 @@ Internet-Draft                Multicast DNS                     Jan 2011
    performed at 80-82%, 85-87%, 90-92% and then 95-97% of the TTL.
 
    An additional efficiency optimization SHOULD be performed when a
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                [Page 10]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    Multicast DNS response is received containing a unique answer (as
    indicated by the cache-flush bit being set, described in
    Section 10.2, "Announcements to Flush Outdated Cache Entries"). In
    this case, there is no need for the querier to continue issuing a
    stream of queries with exponentially-increasing intervals, since the
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 10]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
-
    receipt of a unique answer is a good indication that no other answers
    will be forthcoming. In this case, the Multicast DNS Querier SHOULD
    plan to issue its next query for this record at 80-82% of the
@@ -604,26 +609,27 @@ Internet-Draft                Multicast DNS                     Jan 2011
    to the user. As a new participant on the network, it has no idea
    whether the exact same questions may have been asked and answered
    just seconds ago. In this case, triggering a large sudden flood of
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                [Page 11]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    multicast responses may impose an unreasonable burden on the network.
 
    To avoid large floods of potentially unnecessary responses in these
    cases, Multicast DNS defines the top bit in the class field of a DNS
    question as the "unicast response" bit. When this bit is set in a
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 11]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
-
    question, it indicates that the Querier is willing to accept unicast
-   responses instead of the usual multicast responses. These questions
-   requesting unicast responses are referred to as "QU" questions, to
-   distinguish them from the more usual questions requesting multicast
-   responses ("QM" questions). A Multicast DNS Querier sending its
-   initial batch of questions immediately on wake from sleep or
-   interface activation SHOULD set the "QU" bit in those questions.
+   replies in response to this specific query, as well as the usual
+   multicast responses. These questions requesting unicast responses are
+   referred to as "QU" questions, to distinguish them from the more
+   usual questions requesting multicast responses ("QM" questions). A
+   Multicast DNS Querier sending its initial batch of questions
+   immediately on wake from sleep or interface activation SHOULD set the
+   "QU" bit in those questions.
 
    When a question is retransmitted (as described in Section 5.2) the
    "QU" bit SHOULD NOT be set in subsequent retransmissions of that
@@ -656,6 +662,17 @@ Internet-Draft                Multicast DNS                     Jan 2011
    and (except when defending a unique name against a probe from another
    host) randomized delays to reduce network collisions (Section 6).
 
+
+
+
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                [Page 12]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
 5.5.  Direct Unicast Queries to port 5353
 
    In specialized applications there may be rare situations where it
@@ -665,14 +682,6 @@ Internet-Draft                Multicast DNS                     Jan 2011
    query, as described above in Section 5.4. Since it is possible for a
    unicast query to be received from a machine outside the local link,
    Responders SHOULD check that the source address in the query packet
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 12]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
-
    matches the local subnet for that link (or, in the case of IPv6, the
    source address has an on-link prefix) and silently ignore the packet
    if not.
@@ -712,6 +721,14 @@ Internet-Draft                Multicast DNS                     Jan 2011
    A Multicast DNS Responder MUST only respond when it has a positive
    non-null response to send, or it authoritatively knows that a
    particular record does not exist. For unique records, where the host
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                [Page 13]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    has already established sole ownership of the name, it MUST return
    negative answers to queries for records that it knows not to exist.
    For example, a host with no IPv6 address, that has claimed sole
@@ -721,14 +738,6 @@ Internet-Draft                Multicast DNS                     Jan 2011
    "Negative Responses". For shared records, which are owned by no
    single host, the nonexistence of a given record is ascertained by the
    failure of any machine to respond to the Multicast DNS query, not by
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 13]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
-
    any explicit negative response. NXDOMAIN and other error responses
    MUST NOT be sent.
 
@@ -768,6 +777,14 @@ Internet-Draft                Multicast DNS                     Jan 2011
    delay. A probe query can be distinguished from a normal query by the
    fact that a probe query contains a proposed record in the Authority
    Section which answers the question in the Question Section (for more
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                [Page 14]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    details, see Section 8.2, "Simultaneous Probe Tie-Breaking").
 
    Responding without delay is appropriate for records like the address
@@ -776,14 +793,6 @@ Internet-Draft                Multicast DNS                     Jan 2011
    appropriate for things like looking up PTR records used for DNS-based
    Service Discovery [DNS-SD], where a large number of responses may be
    anticipated.
-
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 14]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
 
    In any case where there may be multiple responses, such as queries
    where the answer is a member of a shared resource record set, each
@@ -808,16 +817,29 @@ Internet-Draft                Multicast DNS                     Jan 2011
    source UDP port is not 5353.
 
    The destination UDP port in all Multicast DNS Responses MUST be 5353
-   and the destination address must be the multicast address 224.0.0.251
-   or its IPv6 equivalent FF02::FB, except when a unicast response has
-   been explicitly requested:
+   and the destination address MUST be the multicast address 224.0.0.251
+   or its IPv6 equivalent FF02::FB, except when generating a reply to a
+   query which explicitly requested a unicast response:
 
     * via the "unicast response" bit,
     * by virtue of being a Legacy Query (Section 6.7), or
     * by virtue of being a direct unicast query.
 
-   The benefits of sending Responses via multicast are discussed in
-   Appendix D.
+   Except for these three specific cases, responses MUST NOT be sent via
+   unicast, because then the "Passive Observation of Failures"
+   mechanisms described in Section 10.5 would not work correctly. Other
+   benefits of sending Responses via multicast are discussed in Appendix
+   D. A Multicast DNS Querier MUST only accept unicast responses if they
+   answer a recently-sent query (e.g. sent within the last two seconds)
+   that explicitly requested unicast responses. A Multicast DNS Querier
+   MUST silently ignore all other unicast responses.
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                [Page 15]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
 
    To protect the network against excessive packet flooding due to
    software bugs or malicious attack, a Multicast DNS Responder MUST NOT
@@ -833,14 +855,6 @@ Internet-Draft                Multicast DNS                     Jan 2011
    DNS Responder MUST respond quickly. In this special case only, when
    responding via multicast to a probe, a Multicast DNS Responder is
    only required to delay its transmission as necessary to ensure an
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 15]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
-
    interval of at least 250ms since the last time the record was
    multicast on that interface.
 
@@ -875,6 +889,14 @@ Internet-Draft                Multicast DNS                     Jan 2011
    [RFC4034]. In the case of Multicast DNS the NSEC record is not being
    used for its usual DNSSEC [RFC4033] security properties, but simply
    as a way of expressing which records do or do not exist with a given
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                [Page 16]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    name.
 
    On receipt of a question for a particular name/rrtype/rrclass for
@@ -889,14 +911,6 @@ Internet-Draft                Multicast DNS                     Jan 2011
    resources, Multicast DNS Queriers are only REQUIRED to be able to
    parse a restricted form of the DNS NSEC record. All compliant
    Multicast DNS implementations MUST at least correctly generate and
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 16]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
-
    parse the restricted DNS NSEC record format described below:
 
     o The 'Next Domain Name' field contains the record's own name. When
@@ -932,6 +946,13 @@ Internet-Draft                Multicast DNS                     Jan 2011
    just because it finds an unexpected value in the 'Next Domain Name'
    field.
 
+
+
+Cheshire & Krochmal       Expires June 11, 2012                [Page 17]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    If a Multicast DNS implementation receives an NSEC record containing
    more than one Type Bit Map, or where the Type Bit Map block number is
    not zero, or where the block length is not in the range 1-32, then
@@ -945,14 +966,6 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
    To help differentiate these synthesized NSEC records (generated
    programmatically on-the-fly) from conventional Unicast DNS NSEC
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 17]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
-
    records (which actually exist in a signed DNS zone) the synthesized
    Multicast DNS NSEC records MUST NOT have the 'NSEC' bit set in the
    Type Bit Map, whereas conventional Unicast DNS NSEC records do have
@@ -983,15 +996,35 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 6.2.  Responding to Address Queries
 
-   In Multicast DNS, whenever a Responder places an IPv4 or IPv6 address
-   record (rrtype "A" or "AAAA") into a response packet, it SHOULD also
-   place the corresponding other address type into the additional
-   section, if there is space in the packet.
+   When a Multicast DNS Responder sends a Multicast DNS Response message
+   containing its own address records, it MUST include all addresses
+   that are valid on the interface on which it is sending the message,
+   and MUST NOT include addresses that are not valid on that interface
+   (such as addresses that may be configured on the host's other
 
-   This is to provide fate sharing, so that all a device's addresses are
-   delivered atomically in a single packet, to reduce the risk that
-   packet loss could cause a querier to receive only the IPv4 addresses
-   and not the IPv6 addresses, or vice versa.
+
+
+Cheshire & Krochmal       Expires June 11, 2012                [Page 18]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
+   interfaces). For example, if an interface has both an IPv6 link-local
+   and an IPv6 routable address, both should be included in the Response
+   message so that Queriers receive both and can make their own choice
+   about which to use. This allows a Querier that only has an IPv6 link-
+   local address to connect to the link-local address, and a different
+   Querier that has an IPv6 routable address to connect to the IPv6
+   routable address instead.
+
+   When a Multicast DNS Responder places an IPv4 or IPv6 address record
+   (rrtype "A" or "AAAA") into a response packet, it SHOULD also place
+   any records of the other address type with the same name into the
+   additional section, if there is space in the packet. This is to
+   provide fate sharing, so that all a device's addresses are delivered
+   atomically in a single packet, to reduce the risk that packet loss
+   could cause a querier to receive only the IPv4 addresses and not the
+   IPv6 addresses, or vice versa.
 
    In the event that a device has only IPv4 addresses but no IPv6
    addresses, or vice versa, then the appropriate NSEC record SHOULD be
@@ -1000,17 +1033,10 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
    Some Multicast DNS Responders treat a physical interface with both
    IPv4 and IPv6 address as a single interface with two addresses. Other
-   Multicast DNS Responders treat this case as logically two interfaces,
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 18]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
-
-   each with one address, but Responders that operate this way MUST NOT
-   put the corresponding automatic NSEC records in replies they send
+   Multicast DNS Responders may treat this case as logically two
+   interfaces, (one with one or more IPv4 addresses, and the other with
+   one or more IPv6 addresses) but Responders that operate this way MUST
+   NOT put the corresponding automatic NSEC records in replies they send
    (i.e. a negative IPv4 assertion in their IPv6 responses, and a
    negative IPv6 assertion in their IPv4 responses) because this would
    cause incorrect operation in Responders on the network that work the
@@ -1031,6 +1057,13 @@ Internet-Draft                Multicast DNS                     Jan 2011
    packet. (Answers defending a name, in response to a probe for that
    name, are not subject to this delay rule and are still sent
    immediately.)
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                [Page 19]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
 
 6.4.  Response Aggregation
 
@@ -1057,14 +1090,6 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
    This somewhat surprising behavior is commonly seen with caching (i.e.
    "recursive") name servers. If a caching server receives a qtype "ANY"
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 19]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
-
    query for which it has at least one valid answer, it is allowed to
    return only those matching answers it happens to have already in its
    cache, and is not required to reconsult the authoritative name server
@@ -1088,6 +1113,14 @@ Internet-Draft                Multicast DNS                     Jan 2011
    Multicast DNS does not share this property that qtype "ANY" and
    qclass "ANY" queries return some undefined subset of the matching
    records. When responding to queries using qtype "ANY" (255) and/or
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                [Page 20]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    qclass "ANY" (255), a Multicast DNS Responder MUST respond with *ALL*
    of its records that match the query.
 
@@ -1113,14 +1146,6 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
    o If the TTL of B's resource record given in the packet is at least
      half the true TTL from A's point of view, then no action is
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 20]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
-
      required.
 
    o If the TTL of B's resource record given in the packet is less than
@@ -1144,6 +1169,14 @@ Internet-Draft                Multicast DNS                     Jan 2011
    this case, the Multicast DNS Responder MUST send a UDP response
    directly back to the Querier, via unicast, to the query packet's
    source IP address and port. This unicast response MUST be a
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                [Page 21]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    conventional unicast response as would be generated by a conventional
    unicast DNS server; for example, it MUST repeat the query ID and the
    question given in the query packet. In addition, the "cache-flush"
@@ -1160,21 +1193,6 @@ Internet-Draft                Multicast DNS                     Jan 2011
    these legacy resolvers, which do not implement these cache coherency
    mechanisms, could retain stale cached resource record data long after
    it is no longer valid.
-
-
-
-
-
-
-
-
-
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 21]
-
-Internet-Draft                Multicast DNS                     Jan 2011
 
 
 7.  Traffic Reduction
@@ -1207,6 +1225,14 @@ Internet-Draft                Multicast DNS                     Jan 2011
    send an answer so as to update the Querier's cache before the record
    becomes in danger of expiration.
 
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                [Page 22]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    Because a Multicast DNS Responder will respond if the remaining TTL
    given in the Known-Answer list is less than half the true TTL, it is
    superfluous for the Querier to include such records in the Known-
@@ -1225,13 +1251,6 @@ Internet-Draft                Multicast DNS                     Jan 2011
    records may have come from other hosts that are no longer on the
    network. Propagating that stale information to other Multicast DNS
    Queriers on the network would not be helpful.
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 22]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
 
 7.2.  Multi-Packet Known-Answer Suppression
 
@@ -1262,6 +1281,14 @@ Internet-Draft                Multicast DNS                     Jan 2011
    opens the potential risk that a continuous stream of Known-Answer
    packets could, theoretically, prevent a Responder from answering
    indefinitely. In practice answers are never actually delayed
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                [Page 23]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    significantly, and should a situation arise where significant delays
    did happen, that would be a scenario where the network is so
    overloaded that it would be desirable to err on the side of caution.
@@ -1281,14 +1308,6 @@ Internet-Draft                Multicast DNS                     Jan 2011
    any records which this host would not also put in its own Known-
    Answer Section, then this host SHOULD treat its own query as having
    been sent. When multiple Queriers on the network are querying for the
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 23]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
-
    same resource records, there is no need for them to all be repeatedly
    asking the same question.
 
@@ -1321,28 +1340,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 24]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 24]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 8.  Probing and Announcing on Startup
@@ -1396,9 +1396,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 25]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 25]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    conflicting Multicast DNS responses have been received, the host may
@@ -1452,9 +1452,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 26]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 26]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    software bugs or other unanticipated problems, errant hosts do not
@@ -1488,7 +1488,7 @@ Internet-Draft                Multicast DNS                     Jan 2011
    records with the rdata that it would be proposing to use, should its
    probing be successful. The Authority Section is being used here in a
    way analogous to the way it is used as the "Update Section" in a DNS
-   Update packet [RFC2136].
+   Update packet [RFC2136] [RFC3007].
 
    When a host is probing for a group of related records with the same
    name (e.g. the SRV and TXT record describing a DNS-SD service), only
@@ -1508,9 +1508,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 27]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 27]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    compared and the lexicographically later data wins. This means that
@@ -1564,9 +1564,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 28]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 28]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    Note that it is vital that the bytes are interpreted as UNSIGNED
@@ -1620,9 +1620,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 29]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 29]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    In the case of records that have been verified to be unique in the
@@ -1676,9 +1676,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 30]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 30]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 9.  Conflict Resolution
@@ -1732,9 +1732,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 31]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 31]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    2. Probe again, and repeat as necessary until a unique name is found.
@@ -1788,9 +1788,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 32]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 32]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 10.  Resource Record TTL Values and Cache Coherency
@@ -1844,9 +1844,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 33]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 33]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 10.2.  Announcements to Flush Outdated Cache Entries
@@ -1900,9 +1900,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 34]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 34]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    Another reason for waiting one second before deleting stale records
@@ -1956,9 +1956,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 35]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 35]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    semantic interpretation.
@@ -2012,9 +2012,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 36]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 36]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    attempts to look up the SRV record it references are not successful.
@@ -2068,9 +2068,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 37]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 37]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    The previous section, "Cache Flush on Failure Indication", describes
@@ -2124,9 +2124,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 38]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 38]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
      a bitwise equality test. An IPv6 source address is determined to be
@@ -2180,9 +2180,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 39]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 39]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    intranets, and the like have increasingly meant that the answer to a
@@ -2236,9 +2236,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 40]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 40]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 13.  Enabling and Disabling Multicast DNS
@@ -2285,16 +2285,16 @@ Internet-Draft                Multicast DNS                     Jan 2011
    name(s) independently on each interface, potentially answering to
    different names on different interfaces.
 
-   When answering a Multicast DNS query, a multi-homed host with a link-
-   local address (or addresses) SHOULD take care to ensure that any
-   address going out in a Multicast DNS response is valid for use on the
-   interface on which the response is going out.
+   Except in the case of proxying and other similar specialized uses,
+   addresses in IPv4 or IPv6 address records in Multicast DNS responses
+   MUST be valid for use on the interface on which the response is being
+   sent.
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 41]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 41]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    Just as the same link-local IP address may validly be in use
@@ -2348,9 +2348,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 42]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 42]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 15.  Considerations for Multiple Responders on the Same Machine
@@ -2404,9 +2404,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 43]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 43]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    benefit of a shared system-wide cache, and they would not be able to
@@ -2460,9 +2460,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 44]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 44]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    file, as a hint to identify whether the data is big-endian or little-
@@ -2475,10 +2475,10 @@ Internet-Draft                Multicast DNS                     Jan 2011
    legal unicode value) an actual literal instance of that character (in
    this case a zero-width non-breaking space character).
 
-   For names that are restricted to US-ASCII letters, digits and
-   hyphens, the UTF-8 encoding is identical to the US-ASCII encoding, so
-   this is entirely compatible with existing host names. For characters
-   outside the US-ASCII range, UTF-8 encoding is used.
+   For names that are restricted to US-ASCII [RFC0020] letters, digits
+   and hyphens, the UTF-8 encoding is identical to the US-ASCII
+   encoding, so this is entirely compatible with existing host names.
+   For characters outside the US-ASCII range, UTF-8 encoding is used.
 
    Multicast DNS implementations MUST NOT use any other encodings apart
    from precomposed UTF-8 (US-ASCII being considered a compatible subset
@@ -2516,9 +2516,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 45]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 45]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 17.  Multicast DNS Message Size
@@ -2572,9 +2572,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 46]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 46]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 18.  Multicast DNS Message Format
@@ -2628,9 +2628,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 47]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 47]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 18.4.  AA (Authoritative Answer) Bit
@@ -2684,9 +2684,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 48]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 48]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 18.10.  CD (Checking Disabled) Bit
@@ -2740,9 +2740,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 49]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 49]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
      NS, CNAME, PTR, DNAME, SOA, MX, AFSDB, RT, KX, RP, PX, SRV, NSEC
@@ -2796,9 +2796,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 50]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 50]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 19.  Summary of Differences Between Multicast DNS and Unicast DNS
@@ -2815,6 +2815,7 @@ Internet-Draft                Multicast DNS                     Jan 2011
    * uses multicast
    * uses UDP port 5353 instead of port 53
    * operates in well-defined parts of the DNS namespace
+   * has no SOA (Start of Authority) records
    * uses UTF-8, and only UTF-8, to encode resource record names
    * allows names up to 255 bytes plus a terminating zero byte
    * allows name compression in rdata for SRV and other record types
@@ -2851,10 +2852,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 51]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 51]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 20.  IPv6 Considerations
@@ -2908,9 +2908,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 52]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 52]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    address (during network outages which disrupt communication with the
@@ -2964,22 +2964,30 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 53]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 53]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 22.  IANA Considerations
 
+   IANA has allocated the UDP port 5353 for the mDNS service described
+   in this document [SN].
+
    IANA has allocated the IPv4 link-local multicast address 224.0.0.251
-   for the use described in this document [mcast4].
+   for the use described in this document [MC4].
 
    IANA has allocated the IPv6 multicast address set FF0X::FB for the
-   use described in this document [mcast6]. Only address FF02::FB (Link-
+   use described in this document [MC6]. Only address FF02::FB (Link-
    Local Scope) is currently in use by deployed software, but it is
-   possible that in future implementers may experiment with Multicast
-   DNS using larger-scoped addresses, such as FF05::FB (Site-Local
-   Scope) [RFC4291].
+   possible that in the future implementers may experiment with
+   Multicast DNS using larger-scoped addresses, such as FF05::FB (Site-
+   Local Scope) [RFC4291].
+
+   The UDP port and multicast addresses are currently recorded as
+   allocated to Stuart Cheshire. When this document is published, IANA
+   should update the registries to reference this RFC.
+   [RFC Editor: Please remove this paragraph prior to publication.]
 
    The re-use of the top bit of the rrclass field in the Question and
    Resource Record Sections means that Multicast DNS can only carry DNS
@@ -2996,12 +3004,8 @@ Internet-Draft                Multicast DNS                     Jan 2011
    actually in widespread use, so this issue is likely to remain a
    purely theoretical one.
 
-   When this document is published, IANA should designate a list of
-   domains which are deemed to have only link-local significance, as
-   described in Section 12 of this document ("Special Characteristics of
-   Multicast DNS Domains") [SUDN].
-
-   Specifically, the designated link-local domains are:
+   When this document is published, IANA should record the list of
+   domains below as being Special-Use Domain Names [SUDN]:
 
       local.
       254.169.in-addr.arpa.
@@ -3016,16 +3020,12 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 54]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 54]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
-23.  Domain Name Reservation Considerations
+22.1.  Domain Name Reservation Considerations
 
    The six domains listed above, and any names falling within those
    domains (e.g. "MyPrinter.local.", "34.12.254.169.in-addr.arpa.",
@@ -3076,9 +3076,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 55]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 55]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    5. Authoritative DNS servers SHOULD NOT by default be configurable to
@@ -3107,14 +3107,17 @@ Internet-Draft                Multicast DNS                     Jan 2011
       4 and 6 above.
 
 
-24.  Acknowledgments
+23.  Acknowledgments
 
    The concepts described in this document have been explored, developed
    and implemented with help from Ran Atkinson, Richard Brown, Freek
-   Dijkstra, Ralph Droms, Erik Guttman, Pasi Sarolahti, Pekka Savola,
-   Mark Townsley, Paul Vixie, Bill Woodcock, and others. Special thanks
-   go to Bob Bradley, Josh Graessley, Scott Herscher, Rory McGuire,
-   Roger Pantos and Kiren Sekar for their significant contributions.
+   Dijkstra, Erik Guttman, Kyle McKay, Pasi Sarolahti, Pekka Savola,
+   Robby Simpson, Mark Townsley, Paul Vixie, Bill Woodcock, and others.
+   Special thanks go to Bob Bradley, Josh Graessley, Scott Herscher,
+   Rory McGuire, Roger Pantos and Kiren Sekar for their significant
+   contributions. Special thanks also to Kerry Lynn for converting the
+   document to xml2rfc form in May 2010, and to Area Director Ralph
+   Droms for shepherding the document through its final steps.
 
 
 
@@ -3129,23 +3132,23 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 56]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 56]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
-25.  References
+24.  References
 
-25.1.  Normative References
+24.1.  Normative References
 
-   [mcast4]   "IPv4 Multicast Address Space Registry",
+   [MC4]      "IPv4 Multicast Address Space Registry",
               <http://www.iana.org/assignments/multicast-addresses/>.
 
-   [mcast6]   "IPv6 Multicast Address Space Registry", <http://
+   [MC6]      "IPv6 Multicast Address Space Registry", <http://
               www.iana.org/assignments/ipv6-multicast-addresses/>.
+
+   [RFC0020]  Cerf, V., "ASCII format for network interchange", RFC 20,
+              October 1969.
 
    [RFC1034]  Mockapetris, P., "Domain Names - Concepts and Facilities",
               STD 13, RFC 1034, November 1987.
@@ -3166,18 +3169,33 @@ Internet-Draft                Multicast DNS                     Jan 2011
    [RFC5198]  Klensin, J. and M. Padlipsky, "Unicode Format for Network
               Interchange", RFC 5198, March 2008.
 
-   [SUDN]     Cheshire, S. and M. Krochmal, "Special-Use Domain Names",
-              draft-cheshire-dnsext-special-names-01 (work in progress),
-              January 2011.
+   [RFC5395]  Eastlake, D., "Domain Name System (DNS) IANA
+              Considerations", RFC 5395, November 2008.
 
-25.2.  Informative References
+   [SN]       "Service Name and Transport Protocol Port Number
+              Registry", <http://www.iana.org/assignments/
+              service-names-port-numbers/>.
+
+   [SUDN]     Cheshire, S. and M. Krochmal, "Special-Use Domain Names",
+              draft-cheshire-dnsext-special-names-02 (work in progress),
+              December 2011.
+
+24.2.  Informative References
 
    [B4W]      "Bonjour for Windows",
               <http://en.wikipedia.org/wiki/Bonjour_(software)>.
 
+
+
+
+Cheshire & Krochmal       Expires June 11, 2012                [Page 57]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    [DNS-SD]   Cheshire, S. and M. Krochmal, "DNS-Based Service
-              Discovery", draft-cheshire-dnsext-dns-sd-08 (work in
-              progress), January 2011.
+              Discovery", draft-cheshire-dnsext-dns-sd-11 (work in
+              progress), December 2011.
 
    [IEEE.802.3]
               "Information technology - Telecommunications and
@@ -3185,14 +3203,6 @@ Internet-Draft                Multicast DNS                     Jan 2011
               metropolitan area networks - Specific requirements - Part
               3: Carrier Sense Multiple Access with Collision Detection
               (CMSA/CD) Access Method and Physical Layer
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 57]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
-
               Specifications", IEEE Std 802.3-2008, December 2008,
               <http://standards.ieee.org/getieee802/802.3.html>.
 
@@ -3232,6 +3242,13 @@ Internet-Draft                Multicast DNS                     Jan 2011
    [RFC2671]  Vixie, P., "Extension Mechanisms for DNS (EDNS0)",
               RFC 2671, August 1999.
 
+
+
+Cheshire & Krochmal       Expires June 11, 2012                [Page 58]
+
+Internet-Draft                Multicast DNS                     Dec 2011
+
+
    [RFC2845]  Vixie, P., Gudmundsson, O., Eastlake, D., and B.
               Wellington, "Secret Key Transaction Authentication for DNS
               (TSIG)", RFC 2845, May 2000.
@@ -3242,12 +3259,8 @@ Internet-Draft                Multicast DNS                     Jan 2011
    [RFC2931]  Eastlake, D., "DNS Request and Transaction Signatures (
               SIG(0)s)", RFC 2931, September 2000.
 
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 58]
-
-Internet-Draft                Multicast DNS                     Jan 2011
-
+   [RFC3007]  Wellington, B., "Secure Domain Name System (DNS) Dynamic
+              Update", RFC 3007, November 2000.
 
    [RFC3492]  Costello, A., "Punycode: A Bootstring encoding of Unicode
               for Internationalized Domain Names in Applications
@@ -3287,22 +3300,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 59]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 59]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 Appendix A.  Design Rationale for Choice of UDP Port Number
@@ -3310,8 +3310,8 @@ Appendix A.  Design Rationale for Choice of UDP Port Number
    Arguments were made for and against using Multicast on UDP port 53,
    the standard unicast DNS port. Some of the arguments are given below.
    The arguments for using a different port were greater in number and
-   more compelling so that was the option that was ultimately selected.
-   The UDP port "5353" was selected for its mnemonic similarity to "53".
+   more compelling so that option was ultimately selected. The UDP port
+   "5353" was selected for its mnemonic similarity to "53".
 
    Arguments for using UDP port 53:
 
@@ -3356,9 +3356,9 @@ Appendix A.  Design Rationale for Choice of UDP Port Number
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 60]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 60]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 Appendix B.  Design Rationale for Not Using Hashed Multicast Addresses
@@ -3412,9 +3412,9 @@ Appendix B.  Design Rationale for Not Using Hashed Multicast Addresses
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 61]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 61]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 Appendix C.  Design Rationale for Maximum Multicast DNS Name Length
@@ -3468,9 +3468,9 @@ Appendix C.  Design Rationale for Maximum Multicast DNS Name Length
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 62]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 62]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
      sizeof("foo") (which includes the terminating zero byte at the end)
@@ -3524,9 +3524,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 63]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 63]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    However, many unicast DNS implementers have read these RFCs
@@ -3580,9 +3580,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 64]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 64]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 Appendix D.  Benefits of Multicast Responses
@@ -3636,9 +3636,9 @@ Appendix D.  Benefits of Multicast Responses
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 65]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 65]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    * Robustness in the face of misconfiguration: Link-local multicast
@@ -3692,9 +3692,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 66]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 66]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 Appendix E.  Design Rationale for Encoding Negative Responses
@@ -3748,9 +3748,9 @@ Appendix E.  Design Rationale for Encoding Negative Responses
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 67]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 67]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 Appendix F.  Use of UTF-8
@@ -3804,9 +3804,9 @@ Appendix F.  Use of UTF-8
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 68]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 68]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 Appendix G.  Private DNS Namespaces
@@ -3860,9 +3860,9 @@ Appendix G.  Private DNS Namespaces
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 69]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 69]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 Appendix H.  Deployment History
@@ -3877,7 +3877,7 @@ Appendix H.  Deployment History
    multicast, but did not address the service discovery aspect of NBP.
 
    In April 2000 Stuart Cheshire registered IPv4 multicast address
-   224.0.0.251 with IANA [mcast4] and began writing code to test and
+   224.0.0.251 with IANA [MC4] and began writing code to test and
    develop the idea of performing NBP-like service discovery using
    Multicast DNS, which was documented in a group of three Internet
    Drafts:
@@ -3916,9 +3916,9 @@ Appendix H.  Deployment History
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 70]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 70]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
    historically supported AppleTalk in their network printers, and were
@@ -3939,12 +3939,12 @@ Internet-Draft                Multicast DNS                     Jan 2011
    In August 2006, Apple re-licensed the cross-platform mDNSResponder
    source code under the Apache License, Version 2.0.
 
-   In January 2007, the IETF published "Link-Local Multicast Name
-   Resolution", which is substantially similar to Multicast DNS, but
-   incompatible in some small but important ways. In particular, the
-   LLMNR design explicitly excluded support for service discovery
-   [RFC4795], which made it an unsuitable candidate for a protocol to
-   replace AppleTalk NBP [NBP].
+   In January 2007, the IETF published the Informational RFC "Link-Local
+   Multicast Name Resolution", which is substantially similar to
+   Multicast DNS, but incompatible in some small but important ways. In
+   particular, the LLMNR design explicitly excluded support for service
+   discovery [RFC4795], which made it an unsuitable candidate for a
+   protocol to replace AppleTalk NBP [NBP].
 
    In addition to desktop and laptop computers running Mac OS X and
    Microsoft Windows, Multicast DNS is now implemented in a wide range
@@ -3960,10 +3960,11 @@ Internet-Draft                Multicast DNS                     Jan 2011
    While the original focus of Multicast DNS and DNS-based Service
    Discovery was for Zero Configuration environments without a
    conventional unicast DNS server, DNS-based Service Discovery also
-   works using unicast DNS servers, using DNS Update [RFC2136] to create
-   service discovery records and standard DNS queries to query for them.
-   Apple's Back to My Mac service, launched with Mac OS X 10.5 "Leopard"
-   in October 2007, uses DNS-based Service Discovery over unicast DNS.
+   works using unicast DNS servers, using DNS Update [RFC2136] [RFC3007]
+   to create service discovery records and standard DNS queries to query
+   for them. Apple's Back to My Mac service, launched with Mac OS X 10.5
+   "Leopard" in October 2007, uses DNS-based Service Discovery over
+   unicast DNS.
 
 
 
@@ -3971,10 +3972,9 @@ Internet-Draft                Multicast DNS                     Jan 2011
 
 
 
-
-Cheshire & Krochmal       Expires July 16, 2011                [Page 71]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 71]
 
-Internet-Draft                Multicast DNS                     Jan 2011
+Internet-Draft                Multicast DNS                     Dec 2011
 
 
 Authors' Addresses
@@ -4028,4 +4028,5 @@ Authors' Addresses
 
 
 
-Cheshire & Krochmal       Expires July 16, 2011                [Page 72]
+Cheshire & Krochmal       Expires June 11, 2012                [Page 72]
+
