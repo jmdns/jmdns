@@ -38,6 +38,7 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
 import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.impl.util.NamedThreadFactory;
 
 /**
  * This class enable multihoming mDNS. It will open a mDNS per IP address of the machine.
@@ -74,7 +75,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
      */
     private final Set<ServiceTypeListener>                     _typeListeners;
 
-    private final ExecutorService                              _ListenerExecutor;
+    private final ExecutorService                              _listenerExecutor;
 
     private final ExecutorService                              _jmDNSExecutor;
 
@@ -92,8 +93,8 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
         _networkListeners = Collections.synchronizedSet(new HashSet<NetworkTopologyListener>());
         _knownMDNS = new ConcurrentHashMap<InetAddress, JmDNS>();
         _services = new ConcurrentHashMap<String, ServiceInfo>(20);
-        _ListenerExecutor = Executors.newSingleThreadExecutor();
-        _jmDNSExecutor = Executors.newCachedThreadPool();
+        _listenerExecutor = Executors.newSingleThreadExecutor(new NamedThreadFactory("JmmDNS Listeners"));
+        _jmDNSExecutor = Executors.newCachedThreadPool(new NamedThreadFactory("JmmDNS"));
         _timer = new Timer("Multihomed mDNS.Timer", true);
         _serviceListeners = new ConcurrentHashMap<String, List<ServiceListener>>();
         _typeListeners = Collections.synchronizedSet(new HashSet<ServiceTypeListener>());
@@ -114,25 +115,29 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
                 logger.finer("Cancelling JmmDNS: " + this);
             }
             _timer.cancel();
-            _ListenerExecutor.shutdown();
+            _listenerExecutor.shutdown();
+            _jmDNSExecutor.shutdown();
             // We need to cancel all the DNS
-            ExecutorService executor = Executors.newCachedThreadPool();
-            for (final JmDNS mDNS : this.getDNS()) {
-                executor.submit(new Runnable() {
-                    /**
-                     * {@inheritDoc}
-                     */
-                    @Override
-                    public void run() {
-                        try {
-                            mDNS.close();
-                        } catch (IOException exception) {
-                            // JmDNS never throws this is only because of the closeable interface
+            ExecutorService executor = Executors.newCachedThreadPool(new NamedThreadFactory("JmmDNS.close"));
+            try {
+                for (final JmDNS mDNS : this.getDNS()) {
+                    executor.submit(new Runnable() {
+                        /**
+                         * {@inheritDoc}
+                         */
+                        @Override
+                        public void run() {
+                            try {
+                                mDNS.close();
+                            } catch (IOException exception) {
+                                // JmDNS never throws this is only because of the closeable interface
+                            }
                         }
-                    }
-                });
+                    });
+                }
+            } finally {
+                executor.shutdown();
             }
-            executor.shutdown();
             try {
                 executor.awaitTermination(DNSConstants.CLOSE_TIMEOUT, TimeUnit.MILLISECONDS);
             } catch (InterruptedException exception) {
@@ -261,7 +266,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
                 });
             }
 
-            ExecutorService executor = Executors.newFixedThreadPool(tasks.size());
+            ExecutorService executor = Executors.newFixedThreadPool(tasks.size(), new NamedThreadFactory("JmmDNS.getServiceInfos"));
             try {
                 List<Future<ServiceInfo>> results = Collections.emptyList();
                 try {
@@ -523,7 +528,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
                 });
             }
 
-            ExecutorService executor = Executors.newFixedThreadPool(tasks.size());
+            ExecutorService executor = Executors.newFixedThreadPool(tasks.size(), new NamedThreadFactory("JmmDNS.list"));
             try {
                 List<Future<List<ServiceInfo>>> results = Collections.emptyList();
                 try {
@@ -671,7 +676,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
                             });
                             final NetworkTopologyEvent jmdnsEvent = new NetworkTopologyEventImpl(dns, address);
                             for (final NetworkTopologyListener listener : this.networkListeners()) {
-                                _ListenerExecutor.submit(new Runnable() {
+                                _listenerExecutor.submit(new Runnable() {
                                     /**
                                      * {@inheritDoc}
                                      */
@@ -707,7 +712,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
                         mDNS.close();
                         final NetworkTopologyEvent jmdnsEvent = new NetworkTopologyEventImpl(mDNS, address);
                         for (final NetworkTopologyListener listener : this.networkListeners()) {
-                            _ListenerExecutor.submit(new Runnable() {
+                            _listenerExecutor.submit(new Runnable() {
                                 /**
                                  * {@inheritDoc}
                                  */

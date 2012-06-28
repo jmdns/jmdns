@@ -45,6 +45,7 @@ import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSState;
 import javax.jmdns.impl.tasks.DNSTask;
+import javax.jmdns.impl.util.NamedThreadFactory;
 
 // REMIND: multiple IP addresses
 
@@ -314,7 +315,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      */
     private long                                          _lastThrottleIncrement;
 
-    private final ExecutorService                         _executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService                         _executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("JmDNS"));
 
     //
     // 2009-09-16 ldeck: adding docbug patch with slight ammendments
