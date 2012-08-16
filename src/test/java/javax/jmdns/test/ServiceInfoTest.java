@@ -129,6 +129,19 @@ public class ServiceInfoTest {
     }
 
     @Test
+    public void testDecodeServiceNameWithSpecialCharacter() {
+        String type = "&test._home-sharing._tcp.local.";
+
+        Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(type);
+
+        assertEquals("We did not get the right domain:", "local", map.get(Fields.Domain));
+        assertEquals("We did not get the right protocol:", "tcp", map.get(Fields.Protocol));
+        assertEquals("We did not get the right application:", "home-sharing", map.get(Fields.Application));
+        assertEquals("We did not get the right name:", "&test", map.get(Fields.Instance));
+        assertEquals("We did not get the right subtype:", "", map.get(Fields.Subtype));
+    }
+
+    @Test
     public void testDecodeDNSMetaQuery() {
         String type = "_services._dns-sd._udp.local.";
 
