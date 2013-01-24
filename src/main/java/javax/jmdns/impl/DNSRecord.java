@@ -810,7 +810,7 @@ public abstract class DNSRecord extends DNSEntry {
          */
         @Override
         public ServiceInfo getServiceInfo(boolean persistent) {
-            return new ServiceInfoImpl(this.getQualifiedNameMap(), _port, _weight, _priority, persistent, _server);
+            return new ServiceInfoImpl(this.getQualifiedNameMap(), _port, _weight, _priority, persistent, (byte[]) null);
         }
 
         /*

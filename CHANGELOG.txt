@@ -23,6 +23,7 @@ Non-daemon threads prevent application shutdown - ID: 3533221
 JmmDNS wasn't requesting on loopback - ID: 3532647
 getURLs with ipv6 - ID: 3480140
 Another thread preventing application shutdown - ID: 3538523
+Bug when DNSRecord.Service is evaluated before DNSRecord.TXT - ID: 3601799
 
 CHANGELOG 24 August 2011 Pierre Frisch
 Rev the source code to 3.4.1
