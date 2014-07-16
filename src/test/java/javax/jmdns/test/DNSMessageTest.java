@@ -3,10 +3,10 @@
  */
 package javax.jmdns.test;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -63,7 +63,20 @@ public class DNSMessageTest {
             // additionals -> 30050
             new DNSIncoming(new DatagramPacket(nmap_scan_package, nmap_scan_package.length, InetAddress.getByName(DNSConstants.MDNS_GROUP), DNSConstants.MDNS_PORT));
             fail("This message should have triggered an IO exception");
-        } catch (Exception exception) {
+        } catch (IOException exception) {
+            // All is OK
+        }
+    }
+    
+    private static final byte[] truncated_package = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x0b, 0x5f, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x63, 0x61, 0x73, 0x74, 0x04, 0x5f, 0x74, 0x63, 0x70, 0x05,
+            0x6c, 0x6f, 0x63, 0x61, 0x6c, 0x00, 0x00, 0x0c, 0x00, 0x01, 0x0b, 0x5f, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x63, 0x61, 0x73, 0x74, 0x04, 0x5f };
+   
+    @Test
+    public void testTruncatedMessage() {
+        try {
+            new DNSIncoming(new DatagramPacket(truncated_package, truncated_package.length, InetAddress.getByName(DNSConstants.MDNS_GROUP), DNSConstants.MDNS_PORT));
+            fail("This message should have triggered an IO exception");
+        } catch (IOException exception) {
             // All is OK
         }
     }

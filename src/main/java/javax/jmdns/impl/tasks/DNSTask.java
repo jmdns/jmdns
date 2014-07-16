@@ -7,10 +7,10 @@ import java.util.TimerTask;
 
 import javax.jmdns.impl.DNSIncoming;
 import javax.jmdns.impl.DNSOutgoing;
+import javax.jmdns.impl.DNSOutgoing.MessageFullException;
 import javax.jmdns.impl.DNSQuestion;
 import javax.jmdns.impl.DNSRecord;
 import javax.jmdns.impl.JmDNSImpl;
-import javax.jmdns.impl.constants.DNSConstants;
 
 /**
  * This is the root class for all task scheduled by the timer in JmDNS.
@@ -79,18 +79,14 @@ public abstract class DNSTask extends TimerTask {
         DNSOutgoing newOut = out;
         try {
             newOut.addQuestion(rec);
-        } catch (final IOException e) {
-            int flags = newOut.getFlags();
-            boolean multicast = newOut.isMulticast();
-            int maxUDPPayload = newOut.getMaxUDPPayload();
-            int id = newOut.getId();
-
-            newOut.setFlags(flags | DNSConstants.FLAGS_TC);
-            newOut.setId(id);
-            this._jmDNSImpl.send(newOut);
-
-            newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
-            newOut.addQuestion(rec);
+        } catch (MessageFullException exception) {
+            newOut = this._jmDNSImpl.handleOutgoingMessageOverflow(newOut);
+            try {
+                newOut.addQuestion(rec);
+            } catch (MessageFullException e) {
+                // This makes no sense we should at least be able to add a question to a newly created message
+                throw new IOException("Cannot add a question to a new message");
+            }
         }
         return newOut;
     }
@@ -111,18 +107,14 @@ public abstract class DNSTask extends TimerTask {
         DNSOutgoing newOut = out;
         try {
             newOut.addAnswer(in, rec);
-        } catch (final IOException e) {
-            int flags = newOut.getFlags();
-            boolean multicast = newOut.isMulticast();
-            int maxUDPPayload = newOut.getMaxUDPPayload();
-            int id = newOut.getId();
-
-            newOut.setFlags(flags | DNSConstants.FLAGS_TC);
-            newOut.setId(id);
-            this._jmDNSImpl.send(newOut);
-
-            newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
-            newOut.addAnswer(in, rec);
+        } catch (MessageFullException exception) {
+            newOut = this._jmDNSImpl.handleOutgoingMessageOverflow(newOut);
+            try {
+                newOut.addAnswer(in, rec);
+            } catch (MessageFullException e) {
+                // This makes no sense we should at least be able to add an answer to a newly created message
+                throw new IOException("Cannot add an answer to a new message");
+            }
         }
         return newOut;
     }
@@ -142,18 +134,14 @@ public abstract class DNSTask extends TimerTask {
         DNSOutgoing newOut = out;
         try {
             newOut.addAnswer(rec, now);
-        } catch (final IOException e) {
-            int flags = newOut.getFlags();
-            boolean multicast = newOut.isMulticast();
-            int maxUDPPayload = newOut.getMaxUDPPayload();
-            int id = newOut.getId();
-
-            newOut.setFlags(flags | DNSConstants.FLAGS_TC);
-            newOut.setId(id);
-            this._jmDNSImpl.send(newOut);
-
-            newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
-            newOut.addAnswer(rec, now);
+        } catch (MessageFullException exception) {
+            newOut = this._jmDNSImpl.handleOutgoingMessageOverflow(newOut);
+            try {
+                newOut.addAnswer(rec, now);
+            } catch (MessageFullException e) {
+                // This makes no sense we should at least be able to add an answer to a newly created message
+                throw new IOException("Cannot add an answer to a new message");
+            }
         }
         return newOut;
     }
@@ -172,18 +160,14 @@ public abstract class DNSTask extends TimerTask {
         DNSOutgoing newOut = out;
         try {
             newOut.addAuthorativeAnswer(rec);
-        } catch (final IOException e) {
-            int flags = newOut.getFlags();
-            boolean multicast = newOut.isMulticast();
-            int maxUDPPayload = newOut.getMaxUDPPayload();
-            int id = newOut.getId();
-
-            newOut.setFlags(flags | DNSConstants.FLAGS_TC);
-            newOut.setId(id);
-            this._jmDNSImpl.send(newOut);
-
-            newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
-            newOut.addAuthorativeAnswer(rec);
+        } catch (MessageFullException exception) {
+            newOut = this._jmDNSImpl.handleOutgoingMessageOverflow(newOut);
+            try {
+                newOut.addAuthorativeAnswer(rec);
+            } catch (MessageFullException e) {
+                // This makes no sense we should at least be able to add an answer to a newly created message
+                throw new IOException("Cannot add an authoritative answer to a new message");
+            }
         }
         return newOut;
     }
@@ -204,18 +188,14 @@ public abstract class DNSTask extends TimerTask {
         DNSOutgoing newOut = out;
         try {
             newOut.addAdditionalAnswer(in, rec);
-        } catch (final IOException e) {
-            int flags = newOut.getFlags();
-            boolean multicast = newOut.isMulticast();
-            int maxUDPPayload = newOut.getMaxUDPPayload();
-            int id = newOut.getId();
-
-            newOut.setFlags(flags | DNSConstants.FLAGS_TC);
-            newOut.setId(id);
-            this._jmDNSImpl.send(newOut);
-
-            newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
-            newOut.addAdditionalAnswer(in, rec);
+        } catch (MessageFullException exception) {
+            newOut = this._jmDNSImpl.handleOutgoingMessageOverflow(newOut);
+            try {
+                newOut.addAdditionalAnswer(in, rec);
+            } catch (MessageFullException e) {
+                // This makes no sense we should at least be able to add an answer to a newly created message
+                throw new IOException("Cannot add an additional answer to a new message");
+            }
         }
         return newOut;
     }

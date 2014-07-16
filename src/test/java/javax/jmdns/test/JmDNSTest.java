@@ -1,8 +1,8 @@
 package javax.jmdns.test;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -31,7 +31,7 @@ import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
 import javax.jmdns.impl.constants.DNSConstants;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.easymock.Capture;
 import org.easymock.EasyMock;
