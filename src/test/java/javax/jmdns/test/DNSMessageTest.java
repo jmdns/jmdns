@@ -18,13 +18,17 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSIncoming;
 import javax.jmdns.impl.DNSOutgoing;
+import javax.jmdns.impl.JmDNSImpl;
+import javax.jmdns.impl.DNSOutgoing.MessageFullException;
 import javax.jmdns.impl.DNSQuestion;
 import javax.jmdns.impl.DNSRecord;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
+import javax.jmdns.impl.tasks.resolver.ServiceResolver;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -82,7 +86,7 @@ public class DNSMessageTest {
     }
 
     @Test
-    public void testCreateQuery() throws IOException {
+    public void testCreateQuery() throws IOException, MessageFullException {
         String serviceName = "_00000000-0b44-f234-48c8-071c565644b3._sub._home-sharing._tcp.local.";
         DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
         assertNotNull("Could not create the outgoing message", out);
@@ -105,7 +109,7 @@ public class DNSMessageTest {
     }
 
     @Test
-    public void testCreateAnswer() throws IOException {
+    public void testCreateAnswer() throws IOException, MessageFullException {
         String serviceType = "_home-sharing._tcp.local.";
         String serviceName = "Pierre." + serviceType;
         DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, false);
@@ -135,6 +139,51 @@ public class DNSMessageTest {
         }
     }
 
+    public static class TestServiceResolver extends ServiceResolver {
+        
+        public TestServiceResolver(JmDNSImpl jmDNSImpl, String type) {
+            super(jmDNSImpl, type);
+        }
+        
+        public DNSOutgoing buildMessage() throws IOException {
+            DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
+            out = this.addQuestions(out);
+            out = this.addAnswers(out);
+            return out;
+        }
+        
+    }
+    
+    @Test
+    public void testServiceResolverMessage() throws IOException {
+        String serviceType = "_googlecast._tcp.local.";
+        String serviceName = "Pierre";
+        String qualifiedName = serviceName + "." + serviceType;
+        int servicePort = 8888;
+        
+        JmDNSImpl registry = new JmDNSImpl(null,null);
+        TestServiceResolver resolver = new TestServiceResolver(registry, serviceType);
+        ServiceInfo info = ServiceInfo.create(serviceType, serviceName, servicePort, "");
+        registry.getServices().put(qualifiedName, info);
+        DNSOutgoing out = resolver.buildMessage();
+        byte[] data = out.data();
+        assertNotNull("Could not encode the outgoing message", data);
+        registry.close();
+
+        DatagramPacket packet = new DatagramPacket(data, 0, data.length);
+        DNSIncoming in = new DNSIncoming(packet);
+        assertTrue("Wrong packet type.", in.isQuery());
+        assertEquals("Wrong number of questions.", 1, in.getNumberOfQuestions());
+        assertEquals("Wrong number of answers.", 1, in.getNumberOfAnswers());
+        for (DNSQuestion question : in.getQuestions()) {
+            assertEquals("Wrong question name.", serviceType, question.getName());
+        }
+        for (DNSRecord answer : in.getAnswers()) {
+            assertEquals("Wrong answer name.", serviceType, answer.getName());
+        }
+        
+    }
+    
     protected void print(byte[] data) {
         System.out.print("{");
         for (int i = 0; i < data.length; i++) {
