@@ -52,8 +52,9 @@ public interface DNSStatefulObject {
          *
          * @param timeout
          *            wait period for the event
+         * @return true if a event occurred and false if the waiting time elapsed before an event occurred
          */
-        public void waitForEvent(long timeout) {
+        public boolean waitForEvent(long timeout) {
             Thread thread = Thread.currentThread();
             Semaphore semaphore = _semaphores.get(thread);
             if (semaphore == null) {
@@ -63,9 +64,10 @@ public interface DNSStatefulObject {
             }
             semaphore = _semaphores.get(thread);
             try {
-                semaphore.tryAcquire(timeout, TimeUnit.MILLISECONDS);
+                return semaphore.tryAcquire(timeout, TimeUnit.MILLISECONDS);
             } catch (InterruptedException exception) {
                 logger.log(Level.FINER, "Exception ", exception);
+                return false;
             }
         }
 

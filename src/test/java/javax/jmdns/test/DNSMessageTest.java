@@ -163,7 +163,7 @@ public class DNSMessageTest {
         
         JmDNSImpl registry = new JmDNSImpl(null,null);
         TestServiceResolver resolver = new TestServiceResolver(registry, serviceType);
-        ServiceInfo info = ServiceInfo.create(serviceType, serviceName, servicePort, "");
+        ServiceInfo info = ServiceInfo.create(serviceType, serviceName, servicePort, "Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info.");
         registry.getServices().put(qualifiedName, info);
         DNSOutgoing out = resolver.buildMessage();
         byte[] data = out.data();

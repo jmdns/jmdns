@@ -292,7 +292,7 @@ public final class DNSOutgoing extends DNSMessage {
                 record.writeRecord(rec, now);
                 byte[] byteArray = record.toByteArray();
                 record.close();
-               if (byteArray.length < this.availableSpace()) {
+                if (byteArray.length < this.availableSpace()) {
                     _answers.add(rec);
                     _answersBytes.write(byteArray, 0, byteArray.length);
                 } else {

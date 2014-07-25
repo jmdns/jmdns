@@ -40,8 +40,8 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 		</site>
 	</distributionManagement>
 	<issueManagement>
-		<system>sourceforge</system>
-		<url>http://sourceforge.net/tracker/?group_id=93852</url>
+		<url>https://github.com/openhab/jmdns/issues?state=open</url>
+		<system>github</system>
 	</issueManagement>
 	<mailingLists>
 		<mailingList>
@@ -172,7 +172,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 		<dependency>
 			<groupId>org.easymock</groupId>
 			<artifactId>easymock</artifactId>
-			<version>3.1</version>
+			<version>3.2</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -536,6 +536,6 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 		<organization.logo>http://mirrorbrain.org/static/images/misc/sourceforge-logo.png</organization.logo>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
-		<jvm.version>1.6</jvm.version>
+		<jvm.version>1.7</jvm.version>
 	</properties>
 </project>

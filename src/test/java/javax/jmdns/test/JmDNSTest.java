@@ -3,11 +3,6 @@ package javax.jmdns.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.*;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -65,8 +60,8 @@ public class JmDNSTest {
         Map<String, byte[]> properties = new HashMap<String, byte[]>();
         properties.put(serviceKey, text.getBytes());
         service = ServiceInfo.create("_html._tcp.local.", "apache-someuniqueid", 80, 0, 0, true, properties);
-        typeListenerMock = createMock(ServiceTypeListener.class);
-        serviceListenerMock = createNiceMock("ServiceListener", ServiceListener.class);
+        typeListenerMock = EasyMock.createMock(ServiceTypeListener.class);
+        serviceListenerMock = EasyMock.createNiceMock("ServiceListener", ServiceListener.class);
     }
 
     @Test
@@ -234,8 +229,8 @@ public class JmDNSTest {
             Capture<ServiceEvent> capServiceAddedEvent = new Capture<ServiceEvent>();
             Capture<ServiceEvent> capServiceResolvedEvent = new Capture<ServiceEvent>();
             // Add an expectation that the listener interface will be called once capture the object so I can verify it separately.
-            serviceListenerMock.serviceAdded(capture(capServiceAddedEvent));
-            serviceListenerMock.serviceResolved(capture(capServiceResolvedEvent));
+            serviceListenerMock.serviceAdded(EasyMock.capture(capServiceAddedEvent));
+            serviceListenerMock.serviceResolved(EasyMock.capture(capServiceResolvedEvent));
             EasyMock.replay(serviceListenerMock);
             // EasyMock.makeThreadSafe(serviceListenerMock, false);
 
@@ -268,7 +263,7 @@ public class JmDNSTest {
             registry.requestServiceInfo(service.getType(), service.getName());
 
             assertTrue("We did not get the service resolved event.", capServiceResolvedEvent.hasCaptured());
-            verify(serviceListenerMock);
+            EasyMock.verify(serviceListenerMock);
             ServiceInfo resolvedInfo = capServiceResolvedEvent.getValue().getInfo();
             assertEquals("Did not get the expected service info: ", service, resolvedInfo);
         } finally {
@@ -284,9 +279,9 @@ public class JmDNSTest {
             Capture<ServiceEvent> capServiceAddedEvent = new Capture<ServiceEvent>();
             Capture<ServiceEvent> capServiceResolvedEvent = new Capture<ServiceEvent>();
             // Expect the listener to be called once and capture the result
-            serviceListenerMock.serviceAdded(capture(capServiceAddedEvent));
-            serviceListenerMock.serviceResolved(capture(capServiceResolvedEvent));
-            replay(serviceListenerMock);
+            serviceListenerMock.serviceAdded(EasyMock.capture(capServiceAddedEvent));
+            serviceListenerMock.serviceResolved(EasyMock.capture(capServiceResolvedEvent));
+            EasyMock.replay(serviceListenerMock);
 
             registry = JmDNS.create();
             registry.addServiceListener(service.getType(), serviceListenerMock);
@@ -308,7 +303,7 @@ public class JmDNSTest {
             assertEquals("The service returned was not the one expected", service, services[0]);
 
             assertTrue("We did not get the service resolved event.", capServiceResolvedEvent.hasCaptured());
-            verify(serviceListenerMock);
+            EasyMock.verify(serviceListenerMock);
             ServiceInfo resolvedInfo = capServiceResolvedEvent.getValue().getInfo();
             assertEquals("Did not get the expected service info: ", service, resolvedInfo);
         } finally {
@@ -325,9 +320,9 @@ public class JmDNSTest {
             Capture<ServiceEvent> capServiceAddedEvent = new Capture<ServiceEvent>();
             Capture<ServiceEvent> capServiceResolvedEvent = new Capture<ServiceEvent>();
             // Expect the listener to be called once and capture the result
-            serviceListenerMock.serviceAdded(capture(capServiceAddedEvent));
-            serviceListenerMock.serviceResolved(capture(capServiceResolvedEvent));
-            replay(serviceListenerMock);
+            serviceListenerMock.serviceAdded(EasyMock.capture(capServiceAddedEvent));
+            serviceListenerMock.serviceResolved(EasyMock.capture(capServiceResolvedEvent));
+            EasyMock.replay(serviceListenerMock);
 
             registry = JmDNS.create();
             registry.addServiceListener(service.getType(), serviceListenerMock);
@@ -344,7 +339,7 @@ public class JmDNSTest {
             // We get the service added event when we register the service. However the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
             assertTrue("We did not get the service resolved event.", capServiceResolvedEvent.hasCaptured());
-            verify(serviceListenerMock);
+            EasyMock.verify(serviceListenerMock);
             Object result = capServiceResolvedEvent.getValue().getInfo();
             assertEquals("Did not get the expected service info: ", service, result);
         } finally {

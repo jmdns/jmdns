@@ -947,7 +947,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         }
         if (list != null) {
             synchronized (list) {
-                if (!list.contains(listener)) {
+                if (!list.contains(status)) {
                     list.add(status);
                 }
             }

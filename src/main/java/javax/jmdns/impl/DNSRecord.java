@@ -453,8 +453,8 @@ public abstract class DNSRecord extends DNSEntry {
                 return false;
             }
             Pointer pointer = (Pointer) other;
-            if ((_alias == null) && (pointer._alias != null)) {
-                return false;
+            if (_alias == null) {
+                return (pointer._alias != null);
             }
             return _alias.equals(pointer._alias);
         }
@@ -562,8 +562,8 @@ public abstract class DNSRecord extends DNSEntry {
                 return false;
             }
             Text txt = (Text) other;
-            if ((_text == null) && (txt._text != null)) {
-                return false;
+            if (this._text == null) {
+                return (txt._text != null);
             }
             if (txt._text.length != _text.length) {
                 return false;
