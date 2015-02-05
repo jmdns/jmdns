@@ -431,7 +431,14 @@ public final class DNSIncoming extends DNSMessage {
                                 }
                                 break;
                             case Unknown:
-                                logger.log(Level.WARNING, "There was an OPT answer. Not currently handled. Option code: " + optionCodeInt + " data: " + this._hexString(optiondata));
+                                if (optionCodeInt >= 65001 && optionCodeInt <= 65534) {
+                                     // RFC 6891 defines this range as used for experimental/local purposes.
+                                    if (logger.isLoggable(Level.FINE)) {
+                                        logger.log(Level.FINE, "There was an OPT answer using an experimental/local option code: " + optionCodeInt + " data: " + this._hexString(optiondata));
+                                    }
+                                } else {
+                                    logger.log(Level.WARNING, "There was an OPT answer. Not currently handled. Option code: " + optionCodeInt + " data: " + this._hexString(optiondata));
+                                }
                                 break;
                             default:
                                 // This is to keep the compiler happy.
