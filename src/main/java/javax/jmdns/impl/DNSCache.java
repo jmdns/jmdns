@@ -9,8 +9,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jmdns.impl.constants.DNSRecordClass;
@@ -46,97 +44,6 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
     // private static Logger logger = Logger.getLogger(DNSCache.class.getName());
 
     private static final long    serialVersionUID = 3024739453186759259L;
-
-    /**
-     *
-     */
-    public static final DNSCache EmptyCache       = new _EmptyCache();
-
-    static final class _EmptyCache extends DNSCache {
-
-        private static final long serialVersionUID = 8487377323074567224L;
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public int size() {
-            return 0;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public boolean isEmpty() {
-            return true;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public boolean containsKey(Object key) {
-            return false;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public boolean containsValue(Object value) {
-            return false;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public List<DNSEntry> get(Object key) {
-            return null;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public Set<String> keySet() {
-            return Collections.emptySet();
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public Collection<List<DNSEntry>> values() {
-            return Collections.emptySet();
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public boolean equals(Object o) {
-            return (o instanceof Map) && ((Map<?, ?>) o).size() == 0;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public List<DNSEntry> put(String key, List<DNSEntry> value) {
-            return null;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public int hashCode() {
-            return 0;
-        }
-
-    }
 
     /**
      *
