@@ -6,6 +6,7 @@ package javax.jmdns.impl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -187,6 +188,8 @@ public final class DNSOutgoing extends DNSMessage {
 
     private final static int          HEADER_SIZE                 = 12;
 
+    private InetSocketAddress         _destination;
+
     /**
      * Create an outgoing multicast query or response.
      *
@@ -222,6 +225,24 @@ public final class DNSOutgoing extends DNSMessage {
         _answersBytes = new MessageOutputStream(senderUDPPayload, this);
         _authoritativeAnswersBytes = new MessageOutputStream(senderUDPPayload, this);
         _additionalsAnswersBytes = new MessageOutputStream(senderUDPPayload, this);
+    }
+
+    /**
+     * Get the forced destination address if a specific one was set.
+     *
+     * @return a forced destination address or null if no address is forced.
+     */
+    public InetSocketAddress getDestination() {
+        return _destination;
+    }
+
+    /**
+     * Force a specific destination address if packet is sent.
+     *
+     * @param destination Set a destination address a packet should be sent to (instead the default one). You could use null to unset the forced destination.
+     */
+    public void setDestination(InetSocketAddress destination) {
+        _destination = destination;
     }
 
     /**

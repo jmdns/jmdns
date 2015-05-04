@@ -1458,7 +1458,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 if (in.isTruncated()) {
                     _plannedAnswer = plannedAnswer;
                 }
-                this.startResponder(plannedAnswer, port);
+                this.startResponder(plannedAnswer, addr, port);
             }
 
         } finally {
@@ -1523,8 +1523,19 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      */
     public void send(DNSOutgoing out) throws IOException {
         if (!out.isEmpty()) {
+            final InetAddress addr;
+            final int port;
+
+            if (out.getDestination() != null) {
+                addr = out.getDestination().getAddress();
+                port = out.getDestination().getPort();
+            } else {
+                addr = _group;
+                port = DNSConstants.MDNS_PORT;
+            }
+
             byte[] message = out.data();
-            final DatagramPacket packet = new DatagramPacket(message, message.length, _group, DNSConstants.MDNS_PORT);
+            final DatagramPacket packet = new DatagramPacket(message, message.length, addr, port);
 
             if (logger.isLoggable(Level.FINEST)) {
                 try {
@@ -1656,8 +1667,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      * @see javax.jmdns.impl.DNSTaskStarter#startResponder(javax.jmdns.impl.DNSIncoming, int)
      */
     @Override
-    public void startResponder(DNSIncoming in, int port) {
-        DNSTaskStarter.Factory.getInstance().getStarter(this.getDns()).startResponder(in, port);
+    public void startResponder(DNSIncoming in, InetAddress addr, int port) {
+        DNSTaskStarter.Factory.getInstance().getStarter(this.getDns()).startResponder(in, addr, port);
     }
 
     // REMIND: Why is this not an anonymous inner class?
