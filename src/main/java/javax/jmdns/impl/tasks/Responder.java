@@ -4,6 +4,8 @@
 
 package javax.jmdns.impl.tasks;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Timer;
@@ -29,13 +31,21 @@ public class Responder extends DNSTask {
     private final DNSIncoming _in;
 
     /**
+     * The incoming address and port.
+     */
+    private final InetAddress _addr;
+    private final int         _port;
+
+    /**
      *
      */
     private final boolean     _unicast;
 
-    public Responder(JmDNSImpl jmDNSImpl, DNSIncoming in, int port) {
+    public Responder(JmDNSImpl jmDNSImpl, DNSIncoming in, InetAddress addr, int port) {
         super(jmDNSImpl);
         this._in = in;
+        this._addr = addr;
+        this._port = port;
         this._unicast = (port != DNSConstants.MDNS_PORT);
     }
 
@@ -133,6 +143,9 @@ public class Responder extends DNSTask {
                         logger.finer(this.getName() + "run() JmDNS responding");
                     }
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, !_unicast, _in.getSenderUDPPayload());
+                    if (_unicast) {
+                        out.setDestination(new InetSocketAddress(_addr, _port));
+                    }
                     out.setId(_in.getId());
                     for (DNSQuestion question : questions) {
                         if (question != null) {
