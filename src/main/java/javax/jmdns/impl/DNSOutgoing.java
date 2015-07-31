@@ -23,7 +23,7 @@ public final class DNSOutgoing extends DNSMessage {
     public static class MessageOutputStream extends ByteArrayOutputStream {
         private final DNSOutgoing _out;
 
-        private final int         _offset;
+        private final int _offset;
 
         /**
          * Creates a new message stream, with a buffer capacity of the specified size, in bytes.
@@ -172,11 +172,11 @@ public final class DNSOutgoing extends DNSMessage {
     /**
      * This can be used to turn off domain name compression. This was helpful for tracking problems interacting with other mdns implementations.
      */
-    public static boolean             USE_DOMAIN_NAME_COMPRESSION = true;
+    public static boolean USE_DOMAIN_NAME_COMPRESSION = true;
 
-    Map<String, Integer>              _names;
+    Map<String, Integer> _names;
 
-    private int                       _maxUDPPayload;
+    private int _maxUDPPayload;
 
     private final MessageOutputStream _questionsBytes;
 
@@ -186,9 +186,9 @@ public final class DNSOutgoing extends DNSMessage {
 
     private final MessageOutputStream _additionalsAnswersBytes;
 
-    private final static int          HEADER_SIZE                 = 12;
+    private final static int HEADER_SIZE = 12;
 
-    private InetSocketAddress         _destination;
+    private InetSocketAddress _destination;
 
     /**
      * Create an outgoing multicast query or response.
@@ -239,7 +239,8 @@ public final class DNSOutgoing extends DNSMessage {
     /**
      * Force a specific destination address if packet is sent.
      *
-     * @param destination Set a destination address a packet should be sent to (instead the default one). You could use null to unset the forced destination.
+     * @param destination
+     *            Set a destination address a packet should be sent to (instead the default one). You could use null to unset the forced destination.
      */
     public void setDestination(InetSocketAddress destination) {
         _destination = destination;
@@ -264,6 +265,7 @@ public final class DNSOutgoing extends DNSMessage {
         MessageOutputStream record = new MessageOutputStream(512, this);
         record.writeQuestion(rec);
         byte[] byteArray = record.toByteArray();
+        record.close();
         if (byteArray.length < this.availableSpace()) {
             _questions.add(rec);
             _questionsBytes.write(byteArray, 0, byteArray.length);
@@ -298,6 +300,7 @@ public final class DNSOutgoing extends DNSMessage {
                 MessageOutputStream record = new MessageOutputStream(512, this);
                 record.writeRecord(rec, now);
                 byte[] byteArray = record.toByteArray();
+                record.close();
                 if (byteArray.length < this.availableSpace()) {
                     _answers.add(rec);
                     _answersBytes.write(byteArray, 0, byteArray.length);
@@ -318,6 +321,7 @@ public final class DNSOutgoing extends DNSMessage {
         MessageOutputStream record = new MessageOutputStream(512, this);
         record.writeRecord(rec, 0);
         byte[] byteArray = record.toByteArray();
+        record.close();
         if (byteArray.length < this.availableSpace()) {
             _authoritativeAnswers.add(rec);
             _authoritativeAnswersBytes.write(byteArray, 0, byteArray.length);
@@ -337,6 +341,7 @@ public final class DNSOutgoing extends DNSMessage {
         MessageOutputStream record = new MessageOutputStream(512, this);
         record.writeRecord(rec, 0);
         byte[] byteArray = record.toByteArray();
+        record.close();
         if (byteArray.length < this.availableSpace()) {
             _additionals.add(rec);
             _additionalsAnswersBytes.write(byteArray, 0, byteArray.length);
@@ -373,7 +378,11 @@ public final class DNSOutgoing extends DNSMessage {
         for (DNSRecord record : _additionals) {
             message.writeRecord(record, now);
         }
-        return message.toByteArray();
+        byte[] result = message.toByteArray();
+        try {
+            message.close();
+        } catch (IOException exception) {}
+        return result;
     }
 
     /**
