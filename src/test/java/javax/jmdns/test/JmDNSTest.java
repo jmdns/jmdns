@@ -1,18 +1,12 @@
 package javax.jmdns.test;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.*;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
@@ -31,10 +25,9 @@ import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
 import javax.jmdns.impl.constants.DNSConstants;
 
-import junit.framework.Assert;
-
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -231,8 +224,8 @@ public class JmDNSTest {
         System.out.println("Unit Test: testListenForMyService()");
         JmDNS registry = null;
         try {
-            Capture<ServiceEvent> capServiceAddedEvent = new Capture<ServiceEvent>();
-            Capture<ServiceEvent> capServiceResolvedEvent = new Capture<ServiceEvent>();
+            Capture<ServiceEvent> capServiceAddedEvent = EasyMock.newCapture();
+            Capture<ServiceEvent> capServiceResolvedEvent = EasyMock.newCapture();
             // Add an expectation that the listener interface will be called once capture the object so I can verify it separately.
             serviceListenerMock.serviceAdded(capture(capServiceAddedEvent));
             serviceListenerMock.serviceResolved(capture(capServiceResolvedEvent));
@@ -281,8 +274,8 @@ public class JmDNSTest {
         System.out.println("Unit Test: testListenForMyServiceAndList()");
         JmDNS registry = null;
         try {
-            Capture<ServiceEvent> capServiceAddedEvent = new Capture<ServiceEvent>();
-            Capture<ServiceEvent> capServiceResolvedEvent = new Capture<ServiceEvent>();
+            Capture<ServiceEvent> capServiceAddedEvent = EasyMock.newCapture();
+            Capture<ServiceEvent> capServiceResolvedEvent = EasyMock.newCapture();
             // Expect the listener to be called once and capture the result
             serviceListenerMock.serviceAdded(capture(capServiceAddedEvent));
             serviceListenerMock.serviceResolved(capture(capServiceResolvedEvent));
@@ -322,8 +315,8 @@ public class JmDNSTest {
         JmDNS registry = null;
         JmDNS newServiceRegistry = null;
         try {
-            Capture<ServiceEvent> capServiceAddedEvent = new Capture<ServiceEvent>();
-            Capture<ServiceEvent> capServiceResolvedEvent = new Capture<ServiceEvent>();
+            Capture<ServiceEvent> capServiceAddedEvent = EasyMock.newCapture();
+            Capture<ServiceEvent> capServiceResolvedEvent = EasyMock.newCapture();
             // Expect the listener to be called once and capture the result
             serviceListenerMock.serviceAdded(capture(capServiceAddedEvent));
             serviceListenerMock.serviceResolved(capture(capServiceResolvedEvent));
