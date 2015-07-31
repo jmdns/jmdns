@@ -20,6 +20,16 @@ import javax.jmdns.impl.constants.DNSRecordClass;
  */
 public final class DNSOutgoing extends DNSMessage {
 
+    
+    public static class MessageFullException extends Exception {
+        private static final long serialVersionUID = 6440221843926097913L;
+
+        public MessageFullException() {
+            super("message full");
+        }
+        
+    }
+
     public static class MessageOutputStream extends ByteArrayOutputStream {
         private final DNSOutgoing _out;
 
@@ -258,17 +268,19 @@ public final class DNSOutgoing extends DNSMessage {
      * Add a question to the message.
      *
      * @param rec
-     * @exception IOException
+     * @throws IOException
+     * @throws MessageFullException 
      */
-    public void addQuestion(DNSQuestion rec) throws IOException {
+    public void addQuestion(DNSQuestion rec) throws IOException, MessageFullException {
         MessageOutputStream record = new MessageOutputStream(512, this);
         record.writeQuestion(rec);
         byte[] byteArray = record.toByteArray();
+        record.close();
         if (byteArray.length < this.availableSpace()) {
             _questions.add(rec);
             _questionsBytes.write(byteArray, 0, byteArray.length);
         } else {
-            throw new IOException("message full");
+            throw new MessageFullException();
         }
     }
 
@@ -277,9 +289,10 @@ public final class DNSOutgoing extends DNSMessage {
      *
      * @param in
      * @param rec
-     * @exception IOException
+     * @throws IOException
+     * @throws MessageFullException 
      */
-    public void addAnswer(DNSIncoming in, DNSRecord rec) throws IOException {
+    public void addAnswer(DNSIncoming in, DNSRecord rec) throws IOException, MessageFullException {
         if ((in == null) || !rec.suppressedBy(in)) {
             this.addAnswer(rec, 0);
         }
@@ -290,19 +303,21 @@ public final class DNSOutgoing extends DNSMessage {
      *
      * @param rec
      * @param now
-     * @exception IOException
+     * @throws IOException
+     * @throws MessageFullException 
      */
-    public void addAnswer(DNSRecord rec, long now) throws IOException {
+    public void addAnswer(DNSRecord rec, long now) throws IOException, MessageFullException {
         if (rec != null) {
             if ((now == 0) || !rec.isExpired(now)) {
                 MessageOutputStream record = new MessageOutputStream(512, this);
                 record.writeRecord(rec, now);
                 byte[] byteArray = record.toByteArray();
+                record.close();
                 if (byteArray.length < this.availableSpace()) {
                     _answers.add(rec);
                     _answersBytes.write(byteArray, 0, byteArray.length);
                 } else {
-                    throw new IOException("message full");
+                    throw new MessageFullException();
                 }
             }
         }
@@ -312,17 +327,19 @@ public final class DNSOutgoing extends DNSMessage {
      * Add an authoritative answer to the message.
      *
      * @param rec
-     * @exception IOException
+     * @throws IOException 
+     * @throws MessageFullException 
      */
-    public void addAuthorativeAnswer(DNSRecord rec) throws IOException {
+    public void addAuthorativeAnswer(DNSRecord rec) throws IOException, MessageFullException {
         MessageOutputStream record = new MessageOutputStream(512, this);
         record.writeRecord(rec, 0);
         byte[] byteArray = record.toByteArray();
+        record.close();
         if (byteArray.length < this.availableSpace()) {
             _authoritativeAnswers.add(rec);
             _authoritativeAnswersBytes.write(byteArray, 0, byteArray.length);
         } else {
-            throw new IOException("message full");
+            throw new MessageFullException();
         }
     }
 
@@ -331,17 +348,19 @@ public final class DNSOutgoing extends DNSMessage {
      *
      * @param in
      * @param rec
-     * @exception IOException
+     * @throws IOException 
+     * @throws MessageFullException 
      */
-    public void addAdditionalAnswer(DNSIncoming in, DNSRecord rec) throws IOException {
+    public void addAdditionalAnswer(DNSIncoming in, DNSRecord rec) throws IOException, MessageFullException {
         MessageOutputStream record = new MessageOutputStream(512, this);
         record.writeRecord(rec, 0);
         byte[] byteArray = record.toByteArray();
+        record.close();
         if (byteArray.length < this.availableSpace()) {
             _additionals.add(rec);
             _additionalsAnswersBytes.write(byteArray, 0, byteArray.length);
         } else {
-            throw new IOException("message full");
+            throw new MessageFullException();
         }
     }
 
@@ -349,8 +368,9 @@ public final class DNSOutgoing extends DNSMessage {
      * Builds the final message buffer to be send and returns it.
      *
      * @return bytes to send.
+     * @throws IOException 
      */
-    public byte[] data() {
+    public byte[] data() throws IOException {
         long now = System.currentTimeMillis(); // System.currentTimeMillis()
         _names.clear();
 
@@ -373,7 +393,9 @@ public final class DNSOutgoing extends DNSMessage {
         for (DNSRecord record : _additionals) {
             message.writeRecord(record, now);
         }
-        return message.toByteArray();
+        byte[] byteArray = message.toByteArray();
+        message.close();
+        return byteArray;
     }
 
     /**
@@ -383,7 +405,11 @@ public final class DNSOutgoing extends DNSMessage {
         StringBuilder buf = new StringBuilder();
         buf.append(this.print());
         if (dump) {
-            buf.append(this.print(this.data()));
+            try {
+                buf.append(this.print(this.data()));
+            } catch (IOException exception) {
+                // This is really bad
+            }
         }
         return buf.toString();
     }

@@ -4,6 +4,7 @@
 package javax.jmdns.impl;
 
 import java.net.InetAddress;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -98,8 +99,17 @@ public interface NameRegister {
         public void register(InetAddress networkInterface, String name, NameType type) {
             switch (type) {
                 case HOST:
+                    _hostNames.put(networkInterface, name);
                     break;
                 case SERVICE:
+                    Set<String> names = _serviceNames.get(networkInterface);
+                    if (names == null) {
+                        _serviceNames.putIfAbsent(networkInterface, new HashSet<String>(5));
+                        names = _serviceNames.get(networkInterface);
+                    }
+                    synchronized(names) {
+                        names.add(name);
+                    }
                     break;
                 default:
                     // this is trash to keep the compiler happy
@@ -118,7 +128,7 @@ public interface NameRegister {
                     return hostname != null && hostname.equals(name);
                 case SERVICE:
                     Set<String> names = _serviceNames.get(networkInterface);
-                    return names != null && names.contains(names);
+                    return names != null && names.contains(name);
                 default:
                     // this is trash to keep the compiler happy
                     return false;

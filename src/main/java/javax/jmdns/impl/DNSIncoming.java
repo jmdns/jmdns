@@ -51,29 +51,35 @@ public final class DNSIncoming extends DNSMessage {
             _names = new HashMap<Integer, String>();
         }
 
-        public int readByte() {
+        public int readByte() throws IOException {
+            if (this.available() == 0) {
+                throw new IOException("Attempting to read message buffer past the end");
+            }
             return this.read();
         }
 
-        public int readUnsignedByte() {
-            return (this.read() & 0xFF);
+        public int readUnsignedByte() throws IOException  {
+            return (this.readByte() & 0xFF);
         }
 
-        public int readUnsignedShort() {
+        public int readUnsignedShort() throws IOException {
             return (this.readUnsignedByte() << 8) | this.readUnsignedByte();
         }
 
-        public int readInt() {
+        public int readInt() throws IOException {
             return (this.readUnsignedShort() << 16) | this.readUnsignedShort();
         }
 
-        public byte[] readBytes(int len) {
+        public byte[] readBytes(int len) throws IOException {
+            if (this.available() < len) {
+                throw new IOException("Attempting to read message buffer past the end");
+            }
             byte bytes[] = new byte[len];
             this.read(bytes, 0, len);
             return bytes;
         }
 
-        public String readUTF(int len) {
+        public String readUTF(int len) throws IOException {
             StringBuilder buffer = new StringBuilder(len);
             for (int index = 0; index < len; index++) {
                 int ch = this.readUnsignedByte();
@@ -115,7 +121,7 @@ public final class DNSIncoming extends DNSMessage {
             return (pos < count) ? (buf[pos] & 0xff) : -1;
         }
 
-        public String readName() {
+        public String readName() throws IOException {
             Map<Integer, StringBuilder> names = new HashMap<Integer, StringBuilder>();
             StringBuilder buffer = new StringBuilder();
             boolean finished = false;
@@ -163,7 +169,7 @@ public final class DNSIncoming extends DNSMessage {
             return buffer.toString();
         }
 
-        public String readNonNameString() {
+        public String readNonNameString() throws IOException {
             int len = this.readUnsignedByte();
             return this.readUTF(len);
         }
@@ -286,7 +292,7 @@ public final class DNSIncoming extends DNSMessage {
         return in;
     }
 
-    private DNSQuestion readQuestion() {
+    private DNSQuestion readQuestion() throws IOException {
         String domain = _messageInputStream.readName();
         DNSRecordType type = DNSRecordType.typeForIndex(_messageInputStream.readUnsignedShort());
         if (type == DNSRecordType.TYPE_IGNORE) {
@@ -298,7 +304,7 @@ public final class DNSIncoming extends DNSMessage {
         return DNSQuestion.newQuestion(domain, type, recordClass, unique);
     }
 
-    private DNSRecord readAnswer(InetAddress source) {
+    private DNSRecord readAnswer(InetAddress source) throws IOException {
         String domain = _messageInputStream.readName();
         DNSRecordType type = DNSRecordType.typeForIndex(_messageInputStream.readUnsignedShort());
         if (type == DNSRecordType.TYPE_IGNORE) {

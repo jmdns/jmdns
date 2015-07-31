@@ -16,7 +16,7 @@ import javax.jmdns.impl.constants.DNSConstants;
  *
  * @author Werner Randelshofer, Rick Blair, Pierre Frisch
  */
-public abstract class DNSMessage {
+public abstract class DNSMessage implements Cloneable {
 
     /**
      *

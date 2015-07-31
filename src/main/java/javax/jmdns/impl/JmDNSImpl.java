@@ -38,6 +38,7 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceInfo.Fields;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
+import javax.jmdns.impl.DNSOutgoing.MessageFullException;
 import javax.jmdns.impl.ListenerStatus.ServiceListenerStatus;
 import javax.jmdns.impl.ListenerStatus.ServiceTypeListenerStatus;
 import javax.jmdns.impl.constants.DNSConstants;
@@ -946,7 +947,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         }
         if (list != null) {
             synchronized (list) {
-                if (!list.contains(listener)) {
+                if (!list.contains(status)) {
                     list.add(status);
                 }
             }
@@ -1504,15 +1505,36 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         }
         try {
             newOut.addAnswer(in, rec);
-        } catch (final IOException e) {
-            newOut.setFlags(newOut.getFlags() | DNSConstants.FLAGS_TC);
-            newOut.setId(in.getId());
-            send(newOut);
-
-            newOut = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, false, in.getSenderUDPPayload());
-            newOut.addAnswer(in, rec);
+        } catch (MessageFullException exception) {
+            newOut = this.handleOutgoingMessageOverflow(newOut);
+            try {
+                newOut.addAnswer(in, rec);
+            } catch (MessageFullException e) {
+                // This makes no sense we should at least be able to add an answer to a newly created message
+                throw new IOException("Cannot add an answer to a new message");
+            }
         }
         return newOut;
+    }
+    
+    /**
+     * Send an outgoing DNS message that is full and create a new one to follow.
+     *
+     * @param out
+     * @return New Outgoing message
+     * @exception IOException
+     */
+    public DNSOutgoing handleOutgoingMessageOverflow(DNSOutgoing out) throws IOException {
+        int flags = out.getFlags();
+        boolean multicast = out.isMulticast();
+        int maxUDPPayload = out.getMaxUDPPayload();
+        int id = out.getId();
+
+        out.setFlags(flags | DNSConstants.FLAGS_TC);
+        out.setId(id);
+        this.send(out);
+
+        return new DNSOutgoing(flags, multicast, maxUDPPayload);
     }
 
     /**
@@ -1540,9 +1562,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             if (logger.isLoggable(Level.FINEST)) {
                 try {
                     final DNSIncoming msg = new DNSIncoming(packet);
-                    if (logger.isLoggable(Level.FINEST)) {
-                        logger.finest("send(" + this.getName() + ") JmDNS out:" + msg.print(true));
-                    }
+                    logger.finest("send(" + this.getName() + ") JmDNS out:" + msg.print(true));
                 } catch (final IOException e) {
                     logger.throwing(getClass().toString(), "send(" + this.getName() + ") - JmDNS can not parse what it sends!!!", e);
                 }

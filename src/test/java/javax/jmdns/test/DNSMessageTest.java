@@ -3,10 +3,10 @@
  */
 package javax.jmdns.test;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -18,13 +18,17 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSIncoming;
 import javax.jmdns.impl.DNSOutgoing;
+import javax.jmdns.impl.JmDNSImpl;
+import javax.jmdns.impl.DNSOutgoing.MessageFullException;
 import javax.jmdns.impl.DNSQuestion;
 import javax.jmdns.impl.DNSRecord;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
+import javax.jmdns.impl.tasks.resolver.ServiceResolver;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -63,13 +67,26 @@ public class DNSMessageTest {
             // additionals -> 30050
             new DNSIncoming(new DatagramPacket(nmap_scan_package, nmap_scan_package.length, InetAddress.getByName(DNSConstants.MDNS_GROUP), DNSConstants.MDNS_PORT));
             fail("This message should have triggered an IO exception");
-        } catch (Exception exception) {
+        } catch (IOException exception) {
+            // All is OK
+        }
+    }
+    
+    private static final byte[] truncated_package = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x0b, 0x5f, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x63, 0x61, 0x73, 0x74, 0x04, 0x5f, 0x74, 0x63, 0x70, 0x05,
+            0x6c, 0x6f, 0x63, 0x61, 0x6c, 0x00, 0x00, 0x0c, 0x00, 0x01, 0x0b, 0x5f, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x63, 0x61, 0x73, 0x74, 0x04, 0x5f };
+   
+    @Test
+    public void testTruncatedMessage() {
+        try {
+            new DNSIncoming(new DatagramPacket(truncated_package, truncated_package.length, InetAddress.getByName(DNSConstants.MDNS_GROUP), DNSConstants.MDNS_PORT));
+            fail("This message should have triggered an IO exception");
+        } catch (IOException exception) {
             // All is OK
         }
     }
 
     @Test
-    public void testCreateQuery() throws IOException {
+    public void testCreateQuery() throws IOException, MessageFullException {
         String serviceName = "_00000000-0b44-f234-48c8-071c565644b3._sub._home-sharing._tcp.local.";
         DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
         assertNotNull("Could not create the outgoing message", out);
@@ -92,7 +109,7 @@ public class DNSMessageTest {
     }
 
     @Test
-    public void testCreateAnswer() throws IOException {
+    public void testCreateAnswer() throws IOException, MessageFullException {
         String serviceType = "_home-sharing._tcp.local.";
         String serviceName = "Pierre." + serviceType;
         DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, false);
@@ -122,6 +139,51 @@ public class DNSMessageTest {
         }
     }
 
+    public static class TestServiceResolver extends ServiceResolver {
+        
+        public TestServiceResolver(JmDNSImpl jmDNSImpl, String type) {
+            super(jmDNSImpl, type);
+        }
+        
+        public DNSOutgoing buildMessage() throws IOException {
+            DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
+            out = this.addQuestions(out);
+            out = this.addAnswers(out);
+            return out;
+        }
+        
+    }
+    
+    @Test
+    public void testServiceResolverMessage() throws IOException {
+        String serviceType = "_googlecast._tcp.local.";
+        String serviceName = "Pierre";
+        String qualifiedName = serviceName + "." + serviceType;
+        int servicePort = 8888;
+        
+        JmDNSImpl registry = new JmDNSImpl(null,null);
+        TestServiceResolver resolver = new TestServiceResolver(registry, serviceType);
+        ServiceInfo info = ServiceInfo.create(serviceType, serviceName, servicePort, "Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info. Some Text Info.");
+        registry.getServices().put(qualifiedName, info);
+        DNSOutgoing out = resolver.buildMessage();
+        byte[] data = out.data();
+        assertNotNull("Could not encode the outgoing message", data);
+        registry.close();
+
+        DatagramPacket packet = new DatagramPacket(data, 0, data.length);
+        DNSIncoming in = new DNSIncoming(packet);
+        assertTrue("Wrong packet type.", in.isQuery());
+        assertEquals("Wrong number of questions.", 1, in.getNumberOfQuestions());
+        assertEquals("Wrong number of answers.", 1, in.getNumberOfAnswers());
+        for (DNSQuestion question : in.getQuestions()) {
+            assertEquals("Wrong question name.", serviceType, question.getName());
+        }
+        for (DNSRecord answer : in.getAnswers()) {
+            assertEquals("Wrong answer name.", serviceType, answer.getName());
+        }
+        
+    }
+    
     protected void print(byte[] data) {
         System.out.print("{");
         for (int i = 0; i < data.length; i++) {
