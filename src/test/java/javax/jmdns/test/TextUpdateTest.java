@@ -3,10 +3,7 @@
  */
 package javax.jmdns.test;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,14 +27,11 @@ import javax.jmdns.impl.tasks.state.DNSStateTask;
 import org.junit.Before;
 import org.junit.Test;
 
-/**
- *
- */
 public class TextUpdateTest {
 
-    private ServiceInfo         service;
-    private ServiceInfo         printer;
-    private MockListener        serviceListenerMock;
+    private ServiceInfo  service;
+    private ServiceInfo  printer;
+    private MockListener serviceListenerMock;
 
     private final static String serviceKey = "srvname"; // Max 9 chars
 

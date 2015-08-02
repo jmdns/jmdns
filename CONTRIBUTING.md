@@ -18,7 +18,12 @@ will redirect you, if necessary.
 
 ## Build Environment
 
-TODO: we need to add a blurb here on how to build the project
+The build is based on Maven, so you will need a JDK >=1.6 and Maven 3 installed.
+Then simply execute
+```
+mvn clean install
+```
+and find the resulting jar in the `target` folder.
 
 ## Contribution guidelines
 

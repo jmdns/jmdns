@@ -3,10 +3,7 @@
  */
 package javax.jmdns.test;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

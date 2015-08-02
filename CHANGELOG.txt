@@ -1,3 +1,5 @@
+All changes from 3.4.2 onwards are found online at Github: https://github.com/openhab/jmdns/releases
+
 CHANGELOG 28 June 2012 Pierre Frisch
 Rev the source code to 3.4.2
 Update service text - ID: 3400063
