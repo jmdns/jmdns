@@ -16,31 +16,6 @@ This is an implemenation of multi-cast DNS in Java. It
 supports service discovery and service registration. It is fully
 interoperable with Apple's Bonjour. 
 
-## Running jmdns from the Command Line
-
-GUI browser:
-```
-  java -jar lib/jmdns.jar -browse
-```
-
-TTY browser for a particular service type:
-```
-  java -jar lib/jmdns.jar -bs _http._tcp local.
-```
-
-Register a service:
-```
-  java -jar lib/jmdns.jar -rs foobar _http._tcp local. 1234 path=index.html
-```
-
-List service types:
-```
-  java -jar lib/jmdns.jar -bt
-```
-  
-To print debugging output specify -d as the first argument.  
-
-
 ## Sample Code for Service Registration
 
 ```

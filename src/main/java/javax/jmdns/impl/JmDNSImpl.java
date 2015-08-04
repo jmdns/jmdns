@@ -64,16 +64,16 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     /**
      * This is the multicast group, we are listening to for multicast DNS messages.
      */
-    private volatile InetAddress                                     _group;
+    private volatile InetAddress     _group;
     /**
      * This is our multicast socket.
      */
-    private volatile MulticastSocket                                 _socket;
+    private volatile MulticastSocket _socket;
 
     /**
      * Holds instances of JmDNS.DNSListener. Must by a synchronized collection, because it is updated from concurrent threads.
      */
-    private final List<DNSListener>                                  _listeners;
+    private final List<DNSListener> _listeners;
 
     /**
      * Holds instances of ServiceListener's. Keys are Strings holding a fully qualified service type. Values are LinkedList's of ServiceListener's.
@@ -83,26 +83,26 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     /**
      * Holds instances of ServiceTypeListener's.
      */
-    private final Set<ServiceTypeListenerStatus>                     _typeListeners;
+    private final Set<ServiceTypeListenerStatus> _typeListeners;
 
     /**
      * Cache for DNSEntry's.
      */
-    private final DNSCache                                           _cache;
+    private final DNSCache _cache;
 
     /**
      * This hashtable holds the services that have been registered. Keys are instances of String which hold an all lower-case version of the fully qualified service name. Values are instances of ServiceInfo.
      */
-    private final ConcurrentMap<String, ServiceInfo>                 _services;
+    private final ConcurrentMap<String, ServiceInfo> _services;
 
     /**
      * This hashtable holds the service types that have been registered or that have been received in an incoming datagram.<br/>
      * Keys are instances of String which hold an all lower-case version of the fully qualified service type.<br/>
      * Values hold the fully qualified service type.
      */
-    private final ConcurrentMap<String, ServiceTypeEntry>            _serviceTypes;
+    private final ConcurrentMap<String, ServiceTypeEntry> _serviceTypes;
 
-    private volatile Delegate                                        _delegate;
+    private volatile Delegate _delegate;
 
     /**
      * This is used to store type entries. The type is stored as a call variable and the map support the subtypes.
@@ -110,18 +110,18 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      * The key is the lowercase version as the value is the case preserved version.
      * </p>
      */
-    public static class ServiceTypeEntry extends AbstractMap<String, String> implements Cloneable {
+    public static class ServiceTypeEntry extends AbstractMap<String, String>implements Cloneable {
 
         private final Set<Map.Entry<String, String>> _entrySet;
 
-        private final String                         _type;
+        private final String _type;
 
         private static class SubTypeEntry implements Entry<String, String>, java.io.Serializable, Cloneable {
 
             private static final long serialVersionUID = 9188503522395855322L;
 
-            private final String      _key;
-            private final String      _value;
+            private final String _key;
+            private final String _value;
 
             public SubTypeEntry(String subtype) {
                 super();
@@ -296,26 +296,26 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     /**
      * This is the shutdown hook, we registered with the java runtime.
      */
-    protected Thread                                      _shutdown;
+    protected Thread _shutdown;
 
     /**
      * Handle on the local host
      */
-    private HostInfo                                      _localHost;
+    private HostInfo _localHost;
 
-    private Thread                                        _incomingListener;
+    private Thread _incomingListener;
 
     /**
      * Throttle count. This is used to count the overall number of probes sent by JmDNS. When the last throttle increment happened .
      */
-    private int                                           _throttle;
+    private int _throttle;
 
     /**
      * Last throttle increment.
      */
-    private long                                          _lastThrottleIncrement;
+    private long _lastThrottleIncrement;
 
-    private final ExecutorService                         _executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("JmDNS"));
+    private final ExecutorService _executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("JmDNS"));
 
     //
     // 2009-09-16 ldeck: adding docbug patch with slight ammendments
@@ -332,18 +332,18 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     /**
      * The source for random values. This is used to introduce random delays in responses. This reduces the potential for collisions on the network.
      */
-    private final static Random                           _random   = new Random();
+    private final static Random _random = new Random();
 
     /**
      * This lock is used to coordinate processing of incoming and outgoing messages. This is needed, because the Rendezvous Conformance Test does not forgive race conditions.
      */
-    private final ReentrantLock                           _ioLock   = new ReentrantLock();
+    private final ReentrantLock _ioLock = new ReentrantLock();
 
     /**
      * If an incoming package which needs an answer is truncated, we store it here. We add more incoming DNSRecords to it, until the JmDNS.Responder timer picks it up.<br/>
      * FIXME [PJYF June 8 2010]: This does not work well with multiple planned answers for packages that came in from different clients.
      */
-    private DNSIncoming                                   _plannedAnswer;
+    private DNSIncoming _plannedAnswer;
 
     // State machine
 
@@ -354,7 +354,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      */
     private final ConcurrentMap<String, ServiceCollector> _serviceCollectors;
 
-    private final String                                  _name;
+    private final String _name;
 
     /**
      * Main method to display API information if run from java -jar
@@ -378,7 +378,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
         System.out.println("Operating environment \"" + System.getProperty("os.name") + "\"" + " version " + System.getProperty("os.version") + " on " + System.getProperty("os.arch"));
 
-        System.out.println("For more information on JmDNS please visit https://sourceforge.net/projects/jmdns/");
+        System.out.println("For more information on JmDNS please visit http://jmdns.org");
     }
 
     /**
@@ -2017,7 +2017,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         /**
          * A set of collected service instance names.
          */
-        private final ConcurrentMap<String, ServiceInfo>  _infos;
+        private final ConcurrentMap<String, ServiceInfo> _infos;
 
         /**
          * A set of collected service event waiting to be resolved.
@@ -2027,12 +2027,12 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         /**
          * This is the type we are listening for (only used for debugging).
          */
-        private final String                              _type;
+        private final String _type;
 
         /**
          * This is used to force a wait on the first invocation of list.
          */
-        private volatile boolean                          _needToWaitForInfos;
+        private volatile boolean _needToWaitForInfos;
 
         public ServiceCollector(String type) {
             super();
