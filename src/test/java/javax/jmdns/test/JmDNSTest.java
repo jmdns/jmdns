@@ -29,6 +29,7 @@ import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class JmDNSTest {
@@ -431,6 +432,7 @@ public class JmDNSTest {
     private final static int MPORT = 8053;
 
     @Test
+    @Ignore
     public void testTwoMulticastPortsAtOnce() throws UnknownHostException, IOException {
         System.out.println("Unit Test: testTwoMulticastPortsAtOnce()");
         MulticastSocket firstSocket = null;
