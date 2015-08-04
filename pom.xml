@@ -7,9 +7,8 @@
 	<name>JmDNS</name>
 	<packaging>jar</packaging>
 	<description>JmDNS is a Java implementation of multi-cast DNS and can be used for service registration and discovery in local area networks. JmDNS is fully compatible with Apple's Bonjour.
-The project was originally started in December 2002 by Arthur van Hoff at Strangeberry. In November 2003 the project was moved to SourceForge, and the name was changed from JRendezvous to JmDNS for legal reasons.
-Many thanks to Stuart Cheshire for help and moral support.</description>
-	<url>http://sourceforge.net/projects/jmdns/</url>
+The project was originally started in December 2002 by Arthur van Hoff at Strangeberry.</description>
+	<url>http://jmdns.org</url>
 	<inceptionYear>2002</inceptionYear>
 	<organization>
 		<name>JmDNS</name>
@@ -123,7 +122,7 @@ Many thanks to Stuart Cheshire for help and moral support.</description>
 						<Private-Package>javax.jmdns.impl,javax.jmdns.impl.*,com.strangeberry.*,samples</Private-Package>
 						<Import-Package>!javax.swing.*</Import-Package>
 						<Bundle-RequiredExecutionEnvironment>JavaSE-${jvm.version}</Bundle-RequiredExecutionEnvironment>
-						<Bundle-Vendor>jmdns.sourceforge.net</Bundle-Vendor>
+						<Bundle-Vendor>jmdns.org</Bundle-Vendor>
 					</instructions>
 				</configuration>
 				<executions>
