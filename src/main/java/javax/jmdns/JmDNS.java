@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.jmdns.impl.JmDNSImpl;
 
@@ -18,6 +19,83 @@ import javax.jmdns.impl.JmDNSImpl;
  * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis, Scott Cytacki
  */
 public abstract class JmDNS implements Closeable {
+
+
+    /**
+     * JmDNS.Factory enables the creation of new instances of JmDNS.
+     */
+    public static final class Factory {
+
+        /**
+         * This interface defines a delegate to enable subclassing.
+         */
+        public static interface ClassDelegate {
+
+            /**
+             * Allows the delegate the opportunity to construct and return a different JmDNS.
+             *
+             * @param addr
+             *            IP address to bind to.
+             * @param name
+             *            name of the newly created JmDNS
+             *
+             * @return Should return a new JmDNS.
+             * @exception IOException If an IO exception is thrown during the creation of the new instance
+             * @see #classDelegate()
+             * @see #setClassDelegate(ClassDelegate anObject)
+             */
+            public JmDNS newJmDNS(InetAddress addr, String name)  throws IOException;
+
+        }
+
+        private static final AtomicReference<ClassDelegate> _databaseClassDelegate = new AtomicReference<ClassDelegate>();
+
+        private Factory() {
+            super();
+        }
+
+        /**
+         * Assigns <code>delegate</code> as JmDNS's class delegate. The class delegate is optional.
+         *
+         * @param delegate
+         *            The object to set as JmDNS's class delegate.
+         * @see #classDelegate()
+         * @see JmDNS.Factory.ClassDelegate
+         */
+        public static void setClassDelegate(ClassDelegate delegate) {
+            _databaseClassDelegate.set(delegate);
+        }
+
+        /**
+         * Returns JmDNS's class delegate.
+         *
+         * @return JmDNS's class delegate.
+         * @see #setClassDelegate(ClassDelegate anObject)
+         * @see JmDNS.Factory.ClassDelegate
+         */
+        public static ClassDelegate classDelegate() {
+            return _databaseClassDelegate.get();
+        }
+
+        /**
+         * Returns a new instance of JmDNS using the class delegate if it exists.
+         *
+         * @param addr
+         *            IP address to bind to.
+         * @param name
+         *            name of the newly created JmDNS
+         *
+         * @return new instance of JmDNS
+         */
+        public static JmDNS newJmDNS(InetAddress addr, String name) throws IOException {
+            JmDNS dns = null;
+            ClassDelegate delegate = _databaseClassDelegate.get();
+            if (delegate != null) {
+                dns = delegate.newJmDNS(addr, name);
+            }
+            return (dns != null ? dns : new JmDNSImpl(addr, name));
+        }
+    }
 
     /**
      *
@@ -39,7 +117,7 @@ public abstract class JmDNS implements Closeable {
     /**
      * The version of JmDNS.
      */
-    public static final String VERSION = "3.4.2";
+    public static final String VERSION = "3.4.3";
 
     /**
      * <p>
@@ -57,7 +135,7 @@ public abstract class JmDNS implements Closeable {
      *                if an exception occurs during the socket creation
      */
     public static JmDNS create() throws IOException {
-        return new JmDNSImpl(null, null);
+        return Factory.newJmDNS(null, null);
     }
 
     /**
@@ -78,7 +156,7 @@ public abstract class JmDNS implements Closeable {
      *                if an exception occurs during the socket creation
      */
     public static JmDNS create(final InetAddress addr) throws IOException {
-        return new JmDNSImpl(addr, null);
+      return Factory.newJmDNS(addr, null);
     }
 
     /**
@@ -99,7 +177,7 @@ public abstract class JmDNS implements Closeable {
      *                if an exception occurs during the socket creation
      */
     public static JmDNS create(final String name) throws IOException {
-        return new JmDNSImpl(null, name);
+        return Factory.newJmDNS(null, name);
     }
 
     /**
@@ -134,7 +212,7 @@ public abstract class JmDNS implements Closeable {
      *                if an exception occurs during the socket creation
      */
     public static JmDNS create(final InetAddress addr, final String name) throws IOException {
-        return new JmDNSImpl(addr, name);
+        return Factory.newJmDNS(addr, name);
     }
 
     /**
