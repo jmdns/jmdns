@@ -1,3 +1,5 @@
+![build status](https://travis-ci.org/openhab/jmdns.svg)
+
 This library is licensed under the Apache License Version 2.0.
 Please see the file [NOTICE.txt](NOTICE.txt).  
 
