@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>javax.jmdns</groupId>
+	<groupId>org.openhab.jmdns</groupId>
 	<artifactId>jmdns</artifactId>
 	<version>3.4.3-SNAPSHOT</version>
 	<name>JmDNS</name>
@@ -135,6 +135,25 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-javadoc-plugin</artifactId>
+			    <version>2.10.3</version>
+			    <configuration>
+			        <outputDirectory>${project.build.directory}/javadoc</outputDirectory>
+			    </configuration>
+			    <executions>
+			        <execution>
+			            <id>attach-javadocs</id>
+           			 	<goals>
+		            	    <goal>jar</goal>
+        			    </goals>
+			            <configuration>
+            			    <additionalparam>-Xdoclint:none</additionalparam>
+			            </configuration>
+			        </execution>
+			    </executions>
+			</plugin>
 		</plugins>
 		<pluginManagement>
 			<plugins>
@@ -190,4 +209,11 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 			</build>
 		</profile>
 	</profiles>
+    <distributionManagement>
+        <repository>
+            <id>bintray-kaikreuzer-esh-deps</id>
+            <url>https://api.bintray.com/maven/openhab/mvn/jmDNS/;publish=1</url>
+        </repository>
+    </distributionManagement>
+
 </project>
