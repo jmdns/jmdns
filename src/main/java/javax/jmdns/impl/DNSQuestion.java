@@ -5,6 +5,8 @@
 package javax.jmdns.impl;
 
 import java.net.InetAddress;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -281,6 +283,15 @@ public class DNSQuestion extends DNSEntry {
                 answers.addAll(jmDNSImpl.getLocalHost().answers(this.getRecordClass(), DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL));
                 answers.addAll(info.answers(this.getRecordClass(), DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, jmDNSImpl.getLocalHost()));
             }
+            final String constructedType = "_home-sharing._" + info.getProtocol() + "." + info.getDomain() + ".";
+            final String constructedName = "_" + info.getPropertyString("hG") + "._sub." + info.getTypeWithSubtype();
+            if (this.getType().equalsIgnoreCase(constructedType) && info.getPropertyString("hG") != null && this.getName().equalsIgnoreCase(constructedName)) {
+                final javax.jmdns.impl.DNSRecord.Pointer ptr = new DNSRecord.Pointer(constructedName, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getName() + "." + constructedType);
+                final List<DNSRecord.Pointer> l = new LinkedList<DNSRecord.Pointer>();
+                l.add(ptr);
+                answers.addAll(l);
+            }
+
             if (logger.isLoggable(Level.FINER)) {
                 logger.finer(jmDNSImpl.getName() + " DNSQuestion(" + this.getName() + ").addAnswersForServiceInfo(): info: " + info + "\n" + answers);
             }
