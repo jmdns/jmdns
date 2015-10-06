@@ -14,8 +14,18 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		<name>JmDNS</name>
 		<url>http://jmdns.org/</url>
 	</organization>
+	<developers>
+		<developer>
+			<name>Kai Kreuzer</name>
+			<email>kai@openhab.org</email>
+			<organization>openHAB</organization>
+			<organizationUrl>http://www.openHAB.org</organizationUrl>
+		</developer>
+	</developers>
 	<scm>
-		<url>https://github.com/openhab/jmdns</url>
+		<connection>scm:git:git@github.com:openhab/jmdns.git</connection>
+		<developerConnection>scm:git:git@github.com:openhab/jmdns.git</developerConnection>
+		<url>git@github.com:openhab/jmdns.git</url>
 	</scm>
 	<issueManagement>
 		<system>github</system>
