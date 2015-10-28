@@ -862,8 +862,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                         byte value[] = new byte[len - ++i];
                         System.arraycopy(getTextBytes(), off + i, value, 0, len - i);
                         properties.put(name, value);
-                        off += len;
                     }
+                    off += len;
                 }
             } catch (Exception exception) {
                 // We should get better logging.
