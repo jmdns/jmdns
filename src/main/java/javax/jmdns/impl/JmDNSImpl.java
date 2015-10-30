@@ -1222,14 +1222,13 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     /**
      * Renew a service when the record become stale. If there is no service collector for the type this method does nothing.
      *
-     * @param record
-     *            DNS record
+     * @param type
+     *            Service Type
      */
-    public void renewServiceCollector(DNSRecord record) {
-        ServiceInfo info = record.getServiceInfo();
-        if (_serviceCollectors.containsKey(info.getType().toLowerCase())) {
+    public void renewServiceCollector(String type) {
+        if (_serviceCollectors.containsKey(type.toLowerCase())) {
             // Create/start ServiceResolver
-            this.startServiceResolver(info.getType());
+            this.startServiceResolver(type);
         }
     }
 
@@ -1783,15 +1782,21 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
     public void cleanCache() {
         long now = System.currentTimeMillis();
+        Set<String> staleServiceTypesForRefresh = new HashSet<String>();
         for (DNSEntry entry : this.getCache().allValues()) {
             try {
                 DNSRecord record = (DNSRecord) entry;
                 if (record.isExpired(now)) {
                     this.updateRecord(now, record, Operation.Remove);
                     this.getCache().removeDNSEntry(record);
-                } else if (record.isStale(now)) {
-                    // we should query for the record we care about i.e. those in the service collectors
-                    this.renewServiceCollector(record);
+                } else if (record.isStaleAndShouldBeRefreshed(now)) {
+                    record.incrementRefreshPercentage();
+                    String type = record.getServiceInfo().getType().toLowerCase();
+                    // only query every service type once per refresh
+                    if (staleServiceTypesForRefresh.add(type)) {
+                        // we should query for the record we care about i.e. those in the service collectors
+                        this.renewServiceCollector(type);
+                    }
                 }
             } catch (Exception exception) {
                 logger.log(Level.SEVERE, this.getName() + ".Error while reaping records: " + entry, exception);

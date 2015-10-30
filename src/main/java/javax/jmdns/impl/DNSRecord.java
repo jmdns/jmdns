@@ -13,6 +13,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,6 +34,8 @@ public abstract class DNSRecord extends DNSEntry {
     private static Logger logger = Logger.getLogger(DNSRecord.class.getName());
     private int           _ttl;
     private long          _created;
+    private int           _isStaleAndShouldBeRefreshedPercentage;
+    private final int     _randomStaleRefreshOffset;
 
     /**
      * This source is mainly for debugging purposes, should be the address that sent this record.
@@ -46,6 +49,8 @@ public abstract class DNSRecord extends DNSEntry {
         super(name, type, recordClass, unique);
         this._ttl = ttl;
         this._created = System.currentTimeMillis();
+        _randomStaleRefreshOffset = new Random().nextInt(3);
+        _isStaleAndShouldBeRefreshedPercentage = DNSConstants.STALE_REFRESH_STARTING_PERCENTAGE + _randomStaleRefreshOffset;
     }
 
     /*
@@ -150,11 +155,33 @@ public abstract class DNSRecord extends DNSEntry {
     }
 
     /**
+     * Check if the record is stale and whether the record should be refreshed over the network.
+     *
+     * @param now
+     *            update date
+     * @return <code>true</code> is the record is stale and should be refreshed, <code>false</code> otherwise.
+     */
+    public boolean isStaleAndShouldBeRefreshed(long now) {
+        return getExpirationTime(_isStaleAndShouldBeRefreshedPercentage) <= now;
+    }
+
+    /*
+    * Increment the percentage that determines whether a record needs to be refreshed.
+     */
+    void incrementRefreshPercentage() {
+        _isStaleAndShouldBeRefreshedPercentage += DNSConstants.STALE_REFRESH_INCREMENT;
+        if (_isStaleAndShouldBeRefreshedPercentage > 100) {
+            _isStaleAndShouldBeRefreshedPercentage = 100;
+        }
+    }
+
+    /**
      * Reset the TTL of a record. This avoids having to update the entire record in the cache.
      */
     void resetTTL(DNSRecord other) {
         _created = other._created;
         _ttl = other._ttl;
+        _isStaleAndShouldBeRefreshedPercentage = DNSConstants.STALE_REFRESH_STARTING_PERCENTAGE + _randomStaleRefreshOffset;
     }
 
     /**
