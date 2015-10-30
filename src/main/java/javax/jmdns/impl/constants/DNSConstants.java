@@ -54,6 +54,9 @@ public final class DNSConstants {
     public static final int    KNOWN_ANSWER_TTL               = 120;
     public static final int    ANNOUNCED_RENEWAL_TTL_INTERVAL = DNS_TTL * 500;                                                // 50% of the TTL in milliseconds
 
+    public static final int    STALE_REFRESH_INCREMENT           = 5;
+    public static final int    STALE_REFRESH_STARTING_PERCENTAGE = 80;
+
     public static final long   CLOSE_TIMEOUT                  = ANNOUNCE_WAIT_INTERVAL * 5L;
     public static final long   SERVICE_INFO_TIMEOUT           = ANNOUNCE_WAIT_INTERVAL * 6L;
 
