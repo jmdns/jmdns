@@ -5,8 +5,6 @@
 package javax.jmdns.impl;
 
 import java.net.InetAddress;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -285,11 +283,9 @@ public class DNSQuestion extends DNSEntry {
             }
             final String constructedType = "_home-sharing._" + info.getProtocol() + "." + info.getDomain() + ".";
             final String constructedName = "_" + info.getPropertyString("hG") + "._sub." + info.getTypeWithSubtype();
+            // Apple Homesharing feature
             if (this.getType().equalsIgnoreCase(constructedType) && info.getPropertyString("hG") != null && this.getName().equalsIgnoreCase(constructedName)) {
-                final javax.jmdns.impl.DNSRecord.Pointer ptr = new DNSRecord.Pointer(constructedName, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getName() + "." + constructedType);
-                final List<DNSRecord.Pointer> l = new LinkedList<DNSRecord.Pointer>();
-                l.add(ptr);
-                answers.addAll(l);
+                answers.add(new DNSRecord.Pointer(constructedName, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getName() + "." + constructedType));
             }
 
             if (logger.isLoggable(Level.FINER)) {
