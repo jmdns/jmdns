@@ -58,9 +58,9 @@
 		</javac>
 	</target>
 
-	<target name="jar" depends="build,tools" description="Jar the files">
+	<target name="jar" depends="build" description="Jar the files">
 		<mkdir dir="${buildlib}" />
-		<jar destfile="${buildlib}/jmdns.jar" manifest="${lib}/jmdns.manifest" basedir="${dest}">
+		<jar destfile="${buildlib}/jmdns.jar" manifest="${lib}/jmdns.manifest">
 			<fileset dir="${dest}" defaultexcludes="yes">
 				<include name="**/*.class" />
 				<exclude name="**/test/*.class" />
