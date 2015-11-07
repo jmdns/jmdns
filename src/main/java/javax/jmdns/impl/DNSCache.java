@@ -7,6 +7,7 @@ package javax.jmdns.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -270,7 +271,9 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
     public synchronized String toString() {
         StringBuffer aLog = new StringBuffer(2000);
         aLog.append("\t---- cache ----");
-        for (String key : this.keySet()) {
+        Enumeration<String> keyIter = this.keys();
+        while (keyIter.hasMoreElements()) {
+            String key = keyIter.nextElement();
             aLog.append("\n\t\t");
             aLog.append("\n\t\tname '");
             aLog.append(key);
