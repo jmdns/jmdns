@@ -283,6 +283,7 @@ public class DNSQuestion extends DNSEntry {
             }
             final String constructedType = "_home-sharing._" + info.getProtocol() + "." + info.getDomain() + ".";
             final String constructedName = "_" + info.getPropertyString("hG") + "._sub." + info.getTypeWithSubtype();
+            
             // Apple Homesharing feature
             if (this.getType().equalsIgnoreCase(constructedType) && info.getPropertyString("hG") != null && this.getName().equalsIgnoreCase(constructedName)) {
                 answers.add(new DNSRecord.Pointer(constructedName, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getName() + "." + constructedType));
