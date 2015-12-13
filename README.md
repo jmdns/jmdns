@@ -30,7 +30,7 @@ interoperable with Apple's Bonjour.
 ```
 
 
-## Sample code for Serivice Discovery
+## Sample code for Service Discovery
 
 ```
     import javax.jmdns.*;
