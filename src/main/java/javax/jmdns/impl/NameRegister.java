@@ -118,7 +118,7 @@ public interface NameRegister {
                     return hostname != null && hostname.equals(name);
                 case SERVICE:
                     Set<String> names = _serviceNames.get(networkInterface);
-                    return names != null && names.contains(names);
+                    return names != null && names.contains(name);
                 default:
                     // this is trash to keep the compiler happy
                     return false;
