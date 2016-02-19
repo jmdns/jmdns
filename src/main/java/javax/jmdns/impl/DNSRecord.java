@@ -319,14 +319,19 @@ public abstract class DNSRecord extends DNSEntry {
 
         @Override
         boolean sameValue(DNSRecord other) {
-            if (!(other instanceof Address)) {
+            try {
+                if (!(other instanceof Address)) {
+                    return false;
+                }
+                Address address = (Address) other;
+                if ((this.getAddress() == null) && (address.getAddress() != null)) {
+                    return false;
+                }
+                return this.getAddress().equals(address.getAddress());
+            } catch (Exception e) {
+                logger1.log(Level.INFO, "Failed to compare addresses of DNSRecords", e);
                 return false;
             }
-            Address address = (Address) other;
-            if ((this.getAddress() == null) && (address.getAddress() != null)) {
-                return false;
-            }
-            return this.getAddress().equals(address.getAddress());
         }
 
         @Override
