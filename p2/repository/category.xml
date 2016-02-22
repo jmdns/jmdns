@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-    <feature id="javax.jmdns.feature">
-        <category name="javax.jmdns.feature.id"/>
+    <feature id="org.jmdns.feature">
+        <category name="org.jmdns.feature.id"/>
     </feature>
-    <category-def name="javax.jmdns.feature" label="JmDNS">
+    <category-def name="org.jmdns.feature" label="JmDNS">
         <description>
             JmDNS
         </description>

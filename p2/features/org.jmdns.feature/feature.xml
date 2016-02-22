@@ -16,17 +16,17 @@
 -->
 
 <feature
-    id="javax.jmdns.feature"
+    id="org.jmdns.feature"
     label="JmDNS"
-    version="3.4.3.qualifier"
-    provider-name="openHAB UG">
+    version="3.4.4.qualifier"
+    provider-name="JmDNS.org">
 
     <description>
         This features defines all bundles that form the JmDNS library.
     </description>
 
     <copyright>
-        Copyright (C) 2015 openHAB UG (haftungsbeschränkt) and others
+        Copyright (C) 2016 JmDNS.org and others
     </copyright>
 
     <license url="%licenseURL">
