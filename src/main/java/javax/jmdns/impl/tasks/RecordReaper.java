@@ -5,8 +5,8 @@
 package javax.jmdns.impl.tasks;
 
 import java.util.Timer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.constants.DNSConstants;
@@ -15,7 +15,7 @@ import javax.jmdns.impl.constants.DNSConstants;
  * Periodically removes expired entries from the cache.
  */
 public class RecordReaper extends DNSTask {
-    static Logger logger = Logger.getLogger(RecordReaper.class.getName());
+    static Logger logger = LoggerFactory.getLogger(RecordReaper.class.getName());
 
     /**
      * @param jmDNSImpl
@@ -49,8 +49,8 @@ public class RecordReaper extends DNSTask {
         if (this.getDns().isCanceling() || this.getDns().isCanceled()) {
             return;
         }
-        if (logger.isLoggable(Level.FINEST)) {
-            logger.finest(this.getName() + ".run() JmDNS reaping cache");
+        if (logger.isTraceEnabled()) {
+            logger.trace(this.getName() + ".run() JmDNS reaping cache");
         }
 
         // Remove expired answers from the cache

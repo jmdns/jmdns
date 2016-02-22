@@ -15,9 +15,8 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
 import java.util.logging.LogManager;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -51,7 +50,7 @@ public class ITunesRemotePairing implements Runnable, ServiceListener {
             handler.setLevel(Level.FINEST);
             for (Enumeration<String> enumerator = LogManager.getLogManager().getLoggerNames(); enumerator.hasMoreElements();) {
                 String loggerName = enumerator.nextElement();
-                Logger logger = Logger.getLogger(loggerName);
+                Logger logger = LoggerFactory.getLogger(loggerName);
                 logger.addHandler(handler);
                 logger.setLevel(Level.FINEST);
             }

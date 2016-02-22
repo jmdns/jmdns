@@ -8,8 +8,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jmdns.impl.constants.DNSState;
 import javax.jmdns.impl.tasks.DNSTask;
@@ -31,7 +31,7 @@ public interface DNSStatefulObject {
      * @author Pierre Frisch
      */
     public static final class DNSStatefulObjectSemaphore {
-        private static Logger                          logger = Logger.getLogger(DNSStatefulObjectSemaphore.class.getName());
+        private static Logger                          logger = LoggerFactory.getLogger(DNSStatefulObjectSemaphore.class.getName());
 
         private final String                           _name;
 
@@ -65,7 +65,7 @@ public interface DNSStatefulObject {
             try {
                 semaphore.tryAcquire(timeout, TimeUnit.MILLISECONDS);
             } catch (InterruptedException exception) {
-                logger.log(Level.FINER, "Exception ", exception);
+                logger.debug("Exception ", exception);
             }
         }
 
@@ -103,7 +103,7 @@ public interface DNSStatefulObject {
     }
 
     public static class DefaultImplementation extends ReentrantLock implements DNSStatefulObject {
-        private static Logger                    logger           = Logger.getLogger(DefaultImplementation.class.getName());
+        private static Logger                    logger           = LoggerFactory.getLogger(DefaultImplementation.class.getName());
 
         private static final long                serialVersionUID = -3264781576883412227L;
 
@@ -222,7 +222,7 @@ public interface DNSStatefulObject {
                     if (this._task == task) {
                         this.setState(this._state.advance());
                     } else {
-                        logger.warning("Trying to advance state whhen not the owner. owner: " + this._task + " perpetrator: " + task);
+                        logger.warn("Trying to advance state whhen not the owner. owner: " + this._task + " perpetrator: " + task);
                     }
                 } finally {
                     this.unlock();
@@ -386,9 +386,9 @@ public interface DNSStatefulObject {
                 _announcing.waitForEvent(10);
                 if (!this.isAnnounced()) {
                     if (this.willCancel() || this.willClose()) {
-                        logger.fine("Wait for announced cancelled: " + this);
+                        logger.debug("Wait for announced cancelled: " + this);
                     } else {
-                        logger.warning("Wait for announced timed out: " + this);
+                        logger.warn("Wait for announced timed out: " + this);
                     }
                 }
             }
@@ -407,7 +407,7 @@ public interface DNSStatefulObject {
                 // When we run multihomed we need to check twice
                 _canceling.waitForEvent(10);
                 if (!this.isCanceled() && !this.willClose()) {
-                    logger.warning("Wait for canceled timed out: " + this);
+                    logger.warn("Wait for canceled timed out: " + this);
                 }
             }
             return this.isCanceled();

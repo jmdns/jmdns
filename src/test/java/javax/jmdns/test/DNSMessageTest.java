@@ -9,11 +9,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.Date;
-import java.util.Enumeration;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
 
 import javax.jmdns.impl.DNSIncoming;
 import javax.jmdns.impl.DNSOutgoing;
@@ -23,28 +18,12 @@ import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 
-import org.junit.Before;
 import org.junit.Test;
 
 /**
  *
  */
 public class DNSMessageTest {
-
-    @Before
-    public void setup() {
-        boolean log = false;
-        if (log) {
-            ConsoleHandler handler = new ConsoleHandler();
-            handler.setLevel(Level.FINEST);
-            for (Enumeration<String> enumerator = LogManager.getLogManager().getLoggerNames(); enumerator.hasMoreElements();) {
-                String loggerName = enumerator.nextElement();
-                Logger logger = Logger.getLogger(loggerName);
-                logger.addHandler(handler);
-                logger.setLevel(Level.FINEST);
-            }
-        }
-    }
 
     private static final byte[] nmap_scan_package = new byte[] { 0x30, (byte) 0x82, 0x00, 0x2f, 0x02, 0x01, 0x00, 0x04, 0x06, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x63, (byte) 0xa0, (byte) 0x82, 0x00, 0x20, 0x02, 0x04, 0x4c, 0x33, (byte) 0xa7, 0x56, 0x02,
             0x01, 0x00, 0x02, 0x01, 0x00, 0x30, (byte) 0x82, 0x00, 0x10, 0x30, (byte) 0x82, 0x00, 0x0c, 0x06, 0x08, 0x2b, 0x06, 0x01, 0x02, 0x01, 0x01, 0x05, 0x00, 0x05, 0x00 };

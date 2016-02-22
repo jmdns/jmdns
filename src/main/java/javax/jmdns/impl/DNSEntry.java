@@ -20,7 +20,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
  * @author Arthur van Hoff, Pierre Frisch, Rick Blair
  */
 public abstract class DNSEntry {
-    // private static Logger logger = Logger.getLogger(DNSEntry.class.getName());
+    // private static Logger logger = LoggerFactory.getLogger(DNSEntry.class.getName());
     private final String         _key;
 
     private final String         _name;

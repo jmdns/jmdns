@@ -3,8 +3,8 @@ package javax.jmdns.impl.tasks.resolver;
 
 import java.io.IOException;
 import java.util.Timer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.JmDNSImpl;
@@ -17,7 +17,7 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @author Pierre Frisch
  */
 public abstract class DNSResolverTask extends DNSTask {
-    private static Logger logger = Logger.getLogger(DNSResolverTask.class.getName());
+    private static Logger logger = LoggerFactory.getLogger(DNSResolverTask.class.getName());
 
     /**
      * Counts the number of queries being sent.
@@ -62,8 +62,8 @@ public abstract class DNSResolverTask extends DNSTask {
                 this.cancel();
             } else {
                 if (_count++ < 3) {
-                    if (logger.isLoggable(Level.FINER)) {
-                        logger.finer(this.getName() + ".run() JmDNS " + this.description());
+                    if (logger.isDebugEnabled()) {
+                        logger.debug(this.getName() + ".run() JmDNS " + this.description());
                     }
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
                     out = this.addQuestions(out);
@@ -79,7 +79,7 @@ public abstract class DNSResolverTask extends DNSTask {
                 }
             }
         } catch (Throwable e) {
-            logger.log(Level.WARNING, this.getName() + ".run() exception ", e);
+            logger.warn(this.getName() + ".run() exception ", e);
             this.getDns().recover();
         }
     }
