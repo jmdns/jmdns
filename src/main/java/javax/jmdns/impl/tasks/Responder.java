@@ -9,8 +9,8 @@ import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Timer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jmdns.impl.DNSIncoming;
 import javax.jmdns.impl.DNSOutgoing;
@@ -23,7 +23,7 @@ import javax.jmdns.impl.constants.DNSConstants;
  * The Responder sends a single answer for the specified service infos and for the host name.
  */
 public class Responder extends DNSTask {
-    static Logger             logger = Logger.getLogger(Responder.class.getName());
+    static Logger             logger = LoggerFactory.getLogger(Responder.class.getName());
 
     /**
      *
@@ -82,8 +82,8 @@ public class Responder extends DNSTask {
 
         boolean iAmTheOnlyOne = true;
         for (DNSQuestion question : _in.getQuestions()) {
-            if (logger.isLoggable(Level.FINEST)) {
-                logger.finest(this.getName() + "start() question=" + question);
+            if (logger.isTraceEnabled()) {
+                logger.trace(this.getName() + "start() question=" + question);
             }
             iAmTheOnlyOne = question.iAmTheOnlyOne(this.getDns());
             if (!iAmTheOnlyOne) {
@@ -94,8 +94,8 @@ public class Responder extends DNSTask {
         if (delay < 0) {
             delay = 0;
         }
-        if (logger.isLoggable(Level.FINEST)) {
-            logger.finest(this.getName() + "start() Responder chosen delay=" + delay);
+        if (logger.isTraceEnabled()) {
+            logger.trace(this.getName() + "start() Responder chosen delay=" + delay);
         }
         if (!this.getDns().isCanceling() && !this.getDns().isCanceled()) {
             timer.schedule(this, delay);
@@ -114,8 +114,8 @@ public class Responder extends DNSTask {
             try {
                 // Answer questions
                 for (DNSQuestion question : _in.getQuestions()) {
-                    if (logger.isLoggable(Level.FINER)) {
-                        logger.finer(this.getName() + "run() JmDNS responding to: " + question);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug(this.getName() + "run() JmDNS responding to: " + question);
                     }
                     // for unicast responses the question must be included
                     if (_unicast) {
@@ -131,16 +131,16 @@ public class Responder extends DNSTask {
                 for (DNSRecord knownAnswer : _in.getAnswers()) {
                     if (knownAnswer.isStale(now)) {
                         answers.remove(knownAnswer);
-                        if (logger.isLoggable(Level.FINER)) {
-                            logger.finer(this.getName() + "JmDNS Responder Known Answer Removed");
+                        if (logger.isDebugEnabled()) {
+                            logger.debug(this.getName() + "JmDNS Responder Known Answer Removed");
                         }
                     }
                 }
 
                 // respond if we have answers
                 if (!answers.isEmpty()) {
-                    if (logger.isLoggable(Level.FINER)) {
-                        logger.finer(this.getName() + "run() JmDNS responding");
+                    if (logger.isDebugEnabled()) {
+                        logger.debug(this.getName() + "run() JmDNS responding");
                     }
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, !_unicast, _in.getSenderUDPPayload());
                     if (_unicast) {
@@ -162,7 +162,7 @@ public class Responder extends DNSTask {
                 }
                 // this.cancel();
             } catch (Throwable e) {
-                logger.log(Level.WARNING, this.getName() + "run() exception ", e);
+                logger.warn(this.getName() + "run() exception ", e);
                 this.getDns().close();
             }
         }

@@ -3,8 +3,8 @@
  */
 package javax.jmdns.impl.constants;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * DNS Record Class
@@ -41,7 +41,7 @@ public enum DNSRecordClass {
      */
     CLASS_ANY("any", 255);
 
-    private static Logger       logger       = Logger.getLogger(DNSRecordClass.class.getName());
+    private static Logger       logger       = LoggerFactory.getLogger(DNSRecordClass.class.getName());
 
     /**
      * Multicast DNS uses the bottom 15 bits to identify the record class...<br/>
@@ -113,7 +113,7 @@ public enum DNSRecordClass {
                 if (aClass._externalName.equals(aName)) return aClass;
             }
         }
-        logger.log(Level.WARNING, "Could not find record class for name: " + name);
+        logger.warn("Could not find record class for name: " + name);
         return CLASS_UNKNOWN;
     }
 
@@ -126,7 +126,7 @@ public enum DNSRecordClass {
         for (DNSRecordClass aClass : DNSRecordClass.values()) {
             if (aClass._index == maskedIndex) return aClass;
         }
-        logger.log(Level.WARNING, "Could not find record class for index: " + index);
+        logger.warn("Could not find record class for index: " + index);
         return CLASS_UNKNOWN;
     }
 

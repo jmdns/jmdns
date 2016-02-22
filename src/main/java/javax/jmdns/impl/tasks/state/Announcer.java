@@ -6,7 +6,8 @@ package javax.jmdns.impl.tasks.state;
 
 import java.io.IOException;
 import java.util.Timer;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSRecord;
@@ -22,7 +23,7 @@ import javax.jmdns.impl.constants.DNSState;
  * When the announcer has run two times, it finishes.
  */
 public class Announcer extends DNSStateTask {
-    static Logger logger = Logger.getLogger(Announcer.class.getName());
+    static Logger logger = LoggerFactory.getLogger(Announcer.class.getName());
 
     public Announcer(JmDNSImpl jmDNSImpl) {
         super(jmDNSImpl, defaultTTL());

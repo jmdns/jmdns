@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
@@ -40,7 +40,7 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer
  */
 public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStatefulObject {
-    private static Logger           logger = Logger.getLogger(ServiceInfoImpl.class.getName());
+    private static Logger           logger = LoggerFactory.getLogger(ServiceInfoImpl.class.getName());
 
     private String                  _domain;
     private String                  _protocol;
@@ -867,7 +867,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                 }
             } catch (Exception exception) {
                 // We should get better logging.
-                logger.log(Level.WARNING, "Malformed TXT Field ", exception);
+                logger.warn("Malformed TXT Field ", exception);
             }
             this._props = properties;
         }

@@ -64,7 +64,7 @@ public enum DNSState {
         probing, announcing, announced, canceling, canceled, closing, closed
     }
 
-    // private static Logger logger = Logger.getLogger(DNSState.class.getName());
+    // private static Logger logger = LoggerFactory.getLogger(DNSState.class.getName());
 
     private final String     _name;
 
