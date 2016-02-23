@@ -97,14 +97,12 @@ public interface JmmDNS extends Closeable {
          * @return the JmmDNS
          */
         public static JmmDNS getInstance() {
-            if (_instance == null) {
-                synchronized (Factory.class) {
-                    if (_instance == null) {
-                        _instance = JmmDNS.Factory.newJmmDNS();
-                    }
+            synchronized (Factory.class) {
+                if (_instance == null) {
+                    _instance = JmmDNS.Factory.newJmmDNS();
                 }
+                return _instance;
             }
-            return _instance;
         }
 
         /**
