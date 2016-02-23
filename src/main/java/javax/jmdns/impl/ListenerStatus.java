@@ -3,7 +3,11 @@
  */
 package javax.jmdns.impl;
 
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.EventListener;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.slf4j.Logger;
@@ -124,6 +128,9 @@ public class ListenerStatus<T extends EventListener> {
             for (int i = 0; i < text.length; i++) {
                 if (text[i] != lastText[i]) return false;
             }
+
+            if (!info.hasSameAddresses(lastInfo)) return false;
+
             return true;
         }
 

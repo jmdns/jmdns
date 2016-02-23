@@ -710,6 +710,14 @@ public abstract class ServiceInfo implements Cloneable {
      */
     public abstract Map<Fields, String> getQualifiedNameMap();
 
+    /**
+     * Compare addresses of another ServiceInfo
+     *
+     * @param other ServiceInfo to compare
+     * @return true if addresses are the same, false if not
+     */
+    public abstract boolean hasSameAddresses(ServiceInfo other);
+
     /*
      * (non-Javadoc)
      * @see java.lang.Object#clone()
