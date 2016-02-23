@@ -30,7 +30,7 @@ public final class DNSIncoming extends DNSMessage {
 
     // This is a hack to handle a bug in the BonjourConformanceTest
     // It is sending out target strings that don't follow the "domain name" format.
-    public static boolean USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET = false;
+    public static boolean USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET = true;
 
     public static class MessageInputStream extends ByteArrayInputStream {
         private static Logger      logger1 = LoggerFactory.getLogger(MessageInputStream.class.getName());
