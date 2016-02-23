@@ -1370,7 +1370,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
             InetAddress[] addresses = getInetAddresses();
             InetAddress[] otherAddresses = other.getInetAddresses();
             return addresses.length == otherAddresses.length &&
-                    new HashSet<>(Arrays.asList(addresses)).equals(new HashSet<>(Arrays.asList(otherAddresses)));
+                    new HashSet<InetAddress>(Arrays.asList(addresses)).equals(new HashSet<InetAddress>(Arrays.asList(otherAddresses)));
         }
     }
 
