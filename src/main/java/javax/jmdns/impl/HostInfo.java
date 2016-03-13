@@ -104,7 +104,7 @@ public class HostInfo implements DNSStatefulObject {
         if (index > 0) {
             aName = aName.substring(0, index);
         }
-        aName = aName.replace('.', '-');
+        aName = aName.replaceAll("[:%\\.]", "-");
         aName += ".local.";
         localhost = new HostInfo(addr, aName, dns);
         return localhost;
