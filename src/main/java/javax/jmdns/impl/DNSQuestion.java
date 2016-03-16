@@ -205,7 +205,9 @@ public class DNSQuestion extends DNSEntry {
                 return;
             }
 
-            this.addAnswersForServiceInfo(jmDNSImpl, answers, (ServiceInfoImpl) jmDNSImpl.getServices().get(loname));
+            for (ServiceInfo serviceInfo : jmDNSImpl.getServices().values()) {
+                this.addAnswersForServiceInfo(jmDNSImpl, answers, (ServiceInfoImpl) serviceInfo);
+            }
         }
 
         @Override
