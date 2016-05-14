@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.openhab.jmdns</groupId>
+	<groupId>org.jmdns</groupId>
 	<artifactId>jmdns</artifactId>
-	<version>3.4.3-SNAPSHOT</version>
+	<version>3.5.1-SNAPSHOT</version>
 	<name>JmDNS</name>
 	<packaging>jar</packaging>
 	<description>JmDNS is a Java implementation of multi-cast DNS and can be used for service registration and discovery in local area networks. JmDNS is fully compatible with Apple's Bonjour.
@@ -18,18 +18,28 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		<developer>
 			<name>Kai Kreuzer</name>
 			<email>kai@openhab.org</email>
-			<organization>openHAB</organization>
-			<organizationUrl>http://www.openHAB.org</organizationUrl>
+			<organization>JmDNS</organization>
+			<organizationUrl>http://www.jmdns.org</organizationUrl>
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git:git@github.com:openhab/jmdns.git</connection>
-		<developerConnection>scm:git:git@github.com:openhab/jmdns.git</developerConnection>
-		<url>git@github.com:openhab/jmdns.git</url>
+		<connection>scm:git:git@github.com:jmdns/jmdns.git</connection>
+		<developerConnection>scm:git:git@github.com:jmdns/jmdns.git</developerConnection>
+		<url>git@github.com:jmdns/jmdns.git</url>
 	</scm>
+    <distributionManagement>
+        <repository>
+            <id>bintray</id>
+            <url>https://api.bintray.com/maven/jmdns/mvn/jmdns/;publish=1</url>
+        </repository>
+        <snapshotRepository>
+            <id>jfrog</id>
+            <url>http://oss.jfrog.org/artifactory/oss-snapshot-local</url>
+        </snapshotRepository>
+    </distributionManagement>
 	<issueManagement>
 		<system>github</system>
-		<url>https://github.com/openhab/jmdns/issues</url>
+		<url>https://github.com/jmdns/jmdns/issues</url>
 	</issueManagement>
 	<licenses>
 		<license>
@@ -39,6 +49,11 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		</license>
 	</licenses>
 	<dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.16</version>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -55,6 +70,12 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		</dependency>
 	</dependencies>
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -114,7 +135,6 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
 						</manifest>
 						<manifestEntries>
-							<Implementation-Build>${buildNumber}</Implementation-Build>
 							<Implementation-Date>${maven.build.timestamp}</Implementation-Date>
 						</manifestEntries>
 					</archive>
@@ -128,11 +148,13 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 				<configuration>
 					<manifestLocation>${project.build.outputDirectory}/META-INF</manifestLocation>
 					<instructions>
+						<Bundle-SymbolicName>javax.jmdns</Bundle-SymbolicName>
 						<Export-Package>javax.jmdns</Export-Package>
 						<Private-Package>javax.jmdns.impl,javax.jmdns.impl.*,com.strangeberry.*,samples</Private-Package>
-						<Import-Package>!javax.swing.*</Import-Package>
+						<Import-Package>!javax.swing.*,org.slf4j</Import-Package>
 						<Bundle-RequiredExecutionEnvironment>JavaSE-${jvm.version}</Bundle-RequiredExecutionEnvironment>
 						<Bundle-Vendor>jmdns.org</Bundle-Vendor>
+						<Bundle-ClassPath>.</Bundle-ClassPath>
 					</instructions>
 				</configuration>
 				<executions>

@@ -20,8 +20,7 @@ package samples;
 
 import java.io.IOException;
 import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -63,7 +62,7 @@ public class DiscoverServices {
             // Activate these lines to see log messages of JmDNS
             boolean log = false;
             if (log) {
-                Logger logger = Logger.getLogger(JmDNS.class.getName());
+                Logger logger = LoggerFactory.getLogger(JmDNS.class.getName());
                 ConsoleHandler handler = new ConsoleHandler();
                 logger.addHandler(handler);
                 logger.setLevel(Level.FINER);

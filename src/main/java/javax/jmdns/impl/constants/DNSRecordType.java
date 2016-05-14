@@ -3,7 +3,8 @@
  */
 package javax.jmdns.impl.constants;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * DNS Record Type
@@ -248,7 +249,7 @@ public enum DNSRecordType {
      */
     TYPE_ANY("any", 255);
 
-    private static Logger logger = Logger.getLogger(DNSRecordType.class.getName());
+    private static Logger logger = LoggerFactory.getLogger(DNSRecordType.class.getName());
 
     private final String  _externalName;
 
@@ -288,7 +289,7 @@ public enum DNSRecordType {
                 if (aType._externalName.equals(aName)) return aType;
             }
         }
-        logger.severe("Could not find record type for name: " + name);
+        logger.warn("Could not find record type for name: " + name);
         return TYPE_IGNORE;
     }
 
@@ -300,7 +301,7 @@ public enum DNSRecordType {
         for (DNSRecordType aType : DNSRecordType.values()) {
             if (aType._index == index) return aType;
         }
-        logger.severe("Could not find record type for index: " + index);
+        logger.warn("Could not find record type for index: " + index);
         return TYPE_IGNORE;
     }
 

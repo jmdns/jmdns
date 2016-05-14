@@ -21,7 +21,7 @@ public class ServiceEventImpl extends ServiceEvent {
      *
      */
     private static final long serialVersionUID = 7107973622016897488L;
-    // private static Logger logger = Logger.getLogger(ServiceEvent.class.getName());
+    // private static Logger logger = LoggerFactory.getLogger(ServiceEvent.class.getName());
     /**
      * The type name of the service.
      */

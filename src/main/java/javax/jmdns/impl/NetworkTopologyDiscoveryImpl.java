@@ -10,8 +10,8 @@ import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jmdns.NetworkTopologyDiscovery;
 
@@ -21,7 +21,7 @@ import javax.jmdns.NetworkTopologyDiscovery;
  * @author Pierre Frisch
  */
 public class NetworkTopologyDiscoveryImpl implements NetworkTopologyDiscovery {
-    private final static Logger logger = Logger.getLogger(NetworkTopologyDiscoveryImpl.class.getName());
+    private final static Logger logger = LoggerFactory.getLogger(NetworkTopologyDiscoveryImpl.class.getName());
 
     private final Method        _isUp;
 
@@ -63,8 +63,8 @@ public class NetworkTopologyDiscoveryImpl implements NetworkTopologyDiscovery {
                 NetworkInterface nif = nifs.nextElement();
                 for (Enumeration<InetAddress> iaenum = nif.getInetAddresses(); iaenum.hasMoreElements();) {
                     InetAddress interfaceAddress = iaenum.nextElement();
-                    if (logger.isLoggable(Level.FINEST)) {
-                        logger.finest("Found NetworkInterface/InetAddress: " + nif + " -- " + interfaceAddress);
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("Found NetworkInterface/InetAddress: " + nif + " -- " + interfaceAddress);
                     }
                     if (this.useInetAddress(nif, interfaceAddress)) {
                         result.add(interfaceAddress);
@@ -72,7 +72,7 @@ public class NetworkTopologyDiscoveryImpl implements NetworkTopologyDiscovery {
                 }
             }
         } catch (SocketException se) {
-            logger.warning("Error while fetching network interfaces addresses: " + se);
+            logger.warn("Error while fetching network interfaces addresses: " + se);
         }
         return result.toArray(new InetAddress[result.size()]);
     }

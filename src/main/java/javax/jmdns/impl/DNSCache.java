@@ -41,7 +41,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
  */
 public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
 
-    // private static Logger logger = Logger.getLogger(DNSCache.class.getName());
+    // private static Logger logger = LoggerFactory.getLogger(DNSCache.class.getName());
 
     private static final long    serialVersionUID = 3024739453186759259L;
 

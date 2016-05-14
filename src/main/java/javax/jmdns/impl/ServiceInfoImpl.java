@@ -11,18 +11,20 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
@@ -40,7 +42,7 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer
  */
 public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStatefulObject {
-    private static Logger           logger = Logger.getLogger(ServiceInfoImpl.class.getName());
+    private static Logger           logger = LoggerFactory.getLogger(ServiceInfoImpl.class.getName());
 
     private String                  _domain;
     private String                  _protocol;
@@ -867,7 +869,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                 }
             } catch (Exception exception) {
                 // We should get better logging.
-                logger.log(Level.WARNING, "Malformed TXT Field ", exception);
+                logger.warn("Malformed TXT Field ", exception);
             }
             this._props = properties;
         }
@@ -1354,6 +1356,22 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     void setDelegate(Delegate delegate) {
         this._delegate = delegate;
+    }
+
+    @Override
+    public boolean hasSameAddresses(ServiceInfo other) {
+        if (other == null) return false;
+        if (other instanceof ServiceInfoImpl) {
+            ServiceInfoImpl otherImpl = (ServiceInfoImpl) other;
+            return _ipv4Addresses.size() == otherImpl._ipv4Addresses.size() && _ipv6Addresses.size() == otherImpl._ipv6Addresses.size() &&
+                    _ipv4Addresses.equals(otherImpl._ipv4Addresses) && _ipv6Addresses.equals(otherImpl._ipv6Addresses);
+
+        } else {
+            InetAddress[] addresses = getInetAddresses();
+            InetAddress[] otherAddresses = other.getInetAddresses();
+            return addresses.length == otherAddresses.length &&
+                    new HashSet<InetAddress>(Arrays.asList(addresses)).equals(new HashSet<InetAddress>(Arrays.asList(otherAddresses)));
+        }
     }
 
 }

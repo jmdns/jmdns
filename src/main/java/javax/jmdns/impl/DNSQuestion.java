@@ -6,8 +6,8 @@ package javax.jmdns.impl;
 
 import java.net.InetAddress;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceInfo.Fields;
@@ -22,7 +22,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
  * @author Arthur van Hoff, Pierre Frisch
  */
 public class DNSQuestion extends DNSEntry {
-    private static Logger logger = Logger.getLogger(DNSQuestion.class.getName());
+    private static Logger logger = LoggerFactory.getLogger(DNSQuestion.class.getName());
 
     /**
      * Address question.
@@ -205,7 +205,9 @@ public class DNSQuestion extends DNSEntry {
                 return;
             }
 
-            this.addAnswersForServiceInfo(jmDNSImpl, answers, (ServiceInfoImpl) jmDNSImpl.getServices().get(loname));
+            for (ServiceInfo serviceInfo : jmDNSImpl.getServices().values()) {
+                this.addAnswersForServiceInfo(jmDNSImpl, answers, (ServiceInfoImpl) serviceInfo);
+            }
         }
 
         @Override
@@ -291,6 +293,8 @@ public class DNSQuestion extends DNSEntry {
 
             if (logger.isLoggable(Level.FINER)) {
                 logger.finer(jmDNSImpl.getName() + " DNSQuestion(" + this.getName() + ").addAnswersForServiceInfo(): info: " + info + "\n" + answers);
+            if (logger.isDebugEnabled()) {
+                logger.debug(jmDNSImpl.getName() + " DNSQuestion(" + this.getName() + ").addAnswersForServiceInfo(): info: " + info + "\n" + answers);
             }
         }
     }

@@ -3,12 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>javax.jmdns.p2</groupId>
+        <groupId>org.jmdns.p2</groupId>
         <artifactId>pom</artifactId>
-        <version>3.4.3-SNAPSHOT</version>
+        <version>3.5.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>javax.jmdns.repository</artifactId>
+    <artifactId>org.jmdns.repository</artifactId>
     <packaging>eclipse-repository</packaging>
 
     <name>JmDNS Repository</name>
