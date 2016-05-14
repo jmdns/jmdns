@@ -6,8 +6,6 @@ package javax.jmdns.impl;
 
 import java.net.InetAddress;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceInfo.Fields;
@@ -15,6 +13,9 @@ import javax.jmdns.impl.JmDNSImpl.ServiceTypeEntry;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A DNS question.
@@ -283,16 +284,14 @@ public class DNSQuestion extends DNSEntry {
                 answers.addAll(jmDNSImpl.getLocalHost().answers(this.getRecordClass(), DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL));
                 answers.addAll(info.answers(this.getRecordClass(), DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, jmDNSImpl.getLocalHost()));
             }
-            final String constructedType = "_home-sharing._" + info.getProtocol() + "." + info.getDomain() + ".";
-            final String constructedName = "_" + info.getPropertyString("hG") + "._sub." + info.getTypeWithSubtype();
+            String constructedType = "_home-sharing._" + info.getProtocol() + "." + info.getDomain() + ".";
+            String constructedName = "_" + info.getPropertyString("hG") + "._sub." + info.getTypeWithSubtype();
             
             // Apple Homesharing feature
             if (this.getType().equalsIgnoreCase(constructedType) && info.getPropertyString("hG") != null && this.getName().equalsIgnoreCase(constructedName)) {
                 answers.add(new DNSRecord.Pointer(constructedName, DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getName() + "." + constructedType));
             }
 
-            if (logger.isLoggable(Level.FINER)) {
-                logger.finer(jmDNSImpl.getName() + " DNSQuestion(" + this.getName() + ").addAnswersForServiceInfo(): info: " + info + "\n" + answers);
             if (logger.isDebugEnabled()) {
                 logger.debug(jmDNSImpl.getName() + " DNSQuestion(" + this.getName() + ").addAnswersForServiceInfo(): info: " + info + "\n" + answers);
             }
