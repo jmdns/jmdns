@@ -1,2 +1,4 @@
 *.class
 target/*
+update-site/
+/target/

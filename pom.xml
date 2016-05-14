@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>javax.jmdns</groupId>
+	<groupId>org.openhab.jmdns</groupId>
 	<artifactId>jmdns</artifactId>
 	<version>3.4.3-SNAPSHOT</version>
 	<name>JmDNS</name>
@@ -14,8 +14,18 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		<name>JmDNS</name>
 		<url>http://jmdns.org/</url>
 	</organization>
+	<developers>
+		<developer>
+			<name>Kai Kreuzer</name>
+			<email>kai@openhab.org</email>
+			<organization>openHAB</organization>
+			<organizationUrl>http://www.openHAB.org</organizationUrl>
+		</developer>
+	</developers>
 	<scm>
-		<url>https://github.com/openhab/jmdns</url>
+		<connection>scm:git:git@github.com:openhab/jmdns.git</connection>
+		<developerConnection>scm:git:git@github.com:openhab/jmdns.git</developerConnection>
+		<url>git@github.com:openhab/jmdns.git</url>
 	</scm>
 	<issueManagement>
 		<system>github</system>
@@ -149,7 +159,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		            	    <goal>jar</goal>
         			    </goals>
 			            <configuration>
-            			    <additionalparam>-Xdoclint:none</additionalparam>
+            			    <additionalparam>${javadoc.opts}</additionalparam>
 			            </configuration>
 			        </execution>
 			    </executions>
@@ -208,12 +218,16 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 				</plugins>
 			</build>
 		</profile>
+    <!-- We need this profile in order to set '-Xdoclint:none' as a project property which will be used later by maven-javadoc-plugin as an 'additionalparam' to be passed to the javadoc.exe. -->
+    <!-- This option will be used only if the JDK version is 1.8 or higher. Earlier versions of javadoc.exe does not accept this option. -->
+    <profile>
+      <id>doclint-java8-disable</id>
+      <activation>
+        <jdk>[1.8,)</jdk>
+      </activation>
+      <properties>
+        <javadoc.opts>-Xdoclint:none</javadoc.opts>
+      </properties>
+    </profile>
 	</profiles>
-    <distributionManagement>
-        <repository>
-            <id>bintray-kaikreuzer-esh-deps</id>
-            <url>https://api.bintray.com/maven/openhab/mvn/jmDNS/;publish=1</url>
-        </repository>
-    </distributionManagement>
-
 </project>
