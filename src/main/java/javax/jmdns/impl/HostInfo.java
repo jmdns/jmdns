@@ -89,7 +89,7 @@ public class HostInfo implements DNSStatefulObject {
             if (aName.length() == 0) {
                 aName = addr.getHostName();
             }
-            if (aName.contains("in-addr.arpa") || (aName.equals(addr.getHostAddress()))) {
+            if (aName.contains("in-addr.arpa") || (aName.equals(addr.getHostName()))) {
                 aName = ((jmdnsName != null) && (jmdnsName.length() > 0) ? jmdnsName : addr.getHostAddress());
             }
         } catch (final IOException e) {
