@@ -1412,7 +1412,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         boolean hostConflictDetected = false;
         boolean serviceConflictDetected = false;
 
-        for (DNSRecord newRecord : msg.getAllAnswers()) {
+        List<DNSRecord> allAnswers = msg.getAllAnswers();
+        allAnswers = aRecordsLast(allAnswers);
+        for (DNSRecord newRecord : allAnswers) {
             this.handleRecord(newRecord, now);
 
             if (DNSRecordType.TYPE_A.equals(newRecord.getRecordType()) || DNSRecordType.TYPE_AAAA.equals(newRecord.getRecordType())) {
@@ -1427,6 +1429,48 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             this.startProber();
         }
     }
+
+    /**
+     * In case the a record is received before the srv record the ip address would not be set.
+     * <p>
+     * Wireshark record: see also file a_record_before_srv.pcapng and {@link ServiceInfoImplTest#test_ip_address_is_set()}
+     * <p>
+     * Multicast Domain Name System (response)
+     * Transaction ID: 0x0000
+     * Flags: 0x8400 Standard query response, No error
+     * Questions: 0
+     * Answer RRs: 2
+     * Authority RRs: 0
+     * Additional RRs: 8
+     * Answers
+     * _ibisip_http._tcp.local: type PTR, class IN, DeviceManagementService._ibisip_http._tcp.local
+     * _ibisip_http._tcp.local: type PTR, class IN, PassengerCountingService._ibisip_http._tcp.local
+     * Additional records
+     * DeviceManagementService._ibisip_http._tcp.local: type TXT, class IN, cache flush
+     * PassengerCountingService._ibisip_http._tcp.local: type TXT, class IN, cache flush
+     * DIST500_7-F07_OC030_05_03941.local: type A, class IN, cache flush, addr 192.168.88.236
+     * DeviceManagementService._ibisip_http._tcp.local: type SRV, class IN, cache flush, priority 0, weight 0, port 5000, target DIST500_7-F07_OC030_05_03941.local
+     * PassengerCountingService._ibisip_http._tcp.local: type SRV, class IN, cache flush, priority 0, weight 0, port 5001, target DIST500_7-F07_OC030_05_03941.local
+     * DeviceManagementService._ibisip_http._tcp.local: type NSEC, class IN, cache flush, next domain name DeviceManagementService._ibisip_http._tcp.local
+     * PassengerCountingService._ibisip_http._tcp.local: type NSEC, class IN, cache flush, next domain name PassengerCountingService._ibisip_http._tcp.local
+     * DIST500_7-F07_OC030_05_03941.local: type NSEC, class IN, cache flush, next domain name DIST500_7-F07_OC030_05_03941.local
+     */
+    private List<DNSRecord> aRecordsLast(List<DNSRecord> allAnswers) {
+        ArrayList<DNSRecord> ret = new ArrayList<DNSRecord>(allAnswers.size());
+        ArrayList<DNSRecord> arecords = new ArrayList<DNSRecord>();
+        // filter all a records and move them to the end of the list
+        // we do not change der order of the order records
+        for (DNSRecord answer : allAnswers) {
+            if (answer.getRecordType().equals(DNSRecordType.TYPE_A) || answer.getRecordType().equals(DNSRecordType.TYPE_AAAA)) {
+                arecords.add(answer);
+            } else {
+                ret.add(answer);
+            }
+        }
+        ret.addAll(arecords);
+        return ret;
+    }
+
 
     /**
      * Handle an incoming query. See if we can answer any part of it given our service infos.
