@@ -530,16 +530,17 @@ public class JmDNSTest {
     }
 
     @Test
-    public void testRegisterServiceWithDifferentDefaultTLL() throws IOException, InterruptedException {
-        System.out.println("Unit Test: testRegisterServiceWithDifferentDefaultTLL()");
+    public void testRegisterServiceWithDifferentDefaultTTL() throws IOException, InterruptedException {
+        System.out.println("Unit Test: testRegisterServiceWithDifferentDefaultTTL()");
         JmDNS registry = null;
         int defaultTTL = 30;
         try {
             DNSStateTask.setDefaultTTL(defaultTTL);
             registry = JmDNS.create();
             registry.registerService(service);
-            // Needed - otherwise DNSQuestion.addAnswersForServiceInfo is not called
+            // Needed - otherwise DNSQuestion.addAnswersForServiceInfo is not called and the cache not updated
             ServiceInfo[] services = registry.list(service.getType());
+            assertEquals(service, services[0]);
 
             JmDNSImpl registryImpl = (JmDNSImpl) registry;
             DNSCache cache = registryImpl.getCache();
@@ -550,8 +551,10 @@ public class JmDNSTest {
                     assertTrue(record.getRecordType().toString(), Math.abs(defaultTTL - record.getTTL()) <= 1);
                 }
             }
+            registry.unregisterService(services[0]);
         } finally {
             if (registry != null) registry.close();
+			DNSStateTask.setDefaultTTL(DNSConstants.DNS_TTL);
         }
     }
 }
