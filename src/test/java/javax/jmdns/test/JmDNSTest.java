@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +20,13 @@ import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
+import javax.jmdns.impl.DNSCache;
+import javax.jmdns.impl.DNSEntry;
+import javax.jmdns.impl.DNSRecord;
+import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.impl.constants.DNSRecordType;
+import javax.jmdns.impl.tasks.state.DNSStateTask;
 
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -517,6 +524,30 @@ public class JmDNSTest {
             Thread.sleep(1500);
             services = registry.list(service.getType());
             assertTrue("We should not see the service we just unregistered: ", services == null || services.length == 0);
+        } finally {
+            if (registry != null) registry.close();
+        }
+    }
+
+    @Test
+    public void testRegisterServiceWithDifferentDefaultTLL() throws IOException, InterruptedException {
+        System.out.println("Unit Test: testRegisterServiceWithDifferentDefaultTLL()");
+        JmDNS registry = null;
+        int defaultTTL = 30;
+        try {
+            DNSStateTask.setDefaultTTL(defaultTTL);
+            registry = JmDNS.create();
+            registry.registerService(service);
+
+            JmDNSImpl registryImpl = (JmDNSImpl) registry;
+            DNSCache cache = registryImpl.getCache();
+            Collection<DNSEntry> entries = cache.allValues();
+            for (DNSEntry entry : entries) {
+                DNSRecord record = (DNSRecord) entry;
+                if (record.getRecordType() == DNSRecordType.TYPE_PTR || record.getRecordType() == DNSRecordType.TYPE_SRV || record.getRecordType() == DNSRecordType.TYPE_TXT) {
+                    assertEquals(record.getRecordType().toString(), defaultTTL, record.getTTL());
+                }
+            }
         } finally {
             if (registry != null) registry.close();
         }
