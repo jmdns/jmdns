@@ -15,6 +15,7 @@ import javax.jmdns.impl.JmDNSImpl.ServiceTypeEntry;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
+import javax.jmdns.impl.tasks.state.DNSStateTask;
 
 /**
  * A DNS question.
@@ -280,8 +281,8 @@ public class DNSQuestion extends DNSEntry {
     protected void addAnswersForServiceInfo(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers, ServiceInfoImpl info) {
         if ((info != null) && info.isAnnounced()) {
             if (this.getName().equalsIgnoreCase(info.getQualifiedName()) || this.getName().equalsIgnoreCase(info.getType()) || this.getName().equalsIgnoreCase(info.getTypeWithSubtype())) {
-                answers.addAll(jmDNSImpl.getLocalHost().answers(this.getRecordClass(), DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL));
-                answers.addAll(info.answers(this.getRecordClass(), DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, jmDNSImpl.getLocalHost()));
+                answers.addAll(jmDNSImpl.getLocalHost().answers(this.getRecordClass(), DNSRecordClass.UNIQUE, DNSStateTask.defaultTTL()));
+                answers.addAll(info.answers(this.getRecordClass(), DNSRecordClass.UNIQUE, DNSStateTask.defaultTTL(), jmDNSImpl.getLocalHost()));
             }
             if (logger.isDebugEnabled()) {
                 logger.debug(jmDNSImpl.getName() + " DNSQuestion(" + this.getName() + ").addAnswersForServiceInfo(): info: " + info + "\n" + answers);

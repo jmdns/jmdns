@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +20,13 @@ import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
+import javax.jmdns.impl.DNSCache;
+import javax.jmdns.impl.DNSEntry;
+import javax.jmdns.impl.DNSRecord;
+import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.impl.constants.DNSRecordType;
+import javax.jmdns.impl.tasks.state.DNSStateTask;
 
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -519,6 +526,35 @@ public class JmDNSTest {
             assertTrue("We should not see the service we just unregistered: ", services == null || services.length == 0);
         } finally {
             if (registry != null) registry.close();
+        }
+    }
+
+    @Test
+    public void testRegisterServiceWithDifferentDefaultTTL() throws IOException, InterruptedException {
+        System.out.println("Unit Test: testRegisterServiceWithDifferentDefaultTTL()");
+        JmDNS registry = null;
+        int defaultTTL = 30;
+        try {
+            DNSStateTask.setDefaultTTL(defaultTTL);
+            registry = JmDNS.create();
+            registry.registerService(service);
+            // Needed - otherwise DNSQuestion.addAnswersForServiceInfo is not called and the cache not updated
+            ServiceInfo[] services = registry.list(service.getType());
+            assertEquals(service, services[0]);
+
+            JmDNSImpl registryImpl = (JmDNSImpl) registry;
+            DNSCache cache = registryImpl.getCache();
+            Collection<DNSEntry> entries = cache.allValues();
+            for (DNSEntry entry : entries) {
+                DNSRecord record = (DNSRecord) entry;
+                if (record.getRecordType() == DNSRecordType.TYPE_SRV || record.getRecordType() == DNSRecordType.TYPE_TXT) {
+                    assertTrue(record.getRecordType().toString(), Math.abs(defaultTTL - record.getTTL()) <= 1);
+                }
+            }
+            registry.unregisterService(services[0]);
+        } finally {
+            if (registry != null) registry.close();
+			DNSStateTask.setDefaultTTL(DNSConstants.DNS_TTL);
         }
     }
 }
