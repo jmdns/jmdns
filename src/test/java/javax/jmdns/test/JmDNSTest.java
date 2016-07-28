@@ -546,7 +546,7 @@ public class JmDNSTest {
             Collection<DNSEntry> entries = cache.allValues();
             for (DNSEntry entry : entries) {
                 DNSRecord record = (DNSRecord) entry;
-                if (record.getRecordType() == DNSRecordType.TYPE_PTR || record.getRecordType() == DNSRecordType.TYPE_SRV || record.getRecordType() == DNSRecordType.TYPE_TXT) {
+                if (record.getRecordType() == DNSRecordType.TYPE_SRV || record.getRecordType() == DNSRecordType.TYPE_TXT) {
                     assertTrue(record.getRecordType().toString(), Math.abs(defaultTTL - record.getTTL()) <= 1);
                 }
             }
