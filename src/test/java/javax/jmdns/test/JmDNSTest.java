@@ -538,6 +538,8 @@ public class JmDNSTest {
             DNSStateTask.setDefaultTTL(defaultTTL);
             registry = JmDNS.create();
             registry.registerService(service);
+            // Needed - otherwise DNSQuestion.addAnswersForServiceInfo is not called
+            ServiceInfo[] services = registry.list(service.getType());
 
             JmDNSImpl registryImpl = (JmDNSImpl) registry;
             DNSCache cache = registryImpl.getCache();
@@ -545,7 +547,7 @@ public class JmDNSTest {
             for (DNSEntry entry : entries) {
                 DNSRecord record = (DNSRecord) entry;
                 if (record.getRecordType() == DNSRecordType.TYPE_PTR || record.getRecordType() == DNSRecordType.TYPE_SRV || record.getRecordType() == DNSRecordType.TYPE_TXT) {
-                    assertEquals(record.getRecordType().toString(), defaultTTL, record.getTTL());
+                    assertTrue(record.getRecordType().toString(), Math.abs(defaultTTL - record.getTTL()) <= 1);
                 }
             }
         } finally {
