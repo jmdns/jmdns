@@ -1,4 +1,4 @@
-package javax.jmdns.test;
+package javax.jmdns.impl;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
@@ -380,6 +380,42 @@ public class JmDNSTest {
         } finally {
             if (registry != null) registry.close();
             if (newServiceRegistry != null) newServiceRegistry.close();
+        }
+    }
+    
+    @Test
+    public void testAddServiceListenerTwice() throws IOException {
+        System.out.println("Unit Test: testAddServiceListenerTwice()");
+        JmDNSImpl registry = null;
+        try {
+            registry = (JmDNSImpl) JmDNS.create();
+            registry.addServiceListener("test", serviceListenerMock);
+            
+            // we will have 2 listeners, since the collector is implicitly added as well
+            assertEquals(2, registry._serviceListeners.get("test").size());
+            
+            registry.addServiceListener("test", serviceListenerMock);
+            assertEquals(2, registry._serviceListeners.get("test").size());
+        } finally {
+            if (registry != null) registry.close();
+        }
+    }
+
+    @Test
+    public void testRemoveServiceListener() throws IOException {
+        System.out.println("Unit Test: testRemoveServiceListener()");
+        JmDNSImpl registry = null;
+        try {
+            registry = (JmDNSImpl) JmDNS.create();
+            registry.addServiceListener("test", serviceListenerMock);
+            // we will have 2 listeners, since the collector is implicitly added as well
+            assertEquals(2, registry._serviceListeners.get("test").size());
+            
+            registry.removeServiceListener("test", serviceListenerMock);
+            // the collector is left in place
+            assertEquals(1, registry._serviceListeners.get("test").size());
+        } finally {
+            if (registry != null) registry.close();
         }
     }
 
