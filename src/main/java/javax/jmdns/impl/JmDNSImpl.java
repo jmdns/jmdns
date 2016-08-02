@@ -52,7 +52,7 @@ import javax.jmdns.impl.util.NamedThreadFactory;
 /**
  * mDNS implementation in Java.
  *
- * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis
+ * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis, Kai Kreuzer
  */
 public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarter {
     private static Logger logger = LoggerFactory.getLogger(JmDNSImpl.class.getName());
@@ -78,7 +78,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     /**
      * Holds instances of ServiceListener's. Keys are Strings holding a fully qualified service type. Values are LinkedList's of ServiceListener's.
      */
-    private final ConcurrentMap<String, List<ServiceListenerStatus>> _serviceListeners;
+    /* default */ final ConcurrentMap<String, List<ServiceListenerStatus>> _serviceListeners;
 
     /**
      * Holds instances of ServiceTypeListener's.
@@ -946,7 +946,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         }
         if (list != null) {
             synchronized (list) {
-                if (!list.contains(listener)) {
+                if (!list.contains(status)) {
                     list.add(status);
                 }
             }
