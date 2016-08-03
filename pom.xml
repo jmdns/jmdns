@@ -58,14 +58,12 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
-			<type>jar</type>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.easymock</groupId>
 			<artifactId>easymock</artifactId>
 			<version>3.3.1</version>
-			<type>jar</type>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -189,7 +187,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings 
+				<!--This plugin's configuration is used to store Eclipse m2e settings
 					only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
