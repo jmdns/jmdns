@@ -23,9 +23,9 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git:git@github.com:jmdns/jmdns.git</connection>
-		<developerConnection>scm:git:git@github.com:jmdns/jmdns.git</developerConnection>
-		<url>git@github.com:jmdns/jmdns.git</url>
+		<connection>scm:git:https://github.com/jmdns/jmdns.git</connection>
+		<developerConnection>scm:git:https://github.com/jmdns/jmdns.git</developerConnection>
+		<url>https://github.com/jmdns/jmdns.git</url>
 	</scm>
     <distributionManagement>
         <repository>
