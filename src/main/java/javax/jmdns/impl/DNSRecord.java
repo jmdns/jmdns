@@ -126,7 +126,7 @@ public abstract class DNSRecord extends DNSEntry {
      */
     long getExpirationTime(int percent) {
         // ttl is in seconds the constant 10 is 1000 ms / 100 %
-        return _created + (percent * _ttl * 10L);
+        return _created + (percent * ((long)_ttl) * 10L);
     }
 
     /**
