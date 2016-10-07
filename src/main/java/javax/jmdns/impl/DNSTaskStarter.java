@@ -275,7 +275,7 @@ public interface DNSTaskStarter {
             super();
             _jmDNSImpl = jmDNSImpl;
             _timer = new StarterTimer("JmDNS(" + _jmDNSImpl.getName() + ").Timer", true);
-            _stateTimer = new StarterTimer("JmDNS(" + _jmDNSImpl.getName() + ").State.Timer", true);
+            _stateTimer = new StarterTimer("JmDNS(" + _jmDNSImpl.getName() + ").State.Timer", false);
         }
 
         /*
