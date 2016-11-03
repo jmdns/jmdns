@@ -5,6 +5,7 @@ package javax.jmdns.impl;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,8 +27,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.JmmDNS;
@@ -39,6 +38,9 @@ import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.util.NamedThreadFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class enable multihoming mDNS. It will open a mDNS per IP address of the machine.
@@ -85,11 +87,20 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
 
     private final AtomicBoolean                                _closed;
 
+    private String                                              _defaultHostName = null;
+
     /**
      *
      */
     public JmmDNSImpl() {
         super();
+
+        try {
+            _defaultHostName = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            logger.info("Error on getting hostname",e);
+        }
+
         _networkListeners = Collections.synchronizedSet(new HashSet<NetworkTopologyListener>());
         _knownMDNS = new ConcurrentHashMap<InetAddress, JmDNS>();
         _services = new ConcurrentHashMap<String, ServiceInfo>(20);
@@ -630,7 +641,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
             if (!_knownMDNS.containsKey(address)) {
                 synchronized (_knownMDNS) {
                     if (!_knownMDNS.containsKey(address)) {
-                        final JmDNS dns = JmDNS.create(address);
+                        final JmDNS dns = JmDNS.create(address, _defaultHostName);
                         if (_knownMDNS.putIfAbsent(address, dns) == null) {
                             // We need to register the services and listeners with the new JmDNS
                             final Collection<String> types = _serviceTypes;
