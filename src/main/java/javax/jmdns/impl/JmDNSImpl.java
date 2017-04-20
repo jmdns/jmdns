@@ -1987,7 +1987,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
         boolean newCollectorCreated = false;
         if (this.isCanceling() || this.isCanceled()) {
-            System.out.println("JmDNS Cancelling.");
             return new ServiceInfo[0];
         }
 
