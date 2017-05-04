@@ -1,5 +1,6 @@
 ![build status](https://travis-ci.org/openhab/jmdns.svg)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.jmdns/jmdns/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.jmdns/jmdns)
+[![Javadocs](http://www.javadoc.io/badge/org.jmdns/jmdns.svg)](http://www.javadoc.io/doc/org.jmdns/jmdns)
 
 This library is licensed under the Apache License Version 2.0.
 Please see the file [NOTICE.txt](NOTICE.txt).  
