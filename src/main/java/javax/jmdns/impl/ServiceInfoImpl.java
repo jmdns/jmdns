@@ -885,8 +885,66 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     @Override
     public void updateRecord(DNSCache dnsCache, long now, DNSEntry rec) {
-        if ((rec instanceof DNSRecord) && !rec.isExpired(now)) {
-            boolean serviceUpdated = false;
+
+        // some logging for debugging purposes
+        if ( !(rec instanceof DNSRecord) ) {
+            if ( null == rec) {
+                logger.trace("DNSEntry is not of type 'DNSRecord' but null.");
+            } else {
+                logger.trace("DNSEntry is not of type 'DNSRecord' but of type {}", rec.getClass().getSimpleName());
+            }
+            return;
+        }
+
+        // flag for changes
+        boolean serviceUpdated = false;
+
+        // check if there is any data to be removed fromt his service info
+        if ( rec.isExpired(now) ) {
+            logger.trace("DNSEntry has expired, type: {}", rec.getClass().getName());
+            logger.trace("DNSRecord of type {} has expired", rec.getRecordType());
+            switch (rec.getRecordType()) {
+                case TYPE_A: // IPv4
+                    if (rec.getName().equalsIgnoreCase(this.getServer())) {
+                        final Inet4Address inet4Address = (Inet4Address) ((DNSRecord.Address) rec).getAddress();
+                        logger.trace("Inet4Address has expired: {}", inet4Address);
+
+                        // only if the address has been actually removed
+                        serviceUpdated = _ipv4Addresses.remove(inet4Address);
+                    }
+                    break;
+                case TYPE_AAAA: // IPv6
+                    if (rec.getName().equalsIgnoreCase(this.getServer())) {
+                        final Inet6Address inet6Address = (Inet6Address) ((DNSRecord.Address) rec).getAddress(); 
+                        logger.trace("Inet6Address has expired: {}", inet6Address);
+
+                        // only if the address has been actually removed
+                        serviceUpdated = _ipv6Addresses.remove(inet6Address);
+                    }
+                    break;
+                case TYPE_SRV:
+                    if (rec.getName().equalsIgnoreCase(this.getQualifiedName())) {
+                        DNSRecord.Service srv = (DNSRecord.Service) rec;
+                        logger.trace("DNSRecord.Service has expired: {}", srv.getServer());
+                    }
+                    break;
+                case TYPE_TXT:
+                    if (rec.getName().equalsIgnoreCase(this.getQualifiedName())) {
+                        DNSRecord.Text txt = (DNSRecord.Text) rec;
+                        logger.trace("DNSRecord.Text has expired: {}", txt.getText());
+                    }
+                    break;
+                case TYPE_PTR:
+                    if ((this.getSubtype().length() == 0) && (rec.getSubtype().length() != 0)) {
+                        logger.trace("TYPE_PTR has expired: {}", rec.getSubtype());
+                    }
+                    break;
+                default:
+                    logger.trace("Unhandled RecordType {}, has SubType: {}", rec.getRecordType(), rec.getSubtype());
+                    break;
+            }
+        } else {
+            // now take care of adding information
             switch (rec.getRecordType()) {
                 case TYPE_A: // IPv4
                     if (rec.getName().equalsIgnoreCase(this.getServer())) {
@@ -940,16 +998,24 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                 default:
                     break;
             }
-            if (serviceUpdated && this.hasData()) {
+
+            // handle changes in service
+            if (serviceUpdated) {
                 JmDNSImpl dns = this.getDns();
                 if (dns != null) {
-                    // ServiceEvent event = ((DNSRecord) rec).getServiceEvent(dns);
-                    // event = new ServiceEventImpl(dns, event.getType(), event.getName(), this);
-                    // Failure to resolve services - ID: 3517826
-                    ServiceEvent event = new ServiceEventImpl(dns, this.getType(), this.getName(), this);
-                    dns.handleServiceResolved(event);
+                    if ( this.hasData()) {
+                        // ServiceEvent event = ((DNSRecord) rec).getServiceEvent(dns);
+                        // event = new ServiceEventImpl(dns, event.getType(), event.getName(), this);
+                        // Failure to resolve services - ID: 3517826
+                        ServiceEvent event = new ServiceEventImpl(dns, this.getType(), this.getName(), this);
+                        dns.handleServiceResolved(event);
+                    } else {
+                        // FIXME: what to do here ???
+                        logger.trace("No data for this ServiceInfo, should delete: {}", this);
+                    }
                 }
             }
+
             // This is done, to notify the wait loop in method JmDNS.waitForInfoData(ServiceInfo info, int timeout);
             synchronized (this) {
                 this.notifyAll();
