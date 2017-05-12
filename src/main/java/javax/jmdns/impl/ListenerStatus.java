@@ -226,8 +226,8 @@ public class ListenerStatus<T extends EventListener> {
 
     }
 
-    public final static boolean SYNCHONEOUS  = true;
-    public final static boolean ASYNCHONEOUS = false;
+    public final static boolean SYNCHRONOUS  = true;
+    public final static boolean ASYNCHRONOUS = false;
 
     private final T             _listener;
 

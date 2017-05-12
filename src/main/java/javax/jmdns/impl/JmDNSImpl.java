@@ -752,7 +752,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         String loType = type.toLowerCase();
         this.registerServiceType(type);
         if (_serviceCollectors.putIfAbsent(loType, new ServiceCollector(type)) == null) {
-            this.addServiceListener(loType, _serviceCollectors.get(loType), ListenerStatus.SYNCHONEOUS);
+            this.addServiceListener(loType, _serviceCollectors.get(loType), ListenerStatus.SYNCHRONOUS);
         }
 
         // Check if the answer is in the cache.
@@ -903,7 +903,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      */
     @Override
     public void addServiceTypeListener(ServiceTypeListener listener) throws IOException {
-        ServiceTypeListenerStatus status = new ServiceTypeListenerStatus(listener, ListenerStatus.ASYNCHONEOUS);
+        ServiceTypeListenerStatus status = new ServiceTypeListenerStatus(listener, ListenerStatus.ASYNCHRONOUS);
         _typeListeners.add(status);
 
         // report cached service types
@@ -919,7 +919,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      */
     @Override
     public void removeServiceTypeListener(ServiceTypeListener listener) {
-        ServiceTypeListenerStatus status = new ServiceTypeListenerStatus(listener, ListenerStatus.ASYNCHONEOUS);
+        ServiceTypeListenerStatus status = new ServiceTypeListenerStatus(listener, ListenerStatus.ASYNCHRONOUS);
         _typeListeners.remove(status);
     }
 
@@ -928,7 +928,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      */
     @Override
     public void addServiceListener(String type, ServiceListener listener) {
-        this.addServiceListener(type, listener, ListenerStatus.ASYNCHONEOUS);
+        this.addServiceListener(type, listener, ListenerStatus.ASYNCHRONOUS);
     }
 
     private void addServiceListener(String type, ServiceListener listener, boolean synch) {
@@ -939,7 +939,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             if (_serviceListeners.putIfAbsent(loType, new LinkedList<ServiceListenerStatus>()) == null) {
                 if (_serviceCollectors.putIfAbsent(loType, new ServiceCollector(type)) == null) {
                     // We have a problem here. The service collectors must be called synchronously so that their cache get cleaned up immediately or we will report .
-                    this.addServiceListener(loType, _serviceCollectors.get(loType), ListenerStatus.SYNCHONEOUS);
+                    this.addServiceListener(loType, _serviceCollectors.get(loType), ListenerStatus.SYNCHRONOUS);
                 }
             }
             list = _serviceListeners.get(loType);
@@ -981,7 +981,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         List<ServiceListenerStatus> list = _serviceListeners.get(loType);
         if (list != null) {
             synchronized (list) {
-                ServiceListenerStatus status = new ServiceListenerStatus(listener, ListenerStatus.ASYNCHONEOUS);
+                ServiceListenerStatus status = new ServiceListenerStatus(listener, ListenerStatus.ASYNCHRONOUS);
                 list.remove(status);
                 if (list.isEmpty()) {
                     _serviceListeners.remove(loType, list);
@@ -1995,7 +1995,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             newCollectorCreated = _serviceCollectors.putIfAbsent(loType, new ServiceCollector(type)) == null;
             collector = _serviceCollectors.get(loType);
             if (newCollectorCreated) {
-                this.addServiceListener(type, collector, ListenerStatus.SYNCHONEOUS);
+                this.addServiceListener(type, collector, ListenerStatus.SYNCHRONOUS);
             }
         }
         if (logger.isDebugEnabled()) {
