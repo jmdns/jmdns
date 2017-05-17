@@ -88,14 +88,12 @@ public class ServiceEventImpl extends ServiceEvent {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("[" + this.getClass().getSimpleName() + "@" + System.identityHashCode(this) + " ");
-        sb.append("\n\tname: '");
-        sb.append(this.getName());
-        sb.append("' type: '");
-        sb.append(this.getType());
-        sb.append("' info: '");
-        sb.append(this.getInfo());
-        sb.append("']");
+        sb.append('[')
+            .append(this.getClass().getSimpleName()).append('@').append(System.identityHashCode(this))
+            .append("\n\tname: '").append(this.getName())
+            .append("' type: '").append(this.getType())
+            .append("' info: '").append(this.getInfo())
+            .append("']");
         // buf.append("' source: ");
         // buf.append("\n\t" + source + "");
         // buf.append("\n]");

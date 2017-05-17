@@ -143,7 +143,7 @@ public class ListenerStatus<T extends EventListener> {
                 sb.append(" no type event ");
             } else {
                 sb.append(" (");
-                for (String service : _addedServices.keySet()) {
+                for (final String service : _addedServices.keySet()) {
                     sb.append(service + ", ");
                 }
                 sb.append(") ");
@@ -215,7 +215,7 @@ public class ListenerStatus<T extends EventListener> {
                 sb.append(" no type event ");
             } else {
                 sb.append(" (");
-                for (String type : _addedTypes.keySet()) {
+                for (final String type : _addedTypes.keySet()) {
                     sb.append(type + ", ");
                 }
                 sb.append(") ");

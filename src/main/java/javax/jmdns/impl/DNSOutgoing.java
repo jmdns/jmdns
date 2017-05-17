@@ -389,12 +389,12 @@ public final class DNSOutgoing extends DNSMessage {
      * Debugging.
      */
     String print(boolean dump) {
-        StringBuilder buf = new StringBuilder();
-        buf.append(this.print());
+        final StringBuilder sb = new StringBuilder();
+        sb.append(this.print());
         if (dump) {
-            buf.append(this.print(this.data()));
+            sb.append(this.print(this.data()));
         }
-        return buf.toString();
+        return sb.toString();
     }
 
     @Override
