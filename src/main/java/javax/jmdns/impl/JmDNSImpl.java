@@ -1925,7 +1925,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         sb.append("\n\t");
         sb.append(_localHost);
         sb.append("\n\t---- Services -----");
-        for (String key : _services.keySet()) {
+        for (final String key : _services.keySet()) {
             sb.append("\n\t\tService: ");
             sb.append(key);
             sb.append(": ");
@@ -1933,7 +1933,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         }
         sb.append("\n");
         sb.append("\t---- Types ----");
-        for (String key : _serviceTypes.keySet()) {
+        for (final String key : _serviceTypes.keySet()) {
             ServiceTypeEntry subtypes = _serviceTypes.get(key);
             sb.append("\n\t\tType: ");
             sb.append(subtypes.getType());
@@ -1944,7 +1944,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         sb.append(_cache.toString());
         sb.append("\n");
         sb.append("\t---- Service Collectors ----");
-        for (String key : _serviceCollectors.keySet()) {
+        for (final String key : _serviceCollectors.keySet()) {
             sb.append("\n\t\tService Collector: ");
             sb.append(key);
             sb.append(": ");
@@ -1952,7 +1952,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         }
         sb.append("\n");
         sb.append("\t---- Service Listeners ----");
-        for (String key : _serviceListeners.keySet()) {
+        for (final String key : _serviceListeners.keySet()) {
             sb.append("\n\t\tService Listener: ");
             sb.append(key);
             sb.append(": ");
@@ -2182,7 +2182,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 sb.append("\n\tNo services collected.");
             } else {
                 sb.append("\n\tServices");
-                for (String key : _infos.keySet()) {
+                for (final String key : _infos.keySet()) {
                     sb.append("\n\t\tService: ");
                     sb.append(key);
                     sb.append(": ");
@@ -2193,7 +2193,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 sb.append("\n\tNo event queued.");
             } else {
                 sb.append("\n\tEvents");
-                for (String key : _events.keySet()) {
+                for (final String key : _events.keySet()) {
                     sb.append("\n\t\tEvent: ");
                     sb.append(key);
                     sb.append(": ");
