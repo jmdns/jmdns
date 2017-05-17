@@ -1172,36 +1172,32 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("[" + this.getClass().getSimpleName() + "@" + System.identityHashCode(this) + " ");
-        sb.append("name: '");
-        sb.append((this.getName().length() > 0 ? this.getName() + "." : "") + this.getTypeWithSubtype());
+        sb.append('[').append(this.getClass().getSimpleName()).append('@').append(System.identityHashCode(this));
+        sb.append(" name: '");
+        if (0 < this.getName().length()) {
+            sb.append(this.getName()).append('.');
+        }
+        sb.append(this.getTypeWithSubtype());
         sb.append("' address: '");
         InetAddress[] addresses = this.getInetAddresses();
         if (addresses.length > 0) {
             for (InetAddress address : addresses) {
-                sb.append(address);
-                sb.append(':');
-                sb.append(this.getPort());
+                sb.append(address).append(':').append(this.getPort());
                 sb.append(' ');
             }
         } else {
-            sb.append("(null):");
-            sb.append(this.getPort());
+            sb.append("(null):").append(this.getPort());
         }
-        sb.append("' status: '");
-        sb.append(_state.toString());
+        sb.append("' status: '").append(_state.toString());
         sb.append(this.isPersistent() ? "' is persistent," : "',");
-        sb.append(" has ");
-        sb.append(this.hasData() ? "" : "NO ");
-        sb.append("data");
+        sb.append(" has ").append(this.hasData() ? "" : "NO ").append("data");
         if (this.getTextBytes().length > 0) {
-            // sb.append("\n");
-            // sb.append(this.getNiceTextString());
-            Map<String, byte[]> properties = this.getProperties();
+            // sb.append("\n").append(this.getNiceTextString());
+            final Map<String, byte[]> properties = this.getProperties();
             if (!properties.isEmpty()) {
-                sb.append("\n");
-                for (String key : properties.keySet()) {
-                    sb.append("\t" + key + ": " + new String(properties.get(key)) + "\n");
+                sb.append('\n');
+                for (final String key : properties.keySet()) {
+                    sb.append('\t').append(key).append(": ").append(new String(properties.get(key))).append('\n');
                 }
             } else {
                 sb.append(" empty");

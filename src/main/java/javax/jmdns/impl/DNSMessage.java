@@ -252,17 +252,17 @@ public abstract class DNSMessage {
         final StringBuilder sb = new StringBuilder(200);
         sb.append(this.toString());
         sb.append("\n");
-        for (DNSQuestion question : _questions) {
+        for (final DNSQuestion question : _questions) {
             sb.append("\tquestion:      ");
             sb.append(question);
             sb.append("\n");
         }
-        for (DNSRecord answer : _answers) {
+        for (final DNSRecord answer : _answers) {
             sb.append("\tanswer:        ");
             sb.append(answer);
             sb.append("\n");
         }
-        for (DNSRecord answer : _authoritativeAnswers) {
+        for (final DNSRecord answer : _authoritativeAnswers) {
             sb.append("\tauthoritative: ");
             sb.append(answer);
             sb.append("\n");
