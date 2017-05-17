@@ -546,7 +546,8 @@ public final class DNSIncoming extends DNSMessage {
                 sb.append(record);
             }
         }
-        sb.append("]");
+        sb.append(']');
+
         return sb.toString();
     }
 
@@ -590,7 +591,7 @@ public final class DNSIncoming extends DNSMessage {
      */
     private String _hexString(byte[] bytes) {
 
-        StringBuilder result = new StringBuilder(2 * bytes.length);
+        final StringBuilder result = new StringBuilder(2 * bytes.length);
 
         for (int i = 0; i < bytes.length; i++) {
             int b = bytes[i] & 0xFF;

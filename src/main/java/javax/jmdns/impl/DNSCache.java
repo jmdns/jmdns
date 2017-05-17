@@ -281,7 +281,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
             List<? extends DNSEntry> entryList = this.get(key);
             if ((entryList != null) && (!entryList.isEmpty())) {
                 synchronized (entryList) {
-                    for (DNSEntry entry : entryList) {
+                    for (final DNSEntry entry : entryList) {
                         sb.append("\n\t\t\t");
                         sb.append(entry.toString());
                     }

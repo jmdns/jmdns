@@ -296,13 +296,14 @@ public abstract class DNSEntry {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder(200);
-        sb.append("[" + this.getClass().getSimpleName() + "@" + System.identityHashCode(this));
-        sb.append(" type: " + this.getRecordType());
-        sb.append(", class: " + this.getRecordClass());
+        sb.append('[').append(this.getClass().getSimpleName()).append('@').append(System.identityHashCode(this));
+        sb.append(" type: ").append(this.getRecordType());
+        sb.append(", class: ").append(this.getRecordClass());
         sb.append((_unique ? "-unique," : ","));
-        sb.append(" name: " + _name);
+        sb.append(" name: ").append( _name);
         this.toString(sb);
-        sb.append("]");
+        sb.append(']');
+
         return sb.toString();
     }
 

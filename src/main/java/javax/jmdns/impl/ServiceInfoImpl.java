@@ -1172,36 +1172,30 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("[" + this.getClass().getSimpleName() + "@" + System.identityHashCode(this) + " ");
-        sb.append("name: '");
-        sb.append((this.getName().length() > 0 ? this.getName() + "." : "") + this.getTypeWithSubtype());
+        sb.append("[").append(this.getClass().getSimpleName()).append('@').append(System.identityHashCode(this));
+        sb.append(" name: '").append((this.getName().length() > 0 ? this.getName() + "." : "") + this.getTypeWithSubtype());
         sb.append("' address: '");
         InetAddress[] addresses = this.getInetAddresses();
         if (addresses.length > 0) {
             for (InetAddress address : addresses) {
-                sb.append(address);
-                sb.append(':');
-                sb.append(this.getPort());
+                sb.append(address).append(':').append(this.getPort());
                 sb.append(' ');
             }
         } else {
             sb.append("(null):");
             sb.append(this.getPort());
         }
-        sb.append("' status: '");
-        sb.append(_state.toString());
+        sb.append("' status: '").append(_state.toString());
         sb.append(this.isPersistent() ? "' is persistent," : "',");
-        sb.append(" has ");
-        sb.append(this.hasData() ? "" : "NO ");
-        sb.append("data");
+        sb.append(" has ").append(this.hasData() ? "" : "NO ").append("data");
         if (this.getTextBytes().length > 0) {
             // buf.append("\n");
             // buf.append(this.getNiceTextString());
-            Map<String, byte[]> properties = this.getProperties();
+            final Map<String, byte[]> properties = this.getProperties();
             if (!properties.isEmpty()) {
                 sb.append("\n");
-                for (String key : properties.keySet()) {
-                    sb.append("\t" + key + ": " + new String(properties.get(key)) + "\n");
+                for (final String key : properties.keySet()) {
+                    sb.append('\t').append(key).append(": ").append(new String(properties.get(key))).append('\n');
                 }
             } else {
                 sb.append(" empty");
