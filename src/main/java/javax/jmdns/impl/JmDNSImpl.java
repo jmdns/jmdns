@@ -876,21 +876,33 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         this.waitForInfoData(info, timeout);
     }
 
-    void handleServiceResolved(ServiceEvent event) {
-        List<ServiceListenerStatus> list = _serviceListeners.get(event.getType().toLowerCase());
-        final List<ServiceListenerStatus> listCopy;
-        if ((list != null) && (!list.isEmpty())) {
+    /**
+     * Informs all registered {@link ServiceListener}s with an {@link ServiceEvent} about a resolved {@link ServiceInfo}.
+     *
+     * @param event
+     *            containing the {@link ServiceInfo} which was resolved
+     */
+    void handleServiceResolved(final ServiceEvent event) {
+        final List<ServiceListenerStatus> list = _serviceListeners.get(event.getType().toLowerCase());
+
+        // we might have some listeners to inform
+        if (list != null)  {
             if ((event.getInfo() != null) && event.getInfo().hasData()) {
-                final ServiceEvent localEvent = event;
+                final List<ServiceListenerStatus> listCopy;
                 synchronized (list) {
+                    if ( list.isEmpty() ) {
+                        // no listeners found => nothing to do
+                        return;
+                    }
                     listCopy = new ArrayList<ServiceListenerStatus>(list);
                 }
+
                 for (final ServiceListenerStatus listener : listCopy) {
                     _executor.submit(new Runnable() {
                         /** {@inheritDoc} */
                         @Override
                         public void run() {
-                            listener.serviceResolved(localEvent);
+                            listener.serviceResolved(event);
                         }
                     });
                 }
@@ -1120,27 +1132,32 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             }
         }
         if (subtype.length() > 0) {
-            ServiceTypeEntry subtypes = _serviceTypes.get(loname);
-            if ((subtypes != null) && (!subtypes.contains(subtype))) {
+            final ServiceTypeEntry subtypes = _serviceTypes.get(loname);
+            if (subtypes != null) {
+                boolean needsSubTypeAddedNotification = false;
                 synchronized (subtypes) {
                     if (!subtypes.contains(subtype)) {
                         typeAdded = true;
                         subtypes.add(subtype);
-                        final ServiceTypeListenerStatus[] list = _typeListeners.toArray(new ServiceTypeListenerStatus[_typeListeners.size()]);
-                        final ServiceEvent event = new ServiceEventImpl(this, "_" + subtype + "._sub." + name, "", null);
-                        for (final ServiceTypeListenerStatus status : list) {
-                            _executor.submit(new Runnable() {
-                                /** {@inheritDoc} */
-                                @Override
-                                public void run() {
-                                    status.subTypeForServiceTypeAdded(event);
-                                }
-                            });
-                        }
+                        needsSubTypeAddedNotification = true;
+                    }
+                }
+                if (needsSubTypeAddedNotification) {
+                    final ServiceTypeListenerStatus[] list = _typeListeners.toArray(new ServiceTypeListenerStatus[_typeListeners.size()]);
+                    final ServiceEvent event = new ServiceEventImpl(this, "_" + subtype + "._sub." + name, "", null);
+                    for (final ServiceTypeListenerStatus status : list) {
+                        _executor.submit(new Runnable() {
+                            /** {@inheritDoc} */
+                            @Override
+                            public void run() {
+                                status.subTypeForServiceTypeAdded(event);
+                            }
+                        });
                     }
                 }
             }
         }
+
         return typeAdded;
     }
 
