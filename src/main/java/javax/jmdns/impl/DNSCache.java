@@ -279,7 +279,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
             sb.append(key);
             sb.append("' ");
             List<? extends DNSEntry> entryList = this.get(key);
-            if ((entryList != null) && (!entryList.isEmpty())) {
+            if (entryList != null) {
                 synchronized (entryList) {
                     for (final DNSEntry entry : entryList) {
                         sb.append("\n\t\t\t");
