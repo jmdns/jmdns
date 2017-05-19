@@ -22,84 +22,84 @@ interoperable with Apple's Bonjour.
 
 ## Sample Code for Service Registration
 
-```
-    import java.io.IOException;
-    import java.net.InetAddress;
+```java
+import java.io.IOException;
+import java.net.InetAddress;
 
-    import javax.jmdns.JmDNS;
-    import javax.jmdns.ServiceInfo;
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceInfo;
 
-    public class ExampleServiceRegistration {
+public class ExampleServiceRegistration {
 
-        public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException {
 
-            try {
-                // Create a JmDNS instance
-                JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
+        try {
+            // Create a JmDNS instance
+            JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
 
-                // Register a service
-                ServiceInfo serviceInfo = ServiceInfo.create("_http._tcp.local.", "example", 1234, "path=index.html");
-                jmdns.registerService(serviceInfo);
+            // Register a service
+            ServiceInfo serviceInfo = ServiceInfo.create("_http._tcp.local.", "example", 1234, "path=index.html");
+            jmdns.registerService(serviceInfo);
 
-                // Wait a bit
-                Thread.sleep(25000);
+            // Wait a bit
+            Thread.sleep(25000);
 
-                // Unregister all services
-                jmdns.unregisterAllServices();
+            // Unregister all services
+            jmdns.unregisterAllServices();
 
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
         }
     }
+}
 ```
 
 
 ## Sample code for Service Discovery
 
-```
-    import java.io.IOException;
-    import java.net.InetAddress;
-    import java.net.UnknownHostException;
+```java
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
-    import javax.jmdns.JmDNS;
-    import javax.jmdns.ServiceEvent;
-    import javax.jmdns.ServiceListener;
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceEvent;
+import javax.jmdns.ServiceListener;
 
-    public class ExampleServiceDiscovery {
+public class ExampleServiceDiscovery {
 
-        private static class SampleListener implements ServiceListener {
-            @Override
-            public void serviceAdded(ServiceEvent event) {
-                System.out.println("Service added: " + event.getInfo());
-            }
-
-            @Override
-            public void serviceRemoved(ServiceEvent event) {
-                System.out.println("Service removed: " + event.getInfo());
-            }
-
-            @Override
-            public void serviceResolved(ServiceEvent event) {
-                System.out.println("Service resolved: " + event.getInfo());
-            }
+    private static class SampleListener implements ServiceListener {
+        @Override
+        public void serviceAdded(ServiceEvent event) {
+            System.out.println("Service added: " + event.getInfo());
         }
 
-        public static void main(String[] args) throws InterruptedException {
-            try {
-                // Create a JmDNS instance
-                JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
-                
-                // Add a service listener
-                jmdns.addServiceListener("_http._tcp.local.", new SampleListener());
+        @Override
+        public void serviceRemoved(ServiceEvent event) {
+            System.out.println("Service removed: " + event.getInfo());
+        }
 
-                // Wait a bit
-                Thread.sleep(30000);
-            } catch (UnknownHostException e) {
-                System.out.println(e.getMessage());
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            }
+        @Override
+        public void serviceResolved(ServiceEvent event) {
+            System.out.println("Service resolved: " + event.getInfo());
         }
     }
+
+    public static void main(String[] args) throws InterruptedException {
+        try {
+            // Create a JmDNS instance
+            JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
+
+            // Add a service listener
+            jmdns.addServiceListener("_http._tcp.local.", new SampleListener());
+
+            // Wait a bit
+            Thread.sleep(30000);
+        } catch (UnknownHostException e) {
+            System.out.println(e.getMessage());
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+}
 ```
