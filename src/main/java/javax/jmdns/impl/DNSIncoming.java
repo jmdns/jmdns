@@ -350,11 +350,31 @@ public final class DNSIncoming extends DNSMessage {
                 rec = new DNSRecord.Service(domain, recordClass, unique, ttl, priority, weight, port, target);
                 break;
             case TYPE_HINFO:
-                StringBuilder buf = new StringBuilder();
-                buf.append(_messageInputStream.readUTF(len));
-                int index = buf.indexOf(" ");
-                String cpu = (index > 0 ? buf.substring(0, index) : buf.toString()).trim();
-                String os = (index > 0 ? buf.substring(index + 1) : "").trim();
+                // see Section 3.2.2 in https://tools.ietf.org/html/rfc1035
+                // HINFO contains TWO pieces of information CPU and OS, so we cannot parse into one single BLOB
+                final byte[] hinfoBytes = _messageInputStream.readBytes(len);
+
+                String cpu = "";
+                String os = "";
+                int off = 0;
+
+                // there is some data
+                if (0 < len) {
+                 // data contains more than just a zero length
+                    if (2 < hinfoBytes.length) {
+                        if (off + hinfoBytes[off] < hinfoBytes.length) {
+                            // skip byte containing length
+                            cpu = new String(hinfoBytes, off + 1, hinfoBytes[off]);
+                            off += hinfoBytes[off] + 1; // skip bytes read for CPU
+                        }
+                        if (off + hinfoBytes[off] < hinfoBytes.length) {
+                            // skip byte containing length
+                            os = new String(hinfoBytes, off + 1, hinfoBytes[off]);
+                            off += hinfoBytes[off] + 1; // skip bytes read for OS
+                        }
+                    }
+                }
+
                 rec = new DNSRecord.HostInformation(domain, recordClass, unique, ttl, cpu, os);
                 break;
             case TYPE_OPT:
