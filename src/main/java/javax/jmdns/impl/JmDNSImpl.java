@@ -9,7 +9,9 @@ import java.net.DatagramPacket;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -461,14 +463,18 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         // }
         _socket = new MulticastSocket(DNSConstants.MDNS_PORT);
         if ((hostInfo != null) && (hostInfo.getInterface() != null)) {
-            try {
-                _socket.setNetworkInterface(hostInfo.getInterface());
-            } catch (SocketException e) {
-                logger.debug("openMulticastSocket() Set network interface exception: {}", e.getMessage());
-            }
+            final SocketAddress multicastAddr = new InetSocketAddress(_group, DNSConstants.MDNS_PORT);
+
+            logger.trace("Trying to joinGroup({}, {})", multicastAddr, hostInfo.getInterface());
+
+            // this joinGroup() might be less surprisingly so this is the default
+            _socket.joinGroup(multicastAddr, hostInfo.getInterface());
+        } else {
+            logger.trace("Trying to joinGroup({})", _group);
+            _socket.joinGroup(_group);
         }
+
         _socket.setTimeToLive(255);
-        _socket.joinGroup(_group);
     }
 
     private void closeMulticastSocket() {
