@@ -25,6 +25,9 @@ import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 
+import static javax.jmdns.impl.util.ByteWrangler.*;
+
+
 /**
  * DNS record
  *
@@ -32,6 +35,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
  */
 public abstract class DNSRecord extends DNSEntry {
     private static Logger logger = LoggerFactory.getLogger(DNSRecord.class.getName());
+
     private int           _ttl;
     private long          _created;
     private int           _isStaleAndShouldBeRefreshedPercentage;
@@ -564,8 +568,6 @@ public abstract class DNSRecord extends DNSEntry {
         }
 
     }
-
-    public final static byte[] EMPTY_TXT = new byte[] { 0 };
 
     public static class Text extends DNSRecord {
         // private static Logger logger = LoggerFactory.getLogger(Text.class.getName());
