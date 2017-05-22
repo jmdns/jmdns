@@ -792,7 +792,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     String readUTF(byte data[], int off, int len) {
         int offset = off;
-        StringBuffer buf = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         for (int end = offset + len; offset < end;) {
             int ch = data[offset++] & 0xFF;
             switch (ch >> 4) {
@@ -829,9 +829,9 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                     ch = ((ch & 0x3F) << 4) | (data[offset++] & 0x0f);
                     break;
             }
-            buf.append((char) ch);
+            sb.append((char) ch);
         }
-        return buf.toString();
+        return sb.toString();
     }
 
     synchronized Map<String, byte[]> getProperties() {
@@ -1131,21 +1131,21 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     @Override
     public String getNiceTextString() {
-        StringBuffer buf = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         for (int i = 0, len = this.getTextBytes().length; i < len; i++) {
             if (i >= 200) {
-                buf.append("...");
+                sb.append("...");
                 break;
             }
             int ch = getTextBytes()[i] & 0xFF;
             if ((ch < ' ') || (ch > 127)) {
-                buf.append("\\0");
-                buf.append(Integer.toString(ch, 8));
+                sb.append("\\0");
+                sb.append(Integer.toString(ch, 8));
             } else {
-                buf.append((char) ch);
+                sb.append((char) ch);
             }
         }
-        return buf.toString();
+        return sb.toString();
     }
 
     /*
