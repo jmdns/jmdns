@@ -282,54 +282,54 @@ public abstract class DNSMessage {
      * @return data dump
      */
     protected String print(byte[] data) {
-        StringBuilder buf = new StringBuilder(4000);
+        final StringBuilder sb = new StringBuilder(4000);
         for (int off = 0, len = data.length; off < len; off += 32) {
             int n = Math.min(32, len - off);
             if (off < 0x10) {
-                buf.append(' ');
+                sb.append(' ');
             }
             if (off < 0x100) {
-                buf.append(' ');
+                sb.append(' ');
             }
             if (off < 0x1000) {
-                buf.append(' ');
+                sb.append(' ');
             }
-            buf.append(Integer.toHexString(off));
-            buf.append(':');
+            sb.append(Integer.toHexString(off));
+            sb.append(':');
             int index = 0;
             for (index = 0; index < n; index++) {
                 if ((index % 8) == 0) {
-                    buf.append(' ');
+                    sb.append(' ');
                 }
-                buf.append(Integer.toHexString((data[off + index] & 0xF0) >> 4));
-                buf.append(Integer.toHexString((data[off + index] & 0x0F) >> 0));
+                sb.append(Integer.toHexString((data[off + index] & 0xF0) >> 4));
+                sb.append(Integer.toHexString((data[off + index] & 0x0F) >> 0));
             }
             // for incomplete lines
             if (index < 32) {
                 for (int i = index; i < 32; i++) {
                     if ((i % 8) == 0) {
-                        buf.append(' ');
+                        sb.append(' ');
                     }
-                    buf.append("  ");
+                    sb.append("  ");
                 }
             }
-            buf.append("    ");
+            sb.append("    ");
             for (index = 0; index < n; index++) {
                 if ((index % 8) == 0) {
-                    buf.append(' ');
+                    sb.append(' ');
                 }
                 int ch = data[off + index] & 0xFF;
-                buf.append(((ch > ' ') && (ch < 127)) ? (char) ch : '.');
+                sb.append(((ch > ' ') && (ch < 127)) ? (char) ch : '.');
             }
-            buf.append("\n");
+            sb.append("\n");
 
             // limit message size
             if (off + 32 >= 2048) {
-                buf.append("....\n");
+                sb.append("....\n");
                 break;
             }
         }
-        return buf.toString();
+        return sb.toString();
     }
 
 }
