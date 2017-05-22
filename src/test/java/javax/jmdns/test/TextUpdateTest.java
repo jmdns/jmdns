@@ -83,35 +83,35 @@ public class TextUpdateTest {
 
         @Override
         public String toString() {
-            StringBuilder aLog = new StringBuilder();
-            aLog.append("Services Added: " + _serviceAdded.size());
+            final StringBuilder sb = new StringBuilder();
+            sb.append("Services Added: " + _serviceAdded.size());
             for (ServiceEvent event : _serviceAdded) {
-                aLog.append("\n\tevent name: '");
-                aLog.append(event.getName());
-                aLog.append("' type: '");
-                aLog.append(event.getType());
-                aLog.append("' info: '");
-                aLog.append(event.getInfo());
+                sb.append("\n\tevent name: '");
+                sb.append(event.getName());
+                sb.append("' type: '");
+                sb.append(event.getType());
+                sb.append("' info: '");
+                sb.append(event.getInfo());
             }
-            aLog.append("\nServices Removed: " + _serviceRemoved.size());
+            sb.append("\nServices Removed: " + _serviceRemoved.size());
             for (ServiceEvent event : _serviceRemoved) {
-                aLog.append("\n\tevent name: '");
-                aLog.append(event.getName());
-                aLog.append("' type: '");
-                aLog.append(event.getType());
-                aLog.append("' info: '");
-                aLog.append(event.getInfo());
+                sb.append("\n\tevent name: '");
+                sb.append(event.getName());
+                sb.append("' type: '");
+                sb.append(event.getType());
+                sb.append("' info: '");
+                sb.append(event.getInfo());
             }
-            aLog.append("\nServices Resolved: " + _serviceResolved.size());
+            sb.append("\nServices Resolved: " + _serviceResolved.size());
             for (ServiceEvent event : _serviceResolved) {
-                aLog.append("\n\tevent name: '");
-                aLog.append(event.getName());
-                aLog.append("' type: '");
-                aLog.append(event.getType());
-                aLog.append("' info: '");
-                aLog.append(event.getInfo());
+                sb.append("\n\tevent name: '");
+                sb.append(event.getName());
+                sb.append("' type: '");
+                sb.append(event.getType());
+                sb.append("' info: '");
+                sb.append(event.getInfo());
             }
-            return aLog.toString();
+            return sb.toString();
         }
 
     }

@@ -136,20 +136,20 @@ public class ListenerStatus<T extends EventListener> {
          */
         @Override
         public String toString() {
-            StringBuilder aLog = new StringBuilder(2048);
-            aLog.append("[Status for ");
-            aLog.append(this.getListener().toString());
+            final StringBuilder sb = new StringBuilder(2048);
+            sb.append("[Status for ");
+            sb.append(this.getListener().toString());
             if (_addedServices.isEmpty()) {
-                aLog.append(" no type event ");
+                sb.append(" no type event ");
             } else {
-                aLog.append(" (");
+                sb.append(" (");
                 for (String service : _addedServices.keySet()) {
-                    aLog.append(service + ", ");
+                    sb.append(service + ", ");
                 }
-                aLog.append(") ");
+                sb.append(") ");
             }
-            aLog.append("]");
-            return aLog.toString();
+            sb.append("]");
+            return sb.toString();
         }
 
     }
@@ -208,20 +208,20 @@ public class ListenerStatus<T extends EventListener> {
          */
         @Override
         public String toString() {
-            StringBuilder aLog = new StringBuilder(2048);
-            aLog.append("[Status for ");
-            aLog.append(this.getListener().toString());
+            final StringBuilder sb = new StringBuilder(2048);
+            sb.append("[Status for ");
+            sb.append(this.getListener().toString());
             if (_addedTypes.isEmpty()) {
-                aLog.append(" no type event ");
+                sb.append(" no type event ");
             } else {
-                aLog.append(" (");
+                sb.append(" (");
                 for (String type : _addedTypes.keySet()) {
-                    aLog.append(type + ", ");
+                    sb.append(type + ", ");
                 }
-                aLog.append(") ");
+                sb.append(") ");
             }
-            aLog.append("]");
-            return aLog.toString();
+            sb.append("]");
+            return sb.toString();
         }
 
     }

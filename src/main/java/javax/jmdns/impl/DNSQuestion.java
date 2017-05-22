@@ -323,7 +323,7 @@ public class DNSQuestion extends DNSEntry {
      * @see javax.jmdns.impl.DNSEntry#toString(java.lang.StringBuilder)
      */
     @Override
-    public void toString(StringBuilder aLog) {
+    public void toString(final StringBuilder sb) {
         // do nothing
     }
 
