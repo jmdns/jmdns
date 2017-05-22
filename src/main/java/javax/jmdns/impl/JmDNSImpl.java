@@ -2175,32 +2175,32 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
          */
         @Override
         public String toString() {
-            final StringBuffer aLog = new StringBuffer();
-            aLog.append("\n\tType: ");
-            aLog.append(_type);
+            final StringBuilder sb = new StringBuilder();
+            sb.append("\n\tType: ");
+            sb.append(_type);
             if (_infos.isEmpty()) {
-                aLog.append("\n\tNo services collected.");
+                sb.append("\n\tNo services collected.");
             } else {
-                aLog.append("\n\tServices");
+                sb.append("\n\tServices");
                 for (String key : _infos.keySet()) {
-                    aLog.append("\n\t\tService: ");
-                    aLog.append(key);
-                    aLog.append(": ");
-                    aLog.append(_infos.get(key));
+                    sb.append("\n\t\tService: ");
+                    sb.append(key);
+                    sb.append(": ");
+                    sb.append(_infos.get(key));
                 }
             }
             if (_events.isEmpty()) {
-                aLog.append("\n\tNo event queued.");
+                sb.append("\n\tNo event queued.");
             } else {
-                aLog.append("\n\tEvents");
+                sb.append("\n\tEvents");
                 for (String key : _events.keySet()) {
-                    aLog.append("\n\t\tEvent: ");
-                    aLog.append(key);
-                    aLog.append(": ");
-                    aLog.append(_events.get(key));
+                    sb.append("\n\t\tEvent: ");
+                    sb.append(key);
+                    sb.append(": ");
+                    sb.append(_events.get(key));
                 }
             }
-            return aLog.toString();
+            return sb.toString();
         }
     }
 
