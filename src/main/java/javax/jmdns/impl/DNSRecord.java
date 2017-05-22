@@ -446,9 +446,9 @@ public abstract class DNSRecord extends DNSEntry {
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
-        protected void toString(StringBuilder aLog) {
-            super.toString(aLog);
-            aLog.append(" address: '" + (this.getAddress() != null ? this.getAddress().getHostAddress() : "null") + "'");
+        protected void toString(final StringBuilder sb) {
+            super.toString(sb);
+            sb.append(" address: '" + (this.getAddress() != null ? this.getAddress().getHostAddress() : "null") + "'");
         }
 
     }
@@ -558,9 +558,9 @@ public abstract class DNSRecord extends DNSEntry {
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
-        protected void toString(StringBuilder aLog) {
-            super.toString(aLog);
-            aLog.append(" alias: '" + (_alias != null ? _alias.toString() : "null") + "'");
+        protected void toString(final StringBuilder sb) {
+            super.toString(sb);
+            sb.append(" alias: '" + (_alias != null ? _alias.toString() : "null") + "'");
         }
 
     }
@@ -660,9 +660,9 @@ public abstract class DNSRecord extends DNSEntry {
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
-        protected void toString(StringBuilder aLog) {
-            super.toString(aLog);
-            aLog.append(" text: '" + ((_text.length > 20) ? new String(_text, 0, 17) + "..." : new String(_text)) + "'");
+        protected void toString(final StringBuilder sb) {
+            super.toString(sb);
+            sb.append(" text: '" + ((_text.length > 20) ? new String(_text, 0, 17) + "..." : new String(_text)) + "'");
         }
 
     }
@@ -872,9 +872,9 @@ public abstract class DNSRecord extends DNSEntry {
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
-        protected void toString(StringBuilder aLog) {
-            super.toString(aLog);
-            aLog.append(" server: '" + _server + ":" + _port + "'");
+        protected void toString(final StringBuilder sb) {
+            super.toString(sb);
+            sb.append(" server: '" + _server + ":" + _port + "'");
         }
 
     }
@@ -990,9 +990,9 @@ public abstract class DNSRecord extends DNSEntry {
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
-        protected void toString(StringBuilder aLog) {
-            super.toString(aLog);
-            aLog.append(" cpu: '" + _cpu + "' os: '" + _os + "'");
+        protected void toString(final StringBuilder sb) {
+            super.toString(sb);
+            sb.append(" cpu: '" + _cpu + "' os: '" + _os + "'");
         }
 
     }
@@ -1044,9 +1044,9 @@ public abstract class DNSRecord extends DNSEntry {
      * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
      */
     @Override
-    protected void toString(StringBuilder aLog) {
-        super.toString(aLog);
-        aLog.append(" ttl: '" + getRemainingTTL(System.currentTimeMillis()) + "/" + _ttl + "'");
+    protected void toString(final StringBuilder sb) {
+        super.toString(sb);
+        sb.append(" ttl: '" + getRemainingTTL(System.currentTimeMillis()) + "/" + _ttl + "'");
     }
 
     public void setTTL(int ttl) {

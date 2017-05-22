@@ -295,21 +295,21 @@ public abstract class DNSEntry {
      */
     @Override
     public String toString() {
-        StringBuilder aLog = new StringBuilder(200);
-        aLog.append("[" + this.getClass().getSimpleName() + "@" + System.identityHashCode(this));
-        aLog.append(" type: " + this.getRecordType());
-        aLog.append(", class: " + this.getRecordClass());
-        aLog.append((_unique ? "-unique," : ","));
-        aLog.append(" name: " + _name);
-        this.toString(aLog);
-        aLog.append("]");
-        return aLog.toString();
+        final StringBuilder sb = new StringBuilder(200);
+        sb.append("[" + this.getClass().getSimpleName() + "@" + System.identityHashCode(this));
+        sb.append(" type: " + this.getRecordType());
+        sb.append(", class: " + this.getRecordClass());
+        sb.append((_unique ? "-unique," : ","));
+        sb.append(" name: " + _name);
+        this.toString(sb);
+        sb.append("]");
+        return sb.toString();
     }
 
     /**
-     * @param aLog
+     * @param sb
      */
-    protected void toString(StringBuilder aLog) {
+    protected void toString(final StringBuilder sb) {
         // Stub
     }
 
