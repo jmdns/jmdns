@@ -1,0 +1,922 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://dublincore.org/documents/2008/08/04/dc-html/">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="robots" content="index,follow" />
+    <meta name="creator" content="rfcmarkup version 1.121" />
+    <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/" />
+<meta name="DC.Identifier" content="urn:ietf:rfc:6761" />
+<meta name="DC.Description.Abstract" content="This document describes what it means to say that a Domain Name (DNS
+name) is reserved for special use, when reserving such a name is
+appropriate, and the procedure for doing so. It establishes an IANA
+registry for such domain names, and seeds it with entries for some of
+the already established special domain names." />
+<meta name="DC.Creator" content="Krochmal, Marc" />
+<meta name="DC.Creator" content="Cheshire, Stuart" />
+<meta name="DC.Date.Issued" content="February, 2013" />
+<meta name="DC.Title" content="Special-Use Domain Names" />
+
+    <link rel="icon" href="/images/rfc.png" type="image/png" />
+    <link rel="shortcut icon" href="/images/rfc.png" type="image/png" />
+    <title>RFC 6761 - Special-Use Domain Names</title>
+    
+    
+    <style type="text/css">
+	@media only screen 
+	  and (min-width: 992px)
+	  and (max-width: 1199px) {
+	    body { font-size: 14pt; }
+            div.content { width: 96ex; margin: 0 auto; }
+        }
+	@media only screen 
+	  and (min-width: 768px)
+	  and (max-width: 991px) {
+            body { font-size: 14pt; }
+            div.content { width: 96ex; margin: 0 auto; }
+        }
+	@media only screen 
+	  and (min-width: 480px)
+	  and (max-width: 767px) {
+            body { font-size: 11pt; }
+            div.content { width: 96ex; margin: 0 auto; }
+        }
+	@media only screen 
+	  and (max-width: 479px) {
+            body { font-size: 8pt; }
+            div.content { width: 96ex; margin: 0 auto; }
+        }
+	@media only screen 
+	  and (min-device-width : 375px) 
+	  and (max-device-width : 667px) {
+            body { font-size: 9.5pt; }
+            div.content { width: 96ex; margin: 0 1px; }
+        }
+	@media only screen 
+	  and (min-device-width: 1200px) {
+            body { font-size: 10pt; margin: 0 4em; }
+            div.content { width: 96ex; margin: 0; }
+        }
+        h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+	    font-weight: bold;
+            line-height: 0pt;
+            display: inline;
+            white-space: pre;
+            font-family: monospace;
+            font-size: 1em;
+	    font-weight: bold;
+        }
+        pre {
+            font-size: 1em;
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+	.pre {
+	    white-space: pre;
+	    font-family: monospace;
+	}
+	.header{
+	    font-weight: bold;
+	}
+        .newpage {
+            page-break-before: always;
+        }
+        .invisible {
+            text-decoration: none;
+            color: white;
+        }
+        a.selflink {
+          color: black;
+          text-decoration: none;
+        }
+        @media print {
+            body {
+                font-family: monospace;
+                font-size: 10.5pt;
+            }
+            h1, h2, h3, h4, h5, h6 {
+                font-size: 1em;
+            }
+        
+            a:link, a:visited {
+                color: inherit;
+                text-decoration: none;
+            }
+            .noprint {
+                display: none;
+            }
+        }
+	@media screen {
+	    .grey, .grey a:link, .grey a:visited {
+		color: #777;
+	    }
+            .docinfo {
+                background-color: #EEE;
+            }
+            .top {
+                border-top: 7px solid #EEE;
+            }
+            .bgwhite  { background-color: white; }
+            .bgred    { background-color: #F44; }
+            .bggrey   { background-color: #666; }
+            .bgbrown  { background-color: #840; }            
+            .bgorange { background-color: #FA0; }
+            .bgyellow { background-color: #EE0; }
+            .bgmagenta{ background-color: #F4F; }
+            .bgblue   { background-color: #66F; }
+            .bgcyan   { background-color: #4DD; }
+            .bggreen  { background-color: #4F4; }
+
+            .legend   { font-size: 90%; }
+            .cplate   { font-size: 70%; border: solid grey 1px; }
+	}
+    </style>
+    <!--[if IE]>
+    <style>
+    body {
+       font-size: 13px;
+       margin: 10px 10px;
+    }
+    </style>
+    <![endif]-->
+
+    <script type="text/javascript"><!--
+    function addHeaderTags() {
+	var spans = document.getElementsByTagName("span");
+	for (var i=0; i < spans.length; i++) {
+	    var elem = spans[i];
+	    if (elem) {
+		var level = elem.getAttribute("class");
+                if (level == "h1" || level == "h2" || level == "h3" || level == "h4" || level == "h5" || level == "h6") {
+                    elem.innerHTML = "<"+level+">"+elem.innerHTML+"</"+level+">";		
+                }
+	    }
+	}
+    }
+    var legend_html = "Colour legend:<br />      <table>         <tr><td>Unknown:</td>                   <td><span class='cplate bgwhite'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Draft:</td>                     <td><span class='cplate bgred'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Informational:</td>             <td><span class='cplate bgorange'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Experimental:</td>              <td><span class='cplate bgyellow'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Best Common Practice:</td>      <td><span class='cplate bgmagenta'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Proposed Standard:</td>         <td><span class='cplate bgblue'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Draft Standard (old designation):</td> <td><span class='cplate bgcyan'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Internet Standard:</td>         <td><span class='cplate bggreen'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Historic:</td>                  <td><span class='cplate bggrey'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Obsolete:</td>                  <td><span class='cplate bgbrown'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>     </table>";
+    function showElem(id) {
+        var elem = document.getElementById(id);
+        elem.innerHTML = eval(id+"_html");
+        elem.style.visibility='visible';
+    }
+    function hideElem(id) {
+        var elem = document.getElementById(id);
+        elem.style.visibility='hidden';        
+        elem.innerHTML = "";
+    }
+    // -->
+    </script>
+</head>
+<body onload="addHeaderTags()">
+  <div class="content">
+   <div style="height: 13px;">
+      <div onmouseover="this.style.cursor='pointer';"
+         onclick="showElem('legend');"
+         onmouseout="hideElem('legend')"
+	 style="height: 6px; position: absolute;"
+         class="pre noprint docinfo bgblue"
+         title="Click for colour legend." >                                                                        </div>
+      <div id="legend"
+           class="docinfo noprint pre legend"
+           style="position:absolute; top: 4px; left: 4ex; visibility:hidden; background-color: white; padding: 4px 9px 5px 7px; border: solid #345 1px; "
+           onmouseover="showElem('legend');"
+           onmouseout="hideElem('legend');">
+      </div>
+   </div>
+<span class="pre noprint docinfo top">[<a href="../html/" title="Document search and retrieval page">Docs</a>] [<a href="/rfc/rfc6761.txt" title="Plaintext version of this document">txt</a>|<a href="/pdf/rfc6761" title="PDF version of this document">pdf</a>] [<a href="./draft-cheshire-dnsext-special-names" title="draft-cheshire-dnsext-special-names">draft-cheshire-dn...</a>] [<a href="/rfcdiff?difftype=--hwdiff&amp;url2=rfc6761" title="Inline diff (wdiff)">Diff1</a>] [<a href="/rfcdiff?url2=rfc6761" title="Side-by-side diff">Diff2</a>] [<a href="https://www.rfc-editor.org/errata_search.php?rfc=6761">Errata</a>]        </span><br />
+<span class="pre noprint docinfo">                                                                        </span><br />
+<span class="pre noprint docinfo">                                                       PROPOSED STANDARD</span><br />
+<span class="pre noprint docinfo">                                                            <span style='color: #C00;'>Errata Exist</span></span><br />
+<pre>
+Internet Engineering Task Force (IETF)                       S. Cheshire
+Request for Comments: 6761                                   M. Krochmal
+Updates: <a href="./rfc1918">1918</a>, <a href="./rfc2606">2606</a>                                           Apple Inc.
+Category: Standards Track                                  February 2013
+ISSN: 2070-1721
+
+
+                        <span class="h1">Special-Use Domain Names</span>
+
+Abstract
+
+   This document describes what it means to say that a Domain Name (DNS
+   name) is reserved for special use, when reserving such a name is
+   appropriate, and the procedure for doing so.  It establishes an IANA
+   registry for such domain names, and seeds it with entries for some of
+   the already established special domain names.
+
+Status of This Memo
+
+   This is an Internet Standards Track document.
+
+   This document is a product of the Internet Engineering Task Force
+   (IETF).  It represents the consensus of the IETF community.  It has
+   received public review and has been approved for publication by the
+   Internet Engineering Steering Group (IESG).  Further information on
+   Internet Standards is available in <a href="./rfc5741#section-2">Section&nbsp;2 of RFC 5741</a>.
+
+   Information about the current status of this document, any errata,
+   and how to provide feedback on it may be obtained at
+   <a href="http://www.rfc-editor.org/info/rfc6761">http://www.rfc-editor.org/info/rfc6761</a>.
+
+Copyright Notice
+
+   Copyright (c) 2013 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to <a href="./bcp78">BCP 78</a> and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (<a href="http://trustee.ietf.org/license-info">http://trustee.ietf.org/license-info</a>) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+
+
+
+
+
+<span class="grey">Cheshire &amp; Krochmal          Standards Track                    [Page 1]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-2" id="page-2" href="#page-2" class="invisible"> </a>
+<span class="grey"><a href="./rfc6761">RFC 6761</a>                Special-Use Domain Names           February 2013</span>
+
+
+<span class="h2"><a class="selflink" name="section-1" href="#section-1">1</a>.  Introduction</span>
+
+   Certain individual IP addresses and IP address ranges are treated
+   specially by network implementations and, consequently, are not
+   suitable for use as unicast addresses.  For example, IPv4 addresses
+   224.0.0.0 to 239.255.255.255 are multicast addresses [<a href="./rfc5735" title="&quot;Special Use IPv4 Addresses&quot;">RFC5735</a>], with
+   224.0.0.1 being the "all hosts" multicast address [<a href="./rfc1112" title="&quot;Host extensions for IP multicasting&quot;">RFC1112</a>]
+   [<a href="./rfc5771" title="&quot;IANA Guidelines for IPv4 Multicast Address Assignments&quot;">RFC5771</a>].  Another example is 127.0.0.1, the IPv4 "local host"
+   address [<a href="./rfc5735" title="&quot;Special Use IPv4 Addresses&quot;">RFC5735</a>].
+
+   Analogous to Special-Use IPv4 Addresses [<a href="./rfc5735" title="&quot;Special Use IPv4 Addresses&quot;">RFC5735</a>], the Domain Name
+   System (DNS) [<a href="./rfc1034" title="&quot;Domain names - concepts and facilities&quot;">RFC1034</a>][RFC1035] has its own concept of reserved
+   names, such as "example.com.", "example.net.", and "example.org.", or
+   any name falling under the top-level pseudo-domain "invalid."
+   [<a href="./rfc2606" title="&quot;Reserved Top Level DNS Names&quot;">RFC2606</a>].  However, "Reserved Top Level DNS Names" [<a href="./rfc2606" title="&quot;Reserved Top Level DNS Names&quot;">RFC2606</a>] does
+   not state whether implementations are expected to treat such names
+   differently, and if so, in what way.
+
+   This document specifies under what circumstances special treatment is
+   appropriate, and in what ways.
+
+<span class="h2"><a class="selflink" name="section-2" href="#section-2">2</a>.  Terminology</span>
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in "Key words for use in
+   RFCs to Indicate Requirement Levels" [<a href="./rfc2119" title="&quot;Key words for use in RFCs to Indicate Requirement Levels&quot;">RFC2119</a>].
+
+<span class="h2"><a class="selflink" name="section-3" href="#section-3">3</a>.  Applicability</span>
+
+   When IP multicast was created [<a href="./rfc1112" title="&quot;Host extensions for IP multicasting&quot;">RFC1112</a>], implementations had to be
+   updated to understand what an IP multicast address means and what to
+   do with it.  Adding IP multicast to a networking stack entailed more
+   than merely adding the right routing table entries for those
+   addresses.  Moreover, supporting IP multicast entails some level of
+   commonality that is consistent across all conformant hosts,
+   independent of what networks those hosts may be connected to.  While
+   it is possible to build a private isolated network using whatever
+   valid unicast IP addresses and routing topology one chooses
+   (regardless of whether those unicast IP addresses are already in use
+   by other hosts on the public Internet), the IPv4 multicast address
+   224.0.0.1 is always the "all hosts" multicast address, and that's not
+   a local decision.
+
+   Similarly, if a domain name has special properties that affect the
+   way hardware and software implementations handle the name, that apply
+   universally regardless of what network the implementation may be
+   connected to, then that domain name may be a candidate for having the
+
+
+
+<span class="grey">Cheshire &amp; Krochmal          Standards Track                    [Page 2]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-3" id="page-3" href="#page-3" class="invisible"> </a>
+<span class="grey"><a href="./rfc6761">RFC 6761</a>                Special-Use Domain Names           February 2013</span>
+
+
+   IETF declare it to be a Special-Use Domain Name and specify what
+   special treatment implementations should give to that name.  On the
+   other hand, if declaring a given name to be special would result in
+   no change to any implementations, then that suggests that the name
+   may not be special in any material way, and it may be more
+   appropriate to use the existing DNS mechanisms [<a href="./rfc1034" title="&quot;Domain names - concepts and facilities&quot;">RFC1034</a>] to provide
+   the desired delegation, data, or lack-of-data, for the name in
+   question.  Where the desired behaviour can be achieved via the
+   existing domain name registration processes, that process should be
+   used.  Reservation of a Special-Use Domain Name is not a mechanism
+   for circumventing normal domain name registration processes.
+
+   As an example, suppose there were to be an IETF document specifying
+   that a particular name (or set of names) is guaranteed to produce an
+   NXDOMAIN ("Name Error" [<a href="./rfc1035" title="&quot;Domain names - implementation and specification&quot;">RFC1035</a>]) result.  Such a document falls
+   within the responsibilities of the IETF.  The IETF is responsible for
+   protocol rules.  The IETF defines name character set, length limits,
+   syntax, the fact that in DNS "A" is equivalent to "a", etc.
+   [<a href="./rfc1034" title="&quot;Domain names - concepts and facilities&quot;">RFC1034</a>] [<a href="./rfc1035" title="&quot;Domain names - implementation and specification&quot;">RFC1035</a>].  Portions of the namespace created by those
+   rules are given to ICANN to manage, but, due to established DNS
+   protocol rules, ICANN is not free to allocate "COM" and "com" to two
+   different name servers.  The IETF has responsibility for specifying
+   how the DNS protocol works, and ICANN is responsible for allocating
+   the names made possible by that DNS protocol.  Now, suppose a
+   developer were to use this special "guaranteed nonexistent" name,
+   "knowing" that it's guaranteed to return NXDOMAIN, and suppose also
+   that the user's DNS server fails to return NXDOMAIN for this name.
+   The developer's software then fails.  Who do the user and/or
+   developer complain to?  ICANN?  The IETF?  The DNS server operator?
+   If the developer can't depend on the special "guaranteed nonexistent"
+   name to always return NXDOMAIN, then the special name is worthless,
+   because it can't be relied on to do what it is supposed to.  For this
+   special "guaranteed nonexistent" name to have any use, it has to be
+   defined to return NXDOMAIN, BY PROTOCOL, for all installations, not
+   just by ICANN allocation on the public Internet.  ICANN has no
+   jurisdiction over how users choose to configure their own private DNS
+   servers on their own private networks, but developers need a protocol
+   specification that states that returning positive answers for the
+   special "guaranteed nonexistent" name is a protocol violation on
+   *all* networks, not just the public Internet.  Hence, the act of
+   defining such a special name creates a higher-level protocol rule,
+   above ICANN's management of allocable names on the public Internet.
+
+
+
+
+
+
+
+
+
+<span class="grey">Cheshire &amp; Krochmal          Standards Track                    [Page 3]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-4" id="page-4" href="#page-4" class="invisible"> </a>
+<span class="grey"><a href="./rfc6761">RFC 6761</a>                Special-Use Domain Names           February 2013</span>
+
+
+<span class="h2"><a class="selflink" name="section-4" href="#section-4">4</a>.  Procedure</span>
+
+   If it is determined that special handling of a name is required in
+   order to implement some desired new functionality, then an IETF
+   "Standards Action" or "IESG Approval" specification [<a href="./rfc5226" title="&quot;Guidelines for Writing an IANA Considerations Section in RFCs&quot;">RFC5226</a>] MUST be
+   published describing the new functionality.
+
+   The specification MUST state how implementations determine that the
+   special handling is required for any given name.  This is typically
+   done by stating that any fully qualified domain name ending in a
+   certain suffix (i.e., falling within a specified parent pseudo-
+   domain) will receive the special behaviour.  In effect, this carves
+   off a sub-tree of the DNS namespace in which the modified name
+   treatment rules apply, analogous to how IP multicast [<a href="./rfc1112" title="&quot;Host extensions for IP multicasting&quot;">RFC1112</a>] or IP
+   link-local addresses [<a href="./rfc3927" title="&quot;Dynamic Configuration of IPv4 Link-Local Addresses&quot;">RFC3927</a>] [<a href="./rfc4862" title="&quot;IPv6 Stateless Address Autoconfiguration&quot;">RFC4862</a>] carve off chunks of the IP
+   address space in which their respective modified address treatment
+   rules apply.
+
+   The specification also MUST state, in each of the seven "Domain Name
+   Reservation Considerations" categories below, what special treatment,
+   if any, is to be applied.  If in all seven categories the answer is
+   "none", then possibly no special treatment is required and requesting
+   reservation of a Special-Use Domain Name may not be appropriate.
+
+<span class="h2"><a class="selflink" name="section-5" href="#section-5">5</a>.  Domain Name Reservation Considerations</span>
+
+   An IETF "Standards Action" or "IESG Approval" document specifying
+   some new naming behaviour, which requires a Special-Use Domain Name
+   be reserved to implement this desired new behaviour, needs to contain
+   a subsection of the "IANA Considerations" section titled "Domain Name
+   Reservation Considerations" giving answers in the seven categories
+   listed below.  In the case of algorithmically generated DNS names,
+   the specifying document needs to clearly identify the set of names
+   generated by the algorithm that would require the proposed special
+   treatment.
+
+   1.  Users:
+
+       Are human users expected to recognize these names as special and
+       use them differently?  In what way?
+
+   2.  Application Software:
+
+       Are writers of application software expected to make their
+       software recognize these names as special and treat them
+       differently?  In what way?  (For example, if a human user enters
+       such a name, should the application software reject it with an
+       error message?)
+
+
+
+<span class="grey">Cheshire &amp; Krochmal          Standards Track                    [Page 4]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-5" id="page-5" href="#page-5" class="invisible"> </a>
+<span class="grey"><a href="./rfc6761">RFC 6761</a>                Special-Use Domain Names           February 2013</span>
+
+
+   3.  Name Resolution APIs and Libraries:
+
+       Are writers of name resolution APIs and libraries expected to
+       make their software recognize these names as special and treat
+       them differently?  If so, how?
+
+   4.  Caching DNS Servers:
+
+       Are developers of caching domain name servers expected to make
+       their implementations recognize these names as special and treat
+       them differently?  If so, how?
+
+   5.  Authoritative DNS Servers:
+
+       Are developers of authoritative domain name servers expected to
+       make their implementations recognize these names as special and
+       treat them differently?  If so, how?
+
+   6.  DNS Server Operators:
+
+       Does this reserved Special-Use Domain Name have any potential
+       impact on DNS server operators?  If they try to configure their
+       authoritative DNS server as authoritative for this reserved name,
+       will compliant name server software reject it as invalid?  Do DNS
+       server operators need to know about that and understand why?
+       Even if the name server software doesn't prevent them from using
+       this reserved name, are there other ways that it may not work as
+       expected, of which the DNS server operator should be aware?
+
+   7.  DNS Registries/Registrars:
+
+       How should DNS Registries/Registrars treat requests to register
+       this reserved domain name?  Should such requests be denied?
+       Should such requests be allowed, but only to a specially-
+       designated entity?  (For example, the name "www.example.org" is
+       reserved for documentation examples and is not available for
+       registration; however, the name is in fact registered; and there
+       is even a web site at that name, which states circularly that the
+       name is reserved for use in documentation and cannot be
+       registered!)
+
+
+
+
+
+
+
+
+
+
+
+<span class="grey">Cheshire &amp; Krochmal          Standards Track                    [Page 5]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-6" id="page-6" href="#page-6" class="invisible"> </a>
+<span class="grey"><a href="./rfc6761">RFC 6761</a>                Special-Use Domain Names           February 2013</span>
+
+
+<span class="h2"><a class="selflink" name="section-6" href="#section-6">6</a>.  Initial Registry</span>
+
+   The initial IANA "Special-Use Domain Names" registry shall contain
+   entries for the private-address [<a href="./rfc1918" title="&quot;Address Allocation for Private Internets&quot;">RFC1918</a>] reverse-mapping domains and
+   for the existing Reserved Top Level DNS Names [<a href="./rfc2606" title="&quot;Reserved Top Level DNS Names&quot;">RFC2606</a>].
+
+<span class="h3"><a class="selflink" name="section-6.1" href="#section-6.1">6.1</a>.  Domain Name Reservation Considerations for Private Addresses</span>
+
+   The private-address [<a href="./rfc1918" title="&quot;Address Allocation for Private Internets&quot;">RFC1918</a>] reverse-mapping domains listed below,
+   and any names falling within those domains, are Special-Use Domain
+   Names:
+
+     10.in-addr.arpa.      21.172.in-addr.arpa.  26.172.in-addr.arpa.
+     16.172.in-addr.arpa.  22.172.in-addr.arpa.  27.172.in-addr.arpa.
+     17.172.in-addr.arpa.  30.172.in-addr.arpa.  28.172.in-addr.arpa.
+     18.172.in-addr.arpa.  23.172.in-addr.arpa.  29.172.in-addr.arpa.
+     19.172.in-addr.arpa.  24.172.in-addr.arpa.  31.172.in-addr.arpa.
+     20.172.in-addr.arpa.  25.172.in-addr.arpa.  168.192.in-addr.arpa.
+
+   These domains, and any names falling within these domains, are
+   special in the following ways:
+
+   1.  Users are free to use these names as they would any other
+       reverse-mapping names.  However, since there is no central
+       authority responsible for use of private addresses, users SHOULD
+       be aware that these names are likely to yield different results
+       on different networks.
+
+   2.  Application software SHOULD NOT recognize these names as special,
+       and SHOULD use these names as they would other reverse-mapping
+       names.
+
+   3.  Name resolution APIs and libraries SHOULD NOT recognize these
+       names as special and SHOULD NOT treat them differently.  Name
+       resolution APIs SHOULD send queries for these names to their
+       configured caching DNS server(s).
+
+   4.  Caching DNS servers SHOULD recognize these names as special and
+       SHOULD NOT, by default, attempt to look up NS records for them,
+       or otherwise query authoritative DNS servers in an attempt to
+       resolve these names.  Instead, caching DNS servers SHOULD, by
+       default, generate immediate (positive or negative) responses for
+       all such queries.  This is to avoid unnecessary load on the root
+       name servers and other name servers.  Caching DNS servers SHOULD
+       offer a configuration option (disabled by default) to enable
+       upstream resolution of such names, for use in private networks
+       where private-address reverse-mapping names are known to be
+       handled by an authoritative DNS server in said private network.
+
+
+
+<span class="grey">Cheshire &amp; Krochmal          Standards Track                    [Page 6]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-7" id="page-7" href="#page-7" class="invisible"> </a>
+<span class="grey"><a href="./rfc6761">RFC 6761</a>                Special-Use Domain Names           February 2013</span>
+
+
+   5.  Authoritative DNS servers SHOULD recognize these names as special
+       and SHOULD, by default, generate immediate negative responses for
+       all such queries, unless explicitly configured by the
+       administrator to give positive answers for private-address
+       reverse-mapping names.
+
+   6.  DNS server operators SHOULD, if they are using private addresses,
+       configure their authoritative DNS servers to act as authoritative
+       for these names.
+
+   7.  DNS Registries/Registrars MUST NOT grant requests to register any
+       of these names in the normal way to any person or entity.  These
+       names are reserved for use in private networks, and fall outside
+       the set of names available for allocation by registries/
+       registrars.  Attempting to allocate one of these names as if it
+       were a normal DNS domain name will probably not work as desired,
+       for reasons 4, 5 and 6 above.
+
+<span class="h3"><a class="selflink" name="section-6.2" href="#section-6.2">6.2</a>.  Domain Name Reservation Considerations for "test."</span>
+
+   The domain "test.", and any names falling within ".test.", are
+   special in the following ways:
+
+   1.  Users are free to use these test names as they would any other
+       domain names.  However, since there is no central authority
+       responsible for use of test names, users SHOULD be aware that
+       these names are likely to yield different results on different
+       networks.
+
+   2.  Application software SHOULD NOT recognize test names as special,
+       and SHOULD use test names as they would other domain names.
+
+   3.  Name resolution APIs and libraries SHOULD NOT recognize test
+       names as special and SHOULD NOT treat them differently.  Name
+       resolution APIs SHOULD send queries for test names to their
+       configured caching DNS server(s).
+
+   4.  Caching DNS servers SHOULD recognize test names as special and
+       SHOULD NOT, by default, attempt to look up NS records for them,
+       or otherwise query authoritative DNS servers in an attempt to
+       resolve test names.  Instead, caching DNS servers SHOULD, by
+       default, generate immediate negative responses for all such
+       queries.  This is to avoid unnecessary load on the root name
+       servers and other name servers.  Caching DNS servers SHOULD offer
+       a configuration option (disabled by default) to enable upstream
+       resolving of test names, for use in networks where test names are
+       known to be handled by an authoritative DNS server in said
+       private network.
+
+
+
+<span class="grey">Cheshire &amp; Krochmal          Standards Track                    [Page 7]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-8" id="page-8" href="#page-8" class="invisible"> </a>
+<span class="grey"><a href="./rfc6761">RFC 6761</a>                Special-Use Domain Names           February 2013</span>
+
+
+   5.  Authoritative DNS servers SHOULD recognize test names as special
+       and SHOULD, by default, generate immediate negative responses for
+       all such queries, unless explicitly configured by the
+       administrator to give positive answers for test names.
+
+   6.  DNS server operators SHOULD, if they are using test names,
+       configure their authoritative DNS servers to act as authoritative
+       for test names.
+
+   7.  DNS Registries/Registrars MUST NOT grant requests to register
+       test names in the normal way to any person or entity.  Test names
+       are reserved for use in private networks and fall outside the set
+       of names available for allocation by registries/registrars.
+       Attempting to allocate a test name as if it were a normal DNS
+       domain name will probably not work as desired, for reasons 4, 5,
+       and 6 above.
+
+<span class="h3"><a class="selflink" name="section-6.3" href="#section-6.3">6.3</a>.  Domain Name Reservation Considerations for "localhost."</span>
+
+   The domain "localhost." and any names falling within ".localhost."
+   are special in the following ways:
+
+   1.  Users are free to use localhost names as they would any other
+       domain names.  Users may assume that IPv4 and IPv6 address
+       queries for localhost names will always resolve to the respective
+       IP loopback address.
+
+   2.  Application software MAY recognize localhost names as special, or
+       MAY pass them to name resolution APIs as they would for other
+       domain names.
+
+   3.  Name resolution APIs and libraries SHOULD recognize localhost
+       names as special and SHOULD always return the IP loopback address
+       for address queries and negative responses for all other query
+       types.  Name resolution APIs SHOULD NOT send queries for
+       localhost names to their configured caching DNS server(s).
+
+   4.  Caching DNS servers SHOULD recognize localhost names as special
+       and SHOULD NOT attempt to look up NS records for them, or
+       otherwise query authoritative DNS servers in an attempt to
+       resolve localhost names.  Instead, caching DNS servers SHOULD,
+       for all such address queries, generate an immediate positive
+       response giving the IP loopback address, and for all other query
+       types, generate an immediate negative response.  This is to avoid
+       unnecessary load on the root name servers and other name servers.
+
+
+
+
+
+
+<span class="grey">Cheshire &amp; Krochmal          Standards Track                    [Page 8]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-9" id="page-9" href="#page-9" class="invisible"> </a>
+<span class="grey"><a href="./rfc6761">RFC 6761</a>                Special-Use Domain Names           February 2013</span>
+
+
+   5.  Authoritative DNS servers SHOULD recognize localhost names as
+       special and handle them as described above for caching DNS
+       servers.
+
+   6.  DNS server operators SHOULD be aware that the effective RDATA for
+       localhost names is defined by protocol specification and cannot
+       be modified by local configuration.
+
+   7.  DNS Registries/Registrars MUST NOT grant requests to register
+       localhost names in the normal way to any person or entity.
+       Localhost names are defined by protocol specification and fall
+       outside the set of names available for allocation by registries/
+       registrars.  Attempting to allocate a localhost name as if it
+       were a normal DNS domain name will probably not work as desired,
+       for reasons 2, 3, 4, and 5 above.
+
+<span class="h3"><a class="selflink" name="section-6.4" href="#section-6.4">6.4</a>.  Domain Name Reservation Considerations for "invalid."</span>
+
+   The domain "invalid." and any names falling within ".invalid." are
+   special in the ways listed below.  In the text below, the term
+   "invalid" is used in quotes to signify such names, as opposed to
+   names that may be invalid for other reasons (e.g., being too long).
+
+   1.  Users are free to use "invalid" names as they would any other
+       domain names.  Users MAY assume that queries for "invalid" names
+       will always return NXDOMAIN responses.
+
+   2.  Application software MAY recognize "invalid" names as special or
+       MAY pass them to name resolution APIs as they would for other
+       domain names.
+
+   3.  Name resolution APIs and libraries SHOULD recognize "invalid"
+       names as special and SHOULD always return immediate negative
+       responses.  Name resolution APIs SHOULD NOT send queries for
+       "invalid" names to their configured caching DNS server(s).
+
+   4.  Caching DNS servers SHOULD recognize "invalid" names as special
+       and SHOULD NOT attempt to look up NS records for them, or
+       otherwise query authoritative DNS servers in an attempt to
+       resolve "invalid" names.  Instead, caching DNS servers SHOULD
+       generate immediate NXDOMAIN responses for all such queries.  This
+       is to avoid unnecessary load on the root name servers and other
+       name servers.
+
+   5.  Authoritative DNS servers SHOULD recognize "invalid" names as
+       special and handle them as described above for caching DNS
+       servers.
+
+
+
+
+<span class="grey">Cheshire &amp; Krochmal          Standards Track                    [Page 9]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-10" id="page-10" href="#page-10" class="invisible"> </a>
+<span class="grey"><a href="./rfc6761">RFC 6761</a>                Special-Use Domain Names           February 2013</span>
+
+
+   6.  DNS server operators SHOULD be aware that the effective RDATA for
+       "invalid" names is defined by protocol specification to be
+       nonexistent and cannot be modified by local configuration.
+
+   7.  DNS Registries/Registrars MUST NOT grant requests to register
+       "invalid" names in the normal way to any person or entity.  These
+       "invalid" names are defined by protocol specification to be
+       nonexistent, and they fall outside the set of names available for
+       allocation by registries/registrars.  Attempting to allocate a
+       "invalid" name as if it were a normal DNS domain name will
+       probably not work as desired, for reasons 2, 3, 4, and 5 above.
+
+<span class="h3"><a class="selflink" name="section-6.5" href="#section-6.5">6.5</a>.  Domain Name Reservation Considerations for Example Domains</span>
+
+   The domains "example.", "example.com.", "example.net.",
+   "example.org.", and any names falling within those domains, are
+   special in the following ways:
+
+   1.  Users SHOULD understand that example names are reserved for use
+       in documentation.
+
+   2.  Application software SHOULD NOT recognize example names as
+       special and SHOULD use example names as they would other domain
+       names.
+
+   3.  Name resolution APIs and libraries SHOULD NOT recognize example
+       names as special and SHOULD NOT treat them differently.  Name
+       resolution APIs SHOULD send queries for example names to their
+       configured caching DNS server(s).
+
+   4.  Caching DNS servers SHOULD NOT recognize example names as special
+       and SHOULD resolve them normally.
+
+   5.  Authoritative DNS servers SHOULD NOT recognize example names as
+       special.
+
+   6.  DNS server operators SHOULD be aware that example names are
+       reserved for use in documentation.
+
+   7.  DNS Registries/Registrars MUST NOT grant requests to register
+       example names in the normal way to any person or entity.  All
+       example names are registered in perpetuity to IANA:
+
+
+
+
+
+
+
+
+
+<span class="grey">Cheshire &amp; Krochmal          Standards Track                   [Page 10]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-11" id="page-11" href="#page-11" class="invisible"> </a>
+<span class="grey"><a href="./rfc6761">RFC 6761</a>                Special-Use Domain Names           February 2013</span>
+
+
+        Domain Name: EXAMPLE.COM
+        Registrar: RESERVED-INTERNET ASSIGNED NUMBERS AUTHORITY
+        Whois Server: whois.iana.org
+        Referral URL: <a href="http://res-dom.iana.org">http://res-dom.iana.org</a>
+        Name Server: A.IANA-SERVERS.NET
+        Name Server: B.IANA-SERVERS.NET
+        Status: clientDeleteProhibited
+        Status: clientTransferProhibited
+        Status: clientUpdateProhibited
+        Updated Date: 26-mar-2004
+        Creation Date: 14-aug-1995
+        Expiration Date: 13-aug-2011
+
+   IANA currently maintains a web server providing a web page explaining
+   the purpose of example domains.
+
+<span class="h2"><a class="selflink" name="section-7" href="#section-7">7</a>.  Security Considerations</span>
+
+   This document outlines the circumstances in which reserving a domain
+   name for special use is appropriate, and the procedure for having
+   that Special-Use Domain Name recorded by IANA.  Any document
+   requesting such a Special-Use Domain Name needs to contain an
+   appropriate "Security Considerations" section which describes any
+   security issues relevant to that special use.
+
+<span class="h2"><a class="selflink" name="section-8" href="#section-8">8</a>.  IANA Considerations</span>
+
+   IANA has created a new registry of Special-Use Domain Names,
+   initially populated with the private-address reverse-mapping domains
+   and the Reserved Top Level DNS Names outlined above in <a href="#section-6">Section 6</a>.
+
+   When IANA receives a request to record a new "Special-Use Domain
+   Name", it should verify, in consultation with the IESG, that the IETF
+   "Standards Action" or "IESG Approval" document [<a href="./rfc5226" title="&quot;Guidelines for Writing an IANA Considerations Section in RFCs&quot;">RFC5226</a>] includes the
+   required "Domain Name Reservation Considerations" section stating how
+   the special meaning of this name affects the behavior of hardware,
+   software, and humans in the seven categories.  If IANA and the IESG
+   determine that special handling of this "Special-Use Domain Name" is
+   appropriate, IANA should record the Special-Use Domain Name, and a
+   reference to the specification that documents it, in the registry.
+
+
+
+
+
+
+
+
+
+
+
+<span class="grey">Cheshire &amp; Krochmal          Standards Track                   [Page 11]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-12" id="page-12" href="#page-12" class="invisible"> </a>
+<span class="grey"><a href="./rfc6761">RFC 6761</a>                Special-Use Domain Names           February 2013</span>
+
+
+<span class="h2"><a class="selflink" name="section-9" href="#section-9">9</a>.  References</span>
+
+<span class="h3"><a class="selflink" name="section-9.1" href="#section-9.1">9.1</a>.  Normative References</span>
+
+   [<a name="ref-RFC2119" id="ref-RFC2119">RFC2119</a>]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", <a href="./bcp14">BCP 14</a>, <a href="./rfc2119">RFC 2119</a>, March 1997.
+
+   [<a name="ref-RFC1034" id="ref-RFC1034">RFC1034</a>]  Mockapetris, P., "Domain names - concepts and facilities",
+              STD 13, <a href="./rfc1034">RFC 1034</a>, November 1987.
+
+   [<a name="ref-RFC1035" id="ref-RFC1035">RFC1035</a>]  Mockapetris, P., "Domain names - implementation and
+              specification", STD 13, <a href="./rfc1035">RFC 1035</a>, November 1987.
+
+   [<a name="ref-RFC5226" id="ref-RFC5226">RFC5226</a>]  Narten, T. and H. Alvestrand, "Guidelines for Writing an
+              IANA Considerations Section in RFCs", <a href="./bcp26">BCP 26</a>, <a href="./rfc5226">RFC 5226</a>,
+              May 2008.
+
+<span class="h3"><a class="selflink" name="section-9.2" href="#section-9.2">9.2</a>.  Informative References</span>
+
+   [<a name="ref-RFC1112" id="ref-RFC1112">RFC1112</a>]  Deering, S., "Host extensions for IP multicasting", STD 5,
+              <a href="./rfc1112">RFC 1112</a>, August 1989.
+
+   [<a name="ref-RFC1918" id="ref-RFC1918">RFC1918</a>]  Rekhter, Y., Moskowitz, R., Karrenberg, D., Groot, G., and
+              E. Lear, "Address Allocation for Private Internets",
+              <a href="./bcp5">BCP 5</a>, <a href="./rfc1918">RFC 1918</a>, February 1996.
+
+   [<a name="ref-RFC2606" id="ref-RFC2606">RFC2606</a>]  Eastlake, D. and A. Panitz, "Reserved Top Level DNS
+              Names", <a href="./bcp32">BCP 32</a>, <a href="./rfc2606">RFC 2606</a>, June 1999.
+
+   [<a name="ref-RFC3927" id="ref-RFC3927">RFC3927</a>]  Cheshire, S., Aboba, B., and E. Guttman, "Dynamic
+              Configuration of IPv4 Link-Local Addresses", <a href="./rfc3927">RFC 3927</a>,
+              May 2005.
+
+   [<a name="ref-RFC4862" id="ref-RFC4862">RFC4862</a>]  Thomson, S., Narten, T., and T. Jinmei, "IPv6 Stateless
+              Address Autoconfiguration", <a href="./rfc4862">RFC 4862</a>, September 2007.
+
+   [<a name="ref-RFC5735" id="ref-RFC5735">RFC5735</a>]  Cotton, M. and L. Vegoda, "Special Use IPv4 Addresses",
+              <a href="./bcp153">BCP 153</a>, <a href="./rfc5735">RFC 5735</a>, January 2010.
+
+   [<a name="ref-RFC5771" id="ref-RFC5771">RFC5771</a>]  Cotton, M., Vegoda, L., and D. Meyer, "IANA Guidelines for
+              IPv4 Multicast Address Assignments", <a href="./bcp51">BCP 51</a>, <a href="./rfc5771">RFC 5771</a>,
+              March 2010.
+
+
+
+
+
+
+
+
+
+<span class="grey">Cheshire &amp; Krochmal          Standards Track                   [Page 12]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-13" id="page-13" href="#page-13" class="invisible"> </a>
+<span class="grey"><a href="./rfc6761">RFC 6761</a>                Special-Use Domain Names           February 2013</span>
+
+
+Authors' Addresses
+
+   Stuart Cheshire
+   Apple Inc.
+   1 Infinite Loop
+   Cupertino, CA  95014
+   USA
+
+   Phone: +1 408 974 3207
+   EMail: cheshire@apple.com
+
+
+   Marc Krochmal
+   Apple Inc.
+   1 Infinite Loop
+   Cupertino, CA  95014
+   USA
+
+   Phone: +1 408 974 4368
+   EMail: marc@apple.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Cheshire &amp; Krochmal          Standards Track                   [Page 13]
+
+</pre><br />
+    <span class="noprint"><small><small>Html markup produced by rfcmarkup 1.121, available from
+      <a href="https://tools.ietf.org/tools/rfcmarkup/">https://tools.ietf.org/tools/rfcmarkup/</a>
+    </small></small></span>
+  </div>
+</body>
+</html>
