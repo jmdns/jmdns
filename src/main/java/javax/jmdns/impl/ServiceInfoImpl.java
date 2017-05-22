@@ -1171,44 +1171,44 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     @Override
     public String toString() {
-        StringBuilder buf = new StringBuilder();
-        buf.append("[" + this.getClass().getSimpleName() + "@" + System.identityHashCode(this) + " ");
-        buf.append("name: '");
-        buf.append((this.getName().length() > 0 ? this.getName() + "." : "") + this.getTypeWithSubtype());
-        buf.append("' address: '");
+        final StringBuilder sb = new StringBuilder();
+        sb.append("[" + this.getClass().getSimpleName() + "@" + System.identityHashCode(this) + " ");
+        sb.append("name: '");
+        sb.append((this.getName().length() > 0 ? this.getName() + "." : "") + this.getTypeWithSubtype());
+        sb.append("' address: '");
         InetAddress[] addresses = this.getInetAddresses();
         if (addresses.length > 0) {
             for (InetAddress address : addresses) {
-                buf.append(address);
-                buf.append(':');
-                buf.append(this.getPort());
-                buf.append(' ');
+                sb.append(address);
+                sb.append(':');
+                sb.append(this.getPort());
+                sb.append(' ');
             }
         } else {
-            buf.append("(null):");
-            buf.append(this.getPort());
+            sb.append("(null):");
+            sb.append(this.getPort());
         }
-        buf.append("' status: '");
-        buf.append(_state.toString());
-        buf.append(this.isPersistent() ? "' is persistent," : "',");
-        buf.append(" has ");
-        buf.append(this.hasData() ? "" : "NO ");
-        buf.append("data");
+        sb.append("' status: '");
+        sb.append(_state.toString());
+        sb.append(this.isPersistent() ? "' is persistent," : "',");
+        sb.append(" has ");
+        sb.append(this.hasData() ? "" : "NO ");
+        sb.append("data");
         if (this.getTextBytes().length > 0) {
-            // buf.append("\n");
-            // buf.append(this.getNiceTextString());
+            // sb.append("\n");
+            // sb.append(this.getNiceTextString());
             Map<String, byte[]> properties = this.getProperties();
             if (!properties.isEmpty()) {
-                buf.append("\n");
+                sb.append("\n");
                 for (String key : properties.keySet()) {
-                    buf.append("\t" + key + ": " + new String(properties.get(key)) + "\n");
+                    sb.append("\t" + key + ": " + new String(properties.get(key)) + "\n");
                 }
             } else {
-                buf.append(" empty");
+                sb.append(" empty");
             }
         }
-        buf.append(']');
-        return buf.toString();
+        sb.append(']');
+        return sb.toString();
     }
 
     /**

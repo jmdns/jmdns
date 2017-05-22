@@ -82,22 +82,22 @@ public interface DNSStatefulObject {
 
         @Override
         public String toString() {
-            StringBuilder aLog = new StringBuilder(1000);
-            aLog.append("Semaphore: ");
-            aLog.append(this._name);
+            final StringBuilder sb = new StringBuilder(1000);
+            sb.append("Semaphore: ");
+            sb.append(this._name);
             if (_semaphores.size() == 0) {
-                aLog.append(" no semaphores.");
+                sb.append(" no semaphores.");
             } else {
-                aLog.append(" semaphores:\n");
+                sb.append(" semaphores:\n");
                 for (Thread thread : _semaphores.keySet()) {
-                    aLog.append("\tThread: ");
-                    aLog.append(thread.getName());
-                    aLog.append(' ');
-                    aLog.append(_semaphores.get(thread));
-                    aLog.append('\n');
+                    sb.append("\tThread: ");
+                    sb.append(thread.getName());
+                    sb.append(' ');
+                    sb.append(_semaphores.get(thread));
+                    sb.append('\n');
                 }
             }
-            return aLog.toString();
+            return sb.toString();
         }
 
     }

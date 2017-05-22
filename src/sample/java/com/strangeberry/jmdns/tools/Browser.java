@@ -255,34 +255,34 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
             System.out.println("INFO: null");
             info.setText("service not found\n");
         } else {
-            StringBuilder buf = new StringBuilder(2048);
+            final StringBuilder sb = new StringBuilder(2048);
             System.out.println("INFO: " + serviceInfos.length);
             for (ServiceInfo service : serviceInfos) {
                 System.out.println("INFO: " + service);
-                buf.append(service.getName());
-                buf.append('.');
-                buf.append(service.getTypeWithSubtype());
-                buf.append('\n');
-                buf.append(service.getServer());
-                buf.append(':');
-                buf.append(service.getPort());
-                buf.append('\n');
+                sb.append(service.getName());
+                sb.append('.');
+                sb.append(service.getTypeWithSubtype());
+                sb.append('\n');
+                sb.append(service.getServer());
+                sb.append(':');
+                sb.append(service.getPort());
+                sb.append('\n');
                 for (InetAddress address : service.getInetAddresses()) {
-                    buf.append(address);
-                    buf.append(':');
-                    buf.append(service.getPort());
-                    buf.append('\n');
+                    sb.append(address);
+                    sb.append(':');
+                    sb.append(service.getPort());
+                    sb.append('\n');
                 }
                 for (Enumeration<String> names = service.getPropertyNames(); names.hasMoreElements();) {
                     String prop = names.nextElement();
-                    buf.append(prop);
-                    buf.append('=');
-                    buf.append(service.getPropertyString(prop));
-                    buf.append('\n');
+                    sb.append(prop);
+                    sb.append('=');
+                    sb.append(service.getPropertyString(prop));
+                    sb.append('\n');
                 }
-                buf.append("------------------------\n");
+                sb.append("------------------------\n");
             }
-            this.info.setText(buf.toString());
+            this.info.setText(sb.toString());
         }
     }
 
