@@ -667,10 +667,21 @@ public abstract class DNSRecord extends DNSEntry {
         protected void toString(final StringBuilder sb) {
             super.toString(sb);
             sb.append(" text: '");
-            if (_text.length > 20) {
-                sb.append(new String(_text, 0, 17)).append("..."); 
-            } else {
-                sb.append(new String(_text));
+
+            // since the first byte of the array contains the length of data bytes
+            // we care only about _text containing real actual data
+            if (_text.length > 2) {
+                // if there is to much text make it short
+                if (_text.length > 21) {
+                    // the first raw byte contains the length of the TXT so we skip it
+                    sb.append(new String(_text, 1, 17)).append("...");
+                } else {
+                    // just to be sure, whatever is smaller
+                    final int len = Math.min(_text[0], _text.length - 1);
+
+                    // the first raw byte contains the length of the TXT so we skip it
+                    sb.append(new String(_text, 1, len));
+                }
             }
             sb.append('\'');
         }
