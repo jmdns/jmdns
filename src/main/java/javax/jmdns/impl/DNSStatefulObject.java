@@ -3,6 +3,7 @@ package javax.jmdns.impl;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Semaphore;
@@ -82,22 +83,22 @@ public interface DNSStatefulObject {
 
         @Override
         public String toString() {
-            StringBuilder aLog = new StringBuilder(1000);
-            aLog.append("Semaphore: ");
-            aLog.append(this._name);
+            final StringBuilder sb = new StringBuilder(1000);
+            sb.append("Semaphore: ");
+            sb.append(this._name);
             if (_semaphores.size() == 0) {
-                aLog.append(" no semaphores.");
+                sb.append(" no semaphores.");
             } else {
-                aLog.append(" semaphores:\n");
-                for (Thread thread : _semaphores.keySet()) {
-                    aLog.append("\tThread: ");
-                    aLog.append(thread.getName());
-                    aLog.append(' ');
-                    aLog.append(_semaphores.get(thread));
-                    aLog.append('\n');
+                sb.append(" semaphores:\n");
+                for (final Map.Entry<Thread, Semaphore> entry : _semaphores.entrySet()) {
+                    sb.append("\tThread: ");
+                    sb.append(entry.getKey().getName());
+                    sb.append(' ');
+                    sb.append(entry.getValue());
+                    sb.append('\n');
                 }
             }
-            return aLog.toString();
+            return sb.toString();
         }
 
     }
@@ -222,7 +223,7 @@ public interface DNSStatefulObject {
                     if (this._task == task) {
                         this.setState(this._state.advance());
                     } else {
-                        logger.warn("Trying to advance state whhen not the owner. owner: " + this._task + " perpetrator: " + task);
+                        logger.warn("Trying to advance state whhen not the owner. owner: {} perpetrator: {}", this._task, task);
                     }
                 } finally {
                     this.unlock();
@@ -386,9 +387,9 @@ public interface DNSStatefulObject {
                 _announcing.waitForEvent(10);
                 if (!this.isAnnounced()) {
                     if (this.willCancel() || this.willClose()) {
-                        logger.debug("Wait for announced cancelled: " + this);
+                        logger.debug("Wait for announced cancelled: {}", this);
                     } else {
-                        logger.warn("Wait for announced timed out: " + this);
+                        logger.warn("Wait for announced timed out: {}", this);
                     }
                 }
             }
@@ -407,7 +408,7 @@ public interface DNSStatefulObject {
                 // When we run multihomed we need to check twice
                 _canceling.waitForEvent(10);
                 if (!this.isCanceled() && !this.willClose()) {
-                    logger.warn("Wait for canceled timed out: " + this);
+                    logger.warn("Wait for canceled timed out: {}", this);
                 }
             }
             return this.isCanceled();

@@ -21,6 +21,7 @@ import javax.jmdns.ServiceTypeListener;
  * 
  * @param <T>
  *            listener type
+ *            
  */
 public class ListenerStatus<T extends EventListener> {
 
@@ -64,7 +65,7 @@ public class ListenerStatus<T extends EventListener> {
                     this.getListener().serviceResolved(event);
                 }
             } else {
-                logger.debug("Service Added called for a service already added: " + event);
+                logger.debug("Service Added called for a service already added: {}", event);
             }
         }
 
@@ -79,7 +80,7 @@ public class ListenerStatus<T extends EventListener> {
             if (_addedServices.remove(qualifiedName, _addedServices.get(qualifiedName))) {
                 this.getListener().serviceRemoved(event);
             } else {
-                logger.debug("Service Removed called for a service already removed: " + event);
+                logger.debug("Service Removed called for a service already removed: {}", event);
             }
         }
 
@@ -106,10 +107,10 @@ public class ListenerStatus<T extends EventListener> {
                         }
                     }
                 } else {
-                    logger.debug("Service Resolved called for a service already resolved: " + event);
+                    logger.debug("Service Resolved called for a service already resolved: {}", event);
                 }
             } else {
-                logger.warn("Service Resolved called for an unresolved event: " + event);
+                logger.warn("Service Resolved called for an unresolved event: {}", event);
 
             }
         }
@@ -136,20 +137,20 @@ public class ListenerStatus<T extends EventListener> {
          */
         @Override
         public String toString() {
-            StringBuilder aLog = new StringBuilder(2048);
-            aLog.append("[Status for ");
-            aLog.append(this.getListener().toString());
+            final StringBuilder sb = new StringBuilder(2048);
+            sb.append("[Status for ");
+            sb.append(this.getListener().toString());
             if (_addedServices.isEmpty()) {
-                aLog.append(" no type event ");
+                sb.append(" no type event ");
             } else {
-                aLog.append(" (");
-                for (String service : _addedServices.keySet()) {
-                    aLog.append(service + ", ");
+                sb.append(" (");
+                for (final String service : _addedServices.keySet()) {
+                    sb.append(service + ", ");
                 }
-                aLog.append(") ");
+                sb.append(") ");
             }
-            aLog.append("]");
-            return aLog.toString();
+            sb.append("]");
+            return sb.toString();
         }
 
     }
@@ -180,7 +181,7 @@ public class ListenerStatus<T extends EventListener> {
             if (null == _addedTypes.putIfAbsent(event.getType(), event.getType())) {
                 this.getListener().serviceTypeAdded(event);
             } else {
-                logger.trace("Service Type Added called for a service type already added: " + event);
+                logger.trace("Service Type Added called for a service type already added: {}", event);
             }
         }
 
@@ -198,7 +199,7 @@ public class ListenerStatus<T extends EventListener> {
             if (null == _addedTypes.putIfAbsent(event.getType(), event.getType())) {
                 this.getListener().subTypeForServiceTypeAdded(event);
             } else {
-                logger.trace("Service Sub Type Added called for a service sub type already added: " + event);
+                logger.trace("Service Sub Type Added called for a service sub type already added: {}", event);
             }
         }
 
@@ -208,20 +209,20 @@ public class ListenerStatus<T extends EventListener> {
          */
         @Override
         public String toString() {
-            StringBuilder aLog = new StringBuilder(2048);
-            aLog.append("[Status for ");
-            aLog.append(this.getListener().toString());
+            final StringBuilder sb = new StringBuilder(2048);
+            sb.append("[Status for ");
+            sb.append(this.getListener().toString());
             if (_addedTypes.isEmpty()) {
-                aLog.append(" no type event ");
+                sb.append(" no type event ");
             } else {
-                aLog.append(" (");
-                for (String type : _addedTypes.keySet()) {
-                    aLog.append(type + ", ");
+                sb.append(" (");
+                for (final String type : _addedTypes.keySet()) {
+                    sb.append(type + ", ");
                 }
-                aLog.append(") ");
+                sb.append(") ");
             }
-            aLog.append("]");
-            return aLog.toString();
+            sb.append("]");
+            return sb.toString();
         }
 
     }

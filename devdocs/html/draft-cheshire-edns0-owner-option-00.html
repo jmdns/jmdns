@@ -1,0 +1,531 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://dublincore.org/documents/2008/08/04/dc-html/">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="robots" content="index,follow" />
+    <meta name="creator" content="rfcmarkup version 1.121" />
+    <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/" />
+<meta name="DC.Identifier" content="urn:ietf:id:cheshire-edns0-owner-option" />
+<meta name="DC.Description.Abstract" content="The DNS-SD Sleep Proxy Service uses a message format identical to that
+used by standard DNS Update, with two additional pieces of
+information: the identity of the sleeping server to which the records
+belong, and the Wake-on-LAN Magic Packet bit pattern which should be
+used to wake the sleeping server. This document specifies the EDNS0
+option used to carry that additional information." />
+<meta name="DC.Creator" content="Krochmal, Marc" />
+<meta name="DC.Creator" content="Cheshire, Stuart" />
+<meta name="DC.Date.Issued" content="2009-07-06" />
+<meta name="DC.Title" content="EDNS0 OWNER Option" />
+
+    <link rel="icon" href="/images/id.png" type="image/png" />
+    <link rel="shortcut icon" href="/images/id.png" type="image/png" />
+    <title>draft-cheshire-edns0-owner-option-00 - EDNS0 OWNER Option</title>
+    
+    
+    <style type="text/css">
+	@media only screen 
+	  and (min-width: 992px)
+	  and (max-width: 1199px) {
+	    body { font-size: 14pt; }
+            div.content { width: 96ex; margin: 0 auto; }
+        }
+	@media only screen 
+	  and (min-width: 768px)
+	  and (max-width: 991px) {
+            body { font-size: 14pt; }
+            div.content { width: 96ex; margin: 0 auto; }
+        }
+	@media only screen 
+	  and (min-width: 480px)
+	  and (max-width: 767px) {
+            body { font-size: 11pt; }
+            div.content { width: 96ex; margin: 0 auto; }
+        }
+	@media only screen 
+	  and (max-width: 479px) {
+            body { font-size: 8pt; }
+            div.content { width: 96ex; margin: 0 auto; }
+        }
+	@media only screen 
+	  and (min-device-width : 375px) 
+	  and (max-device-width : 667px) {
+            body { font-size: 9.5pt; }
+            div.content { width: 96ex; margin: 0 1px; }
+        }
+	@media only screen 
+	  and (min-device-width: 1200px) {
+            body { font-size: 10pt; margin: 0 4em; }
+            div.content { width: 96ex; margin: 0; }
+        }
+        h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+	    font-weight: bold;
+            line-height: 0pt;
+            display: inline;
+            white-space: pre;
+            font-family: monospace;
+            font-size: 1em;
+	    font-weight: bold;
+        }
+        pre {
+            font-size: 1em;
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+	.pre {
+	    white-space: pre;
+	    font-family: monospace;
+	}
+	.header{
+	    font-weight: bold;
+	}
+        .newpage {
+            page-break-before: always;
+        }
+        .invisible {
+            text-decoration: none;
+            color: white;
+        }
+        a.selflink {
+          color: black;
+          text-decoration: none;
+        }
+        @media print {
+            body {
+                font-family: monospace;
+                font-size: 10.5pt;
+            }
+            h1, h2, h3, h4, h5, h6 {
+                font-size: 1em;
+            }
+        
+            a:link, a:visited {
+                color: inherit;
+                text-decoration: none;
+            }
+            .noprint {
+                display: none;
+            }
+        }
+	@media screen {
+	    .grey, .grey a:link, .grey a:visited {
+		color: #777;
+	    }
+            .docinfo {
+                background-color: #EEE;
+            }
+            .top {
+                border-top: 7px solid #EEE;
+            }
+            .bgwhite  { background-color: white; }
+            .bgred    { background-color: #F44; }
+            .bggrey   { background-color: #666; }
+            .bgbrown  { background-color: #840; }            
+            .bgorange { background-color: #FA0; }
+            .bgyellow { background-color: #EE0; }
+            .bgmagenta{ background-color: #F4F; }
+            .bgblue   { background-color: #66F; }
+            .bgcyan   { background-color: #4DD; }
+            .bggreen  { background-color: #4F4; }
+
+            .legend   { font-size: 90%; }
+            .cplate   { font-size: 70%; border: solid grey 1px; }
+	}
+    </style>
+    <!--[if IE]>
+    <style>
+    body {
+       font-size: 13px;
+       margin: 10px 10px;
+    }
+    </style>
+    <![endif]-->
+
+    <script type="text/javascript"><!--
+    function addHeaderTags() {
+	var spans = document.getElementsByTagName("span");
+	for (var i=0; i < spans.length; i++) {
+	    var elem = spans[i];
+	    if (elem) {
+		var level = elem.getAttribute("class");
+                if (level == "h1" || level == "h2" || level == "h3" || level == "h4" || level == "h5" || level == "h6") {
+                    elem.innerHTML = "<"+level+">"+elem.innerHTML+"</"+level+">";		
+                }
+	    }
+	}
+    }
+    var legend_html = "Colour legend:<br />      <table>         <tr><td>Unknown:</td>                   <td><span class='cplate bgwhite'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Draft:</td>                     <td><span class='cplate bgred'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Informational:</td>             <td><span class='cplate bgorange'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Experimental:</td>              <td><span class='cplate bgyellow'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Best Common Practice:</td>      <td><span class='cplate bgmagenta'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Proposed Standard:</td>         <td><span class='cplate bgblue'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Draft Standard (old designation):</td> <td><span class='cplate bgcyan'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Internet Standard:</td>         <td><span class='cplate bggreen'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Historic:</td>                  <td><span class='cplate bggrey'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>         <tr><td>Obsolete:</td>                  <td><span class='cplate bgbrown'>&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>     </table>";
+    function showElem(id) {
+        var elem = document.getElementById(id);
+        elem.innerHTML = eval(id+"_html");
+        elem.style.visibility='visible';
+    }
+    function hideElem(id) {
+        var elem = document.getElementById(id);
+        elem.style.visibility='hidden';        
+        elem.innerHTML = "";
+    }
+    // -->
+    </script>
+</head>
+<body onload="addHeaderTags()">
+  <div class="content">
+   <div style="height: 13px;">
+      <div onmouseover="this.style.cursor='pointer';"
+         onclick="showElem('legend');"
+         onmouseout="hideElem('legend')"
+	 style="height: 6px; position: absolute;"
+         class="pre noprint docinfo bgred"
+         title="Click for colour legend." >                                                                        </div>
+      <div id="legend"
+           class="docinfo noprint pre legend"
+           style="position:absolute; top: 4px; left: 4ex; visibility:hidden; background-color: white; padding: 4px 9px 5px 7px; border: solid #345 1px; "
+           onmouseover="showElem('legend');"
+           onmouseout="hideElem('legend');">
+      </div>
+   </div>
+<span class="pre noprint docinfo top">[<a href="../html/" title="Document search and retrieval page">Docs</a>] [<a href="https://tools.ietf.org/id/draft-cheshire-edns0-owner-option-00.txt" title="Plaintext version of this document">txt</a>|<a href="/pdf/draft-cheshire-edns0-owner-option-00.txt" title="PDF version of this document">pdf</a>] [<a href='https://datatracker.ietf.org/doc/draft-cheshire-edns0-owner-option' title='IESG Datatracker information for this document'>Tracker</a>] [<a href="mailto:draft-cheshire-edns0-owner-option@ietf.org?subject=draft-cheshire-edns0-owner-option%20" title="Send email to the document authors">Email</a>] [<a href="/idnits?url=https://tools.ietf.org/id/draft-cheshire-edns0-owner-option-00.txt" title="Run an idnits check of this document">Nits</a>]                               </span><br />
+<span class="pre noprint docinfo">                                                                        </span><br />
+<span class="pre noprint docinfo">Versions: <a href="./draft-cheshire-edns0-owner-option-00">00</a>                                                            </span><br />
+<span class="pre noprint docinfo">                                                                        </span><br />
+<pre>
+Network Working Group                                        S. Cheshire
+Internet-Draft                                               M. Krochmal
+Intended status: Standards Track                              R. McGuire
+Expires: January 7, 2010                                      Apple Inc.
+                                                            July 6, 2009
+
+
+                           <span class="h1">EDNS0 OWNER Option</span>
+                <span class="h1">draft-cheshire-edns0-owner-option-00.txt</span>
+
+Status of this Memo
+
+   This Internet-Draft is submitted to IETF in full conformance with the
+   provisions of <a href="./bcp78">BCP 78</a> and <a href="./bcp79">BCP 79</a>.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at
+   <a href="http://www.ietf.org/ietf/1id-abstracts.txt">http://www.ietf.org/ietf/1id-abstracts.txt</a>.
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   <a href="http://www.ietf.org/shadow.html">http://www.ietf.org/shadow.html</a>.
+
+   This Internet-Draft will expire on January 7, 2010.
+
+Copyright Notice
+
+   Copyright (c) 2009 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to <a href="./bcp78">BCP 78</a> and the IETF Trust's Legal
+   Provisions Relating to IETF Documents in effect on the date of
+   publication of this document (<a href="http://trustee.ietf.org/license-info">http://trustee.ietf.org/license-info</a>).
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.
+
+Abstract
+
+   The DNS-SD Sleep Proxy Service uses a message format identical to
+   that used by standard DNS Update, with two additional pieces of
+
+
+
+<span class="grey">Cheshire, et al.         Expires January 7, 2010                [Page 1]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-2" id="page-2" href="#page-2" class="invisible"> </a>
+<span class="grey">Internet-Draft             EDNS0 OWNER Option                  July 2009</span>
+
+
+   information: the identity of the sleeping server to which the records
+   belong, and the Wake-on-LAN Magic Packet bit pattern which should be
+   used to wake the sleeping server.  This document specifies the EDNS0
+   option used to carry that additional information.
+
+
+<span class="h2"><a class="selflink" name="section-1" href="#section-1">1</a>.  Introduction</span>
+
+   The EDNS0 'Owner' Option is used by the DNS-SD Sleep Proxy Service.
+   The DNS-SD Sleep Proxy Service [<a href="#ref-mDNS" title="&quot;Multicast DNS&quot;">mDNS</a>] [<a href="#ref-DNS-SD" title="&quot;DNS-Based Service Discovery&quot;">DNS-SD</a>] uses a message format
+   identical to that used by standard DNS Update [<a href="./rfc2136" title="&quot;Dynamic Updates in the Domain Name System (DNS UPDATE)&quot;">RFC2136</a>] [<a href="./rfc3007" title="&quot;Secure Domain Name System (DNS) Dynamic Update&quot;">RFC3007</a>],
+   with two additional pieces of information: the identity of the
+   sleeping server to which the records belong, and the Wake-on-LAN
+   Magic Packet [<a href="#ref-WoL" title="&quot;Wake-on-LAN Magic Packet&quot;">WoL</a>] bit pattern which should be used to wake the
+   sleeping server.  This document specifies the EDNS0 option [<a href="./rfc2671" title="&quot;Extension Mechanisms for DNS (EDNS0)&quot;">RFC2671</a>]
+   used to carry that additional information.
+
+   The EDNS0 'Owner' Option is specified here with reference to the
+   DNS-SD Sleep Proxy Service, but could also be used for other purposes
+   not related to the Sleep Proxy Service.
+
+
+<span class="h2"><a class="selflink" name="section-2" href="#section-2">2</a>.  Conventions and Terminology Used in this Document</span>
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in "Key words for use in
+   RFCs to Indicate Requirement Levels" [<a href="./rfc2119" title="&quot;Key words for use in RFCs to Indicate Requirement Levels&quot;">RFC2119</a>].
+
+
+<span class="h2"><a class="selflink" name="section-3" href="#section-3">3</a>.  EDNS0 'Owner' Option</span>
+
+   When a server that supports the DNS-SD Sleep Proxy protocol goes to
+   sleep, it communicates relevant DNS records, which describe its role
+   on the network, to the Sleep Proxy, in one or more DNS Update
+   messages [<a href="./rfc2136" title="&quot;Dynamic Updates in the Domain Name System (DNS UPDATE)&quot;">RFC2136</a>] [<a href="./rfc3007" title="&quot;Secure Domain Name System (DNS) Dynamic Update&quot;">RFC3007</a>].  Typically these record registrations
+   with the Sleep Proxy do not last forever; they have a finite
+   lifetime, communicated using EDNS0 option 2 "DNS Update Lease"
+   [<a href="#ref-DNS-UL" title="&quot;Dynamic DNS Update Leases&quot;">DNS-UL</a>].
+
+   When the Sleep Proxy observes traffic on the network which warrants
+   waking the sleeping server, it does so by sending a Wake-on-LAN
+   "Magic Packet" [<a href="#ref-WoL" title="&quot;Wake-on-LAN Magic Packet&quot;">WoL</a>].
+
+   A Wake-on-LAN "Magic Packet" consists of the following bit-pattern:
+   o  Sync sequence: 48 binary 1s (i.e. 6 bytes of 0xFF)
+
+
+
+
+
+<span class="grey">Cheshire, et al.         Expires January 7, 2010                [Page 2]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-3" id="page-3" href="#page-3" class="invisible"> </a>
+<span class="grey">Internet-Draft             EDNS0 OWNER Option                  July 2009</span>
+
+
+   o  Sixteen repetitions of the 48-bit MAC address of the sleeping
+      server's network interface
+   o  Optional 32-bit or 48-bit 'password'
+
+   When the Sleep Proxy determines that the sleeping server has awoken,
+   it can cease proxying for that server.
+
+   The Sleep Proxy needs to know the 48-bit MAC address (and possibly
+   32-bit or 48-bit 'password') to use to wake the sleeping server.
+
+   It also needs a way to determine when the sleeping server has awoken.
+   Because, when a sleeping server wakes it may be attached to the
+   network via a different interface (e.g. 802.11 wireless instead of
+   Ethernet), merely observing the source MAC address in the packets it
+   sends may not be sufficient to identify that this server on wireless
+   is the same server that moments earlier went to sleep while attached
+   via Ethernet.  Also, merely observing packets apparently originating
+   from the sleeping server may not be sufficient to conclude reliably
+   that it has woken -- since these could be old packets, from before it
+   slept, that were delayed in transit.
+
+   The necessary information is communicated in the EDNS0 'Owner'
+   option:
+   o  The 48-bit MAC address of the sleeping server's network interface
+   o  Optional 32-bit or 48-bit 'password'
+   o  A 48-bit value that uniquely identifies this machine regardless of
+      which interface it is using.  Typically the MAC address of the
+      machine's 'primary' interface is used for this purpose.
+   o  A sleep/wake sequence number.  Each time the server wakes and
+      begins a new period of wakefulness, this sequence number is
+      incremented.  If the Sleep Proxy observes the server send a packet
+      with the same sleep/wake sequence number as it saw in the proxy
+      registration, this is an old packet delayed in the network and
+      does not constitute evidence that the server has awoken.  If the
+      Sleep Proxy observes the server send a packet with a different
+      sleep/wake sequence number then the Sleep Proxy can conclude that
+      the server has awoken and the proxy need not continue answering
+      for it.
+
+<span class="h3"><a class="selflink" name="section-3.1" href="#section-3.1">3.1</a>.  EDNS0 'Owner' Option Format</span>
+
+   A full EDNS0 'Owner' option has the following format:
+
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |Opt|Len|V|S|Primary MAC|Wakeup MAC |Password   |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   The two-byte EDNS0 Option code 'Opt' for the 'Owner' option is 4.
+
+
+
+<span class="grey">Cheshire, et al.         Expires January 7, 2010                [Page 3]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-4" id="page-4" href="#page-4" class="invisible"> </a>
+<span class="grey">Internet-Draft             EDNS0 OWNER Option                  July 2009</span>
+
+
+   The two-byte length field 'Len' for this option is 24.
+
+   The one-byte version field 'V' is currently zero.  In the current
+   version of the protocol, senders MUST set this field to zero on
+   transmission, and receivers receiving an EDNS0 option 4 where the
+   version field is not zero MUST ignore the entire option.
+
+   The one-byte sequence number field 'S' is set to zero the first time
+   this option is used after boot, and then after that incremented each
+   time the machine awakens from sleep.
+
+   The six-byte Primary MAC field identifies the machine.  Typically,
+   the MAC address of the machine's 'primary' interface is used for this
+   purpose.
+
+   The six-byte pattern to be repeated 16 times in the wakeup packet.
+   This SHOULD be the MAC address of the interface through which the
+   packet containing this 'Owner' option is being sent.
+
+   The six-byte 'password' to be appended after the sixteen repetitions
+   of the MAC address.
+
+<span class="h3"><a class="selflink" name="section-3.2" href="#section-3.2">3.2</a>.  Compact EDNS0 'Owner' Option Formats</span>
+
+   Where the 'password' is only four bytes, a shorter format is used,
+   identified by the length field 'Len' having the value 22:
+
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |Opt|Len|V|S|Primary MAC|Wakeup MAC |Passwd |   (Len = 22)
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   When the 'password' is not required, it can be omitted entirely,
+   identified by the length field 'Len' having the value 18:
+
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |Opt|Len|V|S|Primary MAC|Wakeup MAC |   (Len = 18)
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   In the common case where the 'password' is not required and the
+   Primary MAC and Wakeup MAC are the same, both Wakeup MAC and password
+   may be omitted, identified by the length field 'Len' having the value
+   12:
+
+      +-+-+-+-+-+-+-+-+-+-+-+-+
+      |Opt|Len|V|S|Primary MAC|   (Len = 12)
+      +-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+
+
+
+<span class="grey">Cheshire, et al.         Expires January 7, 2010                [Page 4]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-5" id="page-5" href="#page-5" class="invisible"> </a>
+<span class="grey">Internet-Draft             EDNS0 OWNER Option                  July 2009</span>
+
+
+<span class="h2"><a class="selflink" name="section-4" href="#section-4">4</a>.  Security Considerations</span>
+
+   When a Wake-on-LAN Magic Packet is sent to wake a machine up, it is
+   sent in the clear, making it vulnerable to eavesdropping.
+
+
+<span class="h2"><a class="selflink" name="section-5" href="#section-5">5</a>.  IANA Considerations</span>
+
+   The EDNS0 OPTION CODE 4 has already been assigned for this DNS
+   extension.  No additional IANA services are required by this
+   document.
+
+
+<span class="h2"><a class="selflink" name="section-6" href="#section-6">6</a>.  References</span>
+
+<span class="h3"><a class="selflink" name="section-6.1" href="#section-6.1">6.1</a>.  Normative References</span>
+
+   [<a name="ref-RFC2119" id="ref-RFC2119">RFC2119</a>]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", <a href="./bcp14">BCP 14</a>, <a href="./rfc2119">RFC 2119</a>, March 1997.
+
+   [<a name="ref-RFC2671" id="ref-RFC2671">RFC2671</a>]  Vixie, P., "Extension Mechanisms for DNS (EDNS0)",
+              <a href="./rfc2671">RFC 2671</a>, August 1999.
+
+<span class="h3"><a class="selflink" name="section-6.2" href="#section-6.2">6.2</a>.  Informative References</span>
+
+   [<a name="ref-RFC2136" id="ref-RFC2136">RFC2136</a>]  Vixie, P., Thomson, S., Rekhter, Y., and J. Bound,
+              "Dynamic Updates in the Domain Name System (DNS UPDATE)",
+              <a href="./rfc2136">RFC 2136</a>, April 1997.
+
+   [<a name="ref-RFC3007" id="ref-RFC3007">RFC3007</a>]  Wellington, B., "Secure Domain Name System (DNS) Dynamic
+              Update", <a href="./rfc3007">RFC 3007</a>, November 2000.
+
+   [<a name="ref-mDNS" id="ref-mDNS">mDNS</a>]     Cheshire, S. and M. Krochmal, "Multicast DNS",
+              <a href="./draft-cheshire-dnsext-multicastdns-07.txt">draft-cheshire-dnsext-multicastdns-07.txt</a> (work in
+              progress), September 2008.
+
+   [<a name="ref-DNS-SD" id="ref-DNS-SD">DNS-SD</a>]   Cheshire, S. and M. Krochmal, "DNS-Based Service
+              Discovery", <a href="./draft-cheshire-dnsext-multicastdns-07.txt">draft-cheshire-dnsext-multicastdns-07.txt</a>
+              (work in progress), September 2008.
+
+   [<a name="ref-DNS-UL" id="ref-DNS-UL">DNS-UL</a>]   Cheshire, S., Krochmal, M., and K. Sekar, "Dynamic DNS
+              Update Leases", <a href="./draft-sekar-dns-ul-01.txt">draft-sekar-dns-ul-01.txt</a> (work in
+              progress), August 2007.
+
+   [<a name="ref-WoL" id="ref-WoL">WoL</a>]      "Wake-on-LAN Magic Packet",
+               <a href="http://en.wikipedia.org/wiki/Wake-on-LAN">http://en.wikipedia.org/wiki/Wake-on-LAN</a>.
+
+
+
+
+
+<span class="grey">Cheshire, et al.         Expires January 7, 2010                [Page 5]</span></pre>
+<hr class='noprint' style='width: 96ex;' align='left'/><!--NewPage--><pre class='newpage'><a name="page-6" id="page-6" href="#page-6" class="invisible"> </a>
+<span class="grey">Internet-Draft             EDNS0 OWNER Option                  July 2009</span>
+
+
+Authors' Addresses
+
+   Stuart Cheshire
+   Apple Inc.
+   1 Infinite Loop
+   Cupertino, California  95014
+   USA
+
+   Phone: +1 408 974 3207
+   Email: cheshire@apple.com
+
+
+   Marc Krochmal
+   Apple Inc.
+   1 Infinite Loop
+   Cupertino, California  95014
+   USA
+
+   Phone: +1 408 974 4368
+   Email: marc@apple.com
+
+
+   Rory McGuire
+   Apple Inc.
+   1 Infinite Loop
+   Cupertino, California  95014
+   USA
+
+   Phone: +1 408 974 1010
+   Email: @apple.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Cheshire, et al.         Expires January 7, 2010                [Page 6]
+
+</pre><br />
+    <span class="noprint"><small><small>Html markup produced by rfcmarkup 1.121, available from
+      <a href="https://tools.ietf.org/tools/rfcmarkup/">https://tools.ietf.org/tools/rfcmarkup/</a>
+    </small></small></span>
+  </div>
+</body>
+</html>
