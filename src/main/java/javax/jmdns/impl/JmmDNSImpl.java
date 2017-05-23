@@ -111,9 +111,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
     @Override
     public void close() throws IOException {
         if (_isClosing.compareAndSet(false, true)) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Cancelling JmmDNS: " + this);
-            }
+            logger.debug("Cancelling JmmDNS: {}", this);
             _timer.cancel();
             _listenerExecutor.shutdown();
             _jmDNSExecutor.shutdown();

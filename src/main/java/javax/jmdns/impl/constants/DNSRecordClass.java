@@ -113,7 +113,7 @@ public enum DNSRecordClass {
                 if (aClass._externalName.equals(aName)) return aClass;
             }
         }
-        logger.warn("Could not find record class for name: " + name);
+        logger.warn("Could not find record class for name: {}", name);
         return CLASS_UNKNOWN;
     }
 
@@ -126,7 +126,7 @@ public enum DNSRecordClass {
         for (DNSRecordClass aClass : DNSRecordClass.values()) {
             if (aClass._index == maskedIndex) return aClass;
         }
-        logger.warn("Could not find record class for index: " + index);
+        logger.warn("Could not find record class for index: {}", index);
         return CLASS_UNKNOWN;
     }
 

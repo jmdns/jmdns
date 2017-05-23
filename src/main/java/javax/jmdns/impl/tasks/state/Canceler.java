@@ -6,8 +6,6 @@ package javax.jmdns.impl.tasks.state;
 
 import java.io.IOException;
 import java.util.Timer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSRecord;
@@ -21,7 +19,6 @@ import javax.jmdns.impl.constants.DNSState;
  * The Canceler sends two announces with TTL=0 for the specified services.
  */
 public class Canceler extends DNSStateTask {
-    static Logger logger = LoggerFactory.getLogger(Canceler.class.getName());
 
     public Canceler(JmDNSImpl jmDNSImpl) {
         super(jmDNSImpl, 0);
