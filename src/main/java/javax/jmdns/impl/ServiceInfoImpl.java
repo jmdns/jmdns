@@ -619,12 +619,12 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     @Override
     public String getTextString() {
         Map<String, byte[]> properties = this.getProperties();
-        for (String key : properties.keySet()) {
-            byte[] value = properties.get(key);
+        for (final Map.Entry<String, byte[]> entry : properties.entrySet()) {
+            byte[] value = entry.getValue();
             if ((value != null) && (value.length > 0)) {
-                return key + "=" + new String(value);
+                return entry.getKey() + "=" + new String(value);
             }
-            return key;
+            return entry.getKey();
         }
         return "";
     }
@@ -1194,8 +1194,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
             final Map<String, byte[]> properties = this.getProperties();
             if (!properties.isEmpty()) {
                 sb.append("\n");
-                for (final String key : properties.keySet()) {
-                    sb.append('\t').append(key).append(": ").append(new String(properties.get(key))).append('\n');
+                for (final Map.Entry<String, byte[]> entry : properties.entrySet()) {
+                    sb.append('\t').append(entry.getKey()).append(": ").append(new String(entry.getValue())).append('\n');
                 }
             } else {
                 sb.append(" empty");
@@ -1264,10 +1264,10 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
         if (props != null) {
             try {
                 ByteArrayOutputStream out = new ByteArrayOutputStream(256);
-                for (String key : props.keySet()) {
-                    Object val = props.get(key);
+                for (final Map.Entry<String, ?> entry : props.entrySet()) {
+                    Object val = entry.getValue();
                     ByteArrayOutputStream out2 = new ByteArrayOutputStream(100);
-                    writeUTF(out2, key);
+                    writeUTF(out2, entry.getKey());
                     if (val == null) {
                         // Skip
                     } else if (val instanceof String) {
@@ -1286,7 +1286,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                     }
                     byte data[] = out2.toByteArray();
                     if (data.length > 255) {
-                        throw new IOException("Cannot have individual values larger that 255 chars. Offending value: " + key + (val != null ? "" : "=" + val));
+                        throw new IOException("Cannot have individual values larger that 255 chars. Offending value: " + entry.getKey() + (val != null ? "" : "=" + val));
                     }
                     out.write((byte) data.length);
                     out.write(data, 0, data.length);

@@ -90,11 +90,11 @@ public interface DNSStatefulObject {
                 sb.append(" no semaphores.");
             } else {
                 sb.append(" semaphores:\n");
-                for (Thread thread : _semaphores.keySet()) {
+                for (final Map.Entry<Thread, Semaphore> entry : _semaphores.entrySet()) {
                     sb.append("\tThread: ");
-                    sb.append(thread.getName());
+                    sb.append(entry.getKey().getName());
                     sb.append(' ');
-                    sb.append(_semaphores.get(thread));
+                    sb.append(entry.getValue());
                     sb.append('\n');
                 }
             }

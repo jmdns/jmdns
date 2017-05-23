@@ -157,8 +157,9 @@ public final class DNSIncoming extends DNSMessage {
                         logger1.warn("unsupported dns label type: '" + Integer.toHexString(len & 0xC0) + "'");
                 }
             }
-            for (Integer index : names.keySet()) {
-                _names.put(index, names.get(index).toString());
+            for (final Map.Entry<Integer, StringBuilder> entry : names.entrySet()) {
+                final Integer index = entry.getKey();
+                _names.put(index, entry.getValue().toString());
             }
             return sb.toString();
         }

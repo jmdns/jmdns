@@ -43,7 +43,7 @@ public class DNSQuestion extends DNSEntry {
         @Override
         public boolean iAmTheOnlyOne(JmDNSImpl jmDNSImpl) {
             String name = this.getName().toLowerCase();
-            return jmDNSImpl.getLocalHost().getName().equals(name) || jmDNSImpl.getServices().keySet().contains(name);
+            return jmDNSImpl.getLocalHost().getName().equals(name) || jmDNSImpl.getServices().containsKey(name);
         }
 
     }
@@ -67,7 +67,7 @@ public class DNSQuestion extends DNSEntry {
         @Override
         public boolean iAmTheOnlyOne(JmDNSImpl jmDNSImpl) {
             String name = this.getName().toLowerCase();
-            return jmDNSImpl.getLocalHost().getName().equals(name) || jmDNSImpl.getServices().keySet().contains(name);
+            return jmDNSImpl.getLocalHost().getName().equals(name) || jmDNSImpl.getServices().containsKey(name);
         }
 
     }
@@ -96,8 +96,7 @@ public class DNSQuestion extends DNSEntry {
                 this.addAnswersForServiceInfo(jmDNSImpl, answers, (ServiceInfoImpl) serviceInfo);
             }
             if (this.isServicesDiscoveryMetaQuery()) {
-                for (String serviceType : jmDNSImpl.getServiceTypes().keySet()) {
-                    ServiceTypeEntry typeEntry = jmDNSImpl.getServiceTypes().get(serviceType);
+                for (final ServiceTypeEntry typeEntry : jmDNSImpl.getServiceTypes().values()) {
                     answers.add(new DNSRecord.Pointer("_services._dns-sd._udp.local.", DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, typeEntry.getType()));
                 }
             } else if (this.isReverseLookup()) {
@@ -150,7 +149,7 @@ public class DNSQuestion extends DNSEntry {
         @Override
         public boolean iAmTheOnlyOne(JmDNSImpl jmDNSImpl) {
             String name = this.getName().toLowerCase();
-            return jmDNSImpl.getLocalHost().getName().equals(name) || jmDNSImpl.getServices().keySet().contains(name);
+            return jmDNSImpl.getLocalHost().getName().equals(name) || jmDNSImpl.getServices().containsKey(name);
         }
 
     }
@@ -171,7 +170,7 @@ public class DNSQuestion extends DNSEntry {
         @Override
         public boolean iAmTheOnlyOne(JmDNSImpl jmDNSImpl) {
             String name = this.getName().toLowerCase();
-            return jmDNSImpl.getLocalHost().getName().equals(name) || jmDNSImpl.getServices().keySet().contains(name);
+            return jmDNSImpl.getLocalHost().getName().equals(name) || jmDNSImpl.getServices().containsKey(name);
         }
 
     }
@@ -213,7 +212,7 @@ public class DNSQuestion extends DNSEntry {
         @Override
         public boolean iAmTheOnlyOne(JmDNSImpl jmDNSImpl) {
             String name = this.getName().toLowerCase();
-            return jmDNSImpl.getLocalHost().getName().equals(name) || jmDNSImpl.getServices().keySet().contains(name);
+            return jmDNSImpl.getLocalHost().getName().equals(name) || jmDNSImpl.getServices().containsKey(name);
         }
 
     }
