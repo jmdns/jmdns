@@ -768,13 +768,13 @@ public abstract class DNSRecord extends DNSEntry {
         boolean handleQuery(JmDNSImpl dns, long expirationTime) {
             ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(this.getKey());
             if (info != null && (info.isAnnouncing() || info.isAnnounced()) && (_port != info.getPort() || !_server.equalsIgnoreCase(dns.getLocalHost().getName()))) {
-                logger1.debug("handleQuery() Conflicting probe detected from: " + getRecordSource());
+                logger1.debug("handleQuery() Conflicting probe detected from: {}", getRecordSource());
                 DNSRecord.Service localService = new DNSRecord.Service(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(), dns.getLocalHost().getName());
 
-                // This block is useful for debugging race conditions when jmdns is responding to itself.
+                // This block is useful for debugging race conditions when jmDNS is responding to itself.
                 try {
                     if (dns.getInetAddress().equals(getRecordSource())) {
-                        logger1.warn("Got conflicting probe from ourselves\n" + "incoming: " + this.toString() + "\n" + "local   : " + localService.toString());
+                        logger1.warn("Got conflicting probe from ourselves\nincoming: {}\nlocal   : {}", this.toString(), localService.toString());
                     }
                 } catch (IOException e) {
                     logger1.warn("IOException", e);
@@ -798,7 +798,7 @@ public abstract class DNSRecord extends DNSEntry {
                     info.setName(NameRegister.Factory.getRegistry().incrementName(dns.getLocalHost().getInetAddress(), info.getName(), NameRegister.NameType.SERVICE));
                     dns.getServices().remove(oldName);
                     dns.getServices().put(info.getQualifiedName().toLowerCase(), info);
-                    logger1.debug("handleQuery() Lost tie break: new unique name chosen:" + info.getName());
+                    logger1.debug("handleQuery() Lost tie break: new unique name chosen:{}", info.getName());
 
                     // We revert the state to start probing again with the new name
                     info.revertState();
@@ -825,7 +825,7 @@ public abstract class DNSRecord extends DNSEntry {
                     info.setName(NameRegister.Factory.getRegistry().incrementName(dns.getLocalHost().getInetAddress(), info.getName(), NameRegister.NameType.SERVICE));
                     dns.getServices().remove(oldName);
                     dns.getServices().put(info.getQualifiedName().toLowerCase(), info);
-                    logger1.debug("handleResponse() New unique name chose:" + info.getName());
+                    logger1.debug("handleResponse() New unique name chose:{}", info.getName());
 
                 }
                 info.revertState();

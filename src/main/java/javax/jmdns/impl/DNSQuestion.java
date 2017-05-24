@@ -282,9 +282,7 @@ public class DNSQuestion extends DNSEntry {
                 answers.addAll(jmDNSImpl.getLocalHost().answers(this.getRecordClass(), DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL));
                 answers.addAll(info.answers(this.getRecordClass(), DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, jmDNSImpl.getLocalHost()));
             }
-            if (logger.isDebugEnabled()) {
-                logger.debug(jmDNSImpl.getName() + " DNSQuestion(" + this.getName() + ").addAnswersForServiceInfo(): info: " + info + "\n" + answers);
-            }
+            logger.debug("{} DNSQuestion({}).addAnswersForServiceInfo(): info: {}\n{}", jmDNSImpl.getName(), this.getName(), info, answers);
         }
     }
 
