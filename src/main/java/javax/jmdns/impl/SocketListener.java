@@ -50,7 +50,7 @@ class SocketListener extends Thread {
                     DNSIncoming msg = new DNSIncoming(packet);
                     if (msg.isValidResponseCode()) {
                         if (logger.isTraceEnabled()) {
-                            logger.trace(this.getName() + ".run() JmDNS in:" + msg.print(true));
+                            logger.trace( "{}.run() JmDNS in:{}", this.getName(), msg.print(true));
                         }
                         if (msg.isQuery()) {
                             if (packet.getPort() != DNSConstants.MDNS_PORT) {
@@ -62,7 +62,7 @@ class SocketListener extends Thread {
                         }
                     } else {
                         if (logger.isDebugEnabled()) {
-                            logger.debug(this.getName() + ".run() JmDNS in message with error code:" + msg.print(true));
+                            logger.debug("{}.run() JmDNS in message with error code: {}", this.getName(), msg.print(true));
                         }
                     }
                 } catch (IOException e) {
@@ -75,9 +75,7 @@ class SocketListener extends Thread {
                 this._jmDNSImpl.recover();
             }
         }
-        if (logger.isTraceEnabled()) {
-            logger.trace(this.getName() + ".run() exiting.");
-        }
+        logger.trace("{}.run() exiting.", this.getName() );
     }
 
     public JmDNSImpl getDns() {

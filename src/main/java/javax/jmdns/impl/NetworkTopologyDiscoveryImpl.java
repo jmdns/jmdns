@@ -43,9 +43,7 @@ public class NetworkTopologyDiscoveryImpl implements NetworkTopologyDiscovery {
                 NetworkInterface nif = nifs.nextElement();
                 for (Enumeration<InetAddress> iaenum = nif.getInetAddresses(); iaenum.hasMoreElements();) {
                     InetAddress interfaceAddress = iaenum.nextElement();
-                    if (logger.isTraceEnabled()) {
-                        logger.trace("Found NetworkInterface/InetAddress: " + nif + " -- " + interfaceAddress);
-                    }
+                    logger.trace("Found NetworkInterface/InetAddress: {} -- {}",  nif , interfaceAddress);
                     if (useInetAddress(nif, interfaceAddress)) {
                         result.add(interfaceAddress);
                     }

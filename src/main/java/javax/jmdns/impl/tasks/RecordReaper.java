@@ -49,9 +49,7 @@ public class RecordReaper extends DNSTask {
         if (this.getDns().isCanceling() || this.getDns().isCanceled()) {
             return;
         }
-        if (logger.isTraceEnabled()) {
-            logger.trace(this.getName() + ".run() JmDNS reaping cache");
-        }
+        logger.trace("{}.run() JmDNS reaping cache", this.getName());
 
         // Remove expired answers from the cache
         // -------------------------------------

@@ -6,8 +6,6 @@ package javax.jmdns.impl.tasks.state;
 
 import java.io.IOException;
 import java.util.Timer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSRecord;
@@ -21,7 +19,6 @@ import javax.jmdns.impl.constants.DNSState;
  * The Renewer is there to send renewal announcement when the record expire for ours infos.
  */
 public class Renewer extends DNSStateTask {
-    static Logger logger = LoggerFactory.getLogger(Renewer.class.getName());
 
     public Renewer(JmDNSImpl jmDNSImpl) {
         super(jmDNSImpl, defaultTTL());
