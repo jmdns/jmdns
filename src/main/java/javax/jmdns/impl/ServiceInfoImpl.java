@@ -58,6 +58,11 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     private final Set<Inet4Address> _ipv4Addresses;
     private final Set<Inet6Address> _ipv6Addresses;
 
+    /**
+     * Flag to track if an InetAddress was set at least once
+     */
+    private boolean                 _inetAddressSet = false;
+
     private transient String        _key;
 
     private boolean                 _persistent;
@@ -779,77 +784,168 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      * @param rec
      */
     @Override
-    public void updateRecord(DNSCache dnsCache, long now, DNSEntry rec) {
-        if ((rec instanceof DNSRecord) && !rec.isExpired(now)) {
-            boolean serviceUpdated = false;
-            switch (rec.getRecordType()) {
-                case TYPE_A: // IPv4
-                    if (rec.getName().equalsIgnoreCase(this.getServer())) {
-                        _ipv4Addresses.add((Inet4Address) ((DNSRecord.Address) rec).getAddress());
-                        serviceUpdated = true;
-                    }
-                    break;
-                case TYPE_AAAA: // IPv6
-                    if (rec.getName().equalsIgnoreCase(this.getServer())) {
-                        _ipv6Addresses.add((Inet6Address) ((DNSRecord.Address) rec).getAddress());
-                        serviceUpdated = true;
-                    }
-                    break;
-                case TYPE_SRV:
-                    if (rec.getName().equalsIgnoreCase(this.getQualifiedName())) {
-                        DNSRecord.Service srv = (DNSRecord.Service) rec;
-                        boolean serverChanged = (_server == null) || !_server.equalsIgnoreCase(srv.getServer());
-                        _server = srv.getServer();
-                        _port = srv.getPort();
-                        _weight = srv.getWeight();
-                        _priority = srv.getPriority();
-                        if (serverChanged) {
-                            _ipv4Addresses.clear();
-                            _ipv6Addresses.clear();
-                            for (DNSEntry entry : dnsCache.getDNSEntryList(_server, DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN)) {
-                                this.updateRecord(dnsCache, now, entry);
-                            }
-                            for (DNSEntry entry : dnsCache.getDNSEntryList(_server, DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN)) {
-                                this.updateRecord(dnsCache, now, entry);
-                            }
-                            // We do not want to trigger the listener in this case as it will be triggered if the address resolves.
-                        } else {
-                            serviceUpdated = true;
-                        }
-                    }
-                    break;
-                case TYPE_TXT:
-                    if (rec.getName().equalsIgnoreCase(this.getQualifiedName())) {
-                        DNSRecord.Text txt = (DNSRecord.Text) rec;
-                        _text = txt.getText();
-                        _props = null; // set it null for apply update text data
-                        serviceUpdated = true;
-                    }
-                    break;
-                case TYPE_PTR:
-                    if ((this.getSubtype().length() == 0) && (rec.getSubtype().length() != 0)) {
-                        _subtype = rec.getSubtype();
-                        serviceUpdated = true;
-                    }
-                    break;
-                default:
-                    break;
-            }
-            if (serviceUpdated && this.hasData()) {
-                JmDNSImpl dns = this.getDns();
-                if (dns != null) {
+    public void updateRecord(final DNSCache dnsCache, final long now, final DNSEntry entry) {
+
+        // some logging for debugging purposes
+        if ( !(entry instanceof DNSRecord) ) {
+            logger.trace("DNSEntry is not of type 'DNSRecord' but of type {}",
+                    null == entry ? "null" : entry.getClass().getSimpleName()
+            );
+            return;
+        }
+
+        // flag for changes
+        boolean serviceChanged = false;
+
+        final DNSRecord rec = (DNSRecord) entry;
+
+        if (rec.isExpired(now)) {
+            // remove data
+            serviceChanged = handleExpiredRecord(rec);
+        } else {
+            // add or update data
+            serviceChanged = handleUpdateRecord(dnsCache, now, rec);
+        }
+
+        // handle changes in service
+        if (serviceChanged) {
+            // things have changed => have to inform listeners
+            final JmDNSImpl dns = this.getDns();
+            if (dns != null) {
+                if (this.hasData()) {
                     // ServiceEvent event = ((DNSRecord) rec).getServiceEvent(dns);
                     // event = new ServiceEventImpl(dns, event.getType(), event.getName(), this);
                     // Failure to resolve services - ID: 3517826
                     ServiceEvent event = new ServiceEventImpl(dns, this.getType(), this.getName(), this);
                     dns.handleServiceResolved(event);
+                } else {
+                    // it must have had at least once an InetAddress
+                    // otherwise we might still setup this ServiceInfo
+                    if (_inetAddressSet && !this.hasInetAddress()) {
+                        // no data means the service is not reachable anymore, e.g. the last IP expired
+                        logger.trace("No InetAddress for this ServiceInfo, will delete: {}", this);
+
+                        // need to inform all listeners
+                        ServiceEvent event = new ServiceEventImpl(dns, this.getType(), this.getName(), this);
+                        dns.handleServiceRemoved(event);
+
+                        // we should get here only once
+                        _inetAddressSet = false;
+
+                        // remove this service from all caches
+                        dns.removeServiceInfoFromCache(this);
+                    }
                 }
             }
-            // This is done, to notify the wait loop in method JmDNS.waitForInfoData(ServiceInfo info, int timeout);
-            synchronized (this) {
-                this.notifyAll();
-            }
         }
+
+        // This is done, to notify the wait loop in method JmDNS.waitForInfoData(ServiceInfo info, int timeout);
+        synchronized (this) {
+            this.notifyAll();
+        }
+    }
+
+    private boolean handleExpiredRecord(final DNSRecord rec) {
+        // handle expired record
+        switch (rec.getRecordType()) {
+            case TYPE_A: // IPv4
+                if (rec.getName().equalsIgnoreCase(this.getServer())) {
+                    final DNSRecord.Address address = (DNSRecord.Address) rec;
+                    final Inet4Address inet4Address = (Inet4Address) address.getAddress();
+                    if (_ipv4Addresses.remove(inet4Address)) {
+                        logger.trace("Removed expired IPv4: {}", inet4Address);
+                        return true;
+                    }
+                }
+                break;
+            case TYPE_AAAA: // IPv6
+                if (rec.getName().equalsIgnoreCase(this.getServer())) {
+                    final DNSRecord.Address address = (DNSRecord.Address) rec;
+                    final Inet6Address inet6Address = (Inet6Address) address.getAddress();
+                    if (_ipv6Addresses.remove(inet6Address)) {
+                        logger.trace("Removed expired IPv6: {}", inet6Address);
+                        return true;
+                    }
+                }
+                break;
+            default:
+                logger.trace("Unhandled expired record: {}", rec);
+                break;
+        }
+
+        return false;
+    }
+
+    private boolean handleUpdateRecord(final DNSCache dnsCache, final long now, final DNSRecord rec ) {
+        boolean serviceUpdated = false;
+
+        switch (rec.getRecordType()) {
+            case TYPE_A: // IPv4
+                if (rec.getName().equalsIgnoreCase(this.getServer())) {
+                    final DNSRecord.Address address = (DNSRecord.Address) rec;
+                    if (address.getAddress() instanceof Inet4Address) {
+                        final Inet4Address inet4Address = (Inet4Address) address.getAddress();
+                        if(_ipv4Addresses.add(inet4Address)) {
+                            _inetAddressSet = true;
+                        }
+                    }
+                    serviceUpdated = true;
+                }
+                break;
+            case TYPE_AAAA: // IPv6
+                if (rec.getName().equalsIgnoreCase(this.getServer())) {
+                    final DNSRecord.Address address = (DNSRecord.Address) rec;
+                    if (address.getAddress() instanceof Inet6Address) {
+                        final Inet6Address inet6Address = (Inet6Address) address.getAddress();
+                        if(_ipv6Addresses.add(inet6Address)) {
+                            _inetAddressSet = true;
+                        }
+                    }
+                    serviceUpdated = true;
+                }
+                break;
+            case TYPE_SRV:
+                if (rec.getName().equalsIgnoreCase(this.getQualifiedName())) {
+                    DNSRecord.Service srv = (DNSRecord.Service) rec;
+                    boolean serverChanged = (_server == null) || !_server.equalsIgnoreCase(srv.getServer());
+                    _server = srv.getServer();
+                    _port = srv.getPort();
+                    _weight = srv.getWeight();
+                    _priority = srv.getPriority();
+                    if (serverChanged) {
+                        _ipv4Addresses.clear();
+                        _ipv6Addresses.clear();
+                        for (DNSEntry entry : dnsCache.getDNSEntryList(_server, DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN)) {
+                            this.updateRecord(dnsCache, now, entry);
+                        }
+                        for (DNSEntry entry : dnsCache.getDNSEntryList(_server, DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN)) {
+                            this.updateRecord(dnsCache, now, entry);
+                        }
+                        // We do not want to trigger the listener in this case as it will be triggered if the address resolves.
+                    } else {
+                        serviceUpdated = true;
+                    }
+                }
+                break;
+            case TYPE_TXT:
+                if (rec.getName().equalsIgnoreCase(this.getQualifiedName())) {
+                    DNSRecord.Text txt = (DNSRecord.Text) rec;
+                    _text = txt.getText();
+                    _props = null; // set it null for apply update text data
+                    serviceUpdated = true;
+                }
+                break;
+            case TYPE_PTR:
+                if ((this.getSubtype().length() == 0) && (rec.getSubtype().length() != 0)) {
+                    _subtype = rec.getSubtype();
+                    serviceUpdated = true;
+                }
+                break;
+            default:
+                break;
+        }
+
+        return serviceUpdated;
     }
 
     /**
@@ -1095,7 +1191,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                     sb.append('\t').append(entry.getKey()).append(": ").append(str).append('\n');
                 }
             } else {
-                sb.append(" empty");
+                sb.append(", empty");
             }
         }
         sb.append(']');
