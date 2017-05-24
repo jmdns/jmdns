@@ -54,7 +54,6 @@ public class ServiceInfoImplTest {
         if (jmDNS != null) jmDNS.close();
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     private byte[] readFile(String fileName) throws IOException {
         File file = new File(this.getClass().getResource(fileName).getFile());
 

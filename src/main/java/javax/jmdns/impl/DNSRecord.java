@@ -25,6 +25,9 @@ import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 
+import javax.jmdns.impl.util.ByteWrangler;
+
+
 /**
  * DNS record
  *
@@ -32,6 +35,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
  */
 public abstract class DNSRecord extends DNSEntry {
     private static Logger logger = LoggerFactory.getLogger(DNSRecord.class.getName());
+
     private int           _ttl;
     private long          _created;
     private int           _isStaleAndShouldBeRefreshedPercentage;
@@ -569,15 +573,13 @@ public abstract class DNSRecord extends DNSEntry {
 
     }
 
-    public final static byte[] EMPTY_TXT = new byte[] { 0 };
-
     public static class Text extends DNSRecord {
         // private static Logger logger = LoggerFactory.getLogger(Text.class.getName());
         private final byte[] _text;
 
         public Text(String name, DNSRecordClass recordClass, boolean unique, int ttl, byte text[]) {
             super(name, DNSRecordType.TYPE_TXT, recordClass, unique, ttl);
-            this._text = (text != null && text.length > 0 ? text : EMPTY_TXT);
+            this._text = (text != null && text.length > 0 ? text : ByteWrangler.EMPTY_TXT);
         }
 
         /**
@@ -667,10 +669,15 @@ public abstract class DNSRecord extends DNSEntry {
         protected void toString(final StringBuilder sb) {
             super.toString(sb);
             sb.append(" text: '");
-            if (_text.length > 20) {
-                sb.append(new String(_text, 0, 17)).append("..."); 
+
+            final String text = ByteWrangler.readUTF(_text);
+
+            // if the text is longer than 20 characters cut it to 17 chars
+            // and add "..." at the end
+            if (20 < text.length()) {
+                sb.append(text, 0, 17).append("...");
             } else {
-                sb.append(new String(_text));
+                sb.append(text);
             }
             sb.append('\'');
         }
