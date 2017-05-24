@@ -34,7 +34,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSState;
 import javax.jmdns.impl.tasks.DNSTask;
 
-import static javax.jmdns.impl.util.ByteWrangler.*;
+import javax.jmdns.impl.util.ByteWrangler;
 
 /**
  * JmDNS service information.
@@ -130,7 +130,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
         this(ServiceInfoImpl.decodeQualifiedNameMap(type, name, subtype), port, weight, priority, persistent, (byte[]) null);
 
         try {
-            this._text = encodeText(text);
+            this._text = ByteWrangler.encodeText(text);
         } catch (final IOException e) {
             throw new RuntimeException("Unexpected exception: " + e);
         }
@@ -150,7 +150,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      * @see javax.jmdns.ServiceInfo#create(String, String, int, int, int, Map)
      */
     public ServiceInfoImpl(String type, String name, String subtype, int port, int weight, int priority, boolean persistent, Map<String, ?> props) {
-        this(ServiceInfoImpl.decodeQualifiedNameMap(type, name, subtype), port, weight, priority, persistent, textFromProperties(props));
+        this(ServiceInfoImpl.decodeQualifiedNameMap(type, name, subtype), port, weight, priority, persistent, ByteWrangler.textFromProperties(props));
     }
 
     /**
@@ -169,14 +169,14 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     }
 
     public ServiceInfoImpl(Map<Fields, String> qualifiedNameMap, int port, int weight, int priority, boolean persistent, Map<String, ?> props) {
-        this(qualifiedNameMap, port, weight, priority, persistent, textFromProperties(props));
+        this(qualifiedNameMap, port, weight, priority, persistent, ByteWrangler.textFromProperties(props));
     }
 
     ServiceInfoImpl(Map<Fields, String> qualifiedNameMap, int port, int weight, int priority, boolean persistent, String text) {
         this(qualifiedNameMap, port, weight, priority, persistent, (byte[]) null);
 
         try {
-            this._text = encodeText(text);
+            this._text = ByteWrangler.encodeText(text);
         } catch (final IOException e) {
             throw new RuntimeException("Unexpected exception: " + e);
         }
@@ -599,7 +599,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     @Override
     public byte[] getTextBytes() {
-        return (this._text != null && this._text.length > 0 ? this._text : EMPTY_TXT);
+        return (this._text != null && this._text.length > 0 ? this._text : ByteWrangler.EMPTY_TXT);
     }
 
     /**
@@ -693,10 +693,10 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
         if (data == null) {
             return null;
         }
-        if (data == NO_VALUE) {
+        if (data == ByteWrangler.NO_VALUE) {
             return "true";
         }
-        return readUTF(data, 0, data.length);
+        return ByteWrangler.readUTF(data, 0, data.length);
     }
 
     /**
@@ -760,7 +760,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
         if ((_props == null) && (this.getTextBytes() != null)) {
             final Map<String, byte[]> properties = new Hashtable<String, byte[]>();
             try {
-                readProperties(properties, this.getTextBytes());
+                ByteWrangler.readProperties(properties, this.getTextBytes());
             } catch (final Exception exception) {
                 // We should get better logging.
                 logger.warn("Malformed TXT Field ", exception);
@@ -1140,7 +1140,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     @Override
     public void setText(Map<String, ?> props) throws IllegalStateException {
-        this.setText(textFromProperties(props));
+        this.setText(ByteWrangler.textFromProperties(props));
     }
 
     /**

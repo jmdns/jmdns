@@ -25,7 +25,7 @@ import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 
-import static javax.jmdns.impl.util.ByteWrangler.*;
+import javax.jmdns.impl.util.ByteWrangler;
 
 
 /**
@@ -579,7 +579,7 @@ public abstract class DNSRecord extends DNSEntry {
 
         public Text(String name, DNSRecordClass recordClass, boolean unique, int ttl, byte text[]) {
             super(name, DNSRecordType.TYPE_TXT, recordClass, unique, ttl);
-            this._text = (text != null && text.length > 0 ? text : EMPTY_TXT);
+            this._text = (text != null && text.length > 0 ? text : ByteWrangler.EMPTY_TXT);
         }
 
         /**
