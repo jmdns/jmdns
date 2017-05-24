@@ -307,7 +307,7 @@ public enum DNSRecordType {
 
     @Override
     public String toString() {
-        return this.name() + " index " + this.indexValue();
+        return this._externalName.toUpperCase();
     }
 
 }
