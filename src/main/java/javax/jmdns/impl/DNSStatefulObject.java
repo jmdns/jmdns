@@ -223,7 +223,7 @@ public interface DNSStatefulObject {
                     if (this._task == task) {
                         this.setState(this._state.advance());
                     } else {
-                        logger.warn("Trying to advance state whhen not the owner. owner: " + this._task + " perpetrator: " + task);
+                        logger.warn("Trying to advance state whhen not the owner. owner: {} perpetrator: {}", this._task, task);
                     }
                 } finally {
                     this.unlock();
@@ -387,9 +387,9 @@ public interface DNSStatefulObject {
                 _announcing.waitForEvent(10);
                 if (!this.isAnnounced()) {
                     if (this.willCancel() || this.willClose()) {
-                        logger.debug("Wait for announced cancelled: " + this);
+                        logger.debug("Wait for announced cancelled: {}", this);
                     } else {
-                        logger.warn("Wait for announced timed out: " + this);
+                        logger.warn("Wait for announced timed out: {}", this);
                     }
                 }
             }
@@ -408,7 +408,7 @@ public interface DNSStatefulObject {
                 // When we run multihomed we need to check twice
                 _canceling.waitForEvent(10);
                 if (!this.isCanceled() && !this.willClose()) {
-                    logger.warn("Wait for canceled timed out: " + this);
+                    logger.warn("Wait for canceled timed out: {}", this);
                 }
             }
             return this.isCanceled();

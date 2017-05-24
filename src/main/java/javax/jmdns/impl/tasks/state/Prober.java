@@ -6,8 +6,6 @@ package javax.jmdns.impl.tasks.state;
 
 import java.io.IOException;
 import java.util.Timer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.jmdns.impl.DNSOutgoing;
 import javax.jmdns.impl.DNSQuestion;
@@ -26,7 +24,6 @@ import javax.jmdns.impl.constants.DNSState;
  * If a conflict during probes occurs, the affected service infos (and affected host name) are taken away from the prober. This eventually causes the prober to cancel itself.
  */
 public class Prober extends DNSStateTask {
-    static Logger logger = LoggerFactory.getLogger(Prober.class.getName());
 
     public Prober(JmDNSImpl jmDNSImpl) {
         super(jmDNSImpl, defaultTTL());
