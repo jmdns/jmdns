@@ -1062,24 +1062,26 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             logger.debug("unregisterAllServices()");
         }
 
-        for (String name : _services.keySet()) {
-            ServiceInfoImpl info = (ServiceInfoImpl) _services.get(name);
+        for (final ServiceInfo info : _services.values()) {
             if (info != null) {
+                final ServiceInfoImpl infoImpl = (ServiceInfoImpl) info;
                 if (logger.isDebugEnabled()) {
                     logger.debug("Cancelling service info: " + info);
                 }
-                info.cancelState();
+                infoImpl.cancelState();
             }
         }
         this.startCanceler();
 
-        for (String name : _services.keySet()) {
-            ServiceInfoImpl info = (ServiceInfoImpl) _services.get(name);
+        for (final Map.Entry<String, ServiceInfo> entry : _services.entrySet()) {
+            final ServiceInfo info = entry.getValue();
             if (info != null) {
+                final ServiceInfoImpl infoImpl = (ServiceInfoImpl) info;
+                final String name = entry.getKey();
                 if (logger.isDebugEnabled()) {
                     logger.debug("Wait for service info cancel: " + info);
                 }
-                info.waitForCanceled(DNSConstants.CLOSE_TIMEOUT);
+                infoImpl.waitForCanceled(DNSConstants.CLOSE_TIMEOUT);
                 _services.remove(name, info);
             }
         }
@@ -1925,16 +1927,15 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         sb.append("\n\t");
         sb.append(_localHost);
         sb.append("\n\t---- Services -----");
-        for (final String key : _services.keySet()) {
+        for (final Map.Entry<String, ServiceInfo> entry : _services.entrySet()) {
             sb.append("\n\t\tService: ");
-            sb.append(key);
+            sb.append(entry.getKey());
             sb.append(": ");
-            sb.append(_services.get(key));
+            sb.append(entry.getValue());
         }
         sb.append("\n");
         sb.append("\t---- Types ----");
-        for (final String key : _serviceTypes.keySet()) {
-            ServiceTypeEntry subtypes = _serviceTypes.get(key);
+        for (final ServiceTypeEntry subtypes : _serviceTypes.values()) {
             sb.append("\n\t\tType: ");
             sb.append(subtypes.getType());
             sb.append(": ");
@@ -1944,19 +1945,19 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         sb.append(_cache.toString());
         sb.append("\n");
         sb.append("\t---- Service Collectors ----");
-        for (final String key : _serviceCollectors.keySet()) {
+        for (final Map.Entry<String, ServiceCollector> entry : _serviceCollectors.entrySet()) {
             sb.append("\n\t\tService Collector: ");
-            sb.append(key);
+            sb.append(entry.getKey());
             sb.append(": ");
-            sb.append(_serviceCollectors.get(key));
+            sb.append(entry.getValue());
         }
         sb.append("\n");
         sb.append("\t---- Service Listeners ----");
-        for (final String key : _serviceListeners.keySet()) {
+        for (final Map.Entry<String, List<ListenerStatus.ServiceListenerStatus>> entry : _serviceListeners.entrySet()) {
             sb.append("\n\t\tService Listener: ");
-            sb.append(key);
+            sb.append(entry.getKey());
             sb.append(": ");
-            sb.append(_serviceListeners.get(key));
+            sb.append(entry.getValue());
         }
         return sb.toString();
     }
@@ -2028,8 +2029,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         }
 
         Map<String, ServiceInfo[]> result = new HashMap<String, ServiceInfo[]>(map.size());
-        for (String subtype : map.keySet()) {
-            List<ServiceInfo> infoForSubType = map.get(subtype);
+        for (final Map.Entry<String, List<ServiceInfo>> entry : map.entrySet()) {
+            final String subtype = entry.getKey();
+            final List<ServiceInfo> infoForSubType = entry.getValue();
             result.put(subtype, infoForSubType.toArray(new ServiceInfo[infoForSubType.size()]));
         }
 
@@ -2045,9 +2047,10 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         if (logger.isDebugEnabled()) {
             logger.debug("disposeServiceCollectors()");
         }
-        for (String type : _serviceCollectors.keySet()) {
-            ServiceCollector collector = _serviceCollectors.get(type);
+        for (final Map.Entry<String, ServiceCollector> entry : _serviceCollectors.entrySet()) {
+            final ServiceCollector collector = entry.getValue();
             if (collector != null) {
+                final String type = entry.getKey();
                 this.removeServiceListener(type, collector);
                 _serviceCollectors.remove(type, collector);
             }
@@ -2182,22 +2185,22 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 sb.append("\n\tNo services collected.");
             } else {
                 sb.append("\n\tServices");
-                for (final String key : _infos.keySet()) {
+                for (final Map.Entry<String, ServiceInfo> entry : _infos.entrySet()) {
                     sb.append("\n\t\tService: ");
-                    sb.append(key);
+                    sb.append(entry.getKey());
                     sb.append(": ");
-                    sb.append(_infos.get(key));
+                    sb.append(entry.getValue());
                 }
             }
             if (_events.isEmpty()) {
                 sb.append("\n\tNo event queued.");
             } else {
                 sb.append("\n\tEvents");
-                for (final String key : _events.keySet()) {
+                for (final Map.Entry<String, ServiceEvent> entry : _events.entrySet()) {
                     sb.append("\n\t\tEvent: ");
-                    sb.append(key);
+                    sb.append(entry.getKey());
                     sb.append(": ");
-                    sb.append(_events.get(key));
+                    sb.append(entry.getValue());
                 }
             }
             return sb.toString();

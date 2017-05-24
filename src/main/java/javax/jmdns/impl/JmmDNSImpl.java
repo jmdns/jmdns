@@ -584,8 +584,9 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
         }
 
         Map<String, ServiceInfo[]> result = new HashMap<String, ServiceInfo[]>(map.size());
-        for (String subtype : map.keySet()) {
-            List<ServiceInfo> infoForSubType = map.get(subtype);
+        for (final Map.Entry<String, List<ServiceInfo>> entry : map.entrySet()) {
+            final String subtype = entry.getKey();
+            final List<ServiceInfo> infoForSubType = entry.getValue();
             result.put(subtype, infoForSubType.toArray(new ServiceInfo[infoForSubType.size()]));
         }
 
@@ -664,8 +665,9 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
                                         }
                                     }
                                     // Add Service Listeners
-                                    for (String type : serviceListeners.keySet()) {
-                                        List<ServiceListener> listeners = serviceListeners.get(type);
+                                    for (final Map.Entry<String, List<ServiceListener>> entry : serviceListeners.entrySet()) {
+                                        final String type = entry.getKey();
+                                        final List<ServiceListener> listeners = entry.getValue();
                                         synchronized (listeners) {
                                             for (ServiceListener listener : listeners) {
                                                 dns.addServiceListener(type, listener);

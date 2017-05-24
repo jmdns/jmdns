@@ -7,9 +7,9 @@ package javax.jmdns.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jmdns.impl.constants.DNSRecordClass;
@@ -271,19 +271,13 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
     public synchronized String toString() {
         final StringBuilder sb = new StringBuilder(2000);
         sb.append("\t---- cache ----");
-        Enumeration<String> keyIter = this.keys();
-        while (keyIter.hasMoreElements()) {
-            String key = keyIter.nextElement();
-            sb.append("\n\t\t");
-            sb.append("\n\t\tname '");
-            sb.append(key);
-            sb.append("' ");
-            List<? extends DNSEntry> entryList = this.get(key);
+        for (final Map.Entry<String, List<DNSEntry>> entry : this.entrySet()) {
+            sb.append("\n\n\t\tname '").append(entry.getKey()).append("' ");
+            final List<? extends DNSEntry> entryList = entry.getValue();
             if ((entryList != null) && (!entryList.isEmpty())) {
                 synchronized (entryList) {
-                    for (final DNSEntry entry : entryList) {
-                        sb.append("\n\t\t\t");
-                        sb.append(entry.toString());
+                    for (final DNSEntry dnsEntry : entryList) {
+                        sb.append("\n\t\t\t").append(dnsEntry.toString());
                     }
                 }
             } else {
