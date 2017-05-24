@@ -389,81 +389,81 @@ public final class DNSOutgoing extends DNSMessage {
      * Debugging.
      */
     String print(boolean dump) {
-        StringBuilder buf = new StringBuilder();
-        buf.append(this.print());
+        final StringBuilder sb = new StringBuilder();
+        sb.append(this.print());
         if (dump) {
-            buf.append(this.print(this.data()));
+            sb.append(this.print(this.data()));
         }
-        return buf.toString();
+        return sb.toString();
     }
 
     @Override
     public String toString() {
-        StringBuffer buf = new StringBuffer();
-        buf.append(isQuery() ? "dns[query:" : "dns[response:");
-        buf.append(" id=0x");
-        buf.append(Integer.toHexString(this.getId()));
+        final StringBuilder sb = new StringBuilder();
+        sb.append(isQuery() ? "dns[query:" : "dns[response:");
+        sb.append(" id=0x");
+        sb.append(Integer.toHexString(this.getId()));
         if (this.getFlags() != 0) {
-            buf.append(", flags=0x");
-            buf.append(Integer.toHexString(this.getFlags()));
+            sb.append(", flags=0x");
+            sb.append(Integer.toHexString(this.getFlags()));
             if (this.isResponse()) {
-                buf.append(":r");
+                sb.append(":r");
             }
             if (this.isAuthoritativeAnswer()) {
-                buf.append(":aa");
+                sb.append(":aa");
             }
             if (this.isTruncated()) {
-                buf.append(":tc");
+                sb.append(":tc");
             }
         }
         if (this.getNumberOfQuestions() > 0) {
-            buf.append(", questions=");
-            buf.append(this.getNumberOfQuestions());
+            sb.append(", questions=");
+            sb.append(this.getNumberOfQuestions());
         }
         if (this.getNumberOfAnswers() > 0) {
-            buf.append(", answers=");
-            buf.append(this.getNumberOfAnswers());
+            sb.append(", answers=");
+            sb.append(this.getNumberOfAnswers());
         }
         if (this.getNumberOfAuthorities() > 0) {
-            buf.append(", authorities=");
-            buf.append(this.getNumberOfAuthorities());
+            sb.append(", authorities=");
+            sb.append(this.getNumberOfAuthorities());
         }
         if (this.getNumberOfAdditionals() > 0) {
-            buf.append(", additionals=");
-            buf.append(this.getNumberOfAdditionals());
+            sb.append(", additionals=");
+            sb.append(this.getNumberOfAdditionals());
         }
         if (this.getNumberOfQuestions() > 0) {
-            buf.append("\nquestions:");
+            sb.append("\nquestions:");
             for (DNSQuestion question : _questions) {
-                buf.append("\n\t");
-                buf.append(question);
+                sb.append("\n\t");
+                sb.append(question);
             }
         }
         if (this.getNumberOfAnswers() > 0) {
-            buf.append("\nanswers:");
+            sb.append("\nanswers:");
             for (DNSRecord record : _answers) {
-                buf.append("\n\t");
-                buf.append(record);
+                sb.append("\n\t");
+                sb.append(record);
             }
         }
         if (this.getNumberOfAuthorities() > 0) {
-            buf.append("\nauthorities:");
+            sb.append("\nauthorities:");
             for (DNSRecord record : _authoritativeAnswers) {
-                buf.append("\n\t");
-                buf.append(record);
+                sb.append("\n\t");
+                sb.append(record);
             }
         }
         if (this.getNumberOfAdditionals() > 0) {
-            buf.append("\nadditionals:");
+            sb.append("\nadditionals:");
             for (DNSRecord record : _additionals) {
-                buf.append("\n\t");
-                buf.append(record);
+                sb.append("\n\t");
+                sb.append(record);
             }
         }
-        buf.append("\nnames=");
-        buf.append(_names);
-        buf.append("]");
-        return buf.toString();
+        sb.append("\nnames=");
+        sb.append(_names);
+        sb.append("]");
+        return sb.toString();
     }
 
     /**

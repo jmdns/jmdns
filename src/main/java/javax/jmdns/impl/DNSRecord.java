@@ -25,6 +25,9 @@ import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 
+import javax.jmdns.impl.util.ByteWrangler;
+
+
 /**
  * DNS record
  *
@@ -32,6 +35,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
  */
 public abstract class DNSRecord extends DNSEntry {
     private static Logger logger = LoggerFactory.getLogger(DNSRecord.class.getName());
+
     private int           _ttl;
     private long          _created;
     private int           _isStaleAndShouldBeRefreshedPercentage;
@@ -446,9 +450,11 @@ public abstract class DNSRecord extends DNSEntry {
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
-        protected void toString(StringBuilder aLog) {
-            super.toString(aLog);
-            aLog.append(" address: '" + (this.getAddress() != null ? this.getAddress().getHostAddress() : "null") + "'");
+        protected void toString(final StringBuilder sb) {
+            super.toString(sb);
+            sb.append(" address: '")
+                .append(this.getAddress() != null ? this.getAddress().getHostAddress() : "null")
+                .append('\'');
         }
 
     }
@@ -558,14 +564,14 @@ public abstract class DNSRecord extends DNSEntry {
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
-        protected void toString(StringBuilder aLog) {
-            super.toString(aLog);
-            aLog.append(" alias: '" + (_alias != null ? _alias.toString() : "null") + "'");
+        protected void toString(final StringBuilder sb) {
+            super.toString(sb);
+            sb.append(" alias: '")
+                .append(_alias != null ? _alias.toString() : "null")
+                .append('\'');
         }
 
     }
-
-    public final static byte[] EMPTY_TXT = new byte[] { 0 };
 
     public static class Text extends DNSRecord {
         // private static Logger logger = LoggerFactory.getLogger(Text.class.getName());
@@ -573,7 +579,7 @@ public abstract class DNSRecord extends DNSEntry {
 
         public Text(String name, DNSRecordClass recordClass, boolean unique, int ttl, byte text[]) {
             super(name, DNSRecordType.TYPE_TXT, recordClass, unique, ttl);
-            this._text = (text != null && text.length > 0 ? text : EMPTY_TXT);
+            this._text = (text != null && text.length > 0 ? text : ByteWrangler.EMPTY_TXT);
         }
 
         /**
@@ -660,9 +666,30 @@ public abstract class DNSRecord extends DNSEntry {
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
-        protected void toString(StringBuilder aLog) {
-            super.toString(aLog);
-            aLog.append(" text: '" + ((_text.length > 20) ? new String(_text, 0, 17) + "..." : new String(_text)) + "'");
+        protected void toString(final StringBuilder sb) {
+            super.toString(sb);
+            sb.append(" text: '");
+
+            // since the first byte of the array contains the length of data bytes
+            // we care only about _text containing real actual data
+            if (_text.length > 2) {
+                // if there is to much text make it short
+                // 20 characters + 1 length byte
+                if (_text.length > 21) {
+                    // the first raw byte contains the length of the TXT so we skip it
+                    // we want only 17 characters an append 3 dots
+                    final String str = ByteWrangler.readUTF(_text, 1, 17);
+                    sb.append(str).append("...");
+                } else {
+                    // just to be sure, whatever is smaller
+                    final int len = Math.min(_text[0], _text.length - 1);
+
+                    final String str = ByteWrangler.readUTF(_text, 1, len);
+                    // the first raw byte contains the length of the TXT so we skip it
+                    sb.append(str);
+                }
+            }
+            sb.append('\'');
         }
 
     }
@@ -758,13 +785,13 @@ public abstract class DNSRecord extends DNSEntry {
         boolean handleQuery(JmDNSImpl dns, long expirationTime) {
             ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(this.getKey());
             if (info != null && (info.isAnnouncing() || info.isAnnounced()) && (_port != info.getPort() || !_server.equalsIgnoreCase(dns.getLocalHost().getName()))) {
-                logger1.debug("handleQuery() Conflicting probe detected from: " + getRecordSource());
+                logger1.debug("handleQuery() Conflicting probe detected from: {}", getRecordSource());
                 DNSRecord.Service localService = new DNSRecord.Service(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(), dns.getLocalHost().getName());
 
-                // This block is useful for debugging race conditions when jmdns is responding to itself.
+                // This block is useful for debugging race conditions when jmDNS is responding to itself.
                 try {
                     if (dns.getInetAddress().equals(getRecordSource())) {
-                        logger1.warn("Got conflicting probe from ourselves\n" + "incoming: " + this.toString() + "\n" + "local   : " + localService.toString());
+                        logger1.warn("Got conflicting probe from ourselves\nincoming: {}\nlocal   : {}", this.toString(), localService.toString());
                     }
                 } catch (IOException e) {
                     logger1.warn("IOException", e);
@@ -788,7 +815,7 @@ public abstract class DNSRecord extends DNSEntry {
                     info.setName(NameRegister.Factory.getRegistry().incrementName(dns.getLocalHost().getInetAddress(), info.getName(), NameRegister.NameType.SERVICE));
                     dns.getServices().remove(oldName);
                     dns.getServices().put(info.getQualifiedName().toLowerCase(), info);
-                    logger1.debug("handleQuery() Lost tie break: new unique name chosen:" + info.getName());
+                    logger1.debug("handleQuery() Lost tie break: new unique name chosen:{}", info.getName());
 
                     // We revert the state to start probing again with the new name
                     info.revertState();
@@ -815,7 +842,7 @@ public abstract class DNSRecord extends DNSEntry {
                     info.setName(NameRegister.Factory.getRegistry().incrementName(dns.getLocalHost().getInetAddress(), info.getName(), NameRegister.NameType.SERVICE));
                     dns.getServices().remove(oldName);
                     dns.getServices().put(info.getQualifiedName().toLowerCase(), info);
-                    logger1.debug("handleResponse() New unique name chose:" + info.getName());
+                    logger1.debug("handleResponse() New unique name chose:{}", info.getName());
 
                 }
                 info.revertState();
@@ -872,9 +899,11 @@ public abstract class DNSRecord extends DNSEntry {
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
-        protected void toString(StringBuilder aLog) {
-            super.toString(aLog);
-            aLog.append(" server: '" + _server + ":" + _port + "'");
+        protected void toString(final StringBuilder sb) {
+            super.toString(sb);
+            sb.append(" server: '")
+                .append(_server).append(':').append(_port)
+                .append('\'');
         }
 
     }
@@ -990,9 +1019,11 @@ public abstract class DNSRecord extends DNSEntry {
          * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
          */
         @Override
-        protected void toString(StringBuilder aLog) {
-            super.toString(aLog);
-            aLog.append(" cpu: '" + _cpu + "' os: '" + _os + "'");
+        protected void toString(final StringBuilder sb) {
+            super.toString(sb);
+            sb.append(" cpu: '").append(_cpu)
+                .append("' os: '").append( _os)
+                .append('\'');
         }
 
     }
@@ -1044,9 +1075,10 @@ public abstract class DNSRecord extends DNSEntry {
      * @see com.webobjects.discoveryservices.DNSRecord#toString(java.lang.StringBuilder)
      */
     @Override
-    protected void toString(StringBuilder aLog) {
-        super.toString(aLog);
-        aLog.append(" ttl: '" + getRemainingTTL(System.currentTimeMillis()) + "/" + _ttl + "'");
+    protected void toString(final StringBuilder sb) {
+        super.toString(sb);
+        final int remaininggTTL = getRemainingTTL(System.currentTimeMillis());
+        sb.append(" ttl: '").append(remaininggTTL).append('/').append(_ttl).append('\'');
     }
 
     public void setTTL(int ttl) {

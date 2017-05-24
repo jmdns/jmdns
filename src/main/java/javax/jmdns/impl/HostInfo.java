@@ -257,17 +257,17 @@ public class HostInfo implements DNSStatefulObject {
 
     @Override
     public String toString() {
-        StringBuilder buf = new StringBuilder(1024);
-        buf.append("local host info[");
-        buf.append(getName() != null ? getName() : "no name");
-        buf.append(", ");
-        buf.append(getInterface() != null ? getInterface().getDisplayName() : "???");
-        buf.append(":");
-        buf.append(getInetAddress() != null ? getInetAddress().getHostAddress() : "no address");
-        buf.append(", ");
-        buf.append(_state);
-        buf.append("]");
-        return buf.toString();
+        final StringBuilder sb = new StringBuilder(1024);
+        sb.append("local host info[");
+        sb.append(getName() != null ? getName() : "no name");
+        sb.append(", ");
+        sb.append(getInterface() != null ? getInterface().getDisplayName() : "???");
+        sb.append(":");
+        sb.append(getInetAddress() != null ? getInetAddress().getHostAddress() : "no address");
+        sb.append(", ");
+        sb.append(_state);
+        sb.append("]");
+        return sb.toString();
     }
 
     public Collection<DNSRecord> answers(DNSRecordClass recordClass, boolean unique, int ttl) {

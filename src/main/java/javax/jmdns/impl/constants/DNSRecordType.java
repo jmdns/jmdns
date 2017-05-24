@@ -289,7 +289,7 @@ public enum DNSRecordType {
                 if (aType._externalName.equals(aName)) return aType;
             }
         }
-        logger.warn("Could not find record type for name: " + name);
+        logger.warn("Could not find record type for name: {}", name);
         return TYPE_IGNORE;
     }
 
@@ -301,13 +301,13 @@ public enum DNSRecordType {
         for (DNSRecordType aType : DNSRecordType.values()) {
             if (aType._index == index) return aType;
         }
-        logger.warn("Could not find record type for index: " + index);
+        logger.warn("Could not find record type for index: {}", index);
         return TYPE_IGNORE;
     }
 
     @Override
     public String toString() {
-        return this.name() + " index " + this.indexValue();
+        return this._externalName.toUpperCase();
     }
 
 }

@@ -62,9 +62,8 @@ public abstract class DNSResolverTask extends DNSTask {
                 this.cancel();
             } else {
                 if (_count++ < 3) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(this.getName() + ".run() JmDNS " + this.description());
-                    }
+                    logger.debug("{}.run() JmDNS {}",this.getName(), this.description());
+
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
                     out = this.addQuestions(out);
                     if (this.getDns().isAnnounced()) {

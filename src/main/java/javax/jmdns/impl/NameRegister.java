@@ -30,7 +30,7 @@ public interface NameRegister {
     public static abstract class BaseRegister implements NameRegister {
 
         protected String incrementNameWithDash(String name) {
-            StringBuilder givenName = new StringBuilder(name.length() + 5);
+            final StringBuilder givenName = new StringBuilder(name.length() + 5);
             int hostNameCount = 0;
             int plocal = name.indexOf(".local.");
             int punder = name.lastIndexOf('-');
