@@ -19,6 +19,7 @@ import javax.jmdns.impl.constants.DNSOptionCode;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSResultCode;
+import javax.jmdns.impl.util.ByteWrangler;
 
 /**
  * Parse an incoming DNS message into its components.
@@ -367,21 +368,15 @@ public final class DNSIncoming extends DNSMessage {
                 String os = "";
                 int off = 0;
 
-                // there is some data
-                if (0 < len) {
-                 // data contains more than just a zero length
-                    if (2 < hinfoBytes.length) {
-                        if (off + hinfoBytes[off] < hinfoBytes.length) {
-                            // skip byte containing length
-                            cpu = new String(hinfoBytes, off + 1, hinfoBytes[off]);
-                            off += hinfoBytes[off] + 1; // skip bytes read for CPU
-                        }
-                        if (off + hinfoBytes[off] < hinfoBytes.length) {
-                            // skip byte containing length
-                            os = new String(hinfoBytes, off + 1, hinfoBytes[off]);
-                            off += hinfoBytes[off] + 1; // skip bytes read for OS
-                        }
-                    }
+                if (off + hinfoBytes[off] < hinfoBytes.length) {
+                    // skip byte containing length
+                    cpu = ByteWrangler.readUTF(hinfoBytes, off + 1, hinfoBytes[off]);
+                    off += hinfoBytes[off] + 1; // skip bytes read for CPU
+                }
+                if (off + hinfoBytes[off] < hinfoBytes.length) {
+                    // skip byte containing length
+                    os = ByteWrangler.readUTF(hinfoBytes, off + 1, hinfoBytes[off]);
+                    off += hinfoBytes[off] + 1; // skip bytes read for OS
                 }
 
                 rec = new DNSRecord.HostInformation(domain, recordClass, unique, ttl, cpu, os);

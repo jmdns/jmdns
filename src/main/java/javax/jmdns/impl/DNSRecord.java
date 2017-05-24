@@ -674,15 +674,19 @@ public abstract class DNSRecord extends DNSEntry {
             // we care only about _text containing real actual data
             if (_text.length > 2) {
                 // if there is to much text make it short
+                // 20 characters + 1 length byte
                 if (_text.length > 21) {
                     // the first raw byte contains the length of the TXT so we skip it
-                    sb.append(new String(_text, 1, 17)).append("...");
+                    // we want only 17 characters an append 3 dots
+                    final String str = ByteWrangler.readUTF(_text, 1, 17);
+                    sb.append(str).append("...");
                 } else {
                     // just to be sure, whatever is smaller
                     final int len = Math.min(_text[0], _text.length - 1);
 
+                    final String str = ByteWrangler.readUTF(_text, 1, len);
                     // the first raw byte contains the length of the TXT so we skip it
-                    sb.append(new String(_text, 1, len));
+                    sb.append(str);
                 }
             }
             sb.append('\'');

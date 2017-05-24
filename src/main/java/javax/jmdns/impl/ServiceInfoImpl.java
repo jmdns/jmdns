@@ -612,7 +612,8 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
         for (final Map.Entry<String, byte[]> entry : properties.entrySet()) {
             byte[] value = entry.getValue();
             if ((value != null) && (value.length > 0)) {
-                return entry.getKey() + "=" + new String(value);
+                final String str = ByteWrangler.readUTF(value, 0, value.length);
+                return entry.getKey() + "=" + str;
             }
             return entry.getKey();
         }
@@ -1066,7 +1067,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("[").append(this.getClass().getSimpleName()).append('@').append(System.identityHashCode(this));
+        sb.append('[').append(this.getClass().getSimpleName()).append('@').append(System.identityHashCode(this));
         sb.append(" name: '").append((this.getName().length() > 0 ? this.getName() + "." : "") + this.getTypeWithSubtype());
         sb.append("' address: '");
         InetAddress[] addresses = this.getInetAddresses();
@@ -1089,7 +1090,9 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
             if (!properties.isEmpty()) {
                 sb.append("\n");
                 for (final Map.Entry<String, byte[]> entry : properties.entrySet()) {
-                    sb.append('\t').append(entry.getKey()).append(": ").append(new String(entry.getValue())).append('\n');
+                    final byte[] value = entry.getValue();
+                    final String str = ByteWrangler.readUTF(value, 0, value.length);
+                    sb.append('\t').append(entry.getKey()).append(": ").append(str).append('\n');
                 }
             } else {
                 sb.append(" empty");
