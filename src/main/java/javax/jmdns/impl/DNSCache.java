@@ -15,6 +15,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A table of DNS entries. This is a map table which can handle multiple entries with the same name.
  * <p/>
@@ -42,9 +45,9 @@ import javax.jmdns.impl.constants.DNSRecordType;
  */
 public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
 
-    // private static Logger logger = LoggerFactory.getLogger(DNSCache.class.getName());
+    private static Logger       logger              = LoggerFactory.getLogger(DNSCache.class.getName());
 
-    private static final long    serialVersionUID = 3024739453186759259L;
+    private static final long   serialVersionUID    = 3024739453186759259L;
 
     /**
      *
@@ -281,10 +284,21 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
                     }
                 }
             } else {
-                sb.append(" no entries");
+                sb.append(": no entries");
             }
         }
         return sb.toString();
+    }
+
+    /**
+     * Prints the content of the cache to the {@link #logger}.
+     */
+    public void logCachedContent() {
+        if (!logger.isTraceEnabled()) {
+            return;
+        }
+
+        logger.trace("Cached DNSEntries: {}", toString());
     }
 
 }
