@@ -4,9 +4,7 @@
 
 package javax.jmdns.impl;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -36,6 +34,8 @@ import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSState;
 import javax.jmdns.impl.tasks.DNSTask;
 
+import static javax.jmdns.impl.util.ByteWrangler.*;
+
 /**
  * JmDNS service information.
  *
@@ -53,7 +53,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     private int                     _port;
     private int                     _weight;
     private int                     _priority;
-    private byte                    _text[];
+    private byte[]                  _text;
     private Map<String, byte[]>     _props;
     private final Set<Inet4Address> _ipv4Addresses;
     private final Set<Inet6Address> _ipv6Addresses;
@@ -128,24 +128,14 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     public ServiceInfoImpl(String type, String name, String subtype, int port, int weight, int priority, boolean persistent, String text) {
         this(ServiceInfoImpl.decodeQualifiedNameMap(type, name, subtype), port, weight, priority, persistent, (byte[]) null);
-        _server = text;
 
-        byte[] encodedText = null;
         try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream(256);
-            ByteArrayOutputStream out2 = new ByteArrayOutputStream(100);
-            writeUTF(out2, text);
-            byte data[] = out2.toByteArray();
-            if (data.length > 255) {
-                throw new IOException("Cannot have individual values larger that 255 chars. Offending value: " + text);
-            }
-            out.write((byte) data.length);
-            out.write(data, 0, data.length);
-            encodedText = out.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException("unexpected exception: " + e);
+            this._text = encodeText(text);
+        } catch (final IOException e) {
+            throw new RuntimeException("Unexpected exception: " + e);
         }
-        this._text = (encodedText != null && encodedText.length > 0 ? encodedText : DNSRecord.EMPTY_TXT);
+
+        _server = text;
     }
 
     /**
@@ -184,14 +174,14 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
 
     ServiceInfoImpl(Map<Fields, String> qualifiedNameMap, int port, int weight, int priority, boolean persistent, String text) {
         this(qualifiedNameMap, port, weight, priority, persistent, (byte[]) null);
-        _server = text;
+
         try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream(text.length());
-            writeUTF(out, text);
-            this._text = out.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException("unexpected exception: " + e);
+            this._text = encodeText(text);
+        } catch (final IOException e) {
+            throw new RuntimeException("Unexpected exception: " + e);
         }
+
+        _server = text;
     }
 
     ServiceInfoImpl(Map<Fields, String> qualifiedNameMap, int port, int weight, int priority, boolean persistent, byte text[]) {
@@ -609,7 +599,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     @Override
     public byte[] getTextBytes() {
-        return (this._text != null && this._text.length > 0 ? this._text : DNSRecord.EMPTY_TXT);
+        return (this._text != null && this._text.length > 0 ? this._text : EMPTY_TXT);
     }
 
     /**
@@ -766,108 +756,12 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
         return map;
     }
 
-    /**
-     * Write a UTF string with a length to a stream.
-     */
-    static void writeUTF(OutputStream out, String str) throws IOException {
-        for (int i = 0, len = str.length(); i < len; i++) {
-            int c = str.charAt(i);
-            if ((c >= 0x0001) && (c <= 0x007F)) {
-                out.write(c);
-            } else {
-                if (c > 0x07FF) {
-                    out.write(0xE0 | ((c >> 12) & 0x0F));
-                    out.write(0x80 | ((c >> 6) & 0x3F));
-                    out.write(0x80 | ((c >> 0) & 0x3F));
-                } else {
-                    out.write(0xC0 | ((c >> 6) & 0x1F));
-                    out.write(0x80 | ((c >> 0) & 0x3F));
-                }
-            }
-        }
-    }
-
-    /**
-     * Read data bytes as a UTF stream.
-     */
-    String readUTF(byte data[], int off, int len) {
-        int offset = off;
-        final StringBuilder sb = new StringBuilder();
-        for (int end = offset + len; offset < end;) {
-            int ch = data[offset++] & 0xFF;
-            switch (ch >> 4) {
-                case 0:
-                case 1:
-                case 2:
-                case 3:
-                case 4:
-                case 5:
-                case 6:
-                case 7:
-                    // 0xxxxxxx
-                    break;
-                case 12:
-                case 13:
-                    if (offset >= len) {
-                        return null;
-                    }
-                    // 110x xxxx 10xx xxxx
-                    ch = ((ch & 0x1F) << 6) | (data[offset++] & 0x3F);
-                    break;
-                case 14:
-                    if (offset + 2 >= len) {
-                        return null;
-                    }
-                    // 1110 xxxx 10xx xxxx 10xx xxxx
-                    ch = ((ch & 0x0f) << 12) | ((data[offset++] & 0x3F) << 6) | (data[offset++] & 0x3F);
-                    break;
-                default:
-                    if (offset + 1 >= len) {
-                        return null;
-                    }
-                    // 10xx xxxx, 1111 xxxx
-                    ch = ((ch & 0x3F) << 4) | (data[offset++] & 0x0f);
-                    break;
-            }
-            sb.append((char) ch);
-        }
-        return sb.toString();
-    }
-
     synchronized Map<String, byte[]> getProperties() {
         if ((_props == null) && (this.getTextBytes() != null)) {
-            Hashtable<String, byte[]> properties = new Hashtable<String, byte[]>();
+            final Map<String, byte[]> properties = new Hashtable<String, byte[]>();
             try {
-                int off = 0;
-                while (off < getTextBytes().length) {
-                    // length of the next key value pair
-                    int len = getTextBytes()[off++] & 0xFF;
-                    if ((len == 0) || (off + len > getTextBytes().length)) {
-                        properties.clear();
-                        break;
-                    }
-                    // look for the '='
-                    int i = 0;
-                    for (; (i < len) && (getTextBytes()[off + i] != '='); i++) {
-                        /* Stub */
-                    }
-
-                    // get the property name
-                    String name = readUTF(getTextBytes(), off, i);
-                    if (name == null) {
-                        properties.clear();
-                        break;
-                    }
-                    if (i == len) {
-                        properties.put(name, NO_VALUE);
-                    } else {
-                        byte value[] = new byte[len - ++i];
-                        System.arraycopy(getTextBytes(), off + i, value, 0, len - i);
-                        properties.put(name, value);
-                    }
-                    off += len;
-                }
-            } catch (Exception exception) {
+                readProperties(properties, this.getTextBytes());
+            } catch (final Exception exception) {
                 // We should get better logging.
                 logger.warn("Malformed TXT Field ", exception);
             }
@@ -1257,46 +1151,6 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     void _setText(byte[] text) {
         this._text = text;
         this._props = null;
-    }
-
-    private static byte[] textFromProperties(Map<String, ?> props) {
-        byte[] text = null;
-        if (props != null) {
-            try {
-                ByteArrayOutputStream out = new ByteArrayOutputStream(256);
-                for (final Map.Entry<String, ?> entry : props.entrySet()) {
-                    Object val = entry.getValue();
-                    ByteArrayOutputStream out2 = new ByteArrayOutputStream(100);
-                    writeUTF(out2, entry.getKey());
-                    if (val == null) {
-                        // Skip
-                    } else if (val instanceof String) {
-                        out2.write('=');
-                        writeUTF(out2, (String) val);
-                    } else if (val instanceof byte[]) {
-                        byte[] bval = (byte[]) val;
-                        if (bval.length > 0) {
-                            out2.write('=');
-                            out2.write(bval, 0, bval.length);
-                        } else {
-                            val = null;
-                        }
-                    } else {
-                        throw new IllegalArgumentException("invalid property value: " + val);
-                    }
-                    byte data[] = out2.toByteArray();
-                    if (data.length > 255) {
-                        throw new IOException("Cannot have individual values larger that 255 chars. Offending value: " + entry.getKey() + (val != null ? "" : "=" + val));
-                    }
-                    out.write((byte) data.length);
-                    out.write(data, 0, data.length);
-                }
-                text = out.toByteArray();
-            } catch (IOException e) {
-                throw new RuntimeException("unexpected exception: " + e);
-            }
-        }
-        return (text != null && text.length > 0 ? text : DNSRecord.EMPTY_TXT);
     }
 
     public void setDns(JmDNSImpl dns) {
