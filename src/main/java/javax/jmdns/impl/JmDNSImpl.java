@@ -21,7 +21,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
@@ -758,6 +757,96 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         return info;
     }
 
+    /**
+     * This is a rather brute force approach to scan the cache for related DNSEntry objects 
+     * @param info
+     * @return
+     */
+    boolean removeServiceInfoFromCache(final ServiceInfoImpl info) {
+        if (null == info) {
+            logger.error("Cannot remove null ServiceInfo");
+            return false;
+        }
+
+        boolean changed = false;
+
+        final String key = info.getKey();
+
+        this.getCache().logCachedContent();
+
+        // remove all entries associated with this type
+        final Collection<? extends DNSEntry> removedEntries = this.getCache().remove(key);
+        if (null != removedEntries) {
+            changed = true;
+        }
+
+        logger.trace("Removed entries from cache for type {}: {}", key, removedEntries);
+
+        // get all related keys from the removed entry
+        final Set<String> otherKeys = new HashSet<String>();
+        for (final DNSEntry dnsEntry : removedEntries) {
+            if (dnsEntry instanceof DNSRecord.Text) {
+                final DNSRecord.Text text = (DNSRecord.Text) dnsEntry;
+                final String name = text.getName().toLowerCase();
+                otherKeys.add(name);
+                logger.trace("Added key {} from {}", name, text);
+            } else if (dnsEntry instanceof DNSRecord.Pointer) {
+                final DNSRecord.Pointer pointer = (DNSRecord.Pointer) dnsEntry;
+                final String alias = pointer.getAlias().toLowerCase();
+                otherKeys.add(alias);
+                logger.trace("Added key {} from {}", alias, pointer);
+            } else if (dnsEntry instanceof DNSRecord.HostInformation) {
+                final DNSRecord.HostInformation hostInformation = (DNSRecord.HostInformation) dnsEntry;
+                final String name = hostInformation.getName().toLowerCase();
+                otherKeys.add(name);
+                logger.trace("Added key {} from {}", name, hostInformation);
+            } else if (dnsEntry instanceof DNSRecord.Service) {
+                final DNSRecord.Service service = (DNSRecord.Service) dnsEntry;
+                final String server = service.getServer().toLowerCase();
+                otherKeys.add(server);
+                logger.trace("Added key {} from {}", server, service);
+            }
+        }
+
+        // now search for all these related keys and remove them from the cache...
+        final Collection<? extends DNSEntry> dnsEntries = this.getCache().allValues();
+        for (final DNSEntry dnsEntry : dnsEntries) {
+            if (dnsEntry instanceof DNSRecord.Text) {
+                final DNSRecord.Text text = (DNSRecord.Text) dnsEntry;
+                final String name = text.getName().toLowerCase();
+                if (otherKeys.contains(name)) {
+                    this.getCache().removeDNSEntry(text);
+                    changed = true;
+                }
+            } else if (dnsEntry instanceof DNSRecord.Pointer) {
+                final DNSRecord.Pointer pointer = (DNSRecord.Pointer) dnsEntry;
+                final String alias = pointer.getAlias().toLowerCase();
+                if (otherKeys.contains(alias)) {
+                    this.getCache().removeDNSEntry(pointer);
+                    changed = true;
+                }
+            } else if (dnsEntry instanceof DNSRecord.HostInformation) {
+                final DNSRecord.HostInformation hostInformation = (DNSRecord.HostInformation) dnsEntry;
+                final String name = hostInformation.getName().toLowerCase();
+                if (otherKeys.contains(name)) {
+                    this.getCache().removeDNSEntry(hostInformation);
+                    changed = true;
+                }
+            } else if (dnsEntry instanceof DNSRecord.Service) {
+                final DNSRecord.Service service = (DNSRecord.Service) dnsEntry;
+                final String server = service.getServer().toLowerCase();
+                if (otherKeys.contains(server)) {
+                    this.getCache().removeDNSEntry(service);
+                    changed = true;
+                }
+            }
+        }
+
+        this.getCache().logCachedContent();
+
+        return changed;
+    }
+
     ServiceInfoImpl getServiceInfoFromCache(String type, String name, String subtype, boolean persistent) {
         // Check if the answer is in the cache.
         ServiceInfoImpl info = new ServiceInfoImpl(type, name, subtype, 0, 0, 0, persistent, (byte[]) null);
@@ -888,6 +977,54 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                             listener.serviceResolved(localEvent);
                         }
                     });
+                }
+            }
+        }
+    }
+
+    /**
+     * Informs all registered {@link ServiceListener}s with an {@link ServiceEvent} about a removed {@link ServiceInfo}.
+     *
+     * @param event
+     *            containing the {@link ServiceInfo} which was resolved
+     */
+    void handleServiceRemoved(final ServiceEvent event) {
+        final String serviceType = event.getType().toLowerCase();
+
+        final List<ServiceListenerStatus> list = _serviceListeners.get(serviceType);
+
+        logger.debug("Service removed: {}", event.getInfo().getKey());
+
+        // we might have some listeners to inform
+        if (list != null)  {
+            if (event.getInfo() != null) {
+                logger.debug("Service removed: {}", event.getInfo().getKey());
+                if (event.getInfo().hasData()) {
+                    logger.trace("Service to be removed, still contains data in ServiceInfo: {}", event.getInfo());
+                } else {
+                    // handle only services which have no "valid" data (anymore)
+                    // the ServiceInfo might be removed _because_ there is no data => service not available anymore
+                    final List<ServiceListenerStatus> listCopy;
+                    synchronized (list) {
+                        if ( list.isEmpty() ) {
+                            // no listeners found => nothing to do
+                            logger.trace("No ServiceListener found for removal of ServiceInfo: {}", event.getInfo());
+                            return;
+                        }
+                        listCopy = new ArrayList<ServiceListenerStatus>(list);
+                    }
+
+                    logger.trace("Service removed, calling listeners ({})", listCopy.size());
+
+                    for (final ServiceListenerStatus listener : listCopy) {
+                        _executor.submit(new Runnable() {
+                            /** {@inheritDoc} */
+                            @Override
+                            public void run() {
+                                listener.serviceRemoved(event);
+                            }
+                        });
+                    }
                 }
             }
         }
@@ -1088,7 +1225,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
         final String name = (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + "." : "") + domain + ".";
         final String loname = name.toLowerCase();
-        logger.debug("{}.registering service type: {} as: {}{}{}",
+        logger.debug("{} registering service type: {} as: {}{}{}",
             this.getName(),
             type,
             name,
@@ -1493,7 +1630,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      * @exception IOException
      */
     void handleQuery(DNSIncoming in, InetAddress addr, int port) throws IOException {
-        logger.debug("{}.handle query: {}", this.getName(), in);
+        logger.debug("{} handle query: {}", this.getName(), in);
         // Track known answers
         boolean conflictDetected = false;
         final long expirationTime = System.currentTimeMillis() + DNSConstants.KNOWN_ANSWER_TTL;
