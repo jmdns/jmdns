@@ -82,9 +82,7 @@ public class Responder extends DNSTask {
 
         boolean iAmTheOnlyOne = true;
         for (DNSQuestion question : _in.getQuestions()) {
-            if (logger.isTraceEnabled()) {
-                logger.trace(this.getName() + "start() question=" + question);
-            }
+            logger.trace("{}.start() question={}", this.getName(), question);
             iAmTheOnlyOne = question.iAmTheOnlyOne(this.getDns());
             if (!iAmTheOnlyOne) {
                 break;
@@ -94,9 +92,8 @@ public class Responder extends DNSTask {
         if (delay < 0) {
             delay = 0;
         }
-        if (logger.isTraceEnabled()) {
-            logger.trace(this.getName() + "start() Responder chosen delay=" + delay);
-        }
+        logger.trace("{}.start() Responder chosen delay={}", this.getName(), delay);
+
         if (!this.getDns().isCanceling() && !this.getDns().isCanceled()) {
             timer.schedule(this, delay);
         }
@@ -114,9 +111,8 @@ public class Responder extends DNSTask {
             try {
                 // Answer questions
                 for (DNSQuestion question : _in.getQuestions()) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(this.getName() + "run() JmDNS responding to: " + question);
-                    }
+                    logger.debug("{}.run() JmDNS responding to: {}", this.getName(), question);
+
                     // for unicast responses the question must be included
                     if (_unicast) {
                         // out.addQuestion(q);
@@ -126,22 +122,19 @@ public class Responder extends DNSTask {
                     question.addAnswers(this.getDns(), answers);
                 }
 
-                // remove known answers, if the ttl is at least half of the correct value. (See Draft Cheshire chapter 7.1.).
+                // remove known answers, if the TTL is at least half of the correct value. (See Draft Cheshire chapter 7.1.).
                 long now = System.currentTimeMillis();
                 for (DNSRecord knownAnswer : _in.getAnswers()) {
                     if (knownAnswer.isStale(now)) {
                         answers.remove(knownAnswer);
-                        if (logger.isDebugEnabled()) {
-                            logger.debug(this.getName() + "JmDNS Responder Known Answer Removed");
-                        }
+                        logger.debug("{} - JmDNS Responder Known Answer Removed", this.getName());
                     }
                 }
 
                 // respond if we have answers
                 if (!answers.isEmpty()) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(this.getName() + "run() JmDNS responding");
-                    }
+                    logger.debug("{}.run() JmDNS responding", this.getName());
+
                     DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, !_unicast, _in.getSenderUDPPayload());
                     if (_unicast) {
                         out.setDestination(new InetSocketAddress(_addr, _port));

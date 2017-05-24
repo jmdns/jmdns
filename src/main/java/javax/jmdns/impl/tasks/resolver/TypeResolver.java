@@ -45,11 +45,10 @@ public class TypeResolver extends DNSResolverTask {
      * @see javax.jmdns.impl.tasks.Resolver#addAnswers(javax.jmdns.impl.DNSOutgoing)
      */
     @Override
-    protected DNSOutgoing addAnswers(DNSOutgoing out) throws IOException {
+    protected DNSOutgoing addAnswers(final DNSOutgoing out) throws IOException {
         DNSOutgoing newOut = out;
-        long now = System.currentTimeMillis();
-        for (String type : this.getDns().getServiceTypes().keySet()) {
-            ServiceTypeEntry typeEntry = this.getDns().getServiceTypes().get(type);
+        final long now = System.currentTimeMillis();
+        for (final ServiceTypeEntry typeEntry : this.getDns().getServiceTypes().values()) {
             newOut = this.addAnswer(newOut, new DNSRecord.Pointer("_services._dns-sd._udp.local.", DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, typeEntry.getType()), now);
         }
         return newOut;

@@ -22,7 +22,7 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @author Pierre Frisch
  */
 public abstract class DNSStateTask extends DNSTask {
-    static Logger      logger1     = LoggerFactory.getLogger(DNSStateTask.class.getName());
+    static Logger      logger     = LoggerFactory.getLogger(DNSStateTask.class.getName());
 
     /**
      * By setting a 0 ttl we effectively expire the record.
@@ -109,7 +109,7 @@ public abstract class DNSStateTask extends DNSTask {
             // send probes for JmDNS itself
             synchronized (this.getDns()) {
                 if (this.getDns().isAssociatedWithTask(this, this.getTaskState())) {
-                    logger1.debug(this.getName() + ".run() JmDNS " + this.getTaskDescription() + " " + this.getDns().getName());
+                    logger.debug("{}.run() JmDNS {} {}", this.getName(), this.getTaskDescription(), this.getDns().getName());
                     stateObjects.add(this.getDns());
                     out = this.buildOutgoingForDNS(out);
                 }
@@ -120,14 +120,14 @@ public abstract class DNSStateTask extends DNSTask {
 
                 synchronized (info) {
                     if (info.isAssociatedWithTask(this, this.getTaskState())) {
-                        logger1.debug(this.getName() + ".run() JmDNS " + this.getTaskDescription() + " " + info.getQualifiedName());
+                        logger.debug("{}.run() JmDNS {} {}",this.getName(), this.getTaskDescription(), info.getQualifiedName());
                         stateObjects.add(info);
                         out = this.buildOutgoingForInfo(info, out);
                     }
                 }
             }
             if (!out.isEmpty()) {
-                logger1.debug(this.getName() + ".run() JmDNS " + this.getTaskDescription() + " #" + this.getTaskState());
+                logger.debug("{}.run() JmDNS {} #{}", this.getName(), this.getTaskDescription(), this.getTaskState());
                 this.getDns().send(out);
 
                 // Advance the state of objects.
@@ -141,7 +141,7 @@ public abstract class DNSStateTask extends DNSTask {
                 return;
             }
         } catch (Throwable e) {
-            logger1.warn(this.getName() + ".run() exception ", e);
+            logger.warn(this.getName() + ".run() exception ", e);
             this.recoverTask(e);
         }
 
