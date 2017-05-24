@@ -299,7 +299,7 @@ public abstract class DNSEntry {
         sb.append('[').append(this.getClass().getSimpleName()).append('@').append(System.identityHashCode(this));
         sb.append(" type: ").append(this.getRecordType());
         sb.append(", class: ").append(this.getRecordClass());
-        sb.append((_unique ? "-unique," : ","));
+        sb.append((_unique ? ", flush cache," : ","));
         sb.append(" name: ").append( _name);
         this.toString(sb);
         sb.append(']');
