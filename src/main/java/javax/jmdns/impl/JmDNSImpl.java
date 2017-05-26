@@ -1329,7 +1329,11 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             logger.debug("{} handle response cached record: {}", this.getName(), cachedRecord);
             if (unique) {
                 for (DNSEntry entry : this.getCache().getDNSEntryList(newRecord.getKey())) {
-                    if (newRecord.getRecordType().equals(entry.getRecordType()) && newRecord.getRecordClass().equals(entry.getRecordClass()) && (entry != cachedRecord)) {
+                    if (    newRecord.getRecordType().equals(entry.getRecordType()) &&
+                            newRecord.getRecordClass().equals(entry.getRecordClass()) &&
+                            (entry != cachedRecord)
+                    ) {
+                        logger.trace("setWillExpireSoon() on: {}", entry);
                         ((DNSRecord) entry).setWillExpireSoon(now);
                     }
                 }
@@ -1339,21 +1343,30 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                     // if the record has a 0 ttl that means we have a cancel record we need to delay the removal by 1s
                     if (newRecord.getTTL() == 0) {
                         cacheOperation = Operation.Noop;
+                        logger.trace("Record is expired - setWillExpireSoon() on:\n\t{}", cachedRecord);
                         cachedRecord.setWillExpireSoon(now);
                         // the actual record will be disposed of by the record reaper.
                     } else {
                         cacheOperation = Operation.Remove;
+                        logger.trace("Record is expired - removeDNSEntry() on:\n\t{}", cachedRecord);
                         this.getCache().removeDNSEntry(cachedRecord);
                     }
                 } else {
                     // If the record content has changed we need to inform our listeners.
-                    if (!newRecord.sameValue(cachedRecord) || (!newRecord.sameSubtype(cachedRecord) && (newRecord.getSubtype().length() > 0))) {
+                    if (    !newRecord.sameValue(cachedRecord) ||
+                            (
+                                    !newRecord.sameSubtype(cachedRecord) &&
+                                    (newRecord.getSubtype().length() > 0)
+                            )
+                    ) {
                         if (newRecord.isSingleValued()) {
                             cacheOperation = Operation.Update;
+                            logger.trace("Record (singleValued) has changed - replaceDNSEntry() on:\n\t{}\n\t{}", newRecord, cachedRecord);
                             this.getCache().replaceDNSEntry(newRecord, cachedRecord);
                         } else {
                             // Address record can have more than one value on multi-homed machines
                             cacheOperation = Operation.Add;
+                            logger.trace("Record (multiValue) has changed - addDNSEntry on:\n\t{}", newRecord);
                             this.getCache().addDNSEntry(newRecord);
                         }
                     } else {
@@ -1364,6 +1377,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             } else {
                 if (!expired) {
                     cacheOperation = Operation.Add;
+                    logger.trace("Record not cached - addDNSEntry on:\n\t{}", newRecord);
                     this.getCache().addDNSEntry(newRecord);
                 }
             }
@@ -1811,14 +1825,27 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
     }
 
+    /**
+     * Checks the cache of expired records and removes them.
+     * If any records are about to expire it tries to get them refreshed.
+     *
+     * <p>
+     * Implementation note:<br />
+     * This method is called by the {@link RecordReaper} every {@link DNSConstants#RECORD_REAPER_INTERVAL} milliseconds.
+     * </p>
+     * @see DNSRecord, {@link RecordReaper}.
+     */
     public void cleanCache() {
-        long now = System.currentTimeMillis();
-        Set<String> staleServiceTypesForRefresh = new HashSet<String>();
-        for (DNSEntry entry : this.getCache().allValues()) {
+        this.getCache().logCachedContent();
+
+        final long now = System.currentTimeMillis();
+        final Set<String> staleServiceTypesForRefresh = new HashSet<String>();
+        for (final DNSEntry entry : this.getCache().allValues()) {
             try {
-                DNSRecord record = (DNSRecord) entry;
+                final DNSRecord record = (DNSRecord) entry;
                 if (record.isExpired(now)) {
                     this.updateRecord(now, record, Operation.Remove);
+                    logger.trace("Removing DNSEntry from cache: {}", entry);
                     this.getCache().removeDNSEntry(record);
                 } else if (record.isStaleAndShouldBeRefreshed(now)) {
                     record.incrementRefreshPercentage();
