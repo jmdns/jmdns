@@ -45,6 +45,7 @@ import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSState;
 import javax.jmdns.impl.tasks.DNSTask;
+import javax.jmdns.impl.tasks.RecordReaper;
 import javax.jmdns.impl.util.NamedThreadFactory;
 
 // REMIND: multiple IP addresses
@@ -52,7 +53,7 @@ import javax.jmdns.impl.util.NamedThreadFactory;
 /**
  * mDNS implementation in Java.
  *
- * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis, Kai Kreuzer
+ * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis, Kai Kreuzer, Victor Toni
  */
 public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarter {
     private static Logger logger = LoggerFactory.getLogger(JmDNSImpl.class.getName());
@@ -1247,8 +1248,20 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 listener.updateRecord(this.getCache(), now, rec);
             }
         }
-        if (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()))
-        // if (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()) || DNSRecordType.TYPE_SRV.equals(rec.getRecordType()))
+
+        /**
+         * This is the place where we actually add & remove services.
+         *  - For adding we need a PTR record.
+         *  - For removing we want also to consider expired SRV records because this means the service hasn't been updated
+         *    and is probably not reachable anymore.
+         *
+         * For details see also RFC 6762 / Section 10.4:
+         * @see https://tools.ietf.org/html/rfc6762#section-10.4
+         */
+        if (
+                DNSRecordType.TYPE_PTR.equals(rec.getRecordType())
+                || ( DNSRecordType.TYPE_SRV.equals(rec.getRecordType()) && Operation.Remove.equals(operation))
+        )
         {
             ServiceEvent event = rec.getServiceEvent(this);
             if ((event.getInfo() == null) || !event.getInfo().hasData()) {
@@ -1833,7 +1846,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      * Implementation note:<br />
      * This method is called by the {@link RecordReaper} every {@link DNSConstants#RECORD_REAPER_INTERVAL} milliseconds.
      * </p>
-     * @see DNSRecord, {@link RecordReaper}.
+     * @see DNSRecord
+     * @see RecordReaper
      */
     public void cleanCache() {
         this.getCache().logCachedContent();
