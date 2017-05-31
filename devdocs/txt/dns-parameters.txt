@@ -1,0 +1,550 @@
+                                                         Domain Name System (DNS) Parameters
+
+   Last Updated
+           2017-04-13
+
+   Available Formats
+           [IMG]
+           XML [IMG]
+           HTML [IMG]
+           Plain text
+
+   Registries included below
+
+     * DNS CLASSes
+     * Resource Record (RR) TYPEs
+     * DNS OpCodes
+     * DNS RCODEs
+     * AFSDB RR Subtype
+     * DHCID RR Identifier Type Codes
+     * DNS Label Types
+     * DNS EDNS0 Option Codes (OPT)
+     * DNS Header Flags
+     * EDNS Header Flags (16 bits)
+     * EDNS version Number (8 bits)
+     * Child Synchronization (CSYNC) Flags
+
+DNS CLASSes
+
+   Reference
+           [RFC6895]
+
+   Note
+
+ As noted in [RFC6762], Multicast DNS can only carry DNS records with classes in the range 0-32767.
+ Classes in the range 32768 to 65535 are incompatible with Multicast DNS.
+
+
+   Available Formats
+           [IMG]
+           CSV
+
+     Decimal        Hex      Registration Procedures               Note
+        0      0x0000        Standards Action
+      1-127    0x0000-0x007F IETF Review              data CLASSes only
+     128-253   0x0080-0x00FD IETF Review              QCLASSes and meta-CLASSes only
+    256-32767  0x0100-0x7FFF IETF Review
+   32768-57343 0x8000-0xDFFF Specification Required   data CLASSes only
+   57344-65279 0xE000-0xFEFF Specification Required   QCLASSes and meta-CLASSes only
+   65280-65534 0xFF00-0xFFFE Reserved for Private Use
+      65535    0xFFFF        Standards Action
+
+     Decimal    Hexadecimal            Name                                                     Reference
+        0         0x0000     Reserved                 [RFC6895]
+        1         0x0001     Internet (IN)            [RFC1035]
+        2         0x0002     Unassigned
+        3         0x0003     Chaos (CH)               [D. Moon, "Chaosnet", A.I. Memo 628, Massachusetts Institute of Technology Artificial
+                                                      Intelligence Laboratory, June 1981.]
+        4         0x0004     Hesiod (HS)              [Dyer, S., and F. Hsu, "Hesiod", Project Athena Technical Plan - Name Service, April 1987.]
+      5-253    0x0005-0x00FD Unassigned
+       254        0x00FE     QCLASS NONE              [RFC2136]
+       255        0x00FF     QCLASS * (ANY)           [RFC1035]
+    256-65279  0x0100-0xFEFF Unassigned
+   65280-65534 0xFF00-0xFFFE Reserved for Private Use [RFC6895]
+      65535       0xFFFF     Reserved                 [RFC6895]
+
+Resource Record (RR) TYPEs
+
+   Reference
+           [RFC6895][RFC1035]
+
+   Available Formats
+           [IMG]
+           CSV
+
+     Decimal        Hex                                           Registration Procedures                                              Note
+        0      0x0000        RRTYPE zero is used as a special indicator for the SIG RR [RFC2931], [RFC4034] and in other
+                             circumstances and must never be allocated for ordinary use.
+      1-127    0x0000-0x007F DNS RRTYPE Allocation Policy                                                                       data TYPEs
+     128-255   0x0080-0x00FF DNS RRTYPE Allocation Policy                                                                       Q TYPEs, Meta TYPEs
+    256-61439  0x0100-0xEFFF DNS RRTYPE Allocation Policy                                                                       data RRTYPEs
+   61440-65279 0xF000-0xFEFF IETF Review
+   65280-65534 0xFF00-0xFFFE Reserved for Private Use
+      65535    0xFFFF        Reserved (Standards Action)
+
+   TYPE       Value        Meaning                                      Reference                                                  Template                 Registration
+                                                                                                                                                                Date
+A               1      a host address  [RFC1035]
+                       an
+NS              2      authoritative   [RFC1035]
+                       name server
+                       a mail
+MD              3      destination     [RFC1035]
+                       (OBSOLETE - use
+                       MX)
+                       a mail
+MF              4      forwarder       [RFC1035]
+                       (OBSOLETE - use
+                       MX)
+                       the canonical
+CNAME           5      name for an     [RFC1035]
+                       alias
+                       marks the start
+SOA             6      of a zone of    [RFC1035]
+                       authority
+                       a mailbox
+MB              7      domain name     [RFC1035]
+                       (EXPERIMENTAL)
+                       a mail group
+MG              8      member          [RFC1035]
+                       (EXPERIMENTAL)
+                       a mail rename
+MR              9      domain name     [RFC1035]
+                       (EXPERIMENTAL)
+NULL           10      a null RR       [RFC1035]
+                       (EXPERIMENTAL)
+                       a well known
+WKS            11      service         [RFC1035]
+                       description
+PTR            12      a domain name   [RFC1035]
+                       pointer
+HINFO          13      host            [RFC1035]
+                       information
+                       mailbox or mail
+MINFO          14      list            [RFC1035]
+                       information
+MX             15      mail exchange   [RFC1035]
+TXT            16      text strings    [RFC1035]
+RP             17      for Responsible [RFC1183]
+                       Person
+AFSDB          18      for AFS Data    [RFC1183][RFC5864]
+                       Base location
+X25            19      for X.25 PSDN   [RFC1183]
+                       address
+ISDN           20      for ISDN        [RFC1183]
+                       address
+RT             21      for Route       [RFC1183]
+                       Through
+                       for NSAP
+NSAP           22      address, NSAP   [RFC1706]
+                       style A record
+                       for domain name
+NSAP-PTR       23      pointer, NSAP   [RFC1348][RFC1637][RFC1706]
+                       style
+SIG            24      for security    [RFC4034][RFC3755][RFC2535][RFC2536][RFC2537][RFC2931][RFC3110][RFC3008]
+                       signature
+KEY            25      for security    [RFC4034][RFC3755][RFC2535][RFC2536][RFC2537][RFC2539][RFC3008][RFC3110]
+                       key
+                       X.400 mail
+PX             26      mapping         [RFC2163]
+                       information
+GPOS           27      Geographical    [RFC1712]
+                       Position
+AAAA           28      IP6 Address     [RFC3596]
+LOC            29      Location        [RFC1876]
+                       Information
+NXT            30      Next Domain     [RFC3755][RFC2535]
+                       (OBSOLETE)
+EID            31      Endpoint        [Michael_Patton][http://ana-3.lcs.mit.edu/~jnc/nimrod/dns.txt]                                                       1995-06
+                       Identifier
+NIMLOC         32      Nimrod Locator  [1][Michael_Patton][http://ana-3.lcs.mit.edu/~jnc/nimrod/dns.txt]                                                    1995-06
+SRV            33      Server          [1][RFC2782]
+                       Selection
+ATMA           34      ATM Address     [ ATM Forum Technical Committee, "ATM Name System, V2.0", Doc ID:
+                                       AF-DANS-0152.000, July 2000. Available from and held in escrow by IANA.]
+                       Naming
+NAPTR          35      Authority       [RFC2915][RFC2168][RFC3403]
+                       Pointer
+KX             36      Key Exchanger   [RFC2230]
+CERT           37      CERT            [RFC4398]
+A6             38      A6 (OBSOLETE -  [RFC3226][RFC2874][RFC6563]
+                       use AAAA)
+DNAME          39      DNAME           [RFC6672]
+SINK           40      SINK            [Donald_E_Eastlake][http://tools.ietf.org/html/draft-eastlake-kitchen-sink]                                          1997-11
+OPT            41      OPT             [RFC6891][RFC3225]
+APL            42      APL             [RFC3123]
+DS             43      Delegation      [RFC4034][RFC3658]
+                       Signer
+SSHFP          44      SSH Key         [RFC4255]
+                       Fingerprint
+IPSECKEY       45      IPSECKEY        [RFC4025]
+RRSIG          46      RRSIG           [RFC4034][RFC3755]
+NSEC           47      NSEC            [RFC4034][RFC3755]
+DNSKEY         48      DNSKEY          [RFC4034][RFC3755]
+DHCID          49      DHCID           [RFC4701]
+NSEC3          50      NSEC3           [RFC5155]
+NSEC3PARAM     51      NSEC3PARAM      [RFC5155]
+TLSA           52      TLSA            [RFC6698]
+SMIMEA         53      S/MIME cert     [RFC-ietf-dane-smime-16]                                                    SMIMEA/smimea-completed-template         2015-12-01
+                       association
+Unassigned     54
+HIP            55      Host Identity   [RFC8005]
+                       Protocol
+NINFO          56      NINFO           [Jim_Reid]                                                                  NINFO/ninfo-completed-template           2008-01-21
+RKEY           57      RKEY            [Jim_Reid]                                                                  RKEY/rkey-completed-template             2008-01-21
+TALINK         58      Trust Anchor    [Wouter_Wijngaards]                                                         TALINK/talink-completed-template         2010-02-17
+                       LINK
+CDS            59      Child DS        [RFC7344]                                                                   CDS/cds-completed-template               2011-06-06
+                       DNSKEY(s) the
+CDNSKEY        60      Child wants     [RFC7344]                                                                                                            2014-06-16
+                       reflected in DS
+OPENPGPKEY     61      OpenPGP Key     [RFC7929]                                                                   OPENPGPKEY/openpgpkey-completed-template 2014-08-12
+CSYNC          62      Child-To-Parent [RFC7477]                                                                                                            2015-01-27
+                       Synchronization
+Unassigned    63-98
+SPF            99                      [RFC7208]
+UINFO          100                     [IANA-Reserved]
+UID            101                     [IANA-Reserved]
+GID            102                     [IANA-Reserved]
+UNSPEC         103                     [IANA-Reserved]
+NID            104                     [RFC6742]                                                                   ILNP/nid-completed-template
+L32            105                     [RFC6742]                                                                   ILNP/l32-completed-template
+L64            106                     [RFC6742]                                                                   ILNP/l64-completed-template
+LP             107                     [RFC6742]                                                                   ILNP/lp-completed-template
+EUI48          108     an EUI-48       [RFC7043]                                                                   EUI48/eui48-completed-template           2013-03-27
+                       address
+EUI64          109     an EUI-64       [RFC7043]                                                                   EUI64/eui64-completed-template           2013-03-27
+                       address
+Unassigned   110-248
+TKEY           249     Transaction Key [RFC2930]
+TSIG           250     Transaction     [RFC2845]
+                       Signature
+IXFR           251     incremental     [RFC1995]
+                       transfer
+AXFR           252     transfer of an  [RFC1035][RFC5936]
+                       entire zone
+                       mailbox-related
+MAILB          253     RRs (MB, MG or  [RFC1035]
+                       MR)
+                       mail agent RRs
+MAILA          254     (OBSOLETE - see [RFC1035]
+                       MX)
+                       A request for
+*              255     all records the [RFC1035][RFC6895]
+                       server/cache
+                       has available
+URI            256     URI             [RFC7553]                                                                   URI/uri-completed-template               2011-02-22
+                       Certification
+CAA            257     Authority       [RFC6844]                                                                   CAA/caa-completed-template               2011-04-07
+                       Restriction
+                       Application
+AVC            258     Visibility and  [Wolfgang_Riedel]                                                           AVC/avc-completed-template               2016-02-26
+                       Control
+Unassigned  259-32767
+                       DNSSEC Trust    [Sam_Weiler][http://cameo.library.cmu.edu/][ Deploying DNSSEC Without a
+TA            32768    Authorities     Signed Root. Technical Report 1999-19, Information Networking Institute,                                             2005-12-13
+                                       Carnegie Mellon University, April 2004.]
+                       DNSSEC
+DLV           32769    Lookaside       [RFC4431]
+                       Validation
+Unassigned 32770-65279
+Private    65280-65534
+use
+Reserved      65535
+
+DNS OpCodes
+
+   Registration Procedure(s)
+
+ Standards Action
+
+   Reference
+           [RFC6895][RFC1035]
+
+   Available Formats
+           [IMG]
+           CSV
+
+   OpCode               Name               Reference
+     0    Query                            [RFC1035]
+     1    IQuery (Inverse Query, OBSOLETE) [RFC3425]
+     2    Status                           [RFC1035]
+     3    Unassigned
+     4    Notify                           [RFC1996]
+     5    Update                           [RFC2136]
+    6-15  Unassigned
+
+DNS RCODEs
+
+   Registration Procedure(s)
+
+ IETF Review
+
+   Reference
+           [RFC6895][RFC1035]
+
+   Available Formats
+           [IMG]
+           CSV
+
+     RCODE                         Name                                 Description                Reference
+       0      NoError                                        No Error                          [RFC1035]
+       1      FormErr                                        Format Error                      [RFC1035]
+       2      ServFail                                       Server Failure                    [RFC1035]
+       3      NXDomain                                       Non-Existent Domain               [RFC1035]
+       4      NotImp                                         Not Implemented                   [RFC1035]
+       5      Refused                                        Query Refused                     [RFC1035]
+       6      YXDomain                                       Name Exists when it should not    [RFC2136][RFC6672]
+       7      YXRRSet                                        RR Set Exists when it should not  [RFC2136]
+       8      NXRRSet                                        RR Set that should exist does not [RFC2136]
+       9      NotAuth                                        Server Not Authoritative for zone [RFC2136]
+       9      NotAuth                                        Not Authorized                    [RFC2845]
+       10     NotZone                                        Name not contained in zone        [RFC2136]
+     11-15    Unassigned
+       16     BADVERS                                        Bad OPT Version                   [RFC6891]
+       16     BADSIG                                         TSIG Signature Failure            [RFC2845]
+       17     BADKEY                                         Key not recognized                [RFC2845]
+       18     BADTIME                                        Signature out of time window      [RFC2845]
+       19     BADMODE                                        Bad TKEY Mode                     [RFC2930]
+       20     BADNAME                                        Duplicate key name                [RFC2930]
+       21     BADALG                                         Algorithm not supported           [RFC2930]
+       22     BADTRUNC                                       Bad Truncation                    [RFC4635]
+       23     BADCOOKIE                                      Bad/missing Server Cookie         [RFC7873]
+    24-3840   Unassigned
+   3841-4095  Reserved for Private Use                                                         [RFC6895]
+   4096-65534 Unassigned
+     65535    Reserved, can be allocated by Standards Action                                   [RFC6895]
+
+AFSDB RR Subtype
+
+   Registration Procedure(s)
+
+ Registry closed per [RFC6895]
+
+   Reference
+           [RFC6895][RFC1035]
+
+   Available Formats
+           [IMG]
+           CSV
+
+     Decimal    Hexadecimal                 Description                 Reference
+        0         0x0000     Reserved; registry closed                  [RFC6895]
+        1         0x0001     Andrews File Service v3.0 Location Service [RFC1183]
+        2         0x0002     DCE/NCA root cell directory node           [RFC1183]
+     3-65279   0x0003-0xFEFF Not allocated; registry closed
+   65280-65534 0xFF00-0xFFFE Reserved for Private Use                   [RFC6895]
+      65535       0xFFFF     Reserved; registry closed                  [RFC6895]
+
+DHCID RR Identifier Type Codes
+
+   Registration Procedure(s)
+
+ Standards Action
+
+   Expert(s)
+
+ Olafur Gudmundsson
+
+   Reference
+           [RFC4701]
+
+   Note
+
+ Registration rules to be as follows:
+
+ New DHCID RR type codes are tentatively assigned after the specification for the
+ associated type code, published as an Internet Draft, has received expert review
+ by a designated expert. The final assignment of DHCID RR type codes is through
+ Standards Action, as defined in [RFC2434].
+
+
+   Available Formats
+           [IMG]
+           CSV
+
+   Identifier Type Code                                                    Identifier                                                     Reference
+          0x0000        The 1-octet 'htype' followed by 'hlen' octets of 'chaddr' from a DHCPv4 client's DHCPREQUEST.                     [RFC4701]
+          0x0001        The data octets (i.e., the Type and Client-Identifier fields) from a DHCPv4 client's Client Identifier option.    [RFC4701]
+          0x0002        The client's DUID (i.e., the data octets of a DHCPv6 client's Client Identifier option or the DUID field from a   [RFC4701]
+                        DHCPv4 client's Client Identifier option).
+      0x0003-0xFFFE     Unassigned                                                                                                        [RFC4701]
+          0xFFFF        Reserved                                                                                                          [RFC4701]
+
+DNS Label Types
+
+   Registration Procedure(s)
+
+ Standards Action
+
+   Reference
+           [RFC6891]
+
+   Note
+
+ The top 2 bits of the first byte of an DNS label indicate the type of label.
+
+
+   Available Formats
+           [IMG]
+           CSV
+
+        Value                                             Type                                         Status               Reference
+         0 0       Normal label lower 6 bits is the length of the label                               Standard [RFC1035]
+         1 1       Compressed label the lower 6 bits and the 8 bits from next octet form a pointer to Standard [RFC1035]
+                   the compression target.
+         0 1       Extended label type the lower 6 bits of this type (section 3) indicate the type of Proposed [RFC6891]
+                   label in use
+   0 1 0 0 0 0 0 1 Binary Label                                                                       Historic [RFC3364][RFC3363][RFC2673][RFC6891]
+   0 1 1 1 1 1 1 1 Reserved for future expansion.                                                     Proposed [RFC6891]
+         1 0       Unallocated
+
+DNS EDNS0 Option Codes (OPT)
+
+   Registration Procedure(s)
+
+ Expert Review
+
+   Expert(s)
+
+ Olafur Gudmundsson
+
+   Reference
+           [RFC6891][RFC Errata 3604]
+
+   Note
+
+ Registrations made by standards-track documents are listed as "Standard,"
+ and by non-standards-track documents as "Optional." Registrations for
+ which there are no final specifications are listed as "On-Hold."
+
+
+   Available Formats
+           [IMG]
+           CSV
+
+      Value             Name            Status                                               Reference
+        0      Reserved                         [RFC6891]
+        1      LLQ                     On-hold  [http://files.dns-sd.org/draft-sekar-dns-llq.txt]
+        2      UL                      On-hold  [http://files.dns-sd.org/draft-sekar-dns-ul.txt]
+        3      NSID                    Standard [RFC5001]
+        4      Reserved                         [draft-cheshire-edns0-owner-option]
+        5      DAU                     Standard [RFC6975]
+        6      DHU                     Standard [RFC6975]
+        7      N3U                     Standard [RFC6975]
+        8      edns-client-subnet      Optional [RFC7871]
+        9      EDNS EXPIRE             Optional [RFC7314]
+       10      COOKIE                  Standard [RFC7873]
+       11      edns-tcp-keepalive      Standard [RFC7828]
+       12      Padding                 Standard [RFC7830]
+       13      CHAIN                   Standard [RFC7901]
+       14      edns-key-tag            Optional [RFC8145]
+    15-26945   Unassigned
+      26946    DeviceID                Optional [https://docs.umbrella.com/developer/networkdevices-api/identifying-dns-traffic2][Brian_Hartvigsen]
+   26947-65000 Unassigned
+   65001-65534 Reserved for                     [RFC6891]
+               Local/Experimental Use
+      65535    Reserved for future              [RFC6891]
+               expansion
+
+DNS Header Flags
+
+   Registration Procedure(s)
+
+ Standards Action
+
+   Reference
+           [RFC6895][RFC1035]
+
+   Note
+
+ In DNS query header there is a flag field in the second 16 bit word in
+ query from bit 5 through bit 11 ([RFC1035] section 4.1.1)
+
+
+   Available Formats
+           [IMG]
+           CSV
+
+    Bit   Flag     Description                   Reference
+   bit 5   AA  Authoritative Answer [RFC1035]
+   bit 6   TC  Truncated Response   [RFC1035]
+   bit 7   RD  Recursion Desired    [RFC1035]
+   bit 8   RA  Recursion Available  [RFC1035]
+   bit 9       Reserved
+   bit 10  AD  Authentic Data       [RFC4035][RFC6840][RFC Errata 4924]
+   bit 11  CD  Checking Disabled    [RFC4035][RFC6840][RFC Errata 4927]
+
+EDNS Header Flags (16 bits)
+
+   Registration Procedure(s)
+
+ Standards Action
+
+   Reference
+           [RFC6891]
+
+   Available Formats
+           [IMG]
+           CSV
+
+     Bit    Flag   Description                     Reference
+   Bit 0     DO  DNSSEC answer OK [RFC4035][RFC3225][RFC6840][RFC Errata 4928]
+   Bit 1-15      Reserved
+
+EDNS version Number (8 bits)
+
+   Registration Procedure(s)
+
+ Standards Action
+
+   Reference
+           [RFC6891]
+
+   Available Formats
+           [IMG]
+           CSV
+
+   Range  Description   Reference
+     0   EDNS version 0 [RFC6891]
+   1-255 Unassigned
+
+Child Synchronization (CSYNC) Flags
+
+   Registration Procedure(s)
+
+ Standards Action
+
+   Reference
+           [RFC7477]
+
+   Available Formats
+           [IMG]
+           CSV
+
+   Bit     Flag                            Description                                 Reference
+    0   immediate  Immediately process this CSYNC record.                      [RFC7477, Section 3]
+    1   soaminimum Require a SOA serial number greater than the one specified. [RFC7477, Section 2.1.1.1]
+   2-15            Unassigned
+
+                                                                        People
+
+             ID                    Name                        Contact URI               Last Updated
+   [Brian_Hartvigsen]     Brian Hartvigsen        mailto:bhartvig&cisco.com              2016-12-09
+   [Donald_E_Eastlake]    Donald E. Eastlake, III mailto:d3e3e3&gmail.com                1997-11
+   [George_Barwood]       George Barwood          mailto:george.barwood&blueyonder.co.uk 2011-06-06
+   [Jim_Reid]             Jim Reid                mailto:jim&telnic.org                  2008-01-21
+   [Michael_Patton]       Michael Patton          mailto:map&bbn.com                     1995-06
+   [Patrik_Faltstrom]     Patrik Fältström      mailto:paf&frobbit.se                  2015-01-05
+   [Phillip_Hallam_Baker] Phillip Hallam-Baker    mailto:phill&hallambaker.com           2011-04-07
+   [Sam_Weiler]           Sam Weiler              mailto:weiler+iana&tislabs.com         2005-12
+   [Wolfgang_Riedel]      Wolfgang Riedel         mailto:wolfgang&cisco.com              2016-02-26
+   [Wouter_Wijngaards]    Wouter Wijngaards       mailto:wouter&nlnetlabs.nl             2010-02-17
+
+                                                                       Footnote
+
+   [1] In [RFC1002], two types are defined.  It is not clear that these
+       are in use, though if so their assignment does conflict with those above.
+               NB      32      NetBIOS general Name Service
+               NBSTAT  33      NetBIOS NODE STATUS
+
