@@ -404,7 +404,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     @Override
     public String getTypeWithSubtype() {
         String subtype = this.getSubtype();
-        return (subtype.length() > 0 ? "_" + subtype.toLowerCase() + "._sub." : "") + this.getType();
+        return (subtype.length() > 0 ? "_" + subtype + "._sub." : "") + this.getType();
     }
 
     /**

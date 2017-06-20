@@ -26,6 +26,7 @@ public class TextUpdateTest {
 
     private ServiceInfo  service;
     private ServiceInfo  printer;
+    private ServiceInfo  case_sensitive_printer;
     private MockListener serviceListenerMock;
 
     private final static String serviceKey = "srvname"; // Max 9 chars
@@ -126,6 +127,12 @@ public class TextUpdateTest {
         properties.clear();
         properties.put(serviceKey, text.getBytes());
         printer = ServiceInfo.create("_html._tcp.local.", "printer-someuniqueid", "_printer", 80, 0, 0, true, properties);
+        text = "Test hypothetical print server with case-sensitive sub-type";
+        properties.clear();
+        properties.put(serviceKey, text.getBytes());
+        case_sensitive_printer = ServiceInfo.create("_html._tcp.local.", "cs-printer-someuniqueid", "_Printer", 80, 0, 0, true, properties);
+
+        
         serviceListenerMock = new MockListener();
     }
 
@@ -352,6 +359,42 @@ public class TextUpdateTest {
             assertEquals("Did not get the expected service info: ", printer, result);
             assertEquals("Did not get the expected service info subtype: ", printer.getSubtype(), result.getSubtype());
             assertEquals("Did not get the expected service info text: ", printer.getPropertyString(serviceKey), result.getPropertyString(serviceKey));
+            serviceListenerMock.reset();
+        } finally {
+            if (registry != null) registry.close();
+            if (newServiceRegistry != null) newServiceRegistry.close();
+        }
+
+    }
+    
+    @Test
+    public void testCaseSensitiveSubtype() throws IOException {
+        System.out.println("Unit Test: testCaseSensitiveSubtype()");
+        JmDNS registry = null;
+        JmDNS newServiceRegistry = null;
+        try {
+            registry = JmDNS.create("Listener");
+            registry.addServiceListener(service.getType(), serviceListenerMock);
+            //
+            newServiceRegistry = JmDNS.create("Registry");
+            newServiceRegistry.registerService(case_sensitive_printer);
+
+            // We get the service added event when we register the service. However the service has not been resolved at this point.
+            // The info associated with the event only has the minimum information i.e. name and type.
+            List<ServiceEvent> servicesAdded = serviceListenerMock.servicesAdded();
+            assertEquals("We did not get the service added event.", 1, servicesAdded.size());
+            ServiceInfo info = servicesAdded.get(servicesAdded.size() - 1).getInfo();
+            assertEquals("We did not get the right name for the resolved service:", case_sensitive_printer.getName(), info.getName());
+            assertEquals("We did not get the right type for the resolved service:", case_sensitive_printer.getType(), info.getType());
+            // We get the service added event when we register the service. However the service has not been resolved at this point.
+            // The info associated with the event only has the minimum information i.e. name and type.
+            List<ServiceEvent> servicesResolved = serviceListenerMock.servicesResolved();
+            assertEquals("We did not get the service resolved event.", 1, servicesResolved.size());
+            ServiceInfo result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
+            assertNotNull("Did not get the expected service info: ", result);
+            assertEquals("Did not get the expected service info: ", case_sensitive_printer, result);
+            assertEquals("Did not get the expected service info subtype: ", case_sensitive_printer.getSubtype(), result.getSubtype());
+            assertEquals("Did not get the expected service info text: ", case_sensitive_printer.getPropertyString(serviceKey), result.getPropertyString(serviceKey));
             serviceListenerMock.reset();
         } finally {
             if (registry != null) registry.close();
