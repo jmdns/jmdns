@@ -2,12 +2,13 @@
 <?compositeArtifactRepository version='1.0.0'?>
 <repository name='JmDNS Repository' type='org.eclipse.equinox.internal.p2.artifact.repository.CompositeArtifactRepository' version='1.0.0'>
   <properties size='1'>
-    <property name='p2.timestamp' value='1447572326343'/>
+    <property name='p2.timestamp' value='1447572326344'/>
   </properties>
-  <children size='4'>
+  <children size='5'>
     <child location='3.4.2/'/>
     <child location='3.4.3/'/>
     <child location='3.5.0/'/>
     <child location='3.5.1/'/>
+    <child location='3.5.2/'/>
   </children>
 </repository>
