@@ -1890,7 +1890,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
         // Stop JmDNS
         // This protects against recursive calls
-        if (this.closeState()) {
+        if (this.cancelState()) {
             // We got the tie break now clean up
 
             // Stop the timer
