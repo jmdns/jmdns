@@ -468,7 +468,10 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             }
         }
         _socket.setTimeToLive(255);
-        _socket.joinGroup(_group);
+		
+		// To work on Android when is on Wifi hotspot(AP mode).
+		
+        _socket.joinGroup(new InetSocketAddress(_group,DNSConstants.MDNS_PORT),hostInfo.getInterface());
     }
 
     private void closeMulticastSocket() {
