@@ -10,12 +10,14 @@ import java.io.UnsupportedEncodingException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
@@ -24,6 +26,9 @@ import javax.jmdns.impl.DNSOutgoing.MessageOutputStream;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * DNS record
@@ -365,7 +370,7 @@ public abstract class DNSRecord extends DNSEntry {
                 if (localAddress != null) {
                     int comparison = this.compareTo(localAddress);
 
-                    if (comparison == 0) {
+                    if (comparison == 0 || isComingFromSameHost(getRecordSource())) {
                         // the 2 records are identical this probably means we are seeing our own record.
                         // With multiple interfaces on a single computer it is possible to see our
                         // own records come in on different interfaces than the ones they were sent on.
@@ -397,7 +402,7 @@ public abstract class DNSRecord extends DNSEntry {
          */
         @Override
         boolean handleResponse(JmDNSImpl dns) {
-            if (dns.getLocalHost().conflictWithRecord(this)) {
+            if (dns.getLocalHost().conflictWithRecord(this) && ! isComingFromSameHost(getRecordSource())) {
                 logger1.debug("handleResponse() Denial detected");
 
                 if (dns.isProbing()) {
@@ -1070,5 +1075,28 @@ public abstract class DNSRecord extends DNSEntry {
 
     public int getTTL() {
         return _ttl;
+    }
+
+
+    protected boolean isComingFromSameHost(InetAddress source) {
+        if (source == null) {
+            return false;
+        }
+
+        try {
+            Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
+            for (NetworkInterface netint : Collections.list(nets)) {
+                Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
+                for (InetAddress inetAddress : Collections.list(inetAddresses)) {
+                    if (source.equals(inetAddress)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            logger.warn("Error on listing network interfaces",e);
+        }
+
+        return false;
     }
 }
