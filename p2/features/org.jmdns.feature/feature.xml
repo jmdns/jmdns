@@ -1,7 +1,7 @@
 <feature
     id="org.jmdns.feature"
     label="JmDNS"
-    version="3.5.3.qualifier"
+    version="3.5.4.qualifier"
     provider-name="JmDNS.org">
 
     <description>
