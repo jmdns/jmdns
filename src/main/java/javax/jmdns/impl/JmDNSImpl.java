@@ -1346,14 +1346,22 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             final boolean unique = newRecord.isUnique();
             final DNSRecord cachedRecord = (DNSRecord) this.getCache().getDNSEntry(newRecord);
             logger.debug("{} handle response cached record: {}", this.getName(), cachedRecord);
+            // RFC 6762, section 10.2 Announcements to Flush Outdated Cache Entries
+            // https://tools.ietf.org/html/rfc6762#section-10.2
+            // if (cache-flush a.k.a unique), remove all existing records matching these criterias :--
+            //     1. same name
+            //     2. same record type
+            //     3. same record class
+            //     4. record is older than 1 second.
             if (unique) {
                 for (DNSEntry entry : this.getCache().getDNSEntryList(newRecord.getKey())) {
                     if (    newRecord.getRecordType().equals(entry.getRecordType()) &&
                             newRecord.getRecordClass().equals(entry.getRecordClass()) &&
-                            (entry != cachedRecord)
+                            isOlderThanOneSecond( (DNSRecord)entry, now )                            
                     ) {
                         logger.trace("setWillExpireSoon() on: {}", entry);
-                        ((DNSRecord) entry).setWillExpireSoon(now);
+                        // this set ttl to 1 second,
+                        ((DNSRecord) entry).setWillExpireSoon(now);  
                     }
                 }
             }
@@ -1424,6 +1432,16 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             this.updateRecord(now, newRecord, cacheOperation);
         }
 
+    }
+    
+    /**
+     *  
+     * @param dnsRecord 
+     * @param timeToCompare a given times for comparison
+     * @return true if dnsRecord create time is older than 1 second, relative to the given time; false otherwise 
+     */
+    private boolean isOlderThanOneSecond(DNSRecord dnsRecord, long timeToCompare) {
+        return (dnsRecord.getCreated() < (timeToCompare - DNSConstants.FLUSH_RECORD_OLDER_THAN_1_SECOND*1000));
     }
 
     /**
