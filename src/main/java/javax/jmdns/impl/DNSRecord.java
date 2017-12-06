@@ -1078,4 +1078,9 @@ public abstract class DNSRecord extends DNSEntry {
     public int getTTL() {
         return _ttl;
     }
+
+    public long getCreated() {
+        return this._created;
+    }
+
 }
