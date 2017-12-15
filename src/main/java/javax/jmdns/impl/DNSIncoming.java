@@ -19,6 +19,7 @@ import javax.jmdns.impl.constants.DNSOptionCode;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSResultCode;
+import javax.jmdns.impl.util.ByteWrangler;
 
 /**
  * Parse an incoming DNS message into its components.
@@ -357,11 +358,24 @@ public final class DNSIncoming extends DNSMessage {
                 rec = new DNSRecord.Service(domain, recordClass, unique, ttl, priority, weight, port, target);
                 break;
             case TYPE_HINFO:
-                final StringBuilder sb = new StringBuilder();
-                sb.append(_messageInputStream.readUTF(len));
-                int index = sb.indexOf(" ");
-                String cpu = (index > 0 ? sb.substring(0, index) : sb.toString()).trim();
-                String os = (index > 0 ? sb.substring(index + 1) : "").trim();
+                // see Section 3.2.2 in https://tools.ietf.org/html/rfc1035
+                // HINFO contains TWO pieces of information CPU and OS, so we cannot parse into one single BLOB
+                final byte[] hinfoBytes = _messageInputStream.readBytes(len);
+
+                String cpu = "";
+                String os = "";
+                int off = 0;
+
+                if (off + hinfoBytes[off] < hinfoBytes.length) {
+                    // skip byte containing length
+                    cpu = ByteWrangler.readUTF(hinfoBytes, off + 1, hinfoBytes[off]);
+                    off += hinfoBytes[off] + 1; // skip bytes read for CPU
+                }
+                if (off + hinfoBytes[off] < hinfoBytes.length) {
+                    // skip byte containing length
+                    os = ByteWrangler.readUTF(hinfoBytes, off + 1, hinfoBytes[off]);
+                    off += hinfoBytes[off] + 1; // skip bytes read for OS
+                }
                 rec = new DNSRecord.HostInformation(domain, recordClass, unique, ttl, cpu, os);
                 break;
             case TYPE_OPT:
@@ -446,8 +460,10 @@ public final class DNSIncoming extends DNSMessage {
                                 break;
                             case Unknown:
                                 if (optionCodeInt >= 65001 && optionCodeInt <= 65534) {
-                                     // RFC 6891 defines this range as used for experimental/local purposes.
-                                    logger.debug("There was an OPT answer using an experimental/local option code: {} data: {}", optionCodeInt, this._hexString(optiondata));
+                                    // RFC 6891 defines this range as used for experimental/local purposes.
+                                    if (logger.isDebugEnabled()) {
+                                        logger.debug("There was an OPT answer using an experimental/local option code: {} data: {}", optionCodeInt, this._hexString(optiondata));
+                                    }
                                 } else {
                                     logger.warn("There was an OPT answer. Not currently handled. Option code: {} data: {}", optionCodeInt, this._hexString(optiondata));
                                 }

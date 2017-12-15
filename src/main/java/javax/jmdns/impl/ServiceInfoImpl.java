@@ -59,6 +59,11 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     private final Set<Inet4Address> _ipv4Addresses;
     private final Set<Inet6Address> _ipv6Addresses;
 
+    /**
+     * Flag to track if an InetAddress was set at least once
+     */
+    private boolean                 _inetAddressSet = false;
+
     private transient String        _key;
 
     private boolean                 _persistent;
@@ -1220,7 +1225,6 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
             }
         }
         sb.append(']');
-
         return sb.toString();
     }
 

@@ -132,7 +132,7 @@ public enum DNSRecordClass {
 
     @Override
     public String toString() {
-        return this.name() + " index " + this.indexValue();
+        return _externalName.toUpperCase();
     }
 
 }
