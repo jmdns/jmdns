@@ -2,3 +2,6 @@
 target/*
 .idea
 *.iml
+p2/features/org\.jmdns\.feature/target/
+
+p2/repository/target/
