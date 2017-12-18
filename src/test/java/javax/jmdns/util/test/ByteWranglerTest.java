@@ -1,6 +1,10 @@
 package javax.jmdns.util.test;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+
+import java.util.Random;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 

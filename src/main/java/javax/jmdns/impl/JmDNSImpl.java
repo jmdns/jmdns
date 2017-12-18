@@ -763,6 +763,96 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         return info;
     }
 
+    /**
+     * This is a rather brute force approach to scan the cache for related DNSEntry objects 
+     * @param info
+     * @return
+     */
+    boolean removeServiceInfoFromCache(final ServiceInfoImpl info) {
+        if (null == info) {
+            logger.error("Cannot remove null ServiceInfo");
+            return false;
+        }
+
+        boolean changed = false;
+
+        final String key = info.getKey();
+
+        this.getCache().logCachedContent();
+
+        // remove all entries associated with this type
+        final Collection<? extends DNSEntry> removedEntries = this.getCache().remove(key);
+        if (null != removedEntries) {
+            changed = true;
+        }
+
+        logger.trace("Removed entries from cache for type {}: {}", key, removedEntries);
+
+        // get all related keys from the removed entry
+        final Set<String> otherKeys = new HashSet<String>();
+        for (final DNSEntry dnsEntry : removedEntries) {
+            if (dnsEntry instanceof DNSRecord.Text) {
+                final DNSRecord.Text text = (DNSRecord.Text) dnsEntry;
+                final String name = text.getName().toLowerCase();
+                otherKeys.add(name);
+                logger.trace("Added key {} from {}", name, text);
+            } else if (dnsEntry instanceof DNSRecord.Pointer) {
+                final DNSRecord.Pointer pointer = (DNSRecord.Pointer) dnsEntry;
+                final String alias = pointer.getAlias().toLowerCase();
+                otherKeys.add(alias);
+                logger.trace("Added key {} from {}", alias, pointer);
+            } else if (dnsEntry instanceof DNSRecord.HostInformation) {
+                final DNSRecord.HostInformation hostInformation = (DNSRecord.HostInformation) dnsEntry;
+                final String name = hostInformation.getName().toLowerCase();
+                otherKeys.add(name);
+                logger.trace("Added key {} from {}", name, hostInformation);
+            } else if (dnsEntry instanceof DNSRecord.Service) {
+                final DNSRecord.Service service = (DNSRecord.Service) dnsEntry;
+                final String server = service.getServer().toLowerCase();
+                otherKeys.add(server);
+                logger.trace("Added key {} from {}", server, service);
+            }
+        }
+
+        // now search for all these related keys and remove them from the cache...
+        final Collection<? extends DNSEntry> dnsEntries = this.getCache().allValues();
+        for (final DNSEntry dnsEntry : dnsEntries) {
+            if (dnsEntry instanceof DNSRecord.Text) {
+                final DNSRecord.Text text = (DNSRecord.Text) dnsEntry;
+                final String name = text.getName().toLowerCase();
+                if (otherKeys.contains(name)) {
+                    this.getCache().removeDNSEntry(text);
+                    changed = true;
+                }
+            } else if (dnsEntry instanceof DNSRecord.Pointer) {
+                final DNSRecord.Pointer pointer = (DNSRecord.Pointer) dnsEntry;
+                final String alias = pointer.getAlias().toLowerCase();
+                if (otherKeys.contains(alias)) {
+                    this.getCache().removeDNSEntry(pointer);
+                    changed = true;
+                }
+            } else if (dnsEntry instanceof DNSRecord.HostInformation) {
+                final DNSRecord.HostInformation hostInformation = (DNSRecord.HostInformation) dnsEntry;
+                final String name = hostInformation.getName().toLowerCase();
+                if (otherKeys.contains(name)) {
+                    this.getCache().removeDNSEntry(hostInformation);
+                    changed = true;
+                }
+            } else if (dnsEntry instanceof DNSRecord.Service) {
+                final DNSRecord.Service service = (DNSRecord.Service) dnsEntry;
+                final String server = service.getServer().toLowerCase();
+                if (otherKeys.contains(server)) {
+                    this.getCache().removeDNSEntry(service);
+                    changed = true;
+                }
+            }
+        }
+
+        this.getCache().logCachedContent();
+
+        return changed;
+    }
+
     ServiceInfoImpl getServiceInfoFromCache(String type, String name, String subtype, boolean persistent) {
         // Check if the answer is in the cache.
         ServiceInfoImpl info = new ServiceInfoImpl(type, name, subtype, 0, 0, 0, persistent, (byte[]) null);
@@ -893,6 +983,54 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                             listener.serviceResolved(localEvent);
                         }
                     });
+                }
+            }
+        }
+    }
+
+    /**
+     * Informs all registered {@link ServiceListener}s with an {@link ServiceEvent} about a removed {@link ServiceInfo}.
+     *
+     * @param event
+     *            containing the {@link ServiceInfo} which was resolved
+     */
+    void handleServiceRemoved(final ServiceEvent event) {
+        final String serviceType = event.getType().toLowerCase();
+
+        final List<ServiceListenerStatus> list = _serviceListeners.get(serviceType);
+
+        logger.debug("Service removed: {}", event.getInfo().getKey());
+
+        // we might have some listeners to inform
+        if (list != null)  {
+            if (event.getInfo() != null) {
+                logger.debug("Service removed: {}", event.getInfo().getKey());
+                if (event.getInfo().hasData()) {
+                    logger.trace("Service to be removed, still contains data in ServiceInfo: {}", event.getInfo());
+                } else {
+                    // handle only services which have no "valid" data (anymore)
+                    // the ServiceInfo might be removed _because_ there is no data => service not available anymore
+                    final List<ServiceListenerStatus> listCopy;
+                    synchronized (list) {
+                        if ( list.isEmpty() ) {
+                            // no listeners found => nothing to do
+                            logger.trace("No ServiceListener found for removal of ServiceInfo: {}", event.getInfo());
+                            return;
+                        }
+                        listCopy = new ArrayList<ServiceListenerStatus>(list);
+                    }
+
+                    logger.trace("Service removed, calling listeners ({})", listCopy.size());
+
+                    for (final ServiceListenerStatus listener : listCopy) {
+                        _executor.submit(new Runnable() {
+                            /** {@inheritDoc} */
+                            @Override
+                            public void run() {
+                                listener.serviceRemoved(event);
+                            }
+                        });
+                    }
                 }
             }
         }
@@ -1159,12 +1297,14 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 if (DNSRecordType.TYPE_SRV.equals(dnsEntry.getRecordType()) && !dnsEntry.isExpired(now)) {
                     final DNSRecord.Service s = (DNSRecord.Service) dnsEntry;
                     if (s.getPort() != info.getPort() || !s.getServer().equals(_localHost.getName())) {
-                        logger.debug("makeServiceNameUnique() JmDNS.makeServiceNameUnique srv collision:{} s.server={} {} equals:{}",
-                                dnsEntry,
-                                s.getServer(),
-                                _localHost.getName(),
-                                s.getServer().equals(_localHost.getName())
-                        );
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("makeServiceNameUnique() JmDNS.makeServiceNameUnique srv collision:{} s.server={} {} equals:{}",
+                                    dnsEntry,
+                                    s.getServer(),
+                                    _localHost.getName(),
+                                    s.getServer().equals(_localHost.getName())
+                            );
+                        }
                         info.setName(NameRegister.Factory.getRegistry().incrementName(_localHost.getInetAddress(), info.getName(), NameRegister.NameType.SERVICE));
                         collision = true;
                         break;
@@ -1287,12 +1427,16 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             } else {
                 serviceListenerList = Collections.emptyList();
             }
-            logger.trace("{}.updating record for event: {} list {} operation: {}",
-                this.getName(),
-                event,
-                serviceListenerList,
-                operation
-            );
+
+            if (logger.isTraceEnabled()) {
+                logger.trace("{}.updating record for event: {} list {} operation: {}",
+                    this.getName(),
+                    event,
+                    serviceListenerList,
+                    operation
+                );
+            }
+          
             if (!serviceListenerList.isEmpty()) {
                 final ServiceEvent localEvent = event;
 
@@ -1346,14 +1490,23 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             final boolean unique = newRecord.isUnique();
             final DNSRecord cachedRecord = (DNSRecord) this.getCache().getDNSEntry(newRecord);
             logger.debug("{} handle response cached record: {}", this.getName(), cachedRecord);
+
+            // RFC 6762, section 10.2 Announcements to Flush Outdated Cache Entries
+            // https://tools.ietf.org/html/rfc6762#section-10.2
+            // if (cache-flush a.k.a unique), remove all existing records matching these criterias :--
+            //     1. same name
+            //     2. same record type
+            //     3. same record class
+            //     4. record is older than 1 second.
             if (unique) {
                 for (DNSEntry entry : this.getCache().getDNSEntryList(newRecord.getKey())) {
                     if (    newRecord.getRecordType().equals(entry.getRecordType()) &&
                             newRecord.getRecordClass().equals(entry.getRecordClass()) &&
-                            (entry != cachedRecord)
+                            isOlderThanOneSecond( (DNSRecord)entry, now )                            
                     ) {
                         logger.trace("setWillExpireSoon() on: {}", entry);
-                        ((DNSRecord) entry).setWillExpireSoon(now);
+                        // this set ttl to 1 second,
+                        ((DNSRecord) entry).setWillExpireSoon(now);  
                     }
                 }
             }
@@ -1424,6 +1577,16 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             this.updateRecord(now, newRecord, cacheOperation);
         }
 
+    }
+    
+    /**
+     *  
+     * @param dnsRecord 
+     * @param timeToCompare a given times for comparison
+     * @return true if dnsRecord create time is older than 1 second, relative to the given time; false otherwise 
+     */
+    private boolean isOlderThanOneSecond(DNSRecord dnsRecord, long timeToCompare) {
+        return (dnsRecord.getCreated() < (timeToCompare - DNSConstants.FLUSH_RECORD_OLDER_THAN_1_SECOND*1000));
     }
 
     /**

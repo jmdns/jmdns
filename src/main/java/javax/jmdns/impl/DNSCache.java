@@ -273,18 +273,18 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
     @Override
     public synchronized String toString() {
         final StringBuilder sb = new StringBuilder(2000);
-        sb.append("\n\t---- cache ----");
-        for(final Map.Entry<String, List<DNSEntry>> entry : this.entrySet()) {
-            sb.append("\n\n\t\tname '").append(entry.getKey()).append('\'');
-            final List<DNSEntry> entryList = entry.getValue();
+        sb.append("\t---- cache ----");
+        for (final Map.Entry<String, List<DNSEntry>> entry : this.entrySet()) {
+            sb.append("\n\n\t\tname '").append(entry.getKey()).append("' ");
+            final List<? extends DNSEntry> entryList = entry.getValue();
             if ((entryList != null) && (!entryList.isEmpty())) {
                 synchronized (entryList) {
-                    for (DNSEntry dnsEntry : entryList) {
+                    for (final DNSEntry dnsEntry : entryList) {
                         sb.append("\n\t\t\t").append(dnsEntry.toString());
                     }
                 }
             } else {
-                sb.append(" : no entries");
+                sb.append(": no entries");
             }
         }
         return sb.toString();

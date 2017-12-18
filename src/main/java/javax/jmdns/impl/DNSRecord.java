@@ -670,14 +670,24 @@ public abstract class DNSRecord extends DNSEntry {
             super.toString(sb);
             sb.append(" text: '");
 
-            final String text = ByteWrangler.readUTF(_text);
+            // since the first byte of the array contains the length of data bytes
+            // we care only about _text containing real actual data
+            if (_text.length > 2) {
+                // if there is to much text make it short
+                // 20 characters + 1 length byte
+                if (_text.length > 21) {
+                    // the first raw byte contains the length of the TXT so we skip it
+                    // we want only 17 characters an append 3 dots
+                    final String str = ByteWrangler.readUTF(_text, 1, 17);
+                    sb.append(str).append("...");
+                } else {
+                    // just to be sure, whatever is smaller
+                    final int len = Math.min(_text[0], _text.length - 1);
 
-            // if the text is longer than 20 characters cut it to 17 chars
-            // and add "..." at the end
-            if (20 < text.length()) {
-                sb.append(text, 0, 17).append("...");
-            } else {
-                sb.append(text);
+                    final String str = ByteWrangler.readUTF(_text, 1, len);
+                    // the first raw byte contains the length of the TXT so we skip it
+                    sb.append(str);
+                }
             }
             sb.append('\'');
         }
@@ -1078,4 +1088,9 @@ public abstract class DNSRecord extends DNSEntry {
     public int getTTL() {
         return _ttl;
     }
+
+    public long getCreated() {
+        return this._created;
+    }
+
 }

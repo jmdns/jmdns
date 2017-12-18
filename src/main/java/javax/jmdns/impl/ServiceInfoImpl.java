@@ -59,6 +59,11 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     private final Set<Inet4Address> _ipv4Addresses;
     private final Set<Inet6Address> _ipv6Addresses;
 
+    /**
+     * Flag to track if an InetAddress was set at least once
+     */
+    private boolean                 _inetAddressSet = false;
+
     private transient String        _key;
 
     private boolean                 _persistent;
@@ -795,6 +800,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
         // flag for changes
         boolean serviceChanged = false;
 
+        // When a record is soon to be expired, i.e. ttl=1, consider that as expired too. 
         if (record.isExpired(now)) {
             // remove data
             serviceChanged = handleExpiredRecord(record);
@@ -813,7 +819,18 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                     // ServiceEvent event = ((DNSRecord) rec).getServiceEvent(dns);
                     // event = new ServiceEventImpl(dns, event.getType(), event.getName(), this);
                     // Failure to resolve services - ID: 3517826
-                    ServiceEvent event = new ServiceEventImpl(dns, this.getType(), this.getName(), this);
+                    //
+                    // There is a timing/ concurrency issue here.  The ServiceInfo object is subject to concurrent change.
+                    // e.g. when a device announce a new IP, the old IP has TTL=1.
+                    //
+                    // The listeners runs on different threads concurrently. When they start and read the event,
+                    // the ServiceInfo is already removed/ changed.
+                    //
+                    // The simple solution is to clone the ServiceInfo.  Therefore, future changes to ServiceInfo 
+                    // will not be seen by the listeners.
+                    //
+                    // Fixes ListenerStatus warning "Service Resolved called for an unresolved event: {}"
+                    ServiceEvent event = new ServiceEventImpl(dns, this.getType(), this.getName(), this.clone());
                     dns.handleServiceResolved(event);
                 }
             } else {
@@ -1208,7 +1225,6 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
             }
         }
         sb.append(']');
-
         return sb.toString();
     }
 
