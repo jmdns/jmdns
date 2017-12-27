@@ -468,6 +468,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             logger.trace("Trying to joinGroup({}, {})", multicastAddr, hostInfo.getInterface());
 
             // this joinGroup() might be less surprisingly so this is the default
+            _socket.setNetworkInterface(hostInfo.getInterface());
             _socket.joinGroup(multicastAddr, hostInfo.getInterface());
         } else {
             logger.trace("Trying to joinGroup({})", _group);
