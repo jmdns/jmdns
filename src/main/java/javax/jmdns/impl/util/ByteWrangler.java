@@ -3,6 +3,7 @@ package javax.jmdns.impl.util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.Map;
 
 
@@ -39,79 +40,35 @@ public class ByteWrangler {
     public final static byte[] EMPTY_TXT = new byte[] { 0 };
 
     /**
-     * Write a UTF string with a length to a stream.
+     * Name for charset used to convert Strings to/from wire bytes: {@value #CHARSET_NAME}.
+     */
+    public final static String CHARSET_NAME = "UTF-8";
+
+    /**
+     * Charset used to convert Strings to/from wire bytes: {@value #CHARSET_NAME}.
+     */
+    private final static Charset CHARSET_UTF_8 = Charset.forName(CHARSET_NAME);
+
+    /**
+     * Write a String as {@value #CHARSET_NAME} encoded bytes to a stream.
      */
     public static void writeUTF(final OutputStream out, final String str) throws IOException {
-        final int len = str.length();
-        for (int i = 0; i < len; i++) {
-            final int c = str.charAt(i);
-            if ((c >= 0x0001) && (c <= 0x007F)) {
-                out.write(c);
-            } else {
-                if (c > 0x07FF) {
-                    out.write(0xE0 | ((c >> 12) & 0x0F));
-                    out.write(0x80 | ((c >> 6) & 0x3F));
-                    out.write(0x80 | ((c >> 0) & 0x3F));
-                } else {
-                    out.write(0xC0 | ((c >> 6) & 0x1F));
-                    out.write(0x80 | ((c >> 0) & 0x3F));
-                }
-            }
-        }
+        final byte[] utf8Bytes = str.getBytes(CHARSET_UTF_8);
+        out.write(utf8Bytes);
     }
 
     /**
-     * Read data bytes as UTF-8 to a String.
+     * Read data bytes as {@value #CHARSET_NAME} to String.
      */
     public static String readUTF(final byte data[]) {
         return readUTF(data, 0, data.length);
     }
 
     /**
-     * Read data bytes as UTF-8 to a String.
+     * Read data bytes as {@value #CHARSET_NAME} to String.
      */
     public static String readUTF(final byte data[], final int off, final int len) {
-        int offset = off;
-        final StringBuilder sb = new StringBuilder();
-        for (final int end = offset + len; offset < end;) {
-            int ch = data[offset++] & 0xFF;
-            switch (ch >> 4) {
-                case 0:
-                case 1:
-                case 2:
-                case 3:
-                case 4:
-                case 5:
-                case 6:
-                case 7:
-                    // 0xxxxxxx
-                    break;
-                case 12:
-                case 13:
-                    if (offset >= len) {
-                        return null;
-                    }
-                    // 110x xxxx 10xx xxxx
-                    ch = ((ch & 0x1F) << 6) | (data[offset++] & 0x3F);
-                    break;
-                case 14:
-                    if (offset + 2 >= len) {
-                        return null;
-                    }
-                    // 1110 xxxx 10xx xxxx 10xx xxxx
-                    ch = ((ch & 0x0f) << 12) | ((data[offset++] & 0x3F) << 6) | (data[offset++] & 0x3F);
-                    break;
-                default:
-                    if (offset + 1 >= len) {
-                        return null;
-                    }
-                    // 10xx xxxx, 1111 xxxx
-                    ch = ((ch & 0x3F) << 4) | (data[offset++] & 0x0f);
-                    break;
-            }
-            sb.append((char) ch);
-        }
-        return sb.toString();
+        return new String(data, off, len, CHARSET_UTF_8);
     }
 
     public static void readProperties(final Map<String, byte[]> properties, final byte[] textBytes) throws Exception {
