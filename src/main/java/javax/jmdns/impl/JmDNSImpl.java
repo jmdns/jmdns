@@ -464,11 +464,11 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         _socket = new MulticastSocket(DNSConstants.MDNS_PORT);
         if ((hostInfo != null) && (hostInfo.getInterface() != null)) {
             final SocketAddress multicastAddr = new InetSocketAddress(_group, DNSConstants.MDNS_PORT);
+            _socket.setNetworkInterface(hostInfo.getInterface());
 
             logger.trace("Trying to joinGroup({}, {})", multicastAddr, hostInfo.getInterface());
 
             // this joinGroup() might be less surprisingly so this is the default
-            _socket.setNetworkInterface(hostInfo.getInterface());
             _socket.joinGroup(multicastAddr, hostInfo.getInterface());
         } else {
             logger.trace("Trying to joinGroup({})", _group);
