@@ -672,12 +672,14 @@ public abstract class DNSRecord extends DNSEntry {
 
             final String text = ByteWrangler.readUTF(_text);
 
-            // if the text is longer than 20 characters cut it to 17 chars
-            // and add "..." at the end
-            if (20 < text.length()) {
-                sb.append(text, 0, 17).append("...");
-            } else {
-                sb.append(text);
+            if (text != null) {
+                // if the text is longer than 20 characters cut it to 17 chars
+                // and add "..." at the end
+                if (20 < text.length()) {
+                    sb.append(text, 0, 17).append("...");
+                } else {
+                    sb.append(text);
+                }
             }
             sb.append('\'');
         }
