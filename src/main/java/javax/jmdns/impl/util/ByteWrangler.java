@@ -141,7 +141,7 @@ public class ByteWrangler {
                     }
                     byte data[] = out2.toByteArray();
                     if (data.length > MAX_VALUE_LENGTH) {
-                        logger.warn("Cannot have individual values larger that 255 chars. Offending value: " + key + (val != null ? "" : "=" + val));
+                        logger.warn("Cannot have individual values larger that 255 chars. Offending value: {}", key + (val == null ? "" : "=" + val));
                         return EMPTY_TXT;
                     }
                     out.write((byte) data.length);
@@ -162,7 +162,7 @@ public class ByteWrangler {
         writeUTF(out2, text);
         final byte data[] = out2.toByteArray();
         if (data.length > MAX_VALUE_LENGTH) {
-            logger.warn("Cannot have individual values larger that 255 chars. Offending value: " + text);
+            logger.warn("Cannot have individual values larger that 255 chars. Offending value: {}", text);
             return EMPTY_TXT;
         }
         out.write((byte) data.length);
