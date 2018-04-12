@@ -1,7 +1,7 @@
 <feature
     id="org.jmdns.feature"
     label="JmDNS"
-    version="3.5.4.qualifier"
+    version="3.5.4"
     provider-name="JmDNS.org">
 
     <description>
@@ -9,7 +9,7 @@
     </description>
 
     <copyright>
-        Copyright (C) 2017 JmDNS.org and others
+        Copyright (C) 2018 JmDNS.org and others
     </copyright>
 
     <license url="%licenseURL">
