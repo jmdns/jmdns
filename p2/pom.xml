@@ -6,7 +6,7 @@
 
     <groupId>org.jmdns.p2</groupId>
     <artifactId>pom</artifactId>
-    <version>3.5.4-SNAPSHOT</version>
+    <version>3.5.5-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>JmDNS p2</name>
@@ -39,7 +39,7 @@
         <my.encoding>UTF-8</my.encoding>
         <tycho.groupId>org.eclipse.tycho</tycho.groupId>
         <tycho.extras.groupId>org.eclipse.tycho.extras</tycho.extras.groupId>
-        <tycho.version>0.23.1</tycho.version>
+        <tycho.version>1.1.0</tycho.version>
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
     </properties>
