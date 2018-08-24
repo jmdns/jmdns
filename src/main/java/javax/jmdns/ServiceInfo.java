@@ -436,10 +436,18 @@ public abstract class ServiceInfo implements Cloneable {
 
     /**
      * Get the name of the server.
+     * <b>Note:</b> This will be an empty string if no value has been set
      * 
      * @return server name
      */
     public abstract String getServer();
+
+    /**
+     * Returns true if the service info has a server
+     *
+     * @return <code>true</code> if the service info has a server specified, <code>false</code> otherwise.
+     */
+    public abstract boolean hasServer();
 
     /**
      * Returns the host IP address string in textual presentation.<br/>

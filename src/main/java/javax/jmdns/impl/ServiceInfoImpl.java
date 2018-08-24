@@ -452,6 +452,14 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     }
 
     /**
+     * @see javax.jmdns.ServiceInfo#hasServer()
+     */
+    @Override
+    public boolean hasServer() {
+        return (this._server != null);
+    }
+
+    /**
      * @param server
      *            the server to set
      */
@@ -894,7 +902,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      * @param dnsCache
      * @param now
      * @param record to get data from
-     * @return
+     * @return <code>true</code> if service was updated, <code>false</code> otherwise
      */
     private boolean handleUpdateRecord(final DNSCache dnsCache, final long now, final DNSRecord record) {
 
@@ -974,7 +982,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     @Override
     public synchronized boolean hasData() {
-        return this.getServer() != null && this.hasInetAddress() && this.getTextBytes() != null && this.getTextBytes().length > 0;
+        return this.hasServer() && this.hasInetAddress() && this.getTextBytes() != null && this.getTextBytes().length > 0;
         // return this.getServer() != null && (this.getAddress() != null || (this.getTextBytes() != null && this.getTextBytes().length > 0));
     }
 
@@ -1165,6 +1173,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     @Override
     public ServiceInfoImpl clone() {
         ServiceInfoImpl serviceInfo = new ServiceInfoImpl(this.getQualifiedNameMap(), _port, _weight, _priority, _persistent, _text);
+        serviceInfo.setServer(_server);
         Inet6Address[] ipv6Addresses = this.getInet6Addresses();
         for (Inet6Address address : ipv6Addresses) {
             serviceInfo._ipv6Addresses.add(address);
