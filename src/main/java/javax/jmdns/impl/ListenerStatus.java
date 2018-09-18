@@ -21,12 +21,11 @@ import javax.jmdns.ServiceTypeListener;
  * 
  * @param <T>
  *            listener type
- *            
  */
 public class ListenerStatus<T extends EventListener> {
 
     public static class ServiceListenerStatus extends ListenerStatus<ServiceListener> {
-        private static Logger logger = LoggerFactory.getLogger(ServiceListenerStatus.class.getName());
+        private static Logger                            logger = LoggerFactory.getLogger(ServiceListenerStatus.class.getName());
 
         private final ConcurrentMap<String, ServiceInfo> _addedServices;
 

@@ -67,16 +67,16 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     /**
      * This is the multicast group, we are listening to for multicast DNS messages.
      */
-    private volatile InetAddress     _group;
+    private volatile InetAddress                                           _group;
     /**
      * This is our multicast socket.
      */
-    private volatile MulticastSocket _socket;
+    private volatile MulticastSocket                                       _socket;
 
     /**
      * Holds instances of JmDNS.DNSListener. Must by a synchronized collection, because it is updated from concurrent threads.
      */
-    private final List<DNSListener> _listeners;
+    private final List<DNSListener>                                        _listeners;
 
     /**
      * Holds instances of ServiceListener's. Keys are Strings holding a fully qualified service type. Values are LinkedList's of ServiceListener's.
@@ -86,26 +86,26 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     /**
      * Holds instances of ServiceTypeListener's.
      */
-    private final Set<ServiceTypeListenerStatus> _typeListeners;
+    private final Set<ServiceTypeListenerStatus>                           _typeListeners;
 
     /**
      * Cache for DNSEntry's.
      */
-    private final DNSCache _cache;
+    private final DNSCache                                                 _cache;
 
     /**
      * This hashtable holds the services that have been registered. Keys are instances of String which hold an all lower-case version of the fully qualified service name. Values are instances of ServiceInfo.
      */
-    private final ConcurrentMap<String, ServiceInfo> _services;
+    private final ConcurrentMap<String, ServiceInfo>                       _services;
 
     /**
      * This hashtable holds the service types that have been registered or that have been received in an incoming datagram.<br/>
      * Keys are instances of String which hold an all lower-case version of the fully qualified service type.<br/>
      * Values hold the fully qualified service type.
      */
-    private final ConcurrentMap<String, ServiceTypeEntry> _serviceTypes;
+    private final ConcurrentMap<String, ServiceTypeEntry>                  _serviceTypes;
 
-    private volatile Delegate _delegate;
+    private volatile Delegate                                              _delegate;
 
     /**
      * This is used to store type entries. The type is stored as a call variable and the map support the subtypes.
@@ -113,18 +113,18 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      * The key is the lowercase version as the value is the case preserved version.
      * </p>
      */
-    public static class ServiceTypeEntry extends AbstractMap<String, String>implements Cloneable {
+    public static class ServiceTypeEntry extends AbstractMap<String, String> implements Cloneable {
 
         private final Set<Map.Entry<String, String>> _entrySet;
 
-        private final String _type;
+        private final String                         _type;
 
         private static class SubTypeEntry implements Entry<String, String>, java.io.Serializable, Cloneable {
 
             private static final long serialVersionUID = 9188503522395855322L;
 
-            private final String _key;
-            private final String _value;
+            private final String      _key;
+            private final String      _value;
 
             public SubTypeEntry(String subtype) {
                 super();
@@ -299,26 +299,26 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     /**
      * This is the shutdown hook, we registered with the java runtime.
      */
-    protected Thread _shutdown;
+    protected Thread                                      _shutdown;
 
     /**
      * Handle on the local host
      */
-    private HostInfo _localHost;
+    private HostInfo                                      _localHost;
 
-    private Thread _incomingListener;
+    private Thread                                        _incomingListener;
 
     /**
      * Throttle count. This is used to count the overall number of probes sent by JmDNS. When the last throttle increment happened .
      */
-    private int _throttle;
+    private int                                           _throttle;
 
     /**
      * Last throttle increment.
      */
-    private long _lastThrottleIncrement;
+    private long                                          _lastThrottleIncrement;
 
-    private final ExecutorService _executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("JmDNS"));
+    private final ExecutorService                         _executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("JmDNS"));
 
     //
     // 2009-09-16 ldeck: adding docbug patch with slight ammendments
@@ -335,18 +335,18 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     /**
      * The source for random values. This is used to introduce random delays in responses. This reduces the potential for collisions on the network.
      */
-    private final static Random _random = new Random();
+    private final static Random                           _random   = new Random();
 
     /**
      * This lock is used to coordinate processing of incoming and outgoing messages. This is needed, because the Rendezvous Conformance Test does not forgive race conditions.
      */
-    private final ReentrantLock _ioLock = new ReentrantLock();
+    private final ReentrantLock                           _ioLock   = new ReentrantLock();
 
     /**
      * If an incoming package which needs an answer is truncated, we store it here. We add more incoming DNSRecords to it, until the JmDNS.Responder timer picks it up.<br/>
      * FIXME [PJYF June 8 2010]: This does not work well with multiple planned answers for packages that came in from different clients.
      */
-    private DNSIncoming _plannedAnswer;
+    private DNSIncoming                                   _plannedAnswer;
 
     // State machine
 
@@ -357,7 +357,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      */
     private final ConcurrentMap<String, ServiceCollector> _serviceCollectors;
 
-    private final String _name;
+    private final String                                  _name;
 
     /**
      * Main method to display API information if run from java -jar
@@ -1094,13 +1094,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
         final String name = (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + "." : "") + domain + ".";
         final String loname = name.toLowerCase();
-        logger.debug("{} registering service type: {} as: {}{}{}",
-            this.getName(),
-            type,
-            name,
-            (subtype.length() > 0 ? " subtype: " : ""),
-            (subtype.length() > 0 ? subtype : "")
-        );
+        logger.debug("{} registering service type: {} as: {}{}{}", this.getName(), type, name, (subtype.length() > 0 ? " subtype: " : ""), (subtype.length() > 0 ? subtype : ""));
         if (!_serviceTypes.containsKey(loname) && !application.toLowerCase().equals("dns-sd") && !domain.toLowerCase().endsWith("in-addr.arpa") && !domain.toLowerCase().endsWith("ip6.arpa")) {
             typeAdded = _serviceTypes.putIfAbsent(loname, new ServiceTypeEntry(name)) == null;
             if (typeAdded) {
@@ -1160,12 +1154,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 if (DNSRecordType.TYPE_SRV.equals(dnsEntry.getRecordType()) && !dnsEntry.isExpired(now)) {
                     final DNSRecord.Service s = (DNSRecord.Service) dnsEntry;
                     if (s.getPort() != info.getPort() || !s.getServer().equals(_localHost.getName())) {
-                        logger.debug("makeServiceNameUnique() JmDNS.makeServiceNameUnique srv collision:{} s.server={} {} equals:{}",
-                                dnsEntry,
-                                s.getServer(),
-                                _localHost.getName(),
-                                s.getServer().equals(_localHost.getName())
-                        );
+                        logger.debug("makeServiceNameUnique() JmDNS.makeServiceNameUnique srv collision:{} s.server={} {} equals:{}", dnsEntry, s.getServer(), _localHost.getName(), s.getServer().equals(_localHost.getName()));
                         info.setName(NameRegister.Factory.getRegistry().incrementName(_localHost.getInetAddress(), info.getName(), NameRegister.NameType.SERVICE));
                         collision = true;
                         break;
@@ -1257,19 +1246,12 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         }
 
         /**
-         * This is the place where we actually add & remove services.
-         *  - For adding we need a PTR record.
-         *  - For removing we want also to consider expired SRV records because this means the service hasn't been updated
-         *    and is probably not reachable anymore.
-         *
-         * For details see also RFC 6762 / Section 10.4:
+         * This is the place where we actually add & remove services. - For adding we need a PTR record. - For removing we want also to consider expired SRV records because this means the service hasn't been updated and is probably not reachable
+         * anymore. For details see also RFC 6762 / Section 10.4:
+         * 
          * @see https://tools.ietf.org/html/rfc6762#section-10.4
          */
-        if (
-                DNSRecordType.TYPE_PTR.equals(rec.getRecordType())
-                || ( DNSRecordType.TYPE_SRV.equals(rec.getRecordType()) && Operation.Remove.equals(operation))
-        )
-        {
+        if (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()) || (DNSRecordType.TYPE_SRV.equals(rec.getRecordType()) && Operation.Remove.equals(operation))) {
             ServiceEvent event = rec.getServiceEvent(this);
             if ((event.getInfo() == null) || !event.getInfo().hasData()) {
                 // We do not care about the subtype because the info is only used if complete and the subtype will then be included.
@@ -1288,12 +1270,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             } else {
                 serviceListenerList = Collections.emptyList();
             }
-            logger.trace("{}.updating record for event: {} list {} operation: {}",
-                this.getName(),
-                event,
-                serviceListenerList,
-                operation
-            );
+            logger.trace("{}.updating record for event: {} list {} operation: {}", this.getName(), event, serviceListenerList, operation);
             if (!serviceListenerList.isEmpty()) {
                 final ServiceEvent localEvent = event;
 
@@ -1350,19 +1327,16 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             // RFC 6762, section 10.2 Announcements to Flush Outdated Cache Entries
             // https://tools.ietf.org/html/rfc6762#section-10.2
             // if (cache-flush a.k.a unique), remove all existing records matching these criterias :--
-            //     1. same name
-            //     2. same record type
-            //     3. same record class
-            //     4. record is older than 1 second.
+            // 1. same name
+            // 2. same record type
+            // 3. same record class
+            // 4. record is older than 1 second.
             if (unique) {
                 for (DNSEntry entry : this.getCache().getDNSEntryList(newRecord.getKey())) {
-                    if (    newRecord.getRecordType().equals(entry.getRecordType()) &&
-                            newRecord.getRecordClass().equals(entry.getRecordClass()) &&
-                            isOlderThanOneSecond( (DNSRecord)entry, now )                            
-                    ) {
+                    if (newRecord.getRecordType().equals(entry.getRecordType()) && newRecord.getRecordClass().equals(entry.getRecordClass()) && isOlderThanOneSecond((DNSRecord) entry, now)) {
                         logger.trace("setWillExpireSoon() on: {}", entry);
                         // this set ttl to 1 second,
-                        ((DNSRecord) entry).setWillExpireSoon(now);  
+                        ((DNSRecord) entry).setWillExpireSoon(now);
                     }
                 }
             }
@@ -1381,12 +1355,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                     }
                 } else {
                     // If the record content has changed we need to inform our listeners.
-                    if (    !newRecord.sameValue(cachedRecord) ||
-                            (
-                                    !newRecord.sameSubtype(cachedRecord) &&
-                                    (newRecord.getSubtype().length() > 0)
-                            )
-                    ) {
+                    if (!newRecord.sameValue(cachedRecord) || (!newRecord.sameSubtype(cachedRecord) && (newRecord.getSubtype().length() > 0))) {
                         if (newRecord.isSingleValued()) {
                             cacheOperation = Operation.Update;
                             logger.trace("Record (singleValued) has changed - replaceDNSEntry() on:\n\t{}\n\t{}", newRecord, cachedRecord);
@@ -1434,15 +1403,15 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         }
 
     }
-    
+
     /**
-     *  
-     * @param dnsRecord 
-     * @param timeToCompare a given times for comparison
-     * @return true if dnsRecord create time is older than 1 second, relative to the given time; false otherwise 
+     * @param dnsRecord
+     * @param timeToCompare
+     *            a given times for comparison
+     * @return true if dnsRecord create time is older than 1 second, relative to the given time; false otherwise
      */
     private boolean isOlderThanOneSecond(DNSRecord dnsRecord, long timeToCompare) {
-        return (dnsRecord.getCreated() < (timeToCompare - DNSConstants.FLUSH_RECORD_OLDER_THAN_1_SECOND*1000));
+        return (dnsRecord.getCreated() < (timeToCompare - DNSConstants.FLUSH_RECORD_OLDER_THAN_1_SECOND * 1000));
     }
 
     /**
@@ -1479,25 +1448,12 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      * <p>
      * Wireshark record: see also file a_record_before_srv.pcapng and {@link ServiceInfoImplTest#test_ip_address_is_set()}
      * <p>
-     * Multicast Domain Name System (response)
-     * Transaction ID: 0x0000
-     * Flags: 0x8400 Standard query response, No error
-     * Questions: 0
-     * Answer RRs: 2
-     * Authority RRs: 0
-     * Additional RRs: 8
-     * Answers
-     * _ibisip_http._tcp.local: type PTR, class IN, DeviceManagementService._ibisip_http._tcp.local
-     * _ibisip_http._tcp.local: type PTR, class IN, PassengerCountingService._ibisip_http._tcp.local
-     * Additional records
-     * DeviceManagementService._ibisip_http._tcp.local: type TXT, class IN, cache flush
-     * PassengerCountingService._ibisip_http._tcp.local: type TXT, class IN, cache flush
-     * DIST500_7-F07_OC030_05_03941.local: type A, class IN, cache flush, addr 192.168.88.236
-     * DeviceManagementService._ibisip_http._tcp.local: type SRV, class IN, cache flush, priority 0, weight 0, port 5000, target DIST500_7-F07_OC030_05_03941.local
-     * PassengerCountingService._ibisip_http._tcp.local: type SRV, class IN, cache flush, priority 0, weight 0, port 5001, target DIST500_7-F07_OC030_05_03941.local
-     * DeviceManagementService._ibisip_http._tcp.local: type NSEC, class IN, cache flush, next domain name DeviceManagementService._ibisip_http._tcp.local
-     * PassengerCountingService._ibisip_http._tcp.local: type NSEC, class IN, cache flush, next domain name PassengerCountingService._ibisip_http._tcp.local
-     * DIST500_7-F07_OC030_05_03941.local: type NSEC, class IN, cache flush, next domain name DIST500_7-F07_OC030_05_03941.local
+     * Multicast Domain Name System (response) Transaction ID: 0x0000 Flags: 0x8400 Standard query response, No error Questions: 0 Answer RRs: 2 Authority RRs: 0 Additional RRs: 8 Answers _ibisip_http._tcp.local: type PTR, class IN,
+     * DeviceManagementService._ibisip_http._tcp.local _ibisip_http._tcp.local: type PTR, class IN, PassengerCountingService._ibisip_http._tcp.local Additional records DeviceManagementService._ibisip_http._tcp.local: type TXT, class IN, cache flush
+     * PassengerCountingService._ibisip_http._tcp.local: type TXT, class IN, cache flush DIST500_7-F07_OC030_05_03941.local: type A, class IN, cache flush, addr 192.168.88.236 DeviceManagementService._ibisip_http._tcp.local: type SRV, class IN, cache
+     * flush, priority 0, weight 0, port 5000, target DIST500_7-F07_OC030_05_03941.local PassengerCountingService._ibisip_http._tcp.local: type SRV, class IN, cache flush, priority 0, weight 0, port 5001, target DIST500_7-F07_OC030_05_03941.local
+     * DeviceManagementService._ibisip_http._tcp.local: type NSEC, class IN, cache flush, next domain name DeviceManagementService._ibisip_http._tcp.local PassengerCountingService._ibisip_http._tcp.local: type NSEC, class IN, cache flush, next domain
+     * name PassengerCountingService._ibisip_http._tcp.local DIST500_7-F07_OC030_05_03941.local: type NSEC, class IN, cache flush, next domain name DIST500_7-F07_OC030_05_03941.local
      */
     private List<DNSRecord> aRecordsLast(List<DNSRecord> allAnswers) {
         ArrayList<DNSRecord> ret = new ArrayList<DNSRecord>(allAnswers.size());
@@ -1514,7 +1470,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         ret.addAll(arecords);
         return ret;
     }
-
 
     /**
      * Handle an incoming query. See if we can answer any part of it given our service infos.
@@ -1864,13 +1819,12 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     }
 
     /**
-     * Checks the cache of expired records and removes them.
-     * If any records are about to expire it tries to get them refreshed.
-     *
+     * Checks the cache of expired records and removes them. If any records are about to expire it tries to get them refreshed.
      * <p>
      * Implementation note:<br />
      * This method is called by the {@link RecordReaper} every {@link DNSConstants#RECORD_REAPER_INTERVAL} milliseconds.
      * </p>
+     * 
      * @see DNSRecord
      * @see RecordReaper
      */
@@ -2112,7 +2066,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         /**
          * A set of collected service instance names.
          */
-        private final ConcurrentMap<String, ServiceInfo> _infos;
+        private final ConcurrentMap<String, ServiceInfo>  _infos;
 
         /**
          * A set of collected service event waiting to be resolved.
@@ -2122,12 +2076,12 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         /**
          * This is the type we are listening for (only used for debugging).
          */
-        private final String _type;
+        private final String                              _type;
 
         /**
          * This is used to force a wait on the first invocation of list.
          */
-        private volatile boolean _needToWaitForInfos;
+        private volatile boolean                          _needToWaitForInfos;
 
         public ServiceCollector(String type) {
             super();
