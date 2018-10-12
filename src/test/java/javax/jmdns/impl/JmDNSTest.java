@@ -1,7 +1,14 @@
 package javax.jmdns.impl;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -15,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.jmdns.JmDNS;
+import javax.jmdns.JmmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
@@ -382,7 +390,7 @@ public class JmDNSTest {
             if (newServiceRegistry != null) newServiceRegistry.close();
         }
     }
-    
+
     @Test
     public void testAddServiceListenerTwice() throws IOException {
         System.out.println("Unit Test: testAddServiceListenerTwice()");
@@ -390,10 +398,10 @@ public class JmDNSTest {
         try {
             registry = (JmDNSImpl) JmDNS.create();
             registry.addServiceListener("test", serviceListenerMock);
-            
+
             // we will have 2 listeners, since the collector is implicitly added as well
             assertEquals(2, registry._serviceListeners.get("test").size());
-            
+
             registry.addServiceListener("test", serviceListenerMock);
             assertEquals(2, registry._serviceListeners.get("test").size());
         } finally {
@@ -410,7 +418,7 @@ public class JmDNSTest {
             registry.addServiceListener("test", serviceListenerMock);
             // we will have 2 listeners, since the collector is implicitly added as well
             assertEquals(2, registry._serviceListeners.get("test").size());
-            
+
             registry.removeServiceListener("test", serviceListenerMock);
             // the collector is left in place
             assertEquals(1, registry._serviceListeners.get("test").size());
@@ -557,4 +565,45 @@ public class JmDNSTest {
             if (registry != null) registry.close();
         }
     }
+
+    @Test
+    public void shouldNotNotifyServiceListenersForServiceResolveAfterServiceRemoved() throws UnknownHostException, IOException, InterruptedException {
+        String firstType = "_test._type1.local.";
+        String secondType = "_test._type2.local.";
+
+        JmmDNS jmmdns = JmmDNS.Factory.getInstance();
+
+        EventStoringServiceListener firstListener = new EventStoringServiceListener(firstType);
+        jmmdns.addServiceListener(firstType, firstListener);
+
+        InetAddress[] addresses = jmmdns.getInetAddresses();
+        JmDNS[] dns = new JmDNS[addresses.length];
+        Map<String, String> txtRecord = new HashMap<String, String>();
+        txtRecord.put("SOME KEY", "SOME VALUE");
+
+        ServiceInfo info = ServiceInfo.create(firstType, "SOME TEST NAME", 4444, 0, 0, true, txtRecord);
+
+        for (int i = 0; i < addresses.length; i++) {
+            dns[i] = JmDNS.create(addresses[i], null);
+            dns[i].registerService(info.clone());
+        }
+
+        assertTrue(firstListener.isServiceAddedReceived());
+        assertTrue(firstListener.isServiceResolvedReceived());
+        assertFalse(firstListener.isServiceRemovedReceived());
+
+        Thread.sleep(30 * 1000);
+
+        firstListener.reset();
+
+        for (int i = 0; i < dns.length; i++) {
+            dns[i].close();
+        }
+
+        assertFalse(firstListener.isServiceAddedReceived());
+        assertTrue(firstListener.isServiceRemovedReceived());
+
+        assertFalse(firstListener.isServiceResolvedReceived());
+    }
+
 }
