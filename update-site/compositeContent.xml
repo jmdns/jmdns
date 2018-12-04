@@ -2,9 +2,9 @@
 <?compositeMetadataRepository version='1.0.0'?>
 <repository name='JmDNS Repository' type='org.eclipse.equinox.internal.p2.metadata.repository.CompositeMetadataRepository' version='1.0.0'>
   <properties size='1'>
-    <property name='p2.timestamp' value='1447572326352'/>
+    <property name='p2.timestamp' value='1447572326353'/>
   </properties>
-  <children size='7'>
+  <children size='8'>
     <child location='3.4.2/'/>
     <child location='3.4.3/'/>
     <child location='3.5.0/'/>
@@ -12,5 +12,6 @@
     <child location='3.5.2/'/>
     <child location='3.5.3/'/>
     <child location='3.5.4/'/>
+    <child location='3.5.5/'/>
   </children>
 </repository>
