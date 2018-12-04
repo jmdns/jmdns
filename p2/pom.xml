@@ -6,7 +6,7 @@
 
     <groupId>org.jmdns.p2</groupId>
     <artifactId>pom</artifactId>
-    <version>3.5.5-SNAPSHOT</version>
+    <version>3.5.6-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>JmDNS p2</name>
