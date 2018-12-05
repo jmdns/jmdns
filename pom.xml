@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.jmdns</groupId>
@@ -28,16 +27,16 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		<developerConnection>scm:git:https://github.com/jmdns/jmdns.git</developerConnection>
 		<url>https://github.com/jmdns/jmdns.git</url>
 	</scm>
-	<distributionManagement>
-		<repository>
-			<id>bintray</id>
-			<url>https://api.bintray.com/maven/jmdns/mvn/jmdns/;publish=1</url>
-		</repository>
-		<snapshotRepository>
-			<id>jfrog</id>
-			<url>http://oss.jfrog.org/artifactory/oss-snapshot-local</url>
-		</snapshotRepository>
-	</distributionManagement>
+    <distributionManagement>
+        <repository>
+            <id>bintray</id>
+            <url>https://api.bintray.com/maven/jmdns/mvn/jmdns/;publish=1</url>
+        </repository>
+        <snapshotRepository>
+            <id>jfrog</id>
+            <url>http://oss.jfrog.org/artifactory/oss-snapshot-local</url>
+        </snapshotRepository>
+    </distributionManagement>
 	<issueManagement>
 		<system>github</system>
 		<url>https://github.com/jmdns/jmdns/issues</url>
@@ -167,28 +166,28 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.10.3</version>
-				<configuration>
-					<outputDirectory>${project.build.directory}/javadoc</outputDirectory>
-				</configuration>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-						<configuration>
-							<additionalparam>${javadoc.opts}</additionalparam>
-						</configuration>
-					</execution>
-				</executions>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-javadoc-plugin</artifactId>
+			    <version>2.10.3</version>
+			    <configuration>
+			        <outputDirectory>${project.build.directory}/javadoc</outputDirectory>
+			    </configuration>
+			    <executions>
+			        <execution>
+			            <id>attach-javadocs</id>
+           			 	<goals>
+		            	    <goal>jar</goal>
+        			    </goals>
+			            <configuration>
+            			    <additionalparam>${javadoc.opts}</additionalparam>
+			            </configuration>
+			        </execution>
+			    </executions>
 			</plugin>
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings 
+				<!--This plugin's configuration is used to store Eclipse m2e settings
 					only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
@@ -239,19 +238,16 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 				</plugins>
 			</build>
 		</profile>
-		<!-- We need this profile in order to set '-Xdoclint:none' as a project 
-			property which will be used later by maven-javadoc-plugin as an 'additionalparam' 
-			to be passed to the javadoc.exe. -->
-		<!-- This option will be used only if the JDK version is 1.8 or higher. 
-			Earlier versions of javadoc.exe does not accept this option. -->
-		<profile>
-			<id>doclint-java8-disable</id>
-			<activation>
-				<jdk>[1.8,)</jdk>
-			</activation>
-			<properties>
-				<javadoc.opts>-Xdoclint:none</javadoc.opts>
-			</properties>
-		</profile>
+    <!-- We need this profile in order to set '-Xdoclint:none' as a project property which will be used later by maven-javadoc-plugin as an 'additionalparam' to be passed to the javadoc.exe. -->
+    <!-- This option will be used only if the JDK version is 1.8 or higher. Earlier versions of javadoc.exe does not accept this option. -->
+    <profile>
+      <id>doclint-java8-disable</id>
+      <activation>
+        <jdk>[1.8,)</jdk>
+      </activation>
+      <properties>
+        <javadoc.opts>-Xdoclint:none</javadoc.opts>
+      </properties>
+    </profile>
 	</profiles>
 </project>

@@ -1257,6 +1257,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
          * @see https://tools.ietf.org/html/rfc6762#section-10.4
          */
         if (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()) || (DNSRecordType.TYPE_SRV.equals(rec.getRecordType()) && Operation.Remove.equals(operation))) {
+
             if ((event.getInfo() == null) || !event.getInfo().hasData()) {
                 // We do not care about the subtype because the info is only used if complete and the subtype will then be included.
                 ServiceInfo info = this.getServiceInfoFromCache(event.getType(), event.getName(), "", false);
