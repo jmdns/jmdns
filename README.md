@@ -1,4 +1,4 @@
-![build status](https://travis-ci.org/openhab/jmdns.svg)
+![build status](https://travis-ci.org/jmdns/jmdns.svg)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.jmdns/jmdns/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.jmdns/jmdns)
 [![Javadocs](http://www.javadoc.io/badge/org.jmdns/jmdns.svg)](http://www.javadoc.io/doc/org.jmdns/jmdns)
 

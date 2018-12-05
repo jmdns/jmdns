@@ -268,6 +268,12 @@ public final class DNSIncoming extends DNSMessage {
             IOException ioe = new IOException("DNSIncoming corrupted message");
             ioe.initCause(e);
             throw ioe;
+        } finally {
+            try {
+                _messageInputStream.close();
+            } catch (Exception e) { 
+            	logger.warn("MessageInputStream close error");
+            }
         }
     }
 
