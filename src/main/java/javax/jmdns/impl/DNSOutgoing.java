@@ -117,7 +117,7 @@ public final class DNSOutgoing extends DNSMessage {
         void writeName(String name, boolean useCompression) {
             String aName = name;
             while (true) {
-                int n = aName.indexOf('.');
+                int n = indexOfSeparator(aName);
                 if (n < 0) {
                     n = aName.length();
                 }
@@ -125,7 +125,7 @@ public final class DNSOutgoing extends DNSMessage {
                     writeByte(0);
                     return;
                 }
-                String label = aName.substring(0, n);
+                String label = aName.substring(0, n).replace("\\.", ".");
                 if (useCompression && USE_DOMAIN_NAME_COMPRESSION) {
                     Integer offset = _out._names.get(aName);
                     if (offset != null) {
@@ -143,6 +143,22 @@ public final class DNSOutgoing extends DNSMessage {
                 if (aName.startsWith(".")) {
                     aName = aName.substring(1);
                 }
+            }
+        }
+
+        private static int indexOfSeparator(String aName) {
+            int offset = 0;
+            int n = 0;
+
+            while (true) {
+                n = aName.indexOf('.', offset);
+                if (n < 0)
+                    return -1;
+
+                if (n == 0 || aName.charAt(n - 1) != '\\')
+                    return n;
+
+                offset = n + 1;
             }
         }
 
