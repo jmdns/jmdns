@@ -348,7 +348,6 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
             instance = "";
             // throw new IllegalArgumentException("The instance name component of a fully qualified service cannot be empty.");
         }
-        instance = removeSeparators(instance);
         checkedQualifiedNameMap.put(Fields.Instance, instance);
         // Optional Subtype
         String subtype = (qualifiedNameMap.containsKey(Fields.Subtype) ? qualifiedNameMap.get(Fields.Subtype) : "");
