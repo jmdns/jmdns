@@ -1018,15 +1018,12 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         info.addAddress(_localHost.getInet4Address());
         info.addAddress(_localHost.getInet6Address());
 
-        this.waitForAnnounced(DNSConstants.SERVICE_INFO_TIMEOUT);
-
         this.makeServiceNameUnique(info);
         while (_services.putIfAbsent(info.getKey(), info) != null) {
             this.makeServiceNameUnique(info);
         }
 
         this.startProber();
-        info.waitForAnnounced(DNSConstants.SERVICE_INFO_TIMEOUT);
 
         logger.debug("registerService() JmDNS registered service as {}", info);
     }
