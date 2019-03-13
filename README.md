@@ -16,7 +16,7 @@ kai@openhab.org
 
 # JmDNS
 
-This is an implemenation of multi-cast DNS in Java. It
+This is an implementation of multi-cast DNS in Java. It
 supports service discovery and service registration. It is fully
 interoperable with Apple's Bonjour. 
 
