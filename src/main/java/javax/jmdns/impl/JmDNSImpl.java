@@ -1083,7 +1083,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     @Override
     public boolean registerServiceType(String type) {
         boolean typeAdded = false;
-        Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(type);
+        Map<Fields, String> map = ServiceTypeDecoder.decodeQualifiedNameMapForType(type);
         String domain = map.get(Fields.Domain);
         String protocol = map.get(Fields.Protocol);
         String application = map.get(Fields.Application);
