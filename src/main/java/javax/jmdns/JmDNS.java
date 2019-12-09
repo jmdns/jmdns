@@ -147,12 +147,21 @@ public abstract class JmDNS implements Closeable {
      *            IP address to bind to.
      * @param name
      *            name of the newly created JmDNS
+     * @param threadSleepDurationMs
+     *            time in milliseconds that the JmDNS listener thread should sleep between multicast receives
      * @return jmDNS instance
      * @exception IOException
      *                if an exception occurs during the socket creation
      */
+    public static JmDNS create(final InetAddress addr, final String name, long threadSleepDurationMs) throws IOException {
+        return new JmDNSImpl(addr, name, threadSleepDurationMs);
+    }
+
+    /**
+     * {@link #create(InetAddress, String, long)}. Default value for threadSleepDurationMs parameter is 0.
+     */
     public static JmDNS create(final InetAddress addr, final String name) throws IOException {
-        return new JmDNSImpl(addr, name);
+        return new JmDNSImpl(addr, name, 0);
     }
 
     /**
@@ -359,7 +368,6 @@ public abstract class JmDNS implements Closeable {
      * <pre>
      * Clients receiving a Multicast DNS Response with a TTL of zero SHOULD NOT immediately delete the record from the cache, but instead record a TTL of 1 and then delete the record one second later.
      * </pre>
-     *
      * </p>
      *
      * @param info
