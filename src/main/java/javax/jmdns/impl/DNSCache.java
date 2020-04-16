@@ -234,8 +234,12 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
             List<DNSEntry> entryList = this.get(dnsEntry.getKey());
             if (entryList != null) {
                 synchronized (entryList) {
-                    entryList.remove(dnsEntry);
+                    result = entryList.remove(dnsEntry);
                 }
+            }
+            /* Remove from DNS cache when no records remain with this key */
+            if (result && entryList.isEmpty()) {
+                this.remove(dnsEntry.getKey());
             }
         }
         return result;
