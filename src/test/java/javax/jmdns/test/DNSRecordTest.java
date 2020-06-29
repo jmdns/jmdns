@@ -15,11 +15,23 @@
  */
 package javax.jmdns.test;
 
-import javax.jmdns.impl.DNSRecord;
-import javax.jmdns.impl.constants.DNSRecordClass;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
+import javax.jmdns.impl.DNSIncoming;
+import javax.jmdns.impl.DNSRecord;
+import javax.jmdns.impl.constants.DNSRecordClass;
+import javax.jmdns.impl.constants.DNSRecordType;
+
+import static org.easymock.EasyMock.expect;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({DNSIncoming.class, DNSIncoming.MessageInputStream.class})
 public class DNSRecordTest {
 
     private static final int TTL_IN_SECONDS = 60 * 60; // ONE HOUR
@@ -63,4 +75,28 @@ public class DNSRecordTest {
 
     }
 
+    @Test
+    public void testIPv4MappedIPv6Addresses() throws Exception {
+
+        DNSIncoming.MessageInputStream stream = PowerMock.createNiceMock(DNSIncoming.MessageInputStream.class);
+        expect(stream.readName()).andReturn("test");
+        expect(stream.readUnsignedShort()).andReturn(DNSRecordType.TYPE_AAAA.indexValue());
+        expect(stream.readUnsignedShort()).andReturn(DNSRecordClass.CLASS_IN.indexValue());
+        expect(stream.readInt()).andReturn(3600);
+        expect(stream.readUnsignedShort()).andReturn(16);
+        expect(stream.readBytes(16)).andReturn(new byte[]
+                        { 0, 0, 0, 0,
+                          0, 0, 0, 0,
+                          0, 0, (byte) 0xff, (byte) 0xff,
+                        127, 0, 0, 1});
+
+        DNSIncoming dnsIncoming = Whitebox.newInstance(DNSIncoming.class);
+        Whitebox.setInternalState(dnsIncoming, "_messageInputStream", stream);
+        PowerMock.replayAll();
+
+        DNSRecord record = Whitebox.invokeMethod(dnsIncoming, "readAnswer", null);
+        Assert.assertNull(record);
+        PowerMock.verifyAll();
+
+    }
 }
