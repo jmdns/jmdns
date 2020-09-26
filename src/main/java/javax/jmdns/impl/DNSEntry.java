@@ -44,7 +44,7 @@ public abstract class DNSEntry {
         _recordType = type;
         _dnsClass = recordClass;
         _unique = unique;
-        _qualifiedNameMap = ServiceInfoImpl.decodeQualifiedNameMapForType(this.getName());
+        _qualifiedNameMap = ServiceTypeDecoder.decodeQualifiedNameMapForType(this.getName());
         String domain = _qualifiedNameMap.get(Fields.Domain);
         String protocol = _qualifiedNameMap.get(Fields.Protocol);
         String application = _qualifiedNameMap.get(Fields.Application);

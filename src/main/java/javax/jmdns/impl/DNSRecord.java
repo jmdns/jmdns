@@ -533,7 +533,7 @@ public abstract class DNSRecord extends DNSEntry {
         public ServiceInfo getServiceInfo(boolean persistent) {
             if (this.isServicesDiscoveryMetaQuery()) {
                 // The service name is in the alias
-                Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(this.getAlias());
+                Map<Fields, String> map = ServiceTypeDecoder.decodeQualifiedNameMapForType(this.getAlias());
                 return new ServiceInfoImpl(map, 0, 0, 0, persistent, (byte[]) null);
             } else if (this.isReverseLookup()) {
                 return new ServiceInfoImpl(this.getQualifiedNameMap(), 0, 0, 0, persistent, (byte[]) null);
@@ -541,7 +541,7 @@ public abstract class DNSRecord extends DNSEntry {
                 // FIXME [PJYF Nov 16 2010] We do not currently support domain discovery
                 return new ServiceInfoImpl(this.getQualifiedNameMap(), 0, 0, 0, persistent, (byte[]) null);
             }
-            Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(this.getAlias());
+            Map<Fields, String> map = ServiceTypeDecoder.decodeQualifiedNameMapForType(this.getAlias());
             map.put(Fields.Subtype, this.getQualifiedNameMap().get(Fields.Subtype));
             return new ServiceInfoImpl(map, 0, 0, 0, persistent, this.getAlias());
         }
