@@ -13,6 +13,8 @@ import javax.jmdns.impl.constants.DNSRecordClass;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
+
 /**
  *
  */
@@ -49,6 +51,9 @@ public class DNSCacheTest {
         cache.removeDNSEntry(entry);
         assertNull("Could not remove the value we inserted", cache.getDNSEntry(entry));
 
+        List<DNSEntry> values = cache.get(entry.getKey());
+        assertTrue("Cache still has entries for the key", values == null || values.isEmpty());
+        assertNull("Cache contains key with no entries", values);
     }
 
 }
