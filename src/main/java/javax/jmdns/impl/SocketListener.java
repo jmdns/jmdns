@@ -6,10 +6,11 @@ package javax.jmdns.impl;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.jmdns.impl.constants.DNSConstants;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Listen for multicast packets.
@@ -31,12 +32,27 @@ class SocketListener extends Thread {
         this._jmDNSImpl = jmDNSImpl;
     }
 
+    private void sleepThread() {
+        if (_jmDNSImpl._threadSleepDurationMs > 0) {
+            try {
+                // sleep a small amount of time in case the network is overloaded with mdns packets (some devices do this),
+                // in order to allow other threads to get some cpu time
+                Thread.sleep(_jmDNSImpl._threadSleepDurationMs);
+            } catch (InterruptedException e) {
+                logger.warn(this.getName() + ".run() interrupted ", e);
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
     @Override
     public void run() {
         try {
             byte buf[] = new byte[DNSConstants.MAX_MSG_ABSOLUTE];
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
+
             while (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled()) {
+                sleepThread();
                 packet.setLength(buf.length);
                 this._jmDNSImpl.getSocket().receive(packet);
                 if (this._jmDNSImpl.isCanceling() || this._jmDNSImpl.isCanceled() || this._jmDNSImpl.isClosing() || this._jmDNSImpl.isClosed()) {
@@ -50,7 +66,7 @@ class SocketListener extends Thread {
                     DNSIncoming msg = new DNSIncoming(packet);
                     if (msg.isValidResponseCode()) {
                         if (logger.isTraceEnabled()) {
-                            logger.trace( "{}.run() JmDNS in:{}", this.getName(), msg.print(true));
+                            logger.trace("{}.run() JmDNS in:{}", this.getName(), msg.print(true));
                         }
                         if (msg.isQuery()) {
                             if (packet.getPort() != DNSConstants.MDNS_PORT) {
@@ -75,7 +91,7 @@ class SocketListener extends Thread {
                 this._jmDNSImpl.recover();
             }
         }
-        logger.trace("{}.run() exiting.", this.getName() );
+        logger.trace("{}.run() exiting.", this.getName());
     }
 
     public JmDNSImpl getDns() {

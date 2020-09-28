@@ -236,7 +236,11 @@ public class DNSCache {
             synchronized (cacheMap) {
                 List<DNSEntry> entryList = cacheMap.get(dnsEntry.getKey());
                 if (entryList != null) {    
-                    entryList.remove(dnsEntry);
+                    result = entryList.remove(dnsEntry);
+                }
+                /* Remove from DNS cache when no records remain with this key */
+                if (result && entryList.isEmpty()) {
+                    cacheMap.remove(dnsEntry.getKey());
                 }
             }
         }
@@ -309,4 +313,11 @@ public class DNSCache {
     public void clear() {
         cacheMap.clear();
     }
+
+    /**
+     * Get List of DNSEntry entries for provided key.
+     */
+    List<DNSEntry> get(String key) {
+        return cacheMap.get(key);
+    } 
 }

@@ -106,6 +106,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     private final ConcurrentMap<String, ServiceTypeEntry> _serviceTypes;
 
     private volatile Delegate _delegate;
+    
+    protected final long _threadSleepDurationMs;
 
     /**
      * This is used to store type entries. The type is stored as a call variable and the map support the subtypes.
@@ -394,6 +396,20 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      * @exception IOException
      */
     public JmDNSImpl(InetAddress address, String name) throws IOException {
+        this(address, name, 0L);
+    }
+    /**
+     * Create an instance of JmDNS and bind it to a specific network interface given its IP-address.
+     *
+     * @param address
+     *            IP address to bind to.
+     * @param name
+     *            name of the newly created JmDNS
+     * @param threadSleepDurationMs
+     *            time in milliseconds that the JmDNS listener thread should sleep between multicast receives
+     * @exception IOException
+     */
+    public JmDNSImpl(InetAddress address, String name, long threadSleepDurationMs) throws IOException {
         super();
         logger.debug("JmDNS instance created");
 
@@ -409,6 +425,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
         _localHost = HostInfo.newHostInfo(address, this, name);
         _name = (name != null ? name : _localHost.getName());
+        _threadSleepDurationMs = threadSleepDurationMs;
 
         // _cancelerTimer = new Timer("JmDNS.cancelerTimer");
 
@@ -1083,7 +1100,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     @Override
     public boolean registerServiceType(String type) {
         boolean typeAdded = false;
-        Map<Fields, String> map = ServiceInfoImpl.decodeQualifiedNameMapForType(type);
+        Map<Fields, String> map = ServiceTypeDecoder.decodeQualifiedNameMapForType(type);
         String domain = map.get(Fields.Domain);
         String protocol = map.get(Fields.Protocol);
         String application = map.get(Fields.Application);
