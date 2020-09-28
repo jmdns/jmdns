@@ -43,11 +43,13 @@ import org.slf4j.LoggerFactory;
  *
  * @author Arthur van Hoff, Werner Randelshofer, Rick Blair, Pierre Frisch
  */
-public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
+public class DNSCache {
 
     private static Logger       logger              = LoggerFactory.getLogger(DNSCache.class.getName());
 
     private static final long   serialVersionUID    = 3024739453186759259L;
+
+    private ConcurrentHashMap<String, List<DNSEntry>> cacheMap;
 
     /**
      *
@@ -57,12 +59,12 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
     }
 
     /**
-     * @param map
+     * @param other Other DNSCache instance
      */
-    public DNSCache(DNSCache map) {
-        this(map != null ? map.size() : 1024);
-        if (map != null) {
-            this.putAll(map);
+    public DNSCache(DNSCache other) {
+        this(other != null ? other.cacheMap.size() : 1024);
+        if (other != null) {
+            cacheMap.putAll(other.cacheMap);
         }
     }
 
@@ -72,7 +74,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
      * @param initialCapacity
      */
     public DNSCache(int initialCapacity) {
-        super(initialCapacity);
+        cacheMap = new ConcurrentHashMap<String, List<DNSEntry>>(initialCapacity);
     }
 
     // ====================================================================
@@ -95,7 +97,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
      */
     public Collection<DNSEntry> allValues() {
         List<DNSEntry> allValues = new ArrayList<DNSEntry>();
-        for (List<? extends DNSEntry> entry : this.values()) {
+        for (List<? extends DNSEntry> entry : cacheMap.values()) {
             if (entry != null) {
                 allValues.addAll(entry);
             }
@@ -110,7 +112,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
      * @return list of DNSEntries
      */
     public Collection<? extends DNSEntry> getDNSEntryList(String name) {
-        Collection<? extends DNSEntry> entryList = this._getDNSEntryList(name);
+        Collection<? extends DNSEntry> entryList = _getDNSEntryList(name);
         if (entryList != null) {
             synchronized (entryList) {
                 entryList = new ArrayList<DNSEntry>(entryList);
@@ -122,7 +124,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
     }
 
     private Collection<? extends DNSEntry> _getDNSEntryList(String name) {
-        return this.get(name != null ? name.toLowerCase() : null);
+        return cacheMap.get(name != null ? name.toLowerCase() : null);
     }
 
     /**
@@ -134,7 +136,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
     public DNSEntry getDNSEntry(DNSEntry dnsEntry) {
         DNSEntry result = null;
         if (dnsEntry != null) {
-            Collection<? extends DNSEntry> entryList = this._getDNSEntryList(dnsEntry.getKey());
+            Collection<? extends DNSEntry> entryList = _getDNSEntryList(dnsEntry.getKey());
             if (entryList != null) {
                 synchronized (entryList) {
                     for (DNSEntry testDNSEntry : entryList) {
@@ -159,7 +161,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
      */
     public DNSEntry getDNSEntry(String name, DNSRecordType type, DNSRecordClass recordClass) {
         DNSEntry result = null;
-        Collection<? extends DNSEntry> entryList = this._getDNSEntryList(name);
+        Collection<? extends DNSEntry> entryList = _getDNSEntryList(name);
         if (entryList != null) {
             synchronized (entryList) {
                 for (DNSEntry testDNSEntry : entryList) {
@@ -182,7 +184,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
      * @return list of entries
      */
     public Collection<? extends DNSEntry> getDNSEntryList(String name, DNSRecordType type, DNSRecordClass recordClass) {
-        Collection<? extends DNSEntry> entryList = this._getDNSEntryList(name);
+        Collection<? extends DNSEntry> entryList = _getDNSEntryList(name);
         if (entryList != null) {
             synchronized (entryList) {
                 entryList = new ArrayList<DNSEntry>(entryList);
@@ -208,13 +210,13 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
     public boolean addDNSEntry(final DNSEntry dnsEntry) {
         boolean result = false;
         if (dnsEntry != null) {
-            List<DNSEntry> entryList = this.get(dnsEntry.getKey());
-            if (entryList == null) {
-                this.putIfAbsent(dnsEntry.getKey(), new ArrayList<DNSEntry>());
-                entryList = this.get(dnsEntry.getKey());
-            }
-            synchronized (entryList) {
+            synchronized (cacheMap) {
+                List<DNSEntry> entryList = cacheMap.get(dnsEntry.getKey());
+                if (entryList == null) {
+                    entryList = new ArrayList<DNSEntry>();
+                }
                 entryList.add(dnsEntry);
+                cacheMap.putIfAbsent(dnsEntry.getKey(), entryList);
             }
             // This is probably not very informative
             result = true;
@@ -231,15 +233,15 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
     public boolean removeDNSEntry(DNSEntry dnsEntry) {
         boolean result = false;
         if (dnsEntry != null) {
-            List<DNSEntry> entryList = this.get(dnsEntry.getKey());
-            if (entryList != null) {
-                synchronized (entryList) {
+            synchronized (cacheMap) {
+                List<DNSEntry> entryList = cacheMap.get(dnsEntry.getKey());
+                if (entryList != null) {    
                     result = entryList.remove(dnsEntry);
                 }
-            }
-            /* Remove from DNS cache when no records remain with this key */
-            if (result && entryList.isEmpty()) {
-                this.remove(dnsEntry.getKey());
+                /* Remove from DNS cache when no records remain with this key */
+                if (result && entryList.isEmpty()) {
+                    cacheMap.remove(dnsEntry.getKey());
+                }
             }
         }
         return result;
@@ -256,14 +258,14 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
     public boolean replaceDNSEntry(DNSEntry newDNSEntry, DNSEntry existingDNSEntry) {
         boolean result = false;
         if ((newDNSEntry != null) && (existingDNSEntry != null) && (newDNSEntry.getKey().equals(existingDNSEntry.getKey()))) {
-            List<DNSEntry> entryList = this.get(newDNSEntry.getKey());
-            if (entryList == null) {
-                this.putIfAbsent(newDNSEntry.getKey(), new ArrayList<DNSEntry>());
-                entryList = this.get(newDNSEntry.getKey());
-            }
-            synchronized (entryList) {
+            synchronized (cacheMap) {
+                List<DNSEntry> entryList = cacheMap.get(newDNSEntry.getKey());
+                if (entryList == null) {
+                    entryList = new ArrayList<DNSEntry>();
+                }
                 entryList.remove(existingDNSEntry);
                 entryList.add(newDNSEntry);
+                cacheMap.putIfAbsent(newDNSEntry.getKey(), entryList);
             }
             // This is probably not very informative
             result = true;
@@ -278,7 +280,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
     public synchronized String toString() {
         final StringBuilder sb = new StringBuilder(2000);
         sb.append("\n\t---- cache ----");
-        for(final Map.Entry<String, List<DNSEntry>> entry : this.entrySet()) {
+        for(final Map.Entry<String, List<DNSEntry>> entry : cacheMap.entrySet()) {
             sb.append("\n\n\t\tname '").append(entry.getKey()).append('\'');
             final List<DNSEntry> entryList = entry.getValue();
             if ((entryList != null) && (!entryList.isEmpty())) {
@@ -305,4 +307,17 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
         logger.trace("Cached DNSEntries: {}", toString());
     }
 
+    /**
+     * Clears the contents of the internal cacheMap
+     */
+    public void clear() {
+        cacheMap.clear();
+    }
+
+    /**
+     * Get List of DNSEntry entries for provided key.
+     */
+    List<DNSEntry> get(String key) {
+        return cacheMap.get(key);
+    } 
 }
