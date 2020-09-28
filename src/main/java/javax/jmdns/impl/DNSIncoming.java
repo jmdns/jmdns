@@ -4,21 +4,16 @@
 
 package javax.jmdns.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.jmdns.impl.constants.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.jmdns.impl.constants.DNSConstants;
-import javax.jmdns.impl.constants.DNSLabel;
-import javax.jmdns.impl.constants.DNSOptionCode;
-import javax.jmdns.impl.constants.DNSRecordClass;
-import javax.jmdns.impl.constants.DNSRecordType;
-import javax.jmdns.impl.constants.DNSResultCode;
 
 /**
  * Parse an incoming DNS message into its components.
@@ -332,7 +327,12 @@ public final class DNSIncoming extends DNSMessage {
                 rec = new DNSRecord.IPv4Address(domain, recordClass, unique, ttl, _messageInputStream.readBytes(len));
                 break;
             case TYPE_AAAA: // IPv6
-                rec = new DNSRecord.IPv6Address(domain, recordClass, unique, ttl, _messageInputStream.readBytes(len));
+                byte[] incomingBytes =  _messageInputStream.readBytes(len);
+                if (isIPv4MappedIPv6Address(incomingBytes)) {
+                    logger.warn("AAAA record with IPv4-mapped address for {}", domain);
+                } else {
+                    rec = new DNSRecord.IPv6Address(domain, recordClass, unique, ttl, incomingBytes);
+                }
                 break;
             case TYPE_CNAME:
             case TYPE_PTR:
@@ -476,6 +476,16 @@ public final class DNSIncoming extends DNSMessage {
             rec.setRecordSource(source);
         }
         return rec;
+    }
+
+    private boolean isIPv4MappedIPv6Address(byte[] addr) {
+        return (addr[0] == 0x00) && (addr[1] == 0x00) &&
+                (addr[2] == 0x00) && (addr[3] == 0x00) &&
+                (addr[4] == 0x00) && (addr[5] == 0x00) &&
+                (addr[6] == 0x00) && (addr[7] == 0x00) &&
+                (addr[8] == 0x00) && (addr[9] == 0x00) &&
+                (addr[10] == (byte) 0xff) &&
+                (addr[11] == (byte) 0xff);
     }
 
     /**

@@ -469,7 +469,7 @@ public interface DNSStatefulObject {
      *
      * @param task
      *            associated task
-     * @return <code>true</code if the state was changed by this thread, <code>false</code> otherwise.
+     * @return <code>true</code> if the state was changed by this thread, <code>false</code> otherwise.
      * @see DNSState#advance()
      */
     public boolean advanceState(DNSTask task);
@@ -477,7 +477,7 @@ public interface DNSStatefulObject {
     /**
      * Sets the state and notifies all objects that wait on the ServiceInfo.
      *
-     * @return <code>true</code if the state was changed by this thread, <code>false</code> otherwise.
+     * @return <code>true</code> if the state was changed by this thread, <code>false</code> otherwise.
      * @see DNSState#revert()
      */
     public boolean revertState();
@@ -485,21 +485,21 @@ public interface DNSStatefulObject {
     /**
      * Sets the state and notifies all objects that wait on the ServiceInfo.
      *
-     * @return <code>true</code if the state was changed by this thread, <code>false</code> otherwise.
+     * @return <code>true</code> if the state was changed by this thread, <code>false</code> otherwise.
      */
     public boolean cancelState();
 
     /**
      * Sets the state and notifies all objects that wait on the ServiceInfo.
      *
-     * @return <code>true</code if the state was changed by this thread, <code>false</code> otherwise.
+     * @return <code>true</code> if the state was changed by this thread, <code>false</code> otherwise.
      */
     public boolean closeState();
 
     /**
      * Sets the state and notifies all objects that wait on the ServiceInfo.
      *
-     * @return <code>true</code if the state was changed by this thread, <code>false</code> otherwise.
+     * @return <code>true</code> if the state was changed by this thread, <code>false</code> otherwise.
      */
     public boolean recoverState();
 
