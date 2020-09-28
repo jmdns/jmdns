@@ -1,7 +1,7 @@
 /**
  *
  */
-package javax.jmdns.test;
+package javax.jmdns.impl;
 
 import static org.junit.Assert.*;
 
@@ -38,7 +38,6 @@ public class DNSCacheTest {
         DNSEntry entry = new DNSRecord.Service("pierre._home-sharing._tcp.local.", DNSRecordClass.CLASS_IN, false, 0, 0, 0, 0, "panoramix.local.");
         cache.addDNSEntry(entry);
         assertEquals("Could not retrieve the value we inserted", entry, cache.getDNSEntry(entry));
-
     }
 
     @Test
