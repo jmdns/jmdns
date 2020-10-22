@@ -9,7 +9,7 @@ public class EventContainer {
 
     private final Map<String, ServiceEvent> events = new LinkedHashMap<String, ServiceEvent>();
 
-    private boolean                         eventReceived;
+    private boolean eventReceived;
 
     public void storeEvent(ServiceEvent event) {
         synchronized (events) {
