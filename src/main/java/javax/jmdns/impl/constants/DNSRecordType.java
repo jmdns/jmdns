@@ -205,6 +205,10 @@ public enum DNSRecordType {
      */
     TYPE_DNSKEY("dnskey", 48),
     /**
+     * HTTPS [draft-ietf-dnsop-svcb-https-00]
+     */
+    TYPE_HTTPS("https", 65),
+    /**
      * [IANA-Reserved]
      */
     TYPE_UINFO("uinfo", 100),
