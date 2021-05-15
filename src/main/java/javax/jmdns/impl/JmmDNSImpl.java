@@ -629,7 +629,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
             if (!_knownMDNS.containsKey(address)) {
                 synchronized (_knownMDNS) {
                     if (!_knownMDNS.containsKey(address)) {
-                        final JmDNS dns = JmDNS.create(address);
+                        final JmDNS dns = createJmDnsInstance(address);
                         if (_knownMDNS.putIfAbsent(address, dns) == null) {
                             // We need to register the services and listeners with the new JmDNS
                             final Collection<String> types = _serviceTypes;
@@ -783,6 +783,11 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
             }
         }
 
+    }
+
+    protected JmDNS createJmDnsInstance(InetAddress address) throws IOException
+    {
+        return JmDNS.create(address);
     }
 
 }
