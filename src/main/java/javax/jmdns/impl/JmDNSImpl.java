@@ -1259,6 +1259,11 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      *            DNS cache operation
      */
     public void updateRecord(long now, DNSRecord rec, Operation operation) {
+        ServiceEvent event = rec.getServiceEvent(this);
+        if (operation == Operation.Remove && DNSRecordType.TYPE_SRV.equals(rec.getRecordType())) {
+            removeObsoleteDnsListener(event);
+        }
+        
         // We do not want to block the entire DNS while we are updating the record for each listener (service info)
         {
             List<DNSListener> listenerList = null;
@@ -1284,7 +1289,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 || ( DNSRecordType.TYPE_SRV.equals(rec.getRecordType()) && Operation.Remove.equals(operation))
         )
         {
-            ServiceEvent event = rec.getServiceEvent(this);
             if ((event.getInfo() == null) || !event.getInfo().hasData()) {
                 // We do not care about the subtype because the info is only used if complete and the subtype will then be included.
                 ServiceInfo info = this.getServiceInfoFromCache(event.getType(), event.getName(), "", false);
@@ -1349,6 +1353,16 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         }
     }
 
+    private void removeObsoleteDnsListener(ServiceEvent event) {
+        ServiceInfo serviceInfo = event.getInfo();
+        if (!(serviceInfo instanceof DNSListener)) {
+            return;
+        }
+        DNSListener listener = (DNSListener) serviceInfo;
+
+        removeListener(listener);
+    }
+    
     void handleRecord(DNSRecord record, long now) {
         DNSRecord newRecord = record;
 
