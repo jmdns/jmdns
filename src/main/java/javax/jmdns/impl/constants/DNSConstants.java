@@ -13,8 +13,8 @@ public final class DNSConstants {
     // http://www.iana.org/assignments/dns-parameters
 
     // changed to final class - jeffs
-    public static final String MDNS_GROUP                     = "224.0.0.251";
-    public static final String MDNS_GROUP_IPV6                = "FF02::FB";
+    public static final String MDNS_GROUP                     = System.getProperty("net.mdns.ipv4", "224.0.0.251");
+    public static final String MDNS_GROUP_IPV6                = System.getProperty("net.mdns.ipv6", "FF02::FB");
     public static final int    MDNS_PORT                      = Integer.getInteger("net.mdns.port", 5353);
     public static final int    DNS_PORT                       = 53;
     public static final int    DNS_TTL                        = Integer.getInteger("net.dns.ttl", 60 * 60);                   // default one hour TTL
