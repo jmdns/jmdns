@@ -7,6 +7,7 @@ package javax.jmdns.impl;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
@@ -240,7 +241,7 @@ public abstract class DNSEntry {
      * @exception IOException
      */
     protected void toByteArray(DataOutputStream dout) throws IOException {
-        dout.write(this.getName().getBytes("UTF8"));
+        dout.write(this.getName().getBytes(StandardCharsets.UTF_8));
         dout.writeShort(this.getRecordType().indexValue());
         dout.writeShort(this.getRecordClass().indexValue());
     }
