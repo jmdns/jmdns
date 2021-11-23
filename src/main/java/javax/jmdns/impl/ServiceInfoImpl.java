@@ -764,14 +764,13 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
                     ServiceEvent event = new ServiceEventImpl(dns, this.getType(), this.getName(), this.clone());
                     dns.handleServiceResolved(event);
                 }
+                // This is done, to notify the wait loop in method JmDNS.waitForInfoData(ServiceInfo info, int timeout);
+                synchronized (this) {
+                    this.notifyAll();
+                }
             } else {
                 logger.debug("JmDNS not available.");
             }
-        }
-
-        // This is done, to notify the wait loop in method JmDNS.waitForInfoData(ServiceInfo info, int timeout);
-        synchronized (this) {
-            this.notifyAll();
         }
     }
 
