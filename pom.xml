@@ -152,6 +152,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 						</manifest>
 						<manifestEntries>
 							<Implementation-Date>${maven.build.timestamp}</Implementation-Date>
+							<Automatic-Module-Name>javax.jmdns</Automatic-Module-Name>
 						</manifestEntries>
 					</archive>
 				</configuration>
