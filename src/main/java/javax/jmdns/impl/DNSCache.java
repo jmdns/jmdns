@@ -210,7 +210,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
         if (dnsEntry != null) {
             List<DNSEntry> entryList = this.get(dnsEntry.getKey());
             if (entryList == null) {
-                this.putIfAbsent(dnsEntry.getKey(), new ArrayList<DNSEntry>());
+                this.putIfAbsent(dnsEntry.getKey(), new ArrayList<DNSEntry>(3));
                 entryList = this.get(dnsEntry.getKey());
             }
             synchronized (entryList) {
@@ -258,7 +258,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
         if ((newDNSEntry != null) && (existingDNSEntry != null) && (newDNSEntry.getKey().equals(existingDNSEntry.getKey()))) {
             List<DNSEntry> entryList = this.get(newDNSEntry.getKey());
             if (entryList == null) {
-                this.putIfAbsent(newDNSEntry.getKey(), new ArrayList<DNSEntry>());
+                this.putIfAbsent(newDNSEntry.getKey(), new ArrayList<DNSEntry>(3));
                 entryList = this.get(newDNSEntry.getKey());
             }
             synchronized (entryList) {

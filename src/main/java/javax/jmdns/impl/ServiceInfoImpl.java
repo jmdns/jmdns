@@ -12,8 +12,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
@@ -237,7 +237,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     }
 
     static Map<Fields, String> createQualifiedMap(String instance, String application, String protocol, String domain, String subtype) {
-        Map<Fields, String> qualifiedMap = new HashMap<Fields, String>(5);
+        Map<Fields, String> qualifiedMap = new EnumMap<Fields, String>(Fields.class);
         qualifiedMap.put(Fields.Instance, instance);
         qualifiedMap.put(Fields.Application, application);
         qualifiedMap.put(Fields.Protocol, protocol);
@@ -247,7 +247,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     }
 
     protected static Map<Fields, String> checkQualifiedNameMap(Map<Fields, String> qualifiedNameMap) {
-        Map<Fields, String> checkedQualifiedNameMap = new HashMap<Fields, String>(5);
+        Map<Fields, String> checkedQualifiedNameMap = new EnumMap<Fields, String>(Fields.class);
 
         // Optional domain
         String domain = (qualifiedNameMap.containsKey(Fields.Domain) ? qualifiedNameMap.get(Fields.Domain) : "local");
@@ -684,7 +684,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     @Override
     public Map<Fields, String> getQualifiedNameMap() {
-        Map<Fields, String> map = new HashMap<Fields, String>(5);
+        Map<Fields, String> map = new EnumMap<Fields, String>(Fields.class);
 
         map.put(Fields.Domain, this.getDomain());
         map.put(Fields.Protocol, this.getProtocol());
