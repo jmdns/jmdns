@@ -3,6 +3,7 @@ package javax.jmdns.impl;
 import org.junit.Test;
 
 import javax.jmdns.ServiceInfo;
+import javax.jmdns.impl.constants.DNSRecordType;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -217,12 +218,25 @@ public class ServiceTypeDecoderTest {
     public void testAddress() {
         String type = "panoramix.local.";
 
-        Map<ServiceInfo.Fields, String> map = ServiceTypeDecoder.decodeQualifiedNameMapForType(type);
+        Map<ServiceInfo.Fields, String> map = ServiceTypeDecoder.decodeQualifiedNameMapForType(type, DNSRecordType.TYPE_A);
 
         assertEquals("We did not get the right domain:", "local", map.get(ServiceInfo.Fields.Domain));
         assertEquals("We did not get the right protocol:", "", map.get(ServiceInfo.Fields.Protocol));
         assertEquals("We did not get the right application:", "", map.get(ServiceInfo.Fields.Application));
         assertEquals("We did not get the right name:", "panoramix", map.get(ServiceInfo.Fields.Instance));
+        assertEquals("We did not get the right subtype:", "", map.get(ServiceInfo.Fields.Subtype));
+    }
+
+    @Test
+    public void testAddressWithUnderscore() {
+        String type = "panoramix_abc.local.";
+
+        Map<ServiceInfo.Fields, String> map = ServiceTypeDecoder.decodeQualifiedNameMapForType(type, DNSRecordType.TYPE_A);
+
+        assertEquals("We did not get the right domain:", "local", map.get(ServiceInfo.Fields.Domain));
+        assertEquals("We did not get the right protocol:", "", map.get(ServiceInfo.Fields.Protocol));
+        assertEquals("We did not get the right application:", "", map.get(ServiceInfo.Fields.Application));
+        assertEquals("We did not get the right name:", "panoramix_abc", map.get(ServiceInfo.Fields.Instance));
         assertEquals("We did not get the right subtype:", "", map.get(ServiceInfo.Fields.Subtype));
     }
 

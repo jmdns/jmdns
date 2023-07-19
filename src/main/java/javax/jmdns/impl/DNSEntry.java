@@ -45,12 +45,16 @@ public abstract class DNSEntry {
         _recordType = type;
         _dnsClass = recordClass;
         _unique = unique;
-        _qualifiedNameMap = ServiceTypeDecoder.decodeQualifiedNameMapForType(this.getName());
+        _qualifiedNameMap = ServiceTypeDecoder.decodeQualifiedNameMapForType(this.getName(), type);
         String domain = _qualifiedNameMap.get(Fields.Domain);
         String protocol = _qualifiedNameMap.get(Fields.Protocol);
         String application = _qualifiedNameMap.get(Fields.Application);
         String instance = _qualifiedNameMap.get(Fields.Instance).toLowerCase();
-        _type = (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + "." : "") + domain + ".";
+        String _type = (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + "." : "") + (domain.length() > 0 ? domain + "." : "");
+        if (!_type.endsWith(".")) {
+            _type += ".";
+        }
+        this._type = _type;
         _key = ((instance.length() > 0 ? instance + "." : "") + _type).toLowerCase();
     }
 
