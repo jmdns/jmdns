@@ -156,7 +156,7 @@ public class ListenerStatus<T extends EventListener> {
     }
 
     public static class ServiceTypeListenerStatus extends ListenerStatus<ServiceTypeListener> {
-        private static Logger                       logger = LoggerFactory.getLogger(ServiceTypeListenerStatus.class.getName());
+        private static Logger                       logger = LoggerFactory.getLogger(ServiceTypeListenerStatus.class);
 
         private final ConcurrentMap<String, String> _addedTypes;
 

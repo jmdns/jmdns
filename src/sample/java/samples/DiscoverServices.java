@@ -62,7 +62,7 @@ public class DiscoverServices {
             // Activate these lines to see log messages of JmDNS
             boolean log = false;
             if (log) {
-                Logger logger = LoggerFactory.getLogger(JmDNS.class.getName());
+                Logger logger = LoggerFactory.getLogger(JmDNS.class);
                 ConsoleHandler handler = new ConsoleHandler();
                 logger.addHandler(handler);
                 logger.setLevel(Level.FINER);

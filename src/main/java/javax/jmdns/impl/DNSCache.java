@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
 
-    private static Logger       logger              = LoggerFactory.getLogger(DNSCache.class.getName());
+    private static Logger       logger              = LoggerFactory.getLogger(DNSCache.class);
 
     private static final long   serialVersionUID    = 3024739453186759259L;
 

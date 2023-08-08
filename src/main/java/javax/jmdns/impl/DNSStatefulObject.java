@@ -32,7 +32,7 @@ public interface DNSStatefulObject {
      * @author Pierre Frisch
      */
     public static final class DNSStatefulObjectSemaphore {
-        private static Logger                          logger = LoggerFactory.getLogger(DNSStatefulObjectSemaphore.class.getName());
+        private static Logger                          logger = LoggerFactory.getLogger(DNSStatefulObjectSemaphore.class);
 
         private final String                           _name;
 
@@ -104,7 +104,7 @@ public interface DNSStatefulObject {
     }
 
     public static class DefaultImplementation extends ReentrantLock implements DNSStatefulObject {
-        private static Logger                    logger           = LoggerFactory.getLogger(DefaultImplementation.class.getName());
+        private static Logger                    logger           = LoggerFactory.getLogger(DefaultImplementation.class);
 
         private static final long                serialVersionUID = -3264781576883412227L;
 
