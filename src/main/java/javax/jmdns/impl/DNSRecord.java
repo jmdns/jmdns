@@ -574,7 +574,6 @@ public abstract class DNSRecord extends DNSEntry {
     }
 
     public static class Text extends DNSRecord {
-        // private static Logger logger = LoggerFactory.getLogger(Text.class.getName());
         private final byte[] _text;
 
         public Text(String name, DNSRecordClass recordClass, boolean unique, int ttl, byte text[]) {
