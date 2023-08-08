@@ -34,7 +34,7 @@ import javax.jmdns.impl.util.ByteWrangler;
  * @author Arthur van Hoff, Rick Blair, Werner Randelshofer, Pierre Frisch
  */
 public abstract class DNSRecord extends DNSEntry {
-    private static Logger logger = LoggerFactory.getLogger(DNSRecord.class.getName());
+    private static Logger logger = LoggerFactory.getLogger(DNSRecord.class);
 
     private int           _ttl;
     private long          _created;
@@ -292,7 +292,7 @@ public abstract class DNSRecord extends DNSEntry {
      * Address record.
      */
     public static abstract class Address extends DNSRecord {
-        private static Logger logger1 = LoggerFactory.getLogger(Address.class.getName());
+        private static Logger logger1 = LoggerFactory.getLogger(Address.class);
 
         InetAddress           _addr;
 
@@ -690,7 +690,7 @@ public abstract class DNSRecord extends DNSEntry {
      * Service record.
      */
     public static class Service extends DNSRecord {
-        private static Logger logger1 = LoggerFactory.getLogger(Service.class.getName());
+        private static Logger logger1 = LoggerFactory.getLogger(Service.class);
         private final int     _priority;
         private final int     _weight;
         private final int     _port;

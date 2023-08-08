@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
  * @author Pierre Frisch
  */
 public class NetworkTopologyDiscoveryImpl implements NetworkTopologyDiscovery {
-    private final static Logger logger = LoggerFactory.getLogger(NetworkTopologyDiscoveryImpl.class.getName());
+    private final static Logger logger = LoggerFactory.getLogger(NetworkTopologyDiscoveryImpl.class);
 
     /**
      *

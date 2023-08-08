@@ -15,7 +15,7 @@ import javax.jmdns.impl.constants.DNSConstants;
  * Periodically removes expired entries from the cache.
  */
 public class RecordReaper extends DNSTask {
-    static Logger logger = LoggerFactory.getLogger(RecordReaper.class.getName());
+    static Logger logger = LoggerFactory.getLogger(RecordReaper.class);
 
     /**
      * @param jmDNSImpl
