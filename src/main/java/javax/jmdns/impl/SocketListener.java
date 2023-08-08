@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
  * Listen for multicast packets.
  */
 class SocketListener extends Thread {
-    static Logger           logger = LoggerFactory.getLogger(SocketListener.class.getName());
+    static Logger logger = LoggerFactory.getLogger(SocketListener.class);
 
     /**
      *
