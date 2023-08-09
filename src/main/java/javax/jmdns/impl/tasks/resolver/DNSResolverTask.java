@@ -78,7 +78,7 @@ public abstract class DNSResolverTask extends DNSTask {
                 }
             }
         } catch (Throwable e) {
-            logger.warn(this.getName() + ".run() exception ", e);
+            logger.warn("{}.run() exception ", this.getName(), e);
             this.getDns().recover();
         }
     }
