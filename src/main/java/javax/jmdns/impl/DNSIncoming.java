@@ -258,7 +258,7 @@ public final class DNSIncoming extends DNSMessage {
                 throw new IOException("Received a message with the wrong length.");
             }
         } catch (Exception e) {
-            logger.warn("DNSIncoming() dump " + print(true) + "\n exception ", e);
+            logger.warn("DNSIncoming() dump {}\n exception ", print(true), e);
             // This ugly but some JVM don't implement the cause on IOException
             IOException ioe = new IOException("DNSIncoming corrupted message");
             ioe.initCause(e);

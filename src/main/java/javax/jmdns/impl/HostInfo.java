@@ -93,7 +93,7 @@ public class HostInfo implements DNSStatefulObject {
                 aName = ((jmdnsName != null) && (jmdnsName.length() > 0) ? jmdnsName : addr.getHostAddress());
             }
         } catch (final IOException e) {
-            logger.warn("Could not initialize the host network interface on " + address + "because of an error: " + e.getMessage(), e);
+            logger.warn("Could not initialize the host network interface on {} because of an error: {}", address, e.getMessage(), e);
             // This is only used for running unit test on Debian / Ubuntu
             addr = loopbackAddress();
             aName = ((jmdnsName != null) && (jmdnsName.length() > 0) ? jmdnsName : "computer");

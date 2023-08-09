@@ -141,7 +141,7 @@ public abstract class DNSStateTask extends DNSTask {
                 return;
             }
         } catch (Throwable e) {
-            logger.warn(this.getName() + ".run() exception ", e);
+            logger.warn("{}.run() exception ", this.getName(), e);
             this.recoverTask(e);
         }
 
