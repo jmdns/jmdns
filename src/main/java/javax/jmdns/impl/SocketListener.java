@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
  * Listen for multicast packets.
  */
 class SocketListener extends Thread {
-    static Logger           logger = LoggerFactory.getLogger(SocketListener.class.getName());
+    static Logger logger = LoggerFactory.getLogger(SocketListener.class);
 
     /**
      *
@@ -87,7 +87,7 @@ class SocketListener extends Thread {
             }
         } catch (IOException e) {
             if (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled() && !this._jmDNSImpl.isClosing() && !this._jmDNSImpl.isClosed()) {
-                logger.warn(this.getName() + ".run() exception ", e);
+                logger.warn("{}.run() exception ", this.getName(), e);
                 this._jmDNSImpl.recover();
             }
         }

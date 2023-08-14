@@ -21,14 +21,14 @@ import java.util.Map;
  * @author Arthur van Hoff, Werner Randelshofer, Pierre Frisch, Daniel Bobbert
  */
 public final class DNSIncoming extends DNSMessage {
-    private static Logger logger                                = LoggerFactory.getLogger(DNSIncoming.class.getName());
+    private static Logger logger                                = LoggerFactory.getLogger(DNSIncoming.class);
 
     // This is a hack to handle a bug in the BonjourConformanceTest
     // It is sending out target strings that don't follow the "domain name" format.
     public static boolean USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET = true;
 
     public static class MessageInputStream extends ByteArrayInputStream {
-        private static Logger      logger1 = LoggerFactory.getLogger(MessageInputStream.class.getName());
+//        private static Logger      logger1 = LoggerFactory.getLogger(MessageInputStream.class);
 
         final Map<Integer, String> _names;
 
@@ -134,7 +134,7 @@ public final class DNSIncoming extends DNSMessage {
                         int index = (DNSLabel.labelValue(len) << 8) | this.readUnsignedByte();
                         String compressedLabel = _names.get(Integer.valueOf(index));
                         if (compressedLabel == null) {
-                            logger1.warn("Bad domain name: possible circular name detected. Bad offset: 0x{} at 0x{}",
+                            logger.warn("Bad domain name: possible circular name detected. Bad offset: 0x{} at 0x{}",
                                     Integer.toHexString(index),
                                     Integer.toHexString(pos - 2)
                                     );
@@ -148,11 +148,11 @@ public final class DNSIncoming extends DNSMessage {
                         break;
                     case Extended:
                         // int extendedLabelClass = DNSLabel.labelValue(len);
-                        logger1.debug("Extended label are not currently supported.");
+                        logger.debug("Extended label are not currently supported.");
                         break;
                     case Unknown:
                     default:
-                        logger1.warn("Unsupported DNS label type: '{}'", Integer.toHexString(len & 0xC0) );
+                        logger.warn("Unsupported DNS label type: '{}'", Integer.toHexString(len & 0xC0) );
                 }
             }
             for (final Map.Entry<Integer, StringBuilder> entry : names.entrySet()) {
@@ -258,7 +258,7 @@ public final class DNSIncoming extends DNSMessage {
                 throw new IOException("Received a message with the wrong length.");
             }
         } catch (Exception e) {
-            logger.warn("DNSIncoming() dump " + print(true) + "\n exception ", e);
+            logger.warn("DNSIncoming() dump {}\n exception ", print(true), e);
             // This ugly but some JVM don't implement the cause on IOException
             IOException ioe = new IOException("DNSIncoming corrupted message");
             ioe.initCause(e);

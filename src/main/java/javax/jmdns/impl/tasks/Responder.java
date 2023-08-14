@@ -23,7 +23,7 @@ import javax.jmdns.impl.constants.DNSConstants;
  * The Responder sends a single answer for the specified service infos and for the host name.
  */
 public class Responder extends DNSTask {
-    static Logger             logger = LoggerFactory.getLogger(Responder.class.getName());
+    static Logger             logger = LoggerFactory.getLogger(Responder.class);
 
     /**
      *
@@ -155,7 +155,7 @@ public class Responder extends DNSTask {
                 }
                 // this.cancel();
             } catch (Throwable e) {
-                logger.warn(this.getName() + "run() exception ", e);
+                logger.warn("{}.run() exception ", this.getName(), e);
                 this.getDns().close();
             }
         }

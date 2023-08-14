@@ -17,7 +17,7 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @author Pierre Frisch
  */
 public abstract class DNSResolverTask extends DNSTask {
-    private static Logger logger = LoggerFactory.getLogger(DNSResolverTask.class.getName());
+    private static Logger logger = LoggerFactory.getLogger(DNSResolverTask.class);
 
     /**
      * Counts the number of queries being sent.
@@ -78,7 +78,7 @@ public abstract class DNSResolverTask extends DNSTask {
                 }
             }
         } catch (Throwable e) {
-            logger.warn(this.getName() + ".run() exception ", e);
+            logger.warn("{}.run() exception ", this.getName(), e);
             this.getDns().recover();
         }
     }

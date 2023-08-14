@@ -22,7 +22,7 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @author Pierre Frisch
  */
 public abstract class DNSStateTask extends DNSTask {
-    static Logger      logger     = LoggerFactory.getLogger(DNSStateTask.class.getName());
+    static Logger      logger     = LoggerFactory.getLogger(DNSStateTask.class);
 
     /**
      * By setting a 0 ttl we effectively expire the record.
@@ -141,7 +141,7 @@ public abstract class DNSStateTask extends DNSTask {
                 return;
             }
         } catch (Throwable e) {
-            logger.warn(this.getName() + ".run() exception ", e);
+            logger.warn("{}.run() exception ", this.getName(), e);
             this.recoverTask(e);
         }
 

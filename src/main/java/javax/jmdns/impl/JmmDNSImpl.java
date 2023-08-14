@@ -46,7 +46,7 @@ import javax.jmdns.impl.util.NamedThreadFactory;
  * @author C&eacute;drik Lime, Pierre Frisch
  */
 public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoImpl.Delegate {
-    private static Logger                                      logger = LoggerFactory.getLogger(JmmDNSImpl.class.getName());
+    private static Logger                                      logger = LoggerFactory.getLogger(JmmDNSImpl.class);
 
     private final Set<NetworkTopologyListener>                 _networkListeners;
 
@@ -735,7 +735,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
      * If the network change, this class will reconfigure the list of DNS do adapt to the new configuration.
      */
     static class NetworkChecker extends TimerTask {
-        private static Logger                  logger1 = LoggerFactory.getLogger(NetworkChecker.class.getName());
+        private static Logger                  logger1 = LoggerFactory.getLogger(NetworkChecker.class);
 
         private final NetworkTopologyListener  _mmDNS;
 

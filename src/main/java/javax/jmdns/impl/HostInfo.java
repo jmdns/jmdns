@@ -30,7 +30,7 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @author Pierre Frisch, Werner Randelshofer
  */
 public class HostInfo implements DNSStatefulObject {
-    private static Logger       logger = LoggerFactory.getLogger(HostInfo.class.getName());
+    private static Logger       logger = LoggerFactory.getLogger(HostInfo.class);
 
     protected String            _name;
 
@@ -95,7 +95,7 @@ public class HostInfo implements DNSStatefulObject {
                 aName = ((jmdnsName != null) && (jmdnsName.length() > 0) ? jmdnsName : addr.getHostAddress());
             }
         } catch (final IOException e) {
-            logger.warn("Could not initialize the host network interface on " + address + "because of an error: " + e.getMessage(), e);
+            logger.warn("Could not initialize the host network interface on {} because of an error: {}", address, e.getMessage(), e);
             // This is only used for running unit test on Debian / Ubuntu
             addr = loopbackAddress();
             aName = ((jmdnsName != null) && (jmdnsName.length() > 0) ? jmdnsName : "computer");

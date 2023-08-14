@@ -34,7 +34,7 @@ import javax.jmdns.impl.util.ByteWrangler;
  * @author Arthur van Hoff, Rick Blair, Werner Randelshofer, Pierre Frisch
  */
 public abstract class DNSRecord extends DNSEntry {
-    private static Logger logger = LoggerFactory.getLogger(DNSRecord.class.getName());
+    private static Logger logger = LoggerFactory.getLogger(DNSRecord.class);
 
     private int           _ttl;
     private long          _created;
@@ -109,7 +109,7 @@ public abstract class DNSRecord extends DNSEntry {
             }
             return false;
         } catch (ArrayIndexOutOfBoundsException e) {
-            logger.warn("suppressedBy() message " + msg + " exception ", e);
+            logger.warn("suppressedBy() message {} exception ", msg, e);
             // msg.print(true);
             return false;
         }
@@ -292,8 +292,6 @@ public abstract class DNSRecord extends DNSEntry {
      * Address record.
      */
     public static abstract class Address extends DNSRecord {
-        private static Logger logger1 = LoggerFactory.getLogger(Address.class.getName());
-
         InetAddress           _addr;
 
         protected Address(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl, InetAddress addr) {
@@ -306,7 +304,7 @@ public abstract class DNSRecord extends DNSEntry {
             try {
                 this._addr = InetAddress.getByAddress(rawAddress);
             } catch (UnknownHostException exception) {
-                logger1.warn("Address() exception ", exception);
+                logger.warn("Address() exception ", exception);
             }
         }
 
@@ -333,7 +331,7 @@ public abstract class DNSRecord extends DNSEntry {
                 }
                 return this.getAddress().equals(address.getAddress());
             } catch (Exception e) {
-                logger1.info("Failed to compare addresses of DNSRecords", e);
+                logger.info("Failed to compare addresses of DNSRecords", e);
                 return false;
             }
         }
@@ -374,11 +372,11 @@ public abstract class DNSRecord extends DNSEntry {
                         // With multiple interfaces on a single computer it is possible to see our
                         // own records come in on different interfaces than the ones they were sent on.
                         // see section "10. Conflict Resolution" of mdns draft spec.
-                        logger1.debug("handleQuery() Ignoring an identical address query");
+                        logger.debug("handleQuery() Ignoring an identical address query");
                         return false;
                     }
 
-                    logger1.debug("handleQuery() Conflicting query detected.");
+                    logger.debug("handleQuery() Conflicting query detected.");
                     // Tie breaker test
                     if (dns.isProbing() && comparison > 0) {
                         // We lost the tie-break. We have to choose a different name.
@@ -402,7 +400,7 @@ public abstract class DNSRecord extends DNSEntry {
         @Override
         boolean handleResponse(JmDNSImpl dns) {
             if (dns.getLocalHost().conflictWithRecord(this)) {
-                logger1.debug("handleResponse() Denial detected");
+                logger.debug("handleResponse() Denial detected");
 
                 if (dns.isProbing()) {
                     dns.getLocalHost().incrementHostName();
@@ -574,7 +572,6 @@ public abstract class DNSRecord extends DNSEntry {
     }
 
     public static class Text extends DNSRecord {
-        // private static Logger logger = LoggerFactory.getLogger(Text.class.getName());
         private final byte[] _text;
 
         public Text(String name, DNSRecordClass recordClass, boolean unique, int ttl, byte text[]) {
@@ -690,7 +687,7 @@ public abstract class DNSRecord extends DNSEntry {
      * Service record.
      */
     public static class Service extends DNSRecord {
-        private static Logger logger1 = LoggerFactory.getLogger(Service.class.getName());
+        private static Logger logger1 = LoggerFactory.getLogger(Service.class);
         private final int     _priority;
         private final int     _weight;
         private final int     _port;

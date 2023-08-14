@@ -58,7 +58,7 @@ import javax.jmdns.impl.util.NamedThreadFactory;
  * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis, Kai Kreuzer, Victor Toni
  */
 public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarter {
-    private static Logger logger = LoggerFactory.getLogger(JmDNSImpl.class.getName());
+    private static Logger logger = LoggerFactory.getLogger(JmDNSImpl.class);
 
     public enum Operation {
         Remove, Update, Add, RegisterServiceType, Noop
@@ -1657,7 +1657,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                         logger.trace("send({}) JmDNS out:{}", this.getName(), msg.print(true));
                     }
                 } catch (final IOException e) {
-                    logger.debug(getClass().toString(), ".send(" + this.getName() + ") - JmDNS can not parse what it sends!!!", e);
+                    logger.debug(/*getClass().toString(),*/ "JmDNSImpl.send({}) - JmDNS can not parse what it sends!!!", this.getName(), e);
                 }
             }
             final MulticastSocket ms = _socket;
@@ -1878,7 +1878,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 this.openMulticastSocket(this.getLocalHost());
                 this.start(oldServiceInfos);
             } catch (final Exception exception) {
-                logger.warn(this.getName() + ".recover() Start services exception ", exception);
+                logger.warn("{}.recover() Start services exception ", this.getName(), exception);
             }
             logger.warn("{}.recover() We are back!", this.getName());
         } else {
@@ -1924,7 +1924,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                     }
                 }
             } catch (Exception exception) {
-                logger.warn(this.getName() + ".Error while reaping records: " + entry, exception);
+                logger.warn("{}.Error while reaping records: {}", this.getName(), entry, exception);
                 logger.warn(this.toString());
             }
         }
