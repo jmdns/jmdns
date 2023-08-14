@@ -292,8 +292,6 @@ public abstract class DNSRecord extends DNSEntry {
      * Address record.
      */
     public static abstract class Address extends DNSRecord {
-//        private static Logger logger1 = LoggerFactory.getLogger(Address.class);
-
         InetAddress           _addr;
 
         protected Address(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique, int ttl, InetAddress addr) {
