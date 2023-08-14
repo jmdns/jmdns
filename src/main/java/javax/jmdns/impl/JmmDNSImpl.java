@@ -46,7 +46,7 @@ import javax.jmdns.impl.util.NamedThreadFactory;
  * @author C&eacute;drik Lime, Pierre Frisch
  */
 public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoImpl.Delegate {
-    private static Logger                                      logger = LoggerFactory.getLogger(JmmDNSImpl.class.getName());
+    private static Logger                                      logger = LoggerFactory.getLogger(JmmDNSImpl.class);
 
     private final Set<NetworkTopologyListener>                 _networkListeners;
 
@@ -693,7 +693,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
                 }
             }
         } catch (Exception e) {
-            logger.warn("Unexpected unhandled exception: " + e);
+            logger.warn("Unexpected unhandled exception: ", e);
         }
     }
 
@@ -726,7 +726,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
                 }
             }
         } catch (Exception e) {
-            logger.warn("Unexpected unhandled exception: " + e);
+            logger.warn("Unexpected unhandled exception: ", e);
         }
     }
 
@@ -735,8 +735,6 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
      * If the network change, this class will reconfigure the list of DNS do adapt to the new configuration.
      */
     static class NetworkChecker extends TimerTask {
-        private static Logger                  logger1 = LoggerFactory.getLogger(NetworkChecker.class.getName());
-
         private final NetworkTopologyListener  _mmDNS;
 
         private final NetworkTopologyDiscovery _topology;
@@ -778,7 +776,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
                 }
                 _knownAddresses = current;
             } catch (Exception e) {
-                logger1.warn("Unexpected unhandled exception: " + e);
+                logger.warn("Unexpected unhandled exception: ", e);
             }
         }
 
