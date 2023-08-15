@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
  * @author Pierre Frisch
  */
 public class NetworkTopologyDiscoveryImpl implements NetworkTopologyDiscovery {
-    private final static Logger logger = LoggerFactory.getLogger(NetworkTopologyDiscoveryImpl.class.getName());
+    private final static Logger logger = LoggerFactory.getLogger(NetworkTopologyDiscoveryImpl.class);
 
     /**
      *
@@ -50,7 +50,7 @@ public class NetworkTopologyDiscoveryImpl implements NetworkTopologyDiscovery {
                 }
             }
         } catch (SocketException se) {
-            logger.warn("Error while fetching network interfaces addresses: " + se);
+            logger.warn("Error while fetching network interfaces addresses: ", se);
         }
         return result.toArray(new InetAddress[result.size()]);
     }
