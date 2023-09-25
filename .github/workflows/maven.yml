@@ -12,7 +12,7 @@ on:
   push:
     branches: [ "main", "addActionsForGithub" ]
   pull_request:
-    branches: [ "main", "addActionsForGithub" ]
+    branches: [ "main" ]
 
 jobs:
   build:
