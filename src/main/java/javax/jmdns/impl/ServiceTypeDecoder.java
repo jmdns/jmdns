@@ -1,6 +1,5 @@
 package javax.jmdns.impl;
 
-import javax.jmdns.impl.constants.DNSRecordType;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,10 +24,6 @@ class ServiceTypeDecoder {
     }
 
     static Map<Fields, String> decodeQualifiedNameMapForType(String type) {
-        return decodeQualifiedNameMapForType(type, null);
-    }
-
-    static Map<Fields, String> decodeQualifiedNameMapForType(String type, DNSRecordType recordType) {
         int index;
 
         String casePreservedType = type;
@@ -45,7 +40,7 @@ class ServiceTypeDecoder {
             name = ServiceInfoImpl.removeSeparators(casePreservedType.substring(0, index));
             domain = casePreservedType.substring(index);
             application = "";
-        } else if (recordType == DNSRecordType.TYPE_A || recordType == DNSRecordType.TYPE_AAAA || (!aType.contains("_")) && aType.contains(".")) {
+        } else if ((!aType.contains("_")) && aType.contains(".")) {
             index = aType.indexOf('.');
             name = ServiceInfoImpl.removeSeparators(casePreservedType.substring(0, index));
             domain = ServiceInfoImpl.removeSeparators(casePreservedType.substring(index));

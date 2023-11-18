@@ -23,6 +23,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSIncoming;
 import javax.jmdns.impl.DNSRecord;
 import javax.jmdns.impl.constants.DNSRecordClass;
@@ -85,9 +86,9 @@ public class DNSRecordTest {
         expect(stream.readInt()).andReturn(3600);
         expect(stream.readUnsignedShort()).andReturn(16);
         expect(stream.readBytes(16)).andReturn(new byte[]
-                        { 0, 0, 0, 0,
-                          0, 0, 0, 0,
-                          0, 0, (byte) 0xff, (byte) 0xff,
+                {0, 0, 0, 0,
+                        0, 0, 0, 0,
+                        0, 0, (byte) 0xff, (byte) 0xff,
                         127, 0, 0, 1});
 
         DNSIncoming dnsIncoming = Whitebox.newInstance(DNSIncoming.class);
@@ -98,5 +99,19 @@ public class DNSRecordTest {
         Assert.assertNull(record);
         PowerMock.verifyAll();
 
+    }
+
+    @Test
+    public void testServiceInfoFromDNSRecord() {
+
+        DNSRecord record = new DNSRecord.Service("test._http._tcp.local.", DNSRecordClass.CLASS_IN, true, TTL_IN_SECONDS, 0, 0, 0, "test_server");
+
+        ServiceInfo serviceInfo = record.getServiceInfo(true);
+
+        Assert.assertEquals("test", serviceInfo.getName());
+        Assert.assertEquals("http", serviceInfo.getApplication());
+        Assert.assertEquals("tcp", serviceInfo.getProtocol());
+        Assert.assertEquals("local", serviceInfo.getDomain());
+        Assert.assertEquals("test_server", serviceInfo.getServer());
     }
 }

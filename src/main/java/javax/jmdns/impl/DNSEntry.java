@@ -39,23 +39,39 @@ public abstract class DNSEntry {
     /**
      * Create an entry.
      */
-    DNSEntry(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique) {
+    DNSEntry(String name, DNSRecordType recordType, DNSRecordClass recordClass, boolean unique) {
         _name = name;
         // _key = (name != null ? name.trim().toLowerCase() : null);
-        _recordType = type;
+        _recordType = recordType;
         _dnsClass = recordClass;
         _unique = unique;
-        _qualifiedNameMap = ServiceTypeDecoder.decodeQualifiedNameMapForType(this.getName(), type);
+        _qualifiedNameMap = ServiceTypeDecoder.decodeQualifiedNameMapForType(this.getName());
         String domain = _qualifiedNameMap.get(Fields.Domain);
         String protocol = _qualifiedNameMap.get(Fields.Protocol);
         String application = _qualifiedNameMap.get(Fields.Application);
         String instance = _qualifiedNameMap.get(Fields.Instance).toLowerCase();
-        String _type = (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + "." : "") + (domain.length() > 0 ? domain + "." : "");
-        if (!_type.endsWith(".")) {
-            _type += ".";
-        }
-        this._type = _type;
+        _type = buildType(application, protocol, domain);
         _key = ((instance.length() > 0 ? instance + "." : "") + _type).toLowerCase();
+    }
+
+    private String buildType(String application, String protocol, String domain) {
+        if (application == null) {
+            application = "";
+        }
+
+        if (protocol == null) {
+            protocol = "";
+        }
+
+        if (domain == null) {
+            domain = "";
+        }
+
+        String type = (!application.isEmpty() ? "_" + application + "." : "") + (!protocol.isEmpty() ? "_" + protocol + "." : "") + (!domain.isEmpty() ? domain + "." : "");
+        if (!type.endsWith(".")) {
+            type += ".";
+        }
+        return type;
     }
 
     /*
