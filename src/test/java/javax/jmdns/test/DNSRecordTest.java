@@ -86,9 +86,9 @@ public class DNSRecordTest {
         expect(stream.readInt()).andReturn(3600);
         expect(stream.readUnsignedShort()).andReturn(16);
         expect(stream.readBytes(16)).andReturn(new byte[]
-                {0, 0, 0, 0,
-                        0, 0, 0, 0,
-                        0, 0, (byte) 0xff, (byte) 0xff,
+                        { 0, 0, 0, 0,
+                          0, 0, 0, 0,
+                          0, 0, (byte) 0xff, (byte) 0xff,
                         127, 0, 0, 1});
 
         DNSIncoming dnsIncoming = Whitebox.newInstance(DNSIncoming.class);
