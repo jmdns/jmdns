@@ -30,7 +30,7 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @author Pierre Frisch, Werner Randelshofer
  */
 public class HostInfo implements DNSStatefulObject {
-    private static Logger       logger = LoggerFactory.getLogger(HostInfo.class.getName());
+    private static Logger       logger = LoggerFactory.getLogger(HostInfo.class);
 
     protected String            _name;
 
@@ -39,6 +39,8 @@ public class HostInfo implements DNSStatefulObject {
     protected NetworkInterface  _interfaze;
 
     private final HostInfoState _state;
+
+    private final static int    _labelLengthLimit = 0x3F;
 
     private final static class HostInfoState extends DNSStatefulObject.DefaultImplementation {
 
@@ -103,6 +105,11 @@ public class HostInfo implements DNSStatefulObject {
         int index = aName.indexOf(".local");
         if (index > 0) {
             aName = aName.substring(0, index);
+        }
+        if (aName.length() > _labelLengthLimit) {
+            // Remove trailing labels which would make the combined label exceed 63 characters in length
+            aName = aName.substring(0, _labelLengthLimit + 1);
+            aName = aName.substring(0, aName.lastIndexOf('.'));
         }
         aName = aName.replaceAll("[:%\\.]", "-");
         aName += ".local.";

@@ -34,7 +34,7 @@ import javax.jmdns.impl.util.ByteWrangler;
  * @author Arthur van Hoff, Rick Blair, Werner Randelshofer, Pierre Frisch
  */
 public abstract class DNSRecord extends DNSEntry {
-    private static Logger logger = LoggerFactory.getLogger(DNSRecord.class.getName());
+    private static Logger logger = LoggerFactory.getLogger(DNSRecord.class);
 
     private int           _ttl;
     private long          _created;
@@ -292,7 +292,7 @@ public abstract class DNSRecord extends DNSEntry {
      * Address record.
      */
     public static abstract class Address extends DNSRecord {
-        private static Logger logger1 = LoggerFactory.getLogger(Address.class.getName());
+        private static Logger logger1 = LoggerFactory.getLogger(Address.class);
 
         InetAddress           _addr;
 
@@ -463,7 +463,7 @@ public abstract class DNSRecord extends DNSEntry {
      * Pointer record.
      */
     public static class Pointer extends DNSRecord {
-        // private static Logger logger = LoggerFactory.getLogger(Pointer.class.getName());
+        // private static Logger logger = LoggerFactory.getLogger(Pointer.class);
         private final String _alias;
 
         public Pointer(String name, DNSRecordClass recordClass, boolean unique, int ttl, String alias) {
@@ -574,7 +574,7 @@ public abstract class DNSRecord extends DNSEntry {
     }
 
     public static class Text extends DNSRecord {
-        // private static Logger logger = LoggerFactory.getLogger(Text.class.getName());
+        // private static Logger logger = LoggerFactory.getLogger(Text.class);
         private final byte[] _text;
 
         public Text(String name, DNSRecordClass recordClass, boolean unique, int ttl, byte text[]) {
@@ -690,7 +690,6 @@ public abstract class DNSRecord extends DNSEntry {
      * Service record.
      */
     public static class Service extends DNSRecord {
-        private static Logger logger1 = LoggerFactory.getLogger(Service.class.getName());
         private final int     _priority;
         private final int     _weight;
         private final int     _port;
@@ -777,16 +776,16 @@ public abstract class DNSRecord extends DNSEntry {
         boolean handleQuery(JmDNSImpl dns, long expirationTime) {
             ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(this.getKey());
             if (info != null && (info.isAnnouncing() || info.isAnnounced()) && (_port != info.getPort() || !_server.equalsIgnoreCase(dns.getLocalHost().getName()))) {
-                logger1.debug("handleQuery() Conflicting probe detected from: {}", getRecordSource());
+                logger.debug("handleQuery() Conflicting probe detected from: {}", getRecordSource());
                 DNSRecord.Service localService = new DNSRecord.Service(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(), dns.getLocalHost().getName());
 
                 // This block is useful for debugging race conditions when jmDNS is responding to itself.
                 try {
                     if (dns.getInetAddress().equals(getRecordSource())) {
-                        logger1.warn("Got conflicting probe from ourselves\nincoming: {}\nlocal   : {}", this.toString(), localService.toString());
+                        logger.warn("Got conflicting probe from ourselves\nincoming: {}\nlocal   : {}", this.toString(), localService.toString());
                     }
                 } catch (IOException e) {
-                    logger1.warn("IOException", e);
+                    logger.warn("IOException", e);
                 }
 
                 int comparison = this.compareTo(localService);
@@ -796,7 +795,7 @@ public abstract class DNSRecord extends DNSEntry {
                     // With multiple interfaces on a single computer it is possible to see our
                     // own records come in on different interfaces than the ones they were sent on.
                     // see section "10. Conflict Resolution" of mdns draft spec.
-                    logger1.debug("handleQuery() Ignoring a identical service query");
+                    logger.debug("handleQuery() Ignoring a identical service query");
                     return false;
                 }
 
@@ -807,7 +806,7 @@ public abstract class DNSRecord extends DNSEntry {
                     info.setName(NameRegister.Factory.getRegistry().incrementName(dns.getLocalHost().getInetAddress(), info.getName(), NameRegister.NameType.SERVICE));
                     dns.getServices().remove(oldName);
                     dns.getServices().put(info.getQualifiedName().toLowerCase(), info);
-                    logger1.debug("handleQuery() Lost tie break: new unique name chosen:{}", info.getName());
+                    logger.debug("handleQuery() Lost tie break: new unique name chosen:{}", info.getName());
 
                     // We revert the state to start probing again with the new name
                     info.revertState();
@@ -827,14 +826,14 @@ public abstract class DNSRecord extends DNSEntry {
         boolean handleResponse(JmDNSImpl dns) {
             ServiceInfoImpl info = (ServiceInfoImpl) dns.getServices().get(this.getKey());
             if (info != null && (_port != info.getPort() || !_server.equalsIgnoreCase(dns.getLocalHost().getName()))) {
-                logger1.debug("handleResponse() Denial detected");
+                logger.debug("handleResponse() Denial detected");
 
                 if (info.isProbing()) {
                     String oldName = info.getQualifiedName().toLowerCase();
                     info.setName(NameRegister.Factory.getRegistry().incrementName(dns.getLocalHost().getInetAddress(), info.getName(), NameRegister.NameType.SERVICE));
                     dns.getServices().remove(oldName);
                     dns.getServices().put(info.getQualifiedName().toLowerCase(), info);
-                    logger1.debug("handleResponse() New unique name chose:{}", info.getName());
+                    logger.debug("handleResponse() New unique name chose:{}", info.getName());
 
                 }
                 info.revertState();

@@ -22,7 +22,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
  * @author Arthur van Hoff, Pierre Frisch
  */
 public class DNSQuestion extends DNSEntry {
-    private static Logger logger = LoggerFactory.getLogger(DNSQuestion.class.getName());
+    private static Logger logger = LoggerFactory.getLogger(DNSQuestion.class);
 
     /**
      * Address question.
