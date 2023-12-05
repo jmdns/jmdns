@@ -23,6 +23,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.DNSIncoming;
 import javax.jmdns.impl.DNSRecord;
 import javax.jmdns.impl.constants.DNSRecordClass;
@@ -98,5 +99,31 @@ public class DNSRecordTest {
         Assert.assertNull(record);
         PowerMock.verifyAll();
 
+    }
+
+    @Test
+    public void testServiceInfoFromDNSRecord() {
+
+        DNSRecord record = new DNSRecord.Service("test._http._tcp.local.", DNSRecordClass.CLASS_IN, true, TTL_IN_SECONDS, 0, 0, 0, "test_server");
+
+        ServiceInfo serviceInfo = record.getServiceInfo(true);
+
+        Assert.assertEquals("test", serviceInfo.getName());
+        Assert.assertEquals("http", serviceInfo.getApplication());
+        Assert.assertEquals("tcp", serviceInfo.getProtocol());
+        Assert.assertEquals("local", serviceInfo.getDomain());
+        Assert.assertEquals("test_server", serviceInfo.getServer());
+    }
+
+    @Test
+    public void testDNSRecordKey() {
+        DNSRecord record1 = new DNSRecord.Service("android_123.local.", DNSRecordClass.CLASS_IN, true, TTL_IN_SECONDS, 0, 0, 0, "test_server");
+        Assert.assertEquals("_android_123.local.", record1.getKey());
+
+        DNSRecord record2 = new DNSRecord.Service("test._http._tcp.local.", DNSRecordClass.CLASS_IN, true, TTL_IN_SECONDS, 0, 0, 0, "test_server");
+        Assert.assertEquals("test._http._tcp.local.", record2.getKey());
+
+        DNSRecord record3 = new DNSRecord.Service("TEST._http._tcp.local.", DNSRecordClass.CLASS_IN, true, TTL_IN_SECONDS, 0, 0, 0, "test_server");
+        Assert.assertEquals("test._http._tcp.local.", record3.getKey());
     }
 }
