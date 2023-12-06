@@ -34,7 +34,7 @@ public class ServiceTypeDecoderTest {
     @Test
     public void decode() {
         Map<ServiceInfo.Fields, String> actual = ServiceTypeDecoder.decodeQualifiedNameMapForType("DIST123_7-F07_OC030_05_03941.local.");
-        Map<ServiceInfo.Fields, String> expected = ServiceInfoImpl.createQualifiedMap("", "dist123_7-f07_oc030_05_03941.local", "", "", "");
+        Map<ServiceInfo.Fields, String> expected = ServiceInfoImpl.createQualifiedMap("DIST123_7-F07_OC030_05_03941", "", "", "local", "");
         assertEquals(expected, actual);
     }
 
@@ -223,6 +223,32 @@ public class ServiceTypeDecoderTest {
         assertEquals("We did not get the right protocol:", "", map.get(ServiceInfo.Fields.Protocol));
         assertEquals("We did not get the right application:", "", map.get(ServiceInfo.Fields.Application));
         assertEquals("We did not get the right name:", "panoramix", map.get(ServiceInfo.Fields.Instance));
+        assertEquals("We did not get the right subtype:", "", map.get(ServiceInfo.Fields.Subtype));
+    }
+
+    @Test
+    public void testAddressPreserveCase() {
+        String type = "pano_RAmix.local.";
+
+        Map<ServiceInfo.Fields, String> map = ServiceTypeDecoder.decodeQualifiedNameMapForType(type);
+
+        assertEquals("We did not get the right domain:", "local", map.get(ServiceInfo.Fields.Domain));
+        assertEquals("We did not get the right protocol:", "", map.get(ServiceInfo.Fields.Protocol));
+        assertEquals("We did not get the right application:", "", map.get(ServiceInfo.Fields.Application));
+        assertEquals("We did not get the right name:", "pano_RAmix", map.get(ServiceInfo.Fields.Instance));
+        assertEquals("We did not get the right subtype:", "", map.get(ServiceInfo.Fields.Subtype));
+    }
+
+    @Test
+    public void testNameWithUnderscore() {
+        String type = "pano_ramix.local.";
+
+        Map<ServiceInfo.Fields, String> map = ServiceTypeDecoder.decodeQualifiedNameMapForType(type);
+
+        assertEquals("We did not get the right domain:", "local", map.get(ServiceInfo.Fields.Domain));
+        assertEquals("We did not get the right protocol:", "", map.get(ServiceInfo.Fields.Protocol));
+        assertEquals("We did not get the right application:", "", map.get(ServiceInfo.Fields.Application));
+        assertEquals("We did not get the right name:", "pano_ramix", map.get(ServiceInfo.Fields.Instance));
         assertEquals("We did not get the right subtype:", "", map.get(ServiceInfo.Fields.Subtype));
     }
 

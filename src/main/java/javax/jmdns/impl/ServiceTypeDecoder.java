@@ -11,6 +11,8 @@ class ServiceTypeDecoder {
     private static final Pattern SUBTYPE_PATTERN = Pattern.compile("^((.*)\\._)?_?(.*)\\._sub\\._([^.]*)\\._([^.]*)\\.(.*)\\.?$");
     private static final Pattern PATTERN = Pattern.compile("^((.*)?\\._)?([^.]*)\\._([^.]*)\\.(.*)\\.?$");
 
+    private static final Pattern TYPE_A_PATTERN = Pattern.compile("^([^.]*)\\.(.*)\\.?$");
+
     private ServiceTypeDecoder() {
     }
 
@@ -40,11 +42,6 @@ class ServiceTypeDecoder {
             name = ServiceInfoImpl.removeSeparators(casePreservedType.substring(0, index));
             domain = casePreservedType.substring(index);
             application = "";
-        } else if ((!aType.contains("_")) && aType.contains(".")) {
-            index = aType.indexOf('.');
-            name = ServiceInfoImpl.removeSeparators(casePreservedType.substring(0, index));
-            domain = ServiceInfoImpl.removeSeparators(casePreservedType.substring(index));
-            application = "";
         } else {
             Matcher subType = SUBTYPE_PATTERN.matcher(aType);
             if (subType.matches()) {
@@ -60,6 +57,13 @@ class ServiceTypeDecoder {
                     application = originalCase(casePreservedType, normalMatcher, 3);
                     protocol = originalCase(casePreservedType, normalMatcher, 4);
                     domain = originalCase(casePreservedType, normalMatcher, 5);
+                } else {
+                    Matcher aTypeMatcher = TYPE_A_PATTERN.matcher(aType);
+                    if (aTypeMatcher.matches()) {
+                        name = originalCase(casePreservedType, aTypeMatcher, 1);
+                        domain = originalCase(casePreservedType, aTypeMatcher, 2);
+                        application = "";
+                    }
                 }
             }
         }
