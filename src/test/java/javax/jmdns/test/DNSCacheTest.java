@@ -50,6 +50,7 @@ public class DNSCacheTest {
         assertEquals("Could not retrieve the value we inserted", entry, cache.getDNSEntry(entry));
         cache.removeDNSEntry(entry);
         assertNull("Could not remove the value we inserted", cache.getDNSEntry(entry));
+        assertEquals(0, cache.size());
 
         List<DNSEntry> values = cache.get(entry.getKey());
         assertTrue("Cache still has entries for the key", values == null || values.isEmpty());
