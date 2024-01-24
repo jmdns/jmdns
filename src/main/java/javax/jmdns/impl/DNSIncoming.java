@@ -322,7 +322,21 @@ public final class DNSIncoming extends DNSMessage {
 
         switch (type) {
             case TYPE_A: // IPv4
-                rec = new DNSRecord.IPv4Address(domain, recordClass, unique, ttl, _messageInputStream.readBytes(len));
+                /*
+                 * 2019-04-04
+                 * This len check here is a workaround for a bug likely caused by the firmware in Grandstream door-bell camera.
+                 * More details here:
+                 * https://partnerconnect.grandstream.com/users/show_ticket/168746
+                 * https://github.com/jmdns/jmdns/issues/186
+                 * 
+                 * The problem was camera GDS3710 was responding with DNS message which had Type A but len 2 rather than 4
+                 * This caused CPU spinning and OOM issues.
+                 * Here we simply drop the answer if it has invalid length.
+                 */
+                if (len == 4)
+                    rec = new DNSRecord.IPv4Address(domain, recordClass, unique, ttl, _messageInputStream.readBytes(len));
+                else
+                    _messageInputStream.skip(len);
                 break;
             case TYPE_AAAA: // IPv6
                 byte[] incomingBytes =  _messageInputStream.readBytes(len);
