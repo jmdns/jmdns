@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
  * Listen for multicast packets.
  */
 class SocketListener extends Thread {
-    static Logger           logger = LoggerFactory.getLogger(SocketListener.class);
+    static Logger logger = LoggerFactory.getLogger(SocketListener.class);
 
     /**
      *
@@ -69,10 +69,14 @@ class SocketListener extends Thread {
                             logger.trace("{}.run() JmDNS in:{}", this.getName(), msg.print(true));
                         }
                         if (msg.isQuery()) {
-                            if (packet.getPort() != DNSConstants.MDNS_PORT) {
+                            // When we have a QUERY, unique means that QU is true and we should respond to the sender directly
+                            if (msg.getQuestions().stream().anyMatch(DNSEntry::isUnique)) {
                                 this._jmDNSImpl.handleQuery(msg, packet.getAddress(), packet.getPort());
+                            } else if (packet.getPort() != DNSConstants.MDNS_PORT) {
+                                this._jmDNSImpl.handleQuery(msg, packet.getAddress(), packet.getPort());
+                            } else {
+                                this._jmDNSImpl.handleQuery(msg, this._jmDNSImpl.getGroup(), DNSConstants.MDNS_PORT);
                             }
-                            this._jmDNSImpl.handleQuery(msg, this._jmDNSImpl.getGroup(), DNSConstants.MDNS_PORT);
                         } else {
                             this._jmDNSImpl.handleResponse(msg);
                         }
