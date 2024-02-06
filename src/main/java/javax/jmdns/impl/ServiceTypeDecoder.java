@@ -8,7 +8,7 @@ import static javax.jmdns.ServiceInfo.Fields;
 
 class ServiceTypeDecoder {
 
-    private static final Pattern SUBTYPE_PATTERN = Pattern.compile("^((.*)\\._)?_?(.*)\\._sub\\._([^.]*)\\._([^.]*)\\.(.*)\\.?$");
+    private static final Pattern SUBTYPE_PATTERN = Pattern.compile("^((.*)\\._)?_?(.*)\\._sub\\._([^.]*)\\._([^.]*)\\.(.*)\\.?$", Pattern.CASE_INSENSITIVE);
     private static final Pattern PATTERN = Pattern.compile("^((.*)?\\._)?([^.]*)\\._([^.]*)\\.(.*)\\.?$");
 
     private static final Pattern TYPE_A_PATTERN = Pattern.compile("^([^.]*)\\.(.*)\\.?$");
@@ -43,7 +43,7 @@ class ServiceTypeDecoder {
             domain = casePreservedType.substring(index);
             application = "";
         } else {
-            Matcher subType = SUBTYPE_PATTERN.matcher(aType);
+            Matcher subType = SUBTYPE_PATTERN.matcher(casePreservedType);
             if (subType.matches()) {
                 name = originalCase(casePreservedType, subType, 2);
                 subtype = originalCase(casePreservedType, subType, 3);
@@ -51,14 +51,14 @@ class ServiceTypeDecoder {
                 protocol = originalCase(casePreservedType, subType, 5);
                 domain = originalCase(casePreservedType, subType, 6);
             } else {
-                Matcher normalMatcher = PATTERN.matcher(aType);
+                Matcher normalMatcher = PATTERN.matcher(casePreservedType);
                 if (normalMatcher.matches()) {
                     name = originalCase(casePreservedType, normalMatcher, 2);
                     application = originalCase(casePreservedType, normalMatcher, 3);
                     protocol = originalCase(casePreservedType, normalMatcher, 4);
                     domain = originalCase(casePreservedType, normalMatcher, 5);
                 } else {
-                    Matcher aTypeMatcher = TYPE_A_PATTERN.matcher(aType);
+                    Matcher aTypeMatcher = TYPE_A_PATTERN.matcher(casePreservedType);
                     if (aTypeMatcher.matches()) {
                         name = originalCase(casePreservedType, aTypeMatcher, 1);
                         domain = originalCase(casePreservedType, aTypeMatcher, 2);
