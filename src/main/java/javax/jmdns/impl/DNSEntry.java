@@ -51,27 +51,29 @@ public abstract class DNSEntry {
         String application = _qualifiedNameMap.get(Fields.Application);
         String instance = _qualifiedNameMap.get(Fields.Instance).toLowerCase();
         _type = buildType(application, protocol, domain);
-        _key = ((instance.length() > 0 ? instance + "." : "") + _type).toLowerCase();
+        _key = (!instance.isEmpty() ? instance + "." + _type : _type).toLowerCase();
     }
 
     private String buildType(String application, String protocol, String domain) {
-        if (application == null) {
-            application = "";
+        StringBuilder type = new StringBuilder();
+
+        if (application != null && !application.isEmpty()) {
+            type.append('_').append(application).append('.');
         }
 
-        if (protocol == null) {
-            protocol = "";
+        if (protocol != null && !protocol.isEmpty()) {
+            type.append('_').append(protocol).append('.');
         }
 
-        if (domain == null) {
-            domain = "";
+        if (domain != null && !domain.isEmpty()) {
+            type.append('_').append(domain).append('.');
         }
 
-        String type = (!application.isEmpty() ? "_" + application + "." : "") + (!protocol.isEmpty() ? "_" + protocol + "." : "") + (!domain.isEmpty() ? domain + "." : "");
-        if (!type.endsWith(".")) {
-            type += ".";
+        if (type.length() == 0) {
+            return ".";
         }
-        return type;
+
+        return type.toString();
     }
 
     /*

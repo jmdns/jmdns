@@ -311,10 +311,22 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     @Override
     public String getType() {
-        String domain = this.getDomain();
-        String protocol = this.getProtocol();
+        StringBuilder type = new StringBuilder();
+
         String application = this.getApplication();
-        return (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + "." : "") + domain + ".";
+        if (!application.isEmpty()) {
+            type.append('_').append(application).append('.');
+        }
+
+        String protocol = this.getProtocol();
+        if (!protocol.isEmpty()) {
+            type.append('_').append(protocol).append('.');
+        }
+
+        String domain = this.getDomain();
+        type.append(domain).append('.');
+
+        return type.toString();
     }
 
     /**
@@ -322,8 +334,14 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     @Override
     public String getTypeWithSubtype() {
+        String type = this.getType();
         String subtype = this.getSubtype();
-        return (subtype.length() > 0 ? "_" + subtype + "._sub." : "") + this.getType();
+
+        if (subtype.isEmpty()) {
+            return type;
+        }
+
+        return '_' + subtype + "._sub." + type;
     }
 
     /**
@@ -361,14 +379,14 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     @Override
     public String getQualifiedName() {
-        String domain = this.getDomain();
-        String protocol = this.getProtocol();
-        String application = this.getApplication();
+        String type = this.getType();
         String instance = this.getName();
-        // String subtype = this.getSubtype();
-        // return (instance.length() > 0 ? instance + "." : "") + (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + (subtype.length() > 0 ? ",_" + subtype.toLowerCase() + "." : ".") : "") + domain
-        // + ".";
-        return (instance.length() > 0 ? instance + "." : "") + (application.length() > 0 ? "_" + application + "." : "") + (protocol.length() > 0 ? "_" + protocol + "." : "") + domain + ".";
+
+        if (instance.isEmpty()) {
+            return type;
+        }
+
+        return instance + '.' + type;
     }
 
     /**
