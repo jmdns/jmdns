@@ -256,7 +256,7 @@ public class ServiceTypeDecoderTest {
     public void testNameWithSpecialChar() {
         String type = "panoramİx.local.";
 
-        Map<ServiceInfo.Fields, String> map = ServiceTypeDecoderr.decodeQualifiedNameMapForType(type);
+        Map<ServiceInfo.Fields, String> map = ServiceTypeDecoder.decodeQualifiedNameMapForType(type);
 
         assertEquals("We did not get the right domain:", "local", map.get(ServiceInfo.Fields.Domain));
         assertEquals("We did not get the right protocol:", "", map.get(ServiceInfo.Fields.Protocol));
@@ -282,7 +282,7 @@ public class ServiceTypeDecoderTest {
     public void testCasePreservingSpecialChar() {
         String type = "aBcİ._Home-Sharing._TCP.Panoramix.local.";
 
-        Map<ServiceInfo.Fields, String> map = ServiceTypeDecoderr.decodeQualifiedNameMapForType(type);
+        Map<ServiceInfo.Fields, String> map = ServiceTypeDecoder.decodeQualifiedNameMapForType(type);
 
         assertEquals("We did not get the right domain:", "Panoramix.local", map.get(ServiceInfo.Fields.Domain));
         assertEquals("We did not get the right protocol:", "TCP", map.get(ServiceInfo.Fields.Protocol));
