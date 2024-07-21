@@ -109,7 +109,7 @@ public final class DNSIncoming extends DNSMessage {
         }
 
         public String readName() {
-            Map<Integer, StringBuilder> names = new HashMap<Integer, StringBuilder>();
+            Map<Integer, Integer> names = new HashMap<Integer, Integer>();
             final StringBuilder sb = new StringBuilder();
             boolean finished = false;
             while (!finished) {
@@ -120,17 +120,15 @@ public final class DNSIncoming extends DNSMessage {
                 }
                 switch (DNSLabel.labelForByte(len)) {
                     case Standard:
+                        int startAt = sb.length();
                         int offset = pos - 1;
-                        String label = this.readUTF(len) + ".";
-                        sb.append(label);
-                        for (StringBuilder previousLabel : names.values()) {
-                            previousLabel.append(label);
-                        }
-                        names.put(Integer.valueOf(offset), new StringBuilder(label));
+                        String label = this.readUTF(len);
+                        sb.append(label).append(".");
+                        names.put(offset, startAt);
                         break;
                     case Compressed:
                         int index = (DNSLabel.labelValue(len) << 8) | this.readUnsignedByte();
-                        String compressedLabel = _names.get(Integer.valueOf(index));
+                        String compressedLabel = _names.get(index);
                         if (compressedLabel == null) {
                             logger.warn("Bad domain name: possible circular name detected. Bad offset: 0x{} at 0x{}",
                                     Integer.toHexString(index),
@@ -139,9 +137,6 @@ public final class DNSIncoming extends DNSMessage {
                             compressedLabel = "";
                         }
                         sb.append(compressedLabel);
-                        for (StringBuilder previousLabel : names.values()) {
-                            previousLabel.append(compressedLabel);
-                        }
                         finished = true;
                         break;
                     case Extended:
@@ -153,11 +148,9 @@ public final class DNSIncoming extends DNSMessage {
                         logger.warn("Unsupported DNS label type: '{}'", Integer.toHexString(len & 0xC0) );
                 }
             }
-            for (final Map.Entry<Integer, StringBuilder> entry : names.entrySet()) {
-                final Integer index = entry.getKey();
-                _names.put(index, entry.getValue().toString());
-            }
-            return sb.toString();
+            String name = sb.toString();
+            names.forEach((index, startAt) -> _names.put(index, name.substring(startAt)));
+            return name;
         }
 
         public String readNonNameString() {
