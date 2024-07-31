@@ -10,10 +10,13 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
+import javax.jmdns.impl.util.SimpleLockManager;
+import javax.jmdns.impl.util.SimpleLockManager.Locked;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +51,8 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
     private static Logger       logger              = LoggerFactory.getLogger(DNSCache.class);
 
     private static final long   serialVersionUID    = 3024739453186759259L;
+    
+    private final SimpleLockManager _lm = new SimpleLockManager();
 
     /**
      *
@@ -94,10 +99,16 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
      * @return all entries in the cache
      */
     public Collection<DNSEntry> allValues() {
-        List<DNSEntry> allValues = new ArrayList<DNSEntry>();
-        for (List<? extends DNSEntry> entry : this.values()) {
-            if (entry != null) {
-                allValues.addAll(entry);
+        List<DNSEntry> allValues = new ArrayList<>();
+        Set<Entry<String, List<DNSEntry>>> entries = this.entrySet();
+        for (Entry<String, List<DNSEntry>> entry : entries) {
+            if (entry == null)
+                continue;
+            String key = entry.getKey();
+            try (Locked lock = _lm.lock(key)) {
+                List<DNSEntry> entryList = entry.getValue();
+                if (entryList != null)
+                    allValues.addAll(entryList);
             }
         }
         return allValues;
@@ -110,19 +121,15 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
      * @return list of DNSEntries
      */
     public Collection<? extends DNSEntry> getDNSEntryList(String name) {
-        Collection<? extends DNSEntry> entryList = this._getDNSEntryList(name);
-        if (entryList != null) {
-            synchronized (entryList) {
-                entryList = new ArrayList<DNSEntry>(entryList);
-            }
-        } else {
-            entryList = Collections.emptyList();
+        if (name == null)
+            return Collections.emptyList();
+        String key = name.toLowerCase();
+        try (Locked lock = _lm.lock(key)) {
+            List<DNSEntry> entryList = getEntryListOrEmpty(key);
+            if (entryList.isEmpty())
+                return Collections.emptyList();
+            return new ArrayList<>(entryList);
         }
-        return entryList;
-    }
-
-    private Collection<? extends DNSEntry> _getDNSEntryList(String name) {
-        return this.get(name != null ? name.toLowerCase() : null);
     }
 
     /**
@@ -132,21 +139,17 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
      * @return DNSEntry
      */
     public DNSEntry getDNSEntry(DNSEntry dnsEntry) {
-        DNSEntry result = null;
-        if (dnsEntry != null) {
-            Collection<? extends DNSEntry> entryList = this._getDNSEntryList(dnsEntry.getKey());
-            if (entryList != null) {
-                synchronized (entryList) {
-                    for (DNSEntry testDNSEntry : entryList) {
-                        if (testDNSEntry.isSameEntry(dnsEntry)) {
-                            result = testDNSEntry;
-                            break;
-                        }
-                    }
-                }
+        if (dnsEntry == null)
+            return  null;
+        String key = dnsEntry.getKey();
+        try (Locked lock = _lm.lock(key)) {
+            List<DNSEntry> entryList = getEntryListOrEmpty(key);
+            for (DNSEntry testDNSEntry : entryList) {
+                if (testDNSEntry.isSameEntry(dnsEntry))
+                    return testDNSEntry;
             }
         }
-        return result;
+        return null;
     }
 
     /**
@@ -158,21 +161,20 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
      * @return DNSEntry
      */
     public DNSEntry getDNSEntry(String name, DNSRecordType type, DNSRecordClass recordClass) {
-        DNSEntry result = null;
-        Collection<? extends DNSEntry> entryList = this._getDNSEntryList(name);
-        if (entryList != null) {
-            synchronized (entryList) {
-                for (DNSEntry testDNSEntry : entryList) {
-                    if (testDNSEntry.matchRecordType(type) && testDNSEntry.matchRecordClass(recordClass)) {
-                        result = testDNSEntry;
-                        break;
-                    }
-                }
+        if (name == null)
+            return null;
+        
+        String key = name.toLowerCase();
+        try (Locked lock = _lm.lock(key)) {
+            List<DNSEntry> entryList = getEntryListOrEmpty(key);
+            for (DNSEntry testDNSEntry : entryList) {
+                if (testDNSEntry.matchRecordType(type) && testDNSEntry.matchRecordClass(recordClass))
+                    return testDNSEntry;
             }
         }
-        return result;
+        return null;
     }
-
+    
     /**
      * Get all matching DNS entries from the table.
      *
@@ -182,21 +184,23 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
      * @return list of entries
      */
     public Collection<? extends DNSEntry> getDNSEntryList(String name, DNSRecordType type, DNSRecordClass recordClass) {
-        Collection<? extends DNSEntry> entryList = this._getDNSEntryList(name);
-        if (entryList != null) {
-            synchronized (entryList) {
-                entryList = new ArrayList<DNSEntry>(entryList);
-                for (Iterator<? extends DNSEntry> i = entryList.iterator(); i.hasNext();) {
-                    DNSEntry testDNSEntry = i.next();
-                    if (!testDNSEntry.matchRecordType(type) || (!testDNSEntry.matchRecordClass(recordClass))) {
-                        i.remove();
-                    }
-                }
-            }
-        } else {
-            entryList = Collections.emptyList();
+        if (name == null)
+            return Collections.emptyList();
+        
+        String key = name.toLowerCase();
+        ArrayList<DNSEntry> result;
+        try (Locked lock = _lm.lock(key)) {
+            List<DNSEntry> entryList = getEntryListOrEmpty(key);
+            result = new ArrayList<>(entryList);
         }
-        return entryList;
+        // remove records that do not match
+        for (Iterator<DNSEntry> it = result.iterator(); it.hasNext();) {
+            DNSEntry testDNSEntry = it.next();
+            if (!testDNSEntry.matchRecordType(type) || (!testDNSEntry.matchRecordClass(recordClass))) {
+                it.remove();
+            }
+        }
+        return result;
     }
 
     /**
@@ -205,21 +209,21 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
      * @param dnsEntry
      * @return true if the entry was added
      */
-    public boolean addDNSEntry(final DNSEntry dnsEntry) {
-        boolean result = false;
-        if (dnsEntry != null) {
-            List<DNSEntry> entryList = this.get(dnsEntry.getKey());
+    public boolean addDNSEntry(DNSEntry dnsEntry) {
+        if (dnsEntry == null)
+            return false;
+        String key = dnsEntry.getKey();
+        try (Locked lock = _lm.lock(key)) {
+            List<DNSEntry> entryList = this.get(key);
             if (entryList == null) {
-                this.putIfAbsent(dnsEntry.getKey(), new ArrayList<DNSEntry>(3));
-                entryList = this.get(dnsEntry.getKey());
-            }
-            synchronized (entryList) {
+                entryList = new ArrayList<>(3);
                 entryList.add(dnsEntry);
+                this.put(key, entryList);
+            } else {
+                entryList.add(dnsEntry);                
             }
-            // This is probably not very informative
-            result = true;
         }
-        return result;
+        return true;
     }
 
     /**
@@ -229,20 +233,19 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
      * @return true if the entry was removed
      */
     public boolean removeDNSEntry(DNSEntry dnsEntry) {
-        boolean result = false;
-        if (dnsEntry != null) {
-            List<DNSEntry> entryList = this.get(dnsEntry.getKey());
-            if (entryList != null) {
-                synchronized (entryList) {
-                    result = entryList.remove(dnsEntry);
-                }
-            }
+        if (dnsEntry == null)
+            return false;
+        String key = dnsEntry.getKey();
+        try (Locked lock = _lm.lock(key)) {
+            List<DNSEntry> entryList = this.get(key);
+            if (entryList == null)
+                return false;
+            boolean result = entryList.remove(dnsEntry);
             /* Remove from DNS cache when no records remain with this key */
-            if (result && entryList.isEmpty()) {
-                this.remove(dnsEntry.getKey());
-            }
+            if (entryList.isEmpty())
+                this.remove(key);
+            return result;
         }
-        return result;
     }
 
     /**
@@ -254,41 +257,51 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
      * @return <code>true</code> if the entry has been replace, <code>false</code> otherwise.
      */
     public boolean replaceDNSEntry(DNSEntry newDNSEntry, DNSEntry existingDNSEntry) {
-        boolean result = false;
-        if ((newDNSEntry != null) && (existingDNSEntry != null) && (newDNSEntry.getKey().equals(existingDNSEntry.getKey()))) {
-            List<DNSEntry> entryList = this.get(newDNSEntry.getKey());
+        if (newDNSEntry == null || existingDNSEntry == null || !newDNSEntry.getKey().equals(existingDNSEntry.getKey()))
+            return false;
+        String key = newDNSEntry.getKey();
+        try (Locked lock = _lm.lock(key)) {
+            List<DNSEntry> entryList = this.get(key);
             if (entryList == null) {
-                this.putIfAbsent(newDNSEntry.getKey(), new ArrayList<DNSEntry>(3));
-                entryList = this.get(newDNSEntry.getKey());
-            }
-            synchronized (entryList) {
+                entryList = new ArrayList<>(3);
+                entryList.add(newDNSEntry);
+                this.put(key, entryList);
+            } else {
                 entryList.remove(existingDNSEntry);
                 entryList.add(newDNSEntry);
             }
-            // This is probably not very informative
-            result = true;
+            return true;
         }
-        return result;
+    }
+    
+    private List<DNSEntry> getEntryListOrEmpty(String key) {
+        List<DNSEntry> entryList = this.get(key);
+        if (entryList == null)
+            return Collections.emptyList();
+        return entryList;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public synchronized String toString() {
-        final StringBuilder sb = new StringBuilder(2000);
+    public String toString() {
+        StringBuilder sb = new StringBuilder(2000);
         sb.append("\n\t---- cache ----");
-        for(final Map.Entry<String, List<DNSEntry>> entry : this.entrySet()) {
+        for (Map.Entry<String, List<DNSEntry>> entry : this.entrySet()) {
             sb.append("\n\n\t\tname '").append(entry.getKey()).append('\'');
-            final List<DNSEntry> entryList = entry.getValue();
-            if ((entryList != null) && (!entryList.isEmpty())) {
-                synchronized (entryList) {
+            List<DNSEntry> entryList = entry.getValue();
+            if (entryList == null)
+                continue;
+            String key = entry.getKey();
+            try (Locked lock = _lm.lock(key)) {
+                if (entryList.isEmpty()) {
+                    sb.append(" : no entries");
+                } else {
                     for (DNSEntry dnsEntry : entryList) {
                         sb.append("\n\t\t\t").append(dnsEntry.toString());
                     }
                 }
-            } else {
-                sb.append(" : no entries");
             }
         }
         return sb.toString();

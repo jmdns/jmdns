@@ -253,6 +253,19 @@ public class ServiceTypeDecoderTest {
     }
 
     @Test
+    public void testNameWithSpecialChar() {
+        String type = "panoramİx.local.";
+
+        Map<ServiceInfo.Fields, String> map = ServiceTypeDecoder.decodeQualifiedNameMapForType(type);
+
+        assertEquals("We did not get the right domain:", "local", map.get(ServiceInfo.Fields.Domain));
+        assertEquals("We did not get the right protocol:", "", map.get(ServiceInfo.Fields.Protocol));
+        assertEquals("We did not get the right application:", "", map.get(ServiceInfo.Fields.Application));
+        assertEquals("We did not get the right name:", "panoramİx", map.get(ServiceInfo.Fields.Instance));
+        assertEquals("We did not get the right subtype:", "", map.get(ServiceInfo.Fields.Subtype));
+    }
+
+    @Test
     public void testCasePreserving() {
         String type = "My New Itunes Service._Home-Sharing._TCP.Panoramix.local.";
 
@@ -262,6 +275,19 @@ public class ServiceTypeDecoderTest {
         assertEquals("We did not get the right protocol:", "TCP", map.get(ServiceInfo.Fields.Protocol));
         assertEquals("We did not get the right application:", "Home-Sharing", map.get(ServiceInfo.Fields.Application));
         assertEquals("We did not get the right name:", "My New Itunes Service", map.get(ServiceInfo.Fields.Instance));
+        assertEquals("We did not get the right subtype:", "", map.get(ServiceInfo.Fields.Subtype));
+    }
+
+    @Test
+    public void testCasePreservingSpecialChar() {
+        String type = "aBcİ._Home-Sharing._TCP.Panoramix.local.";
+
+        Map<ServiceInfo.Fields, String> map = ServiceTypeDecoder.decodeQualifiedNameMapForType(type);
+
+        assertEquals("We did not get the right domain:", "Panoramix.local", map.get(ServiceInfo.Fields.Domain));
+        assertEquals("We did not get the right protocol:", "TCP", map.get(ServiceInfo.Fields.Protocol));
+        assertEquals("We did not get the right application:", "Home-Sharing", map.get(ServiceInfo.Fields.Application));
+        assertEquals("We did not get the right name:", "aBcİ", map.get(ServiceInfo.Fields.Instance));
         assertEquals("We did not get the right subtype:", "", map.get(ServiceInfo.Fields.Subtype));
     }
 
