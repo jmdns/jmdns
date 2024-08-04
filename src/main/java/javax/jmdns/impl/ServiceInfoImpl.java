@@ -1179,10 +1179,28 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      * @return collection of answers
      */
     public Collection<DNSRecord> answers(DNSRecordClass recordClass, boolean unique, int ttl, HostInfo localHost) {
-        List<DNSRecord> list = new ArrayList<DNSRecord>();
+        return answers(recordClass, unique, ttl, localHost, null);
+    }
+
+    /**
+     * Create a series of answer that correspond with the give service info.
+     * <br>
+     * Adds the subtype in the answer only if the subtype was requested in a question (subtype parameter from the question equals subtype of the service info)
+     *
+     * @param recordClass
+     *            record class of the query
+     * @param unique
+     * @param ttl
+     * @param localHost
+     * @param subType The subtype of the question to check
+     * @return collection of answers
+     */
+    public Collection<DNSRecord> answers(DNSRecordClass recordClass, boolean unique, int ttl, HostInfo localHost, String subType) {
+        List<DNSRecord> list = new ArrayList<>();
         // [PJYF Dec 6 2011] This is bad hack as I don't know what the spec should really means in this case. i.e. what is the class of our registered services.
         if ((recordClass == DNSRecordClass.CLASS_ANY) || (recordClass == DNSRecordClass.CLASS_IN)) {
-            if (this.getSubtype().length() > 0) {
+            // check if the service subtype equals the subtype in the question
+            if (this.getSubtype().isEmpty() && subType != null && this.getSubtype().equals(subType)) {
                 list.add(new Pointer(this.getTypeWithSubtype(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
             }
             list.add(new Pointer(this.getType(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
