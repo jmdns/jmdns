@@ -1200,7 +1200,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
         // [PJYF Dec 6 2011] This is bad hack as I don't know what the spec should really means in this case. i.e. what is the class of our registered services.
         if ((recordClass == DNSRecordClass.CLASS_ANY) || (recordClass == DNSRecordClass.CLASS_IN)) {
             // check if the service subtype equals the subtype in the question
-            if (this.getSubtype().isEmpty() && subType != null && this.getSubtype().equals(subType)) {
+            if ((subType == null && !this.getSubtype().isEmpty()) || this.getSubtype().equals(subType)) {
                 list.add(new Pointer(this.getTypeWithSubtype(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
             }
             list.add(new Pointer(this.getType(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, ttl, this.getQualifiedName()));
