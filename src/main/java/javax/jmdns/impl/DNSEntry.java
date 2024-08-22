@@ -66,7 +66,7 @@ public abstract class DNSEntry {
         }
 
         if (domain != null && !domain.isEmpty()) {
-            type.append('_').append(domain).append('.');
+            type.append(domain).append('.');
         }
 
         if (type.length() == 0) {
