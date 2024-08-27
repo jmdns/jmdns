@@ -248,31 +248,42 @@ public abstract class DNSMessage {
     /**
      * Debugging.
      */
-    String print() {
+    protected String print() {
         final StringBuilder sb = new StringBuilder(200);
-        sb.append(this.toString());
-        sb.append("\n");
-        for (final DNSQuestion question : _questions) {
-            sb.append("\tquestion:      ");
-            sb.append(question);
-            sb.append("\n");
-        }
-        for (final DNSRecord answer : _answers) {
-            sb.append("\tanswer:        ");
-            sb.append(answer);
-            sb.append("\n");
-        }
-        for (final DNSRecord answer : _authoritativeAnswers) {
-            sb.append("\tauthoritative: ");
-            sb.append(answer);
-            sb.append("\n");
-        }
-        for (DNSRecord answer : _additionals) {
-            sb.append("\tadditional:    ");
-            sb.append(answer);
-            sb.append("\n");
-        }
+        // statistics, print out the number of DNS entries
+        appendStatistics(sb, "questions", _questions);
+        appendStatistics(sb, "answers", _answers);
+        appendStatistics(sb, "authorities", _authoritativeAnswers);
+        appendStatistics(sb, "additionals", _additionals);
+        // list all DNSEntries
+        appendDNSEntries(sb, "questions", _questions);
+        appendDNSEntries(sb, "answers", _answers);
+        appendDNSEntries(sb, "authorities", _authoritativeAnswers);
+        appendDNSEntries(sb, "additionals", _additionals);
         return sb.toString();
+    }
+
+    private <T extends DNSEntry> void appendStatistics(StringBuilder sb, String name, List<T> entries) {
+        if (entries == null || entries.isEmpty()) {
+            return;
+        }
+        sb.append(", ");
+        sb.append(name);
+        sb.append("=");
+        sb.append(entries.size());
+    }
+
+    private <T extends DNSEntry> void appendDNSEntries(StringBuilder sb, String name, List<T> entries) {
+        if (entries == null || entries.isEmpty()) {
+            return;
+        }
+        sb.append("\n");
+        sb.append(name);
+        sb.append(":");
+        for (DNSEntry entry : entries) {
+            sb.append("\n\t");
+            sb.append(entry);
+        }
     }
 
     /**

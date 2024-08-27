@@ -177,7 +177,6 @@ public final class DNSIncoming extends DNSMessage {
     public DNSIncoming(DatagramPacket packet) throws IOException {
         super(0, 0, packet.getPort() == DNSConstants.MDNS_PORT);
         this._packet = packet;
-        InetAddress source = packet.getAddress();
         this._messageInputStream = new MessageInputStream(packet.getData(), packet.getLength());
         this._receivedTime = System.currentTimeMillis();
         this._senderUDPPayload = DNSConstants.MAX_MSG_TYPICAL;
@@ -217,7 +216,7 @@ public final class DNSIncoming extends DNSMessage {
             // parse answers
             if (numAnswers > 0) {
                 for (int i = 0; i < numAnswers; i++) {
-                    DNSRecord rec = this.readAnswer(source);
+                    DNSRecord rec = this.readAnswer();
                     if (rec != null) {
                         // Add a record, if we were able to create one.
                         _answers.add(rec);
@@ -227,7 +226,7 @@ public final class DNSIncoming extends DNSMessage {
 
             if (numAuthorities > 0) {
                 for (int i = 0; i < numAuthorities; i++) {
-                    DNSRecord rec = this.readAnswer(source);
+                    DNSRecord rec = this.readAnswer();
                     if (rec != null) {
                         // Add a record, if we were able to create one.
                         _authoritativeAnswers.add(rec);
@@ -237,7 +236,7 @@ public final class DNSIncoming extends DNSMessage {
 
             if (numAdditionals > 0) {
                 for (int i = 0; i < numAdditionals; i++) {
-                    DNSRecord rec = this.readAnswer(source);
+                    DNSRecord rec = this.readAnswer();
                     if (rec != null) {
                         // Add a record, if we were able to create one.
                         _additionals.add(rec);
@@ -249,16 +248,19 @@ public final class DNSIncoming extends DNSMessage {
                 throw new IOException("Received a message with the wrong length.");
             }
         } catch (Exception e) {
-            logger.warn("DNSIncoming() dump " + print(true) + "\n exception ", e);
-            // This ugly but some JVM don't implement the cause on IOException
+            logger.warn("Corrupted DNSIncoming message. Enable debug level logging to see the full DNSIncoming() message.", e);
+            if (logger.isDebugEnabled()) {
+                logger.debug("DNSIncoming() dump " + this.print(true) + "\n exception", e);
+            }
+            // This is ugly but some JVM don't implement the cause on IOException
             IOException ioe = new IOException("DNSIncoming corrupted message");
             ioe.initCause(e);
             throw ioe;
         } finally {
             try {
                 _messageInputStream.close();
-            } catch (Exception e) { 
-            	logger.warn("MessageInputStream close error");
+            } catch (Exception e) {
+                logger.warn("MessageInputStream close error. {}", e.getMessage());
             }
         }
     }
@@ -287,33 +289,45 @@ public final class DNSIncoming extends DNSMessage {
 
     private DNSQuestion readQuestion() {
         String domain = _messageInputStream.readName();
-        DNSRecordType type = DNSRecordType.typeForIndex(_messageInputStream.readUnsignedShort());
-        if (type == DNSRecordType.TYPE_IGNORE) {
-            logger.warn("Could not find record type: {}", this.print(true));
-        }
+        int recordTypeIndex = _messageInputStream.readUnsignedShort();
         int recordClassIndex = _messageInputStream.readUnsignedShort();
+        DNSRecordType recordType = DNSRecordType.typeForIndex(recordTypeIndex);
         DNSRecordClass recordClass = DNSRecordClass.classForIndex(recordClassIndex);
+
+        if (recordType == DNSRecordType.TYPE_IGNORE || recordClass == DNSRecordClass.CLASS_UNKNOWN) {
+            logger.warn("Could not find record type or record class. domain '{}', address: {}:{}, type: {} ({}), class: {} ({})",
+                    domain, getHostAddress(), _packet.getPort(), recordType, recordTypeIndex, recordClass, recordClassIndex);
+            if (logger.isDebugEnabled()) {
+                logger.debug("DNSIncoming() message\n{}", this.print(true));
+            }
+        }
+
         boolean unique = recordClass.isUnique(recordClassIndex);
-        return DNSQuestion.newQuestion(domain, type, recordClass, unique);
+        return DNSQuestion.newQuestion(domain, recordType, recordClass, unique);
     }
 
-    private DNSRecord readAnswer(InetAddress source) {
+    private DNSRecord readAnswer() {
         String domain = _messageInputStream.readName();
-        DNSRecordType type = DNSRecordType.typeForIndex(_messageInputStream.readUnsignedShort());
-        if (type == DNSRecordType.TYPE_IGNORE) {
-            logger.warn("Could not find record type. domain: {}\n{}", domain, this.print(true));
-        }
+        int recordTypeIndex = _messageInputStream.readUnsignedShort();
         int recordClassIndex = _messageInputStream.readUnsignedShort();
-        DNSRecordClass recordClass = (type == DNSRecordType.TYPE_OPT ? DNSRecordClass.CLASS_UNKNOWN : DNSRecordClass.classForIndex(recordClassIndex));
-        if ((recordClass == DNSRecordClass.CLASS_UNKNOWN) && (type != DNSRecordType.TYPE_OPT)) {
-            logger.warn("Could not find record class. domain: {} type: {}\n{}", domain, type, this.print(true));
+
+        DNSRecordType recordType = DNSRecordType.typeForIndex(recordTypeIndex);
+        DNSRecordClass recordClass = recordType == DNSRecordType.TYPE_OPT ? DNSRecordClass.CLASS_UNKNOWN : DNSRecordClass.classForIndex(recordClassIndex);
+
+        if (recordType == DNSRecordType.TYPE_IGNORE) {
+            logger.warn("Could not find record type. domain '{}', address: {}:{}, type: {} ({}), class: {} ({})",
+                    domain, getHostAddress(), _packet.getPort(), recordType, recordTypeIndex, recordClass, recordClassIndex);
+            if (logger.isDebugEnabled()) {
+                logger.debug("DNSIncoming() message\n{}", this.print(true));
+            }
         }
+
         boolean unique = recordClass.isUnique(recordClassIndex);
         int ttl = _messageInputStream.readInt();
         int len = _messageInputStream.readUnsignedShort();
         DNSRecord rec = null;
 
-        switch (type) {
+        switch (recordType) {
             case TYPE_A: // IPv4
                 /*
                  * 2019-04-04
@@ -473,12 +487,13 @@ public final class DNSIncoming extends DNSMessage {
                 }
                 break;
             default:
-                    logger.debug("DNSIncoming() unknown type: {}", type);
+                logger.debug("DNSIncoming() unhandled type. domain '{}', address: {}:{}, type: {} ({}), class: {} ({})",
+                        domain, getHostAddress(), _packet.getPort(), recordType, recordTypeIndex, recordClass, recordClassIndex);
                 _messageInputStream.skip(len);
                 break;
         }
         if (rec != null) {
-            rec.setRecordSource(source);
+            rec.setRecordSource(_packet.getAddress());
         }
         return rec;
     }
@@ -497,11 +512,11 @@ public final class DNSIncoming extends DNSMessage {
      * Debugging.
      */
     String print(boolean dump) {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(this.print());
+        final StringBuilder sb = new StringBuilder(this.toString());
         if (dump) {
             byte[] data = new byte[_packet.getLength()];
             System.arraycopy(_packet.getData(), 0, data, 0, data.length);
+            sb.append("\n");
             sb.append(this.print(data));
         }
         return sb.toString();
@@ -511,9 +526,7 @@ public final class DNSIncoming extends DNSMessage {
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append(isQuery() ? "dns[query," : "dns[response,");
-        if (_packet.getAddress() != null) {
-            sb.append(_packet.getAddress().getHostAddress());
-        }
+        sb.append(getHostAddress());
         sb.append(':');
         sb.append(_packet.getPort());
         sb.append(", length=");
@@ -533,53 +546,18 @@ public final class DNSIncoming extends DNSMessage {
                 sb.append(":tc");
             }
         }
-        if (this.getNumberOfQuestions() > 0) {
-            sb.append(", questions=");
-            sb.append(this.getNumberOfQuestions());
-        }
-        if (this.getNumberOfAnswers() > 0) {
-            sb.append(", answers=");
-            sb.append(this.getNumberOfAnswers());
-        }
-        if (this.getNumberOfAuthorities() > 0) {
-            sb.append(", authorities=");
-            sb.append(this.getNumberOfAuthorities());
-        }
-        if (this.getNumberOfAdditionals() > 0) {
-            sb.append(", additionals=");
-            sb.append(this.getNumberOfAdditionals());
-        }
-        if (this.getNumberOfQuestions() > 0) {
-            sb.append("\nquestions:");
-            for (DNSQuestion question : _questions) {
-                sb.append("\n\t");
-                sb.append(question);
-            }
-        }
-        if (this.getNumberOfAnswers() > 0) {
-            sb.append("\nanswers:");
-            for (DNSRecord record : _answers) {
-                sb.append("\n\t");
-                sb.append(record);
-            }
-        }
-        if (this.getNumberOfAuthorities() > 0) {
-            sb.append("\nauthorities:");
-            for (DNSRecord record : _authoritativeAnswers) {
-                sb.append("\n\t");
-                sb.append(record);
-            }
-        }
-        if (this.getNumberOfAdditionals() > 0) {
-            sb.append("\nadditionals:");
-            for (DNSRecord record : _additionals) {
-                sb.append("\n\t");
-                sb.append(record);
-            }
-        }
+        sb.append(this.print());
         sb.append(']');
 
         return sb.toString();
+    }
+
+    /**
+     * Returns the IP address of the DatagramPacket in textual presentation.
+     * @return the raw IP address in a string format. It returns "unknown" if the DatagramPacket or its InetAddress is a null reference
+     */
+    private String getHostAddress() {
+        return _packet == null || _packet.getAddress() == null ? "unknown" : _packet.getAddress().getHostAddress();
     }
 
     /**
