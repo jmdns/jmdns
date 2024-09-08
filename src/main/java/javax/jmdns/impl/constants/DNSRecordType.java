@@ -301,7 +301,7 @@ public enum DNSRecordType {
         for (DNSRecordType aType : DNSRecordType.values()) {
             if (aType._index == index) return aType;
         }
-        logger.warn("Could not find record type for index: {}", index);
+        logger.debug("Could not find record type for index: {}", index);
         return TYPE_IGNORE;
     }
 

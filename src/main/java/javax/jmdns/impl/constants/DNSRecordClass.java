@@ -126,7 +126,7 @@ public enum DNSRecordClass {
         for (DNSRecordClass aClass : DNSRecordClass.values()) {
             if (aClass._index == maskedIndex) return aClass;
         }
-        logger.warn("Could not find record class for index: {}", index);
+        logger.debug("Could not find record class for index: {}", index);
         return CLASS_UNKNOWN;
     }
 

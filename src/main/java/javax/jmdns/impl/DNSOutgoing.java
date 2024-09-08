@@ -405,9 +405,9 @@ public final class DNSOutgoing extends DNSMessage {
      * Debugging.
      */
     String print(boolean dump) {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(this.print());
+        final StringBuilder sb = new StringBuilder(this.toString());
         if (dump) {
+            sb.append("\n");
             sb.append(this.print(this.data()));
         }
         return sb.toString();
@@ -432,50 +432,8 @@ public final class DNSOutgoing extends DNSMessage {
                 sb.append(":tc");
             }
         }
-        if (this.getNumberOfQuestions() > 0) {
-            sb.append(", questions=");
-            sb.append(this.getNumberOfQuestions());
-        }
-        if (this.getNumberOfAnswers() > 0) {
-            sb.append(", answers=");
-            sb.append(this.getNumberOfAnswers());
-        }
-        if (this.getNumberOfAuthorities() > 0) {
-            sb.append(", authorities=");
-            sb.append(this.getNumberOfAuthorities());
-        }
-        if (this.getNumberOfAdditionals() > 0) {
-            sb.append(", additionals=");
-            sb.append(this.getNumberOfAdditionals());
-        }
-        if (this.getNumberOfQuestions() > 0) {
-            sb.append("\nquestions:");
-            for (DNSQuestion question : _questions) {
-                sb.append("\n\t");
-                sb.append(question);
-            }
-        }
-        if (this.getNumberOfAnswers() > 0) {
-            sb.append("\nanswers:");
-            for (DNSRecord record : _answers) {
-                sb.append("\n\t");
-                sb.append(record);
-            }
-        }
-        if (this.getNumberOfAuthorities() > 0) {
-            sb.append("\nauthorities:");
-            for (DNSRecord record : _authoritativeAnswers) {
-                sb.append("\n\t");
-                sb.append(record);
-            }
-        }
-        if (this.getNumberOfAdditionals() > 0) {
-            sb.append("\nadditionals:");
-            for (DNSRecord record : _additionals) {
-                sb.append("\n\t");
-                sb.append(record);
-            }
-        }
+
+        sb.append(this.print());
         sb.append("\nnames=");
         sb.append(_names);
         sb.append("]");
