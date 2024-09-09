@@ -903,14 +903,18 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 synchronized (list) {
                     listCopy = new ArrayList<ServiceListenerStatus>(list);
                 }
-                for (final ServiceListenerStatus listener : listCopy) {
-                    _executor.submit(new Runnable() {
-                        /** {@inheritDoc} */
-                        @Override
-                        public void run() {
-                            listener.serviceResolved(localEvent);
-                        }
-                    });
+                if (!_executor.isShutdown() && !_executor.isTerminated()) {
+                    for (final ServiceListenerStatus listener : listCopy) {
+                        _executor.submit(new Runnable() {
+                            /**
+                             * {@inheritDoc}
+                             */
+                            @Override
+                            public void run() {
+                                listener.serviceResolved(localEvent);
+                            }
+                        });
+                    }
                 }
             }
         }
@@ -1120,14 +1124,18 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             if (typeAdded) {
                 final ServiceTypeListenerStatus[] list = _typeListeners.toArray(new ServiceTypeListenerStatus[_typeListeners.size()]);
                 final ServiceEvent event = new ServiceEventImpl(this, name, "", null);
-                for (final ServiceTypeListenerStatus status : list) {
-                    _executor.submit(new Runnable() {
-                        /** {@inheritDoc} */
-                        @Override
-                        public void run() {
-                            status.serviceTypeAdded(event);
-                        }
-                    });
+                if (!_executor.isShutdown() && !_executor.isTerminated()) {
+                    for (final ServiceTypeListenerStatus status : list) {
+                        _executor.submit(new Runnable() {
+                            /**
+                             * {@inheritDoc}
+                             */
+                            @Override
+                            public void run() {
+                                status.serviceTypeAdded(event);
+                            }
+                        });
+                    }
                 }
             }
         }
@@ -1140,14 +1148,18 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                         subtypes.add(subtype);
                         final ServiceTypeListenerStatus[] list = _typeListeners.toArray(new ServiceTypeListenerStatus[_typeListeners.size()]);
                         final ServiceEvent event = new ServiceEventImpl(this, "_" + subtype + "._sub." + name, "", null);
-                        for (final ServiceTypeListenerStatus status : list) {
-                            _executor.submit(new Runnable() {
-                                /** {@inheritDoc} */
-                                @Override
-                                public void run() {
-                                    status.subTypeForServiceTypeAdded(event);
-                                }
-                            });
+                        if (!_executor.isShutdown() && !_executor.isTerminated()) {
+                            for (final ServiceTypeListenerStatus status : list) {
+                                _executor.submit(new Runnable() {
+                                    /**
+                                     * {@inheritDoc}
+                                     */
+                                    @Override
+                                    public void run() {
+                                        status.subTypeForServiceTypeAdded(event);
+                                    }
+                                });
+                            }
                         }
                     }
                 }
@@ -1321,13 +1333,17 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                             if (listener.isSynchronous()) {
                                 listener.serviceAdded(localEvent);
                             } else {
-                                _executor.submit(new Runnable() {
-                                    /** {@inheritDoc} */
-                                    @Override
-                                    public void run() {
-                                        listener.serviceAdded(localEvent);
-                                    }
-                                });
+                                if (!_executor.isShutdown() && !_executor.isTerminated()) {
+                                    _executor.submit(new Runnable() {
+                                        /**
+                                         * {@inheritDoc}
+                                         */
+                                        @Override
+                                        public void run() {
+                                            listener.serviceAdded(localEvent);
+                                        }
+                                    });
+                                }
                             }
                         }
                         break;
@@ -1336,13 +1352,17 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                             if (listener.isSynchronous()) {
                                 listener.serviceRemoved(localEvent);
                             } else {
-                                _executor.submit(new Runnable() {
-                                    /** {@inheritDoc} */
-                                    @Override
-                                    public void run() {
-                                        listener.serviceRemoved(localEvent);
-                                    }
-                                });
+                                if (!_executor.isShutdown() && !_executor.isTerminated()) {
+                                    _executor.submit(new Runnable() {
+                                        /**
+                                         * {@inheritDoc}
+                                         */
+                                        @Override
+                                        public void run() {
+                                            listener.serviceRemoved(localEvent);
+                                        }
+                                    });
+                                }
                             }
                         }
                         break;
