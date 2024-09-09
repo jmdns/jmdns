@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,7 +107,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     private final ConcurrentMap<String, ServiceTypeEntry> _serviceTypes;
 
     private volatile Delegate _delegate;
-    
+
     protected final long _threadSleepDurationMs;
 
     /**
@@ -903,7 +904,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 synchronized (list) {
                     listCopy = new ArrayList<ServiceListenerStatus>(list);
                 }
-                if (!_executor.isShutdown() && !_executor.isTerminated()) {
+                try {
                     for (final ServiceListenerStatus listener : listCopy) {
                         _executor.submit(new Runnable() {
                             /**
@@ -915,6 +916,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                             }
                         });
                     }
+                } catch (RejectedExecutionException exc) {
+                    logger.warn("Failed to submit runnable for serviceEvent in handleServiceResolved", exc);
                 }
             }
         }
@@ -1124,7 +1127,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             if (typeAdded) {
                 final ServiceTypeListenerStatus[] list = _typeListeners.toArray(new ServiceTypeListenerStatus[_typeListeners.size()]);
                 final ServiceEvent event = new ServiceEventImpl(this, name, "", null);
-                if (!_executor.isShutdown() && !_executor.isTerminated()) {
+                try {
                     for (final ServiceTypeListenerStatus status : list) {
                         _executor.submit(new Runnable() {
                             /**
@@ -1136,6 +1139,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                             }
                         });
                     }
+                } catch (RejectedExecutionException exc) {
+                    logger.warn("Failed to submit runnable for serviceEvent in registerServiceType (1)", exc);
                 }
             }
         }
@@ -1148,7 +1153,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                         subtypes.add(subtype);
                         final ServiceTypeListenerStatus[] list = _typeListeners.toArray(new ServiceTypeListenerStatus[_typeListeners.size()]);
                         final ServiceEvent event = new ServiceEventImpl(this, "_" + subtype + "._sub." + name, "", null);
-                        if (!_executor.isShutdown() && !_executor.isTerminated()) {
+                        try {
                             for (final ServiceTypeListenerStatus status : list) {
                                 _executor.submit(new Runnable() {
                                     /**
@@ -1160,6 +1165,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                                     }
                                 });
                             }
+                        } catch (RejectedExecutionException exc) {
+                            logger.warn("Failed to submit runnable for serviceEvent in registerServiceType (2)", exc);
                         }
                     }
                 }
@@ -1275,7 +1282,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         if (operation == Operation.Remove && DNSRecordType.TYPE_SRV.equals(rec.getRecordType())) {
             removeObsoleteDnsListener(event);
         }
-        
+
         // We do not want to block the entire DNS while we are updating the record for each listener (service info)
         {
             List<DNSListener> listenerList = null;
@@ -1333,7 +1340,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                             if (listener.isSynchronous()) {
                                 listener.serviceAdded(localEvent);
                             } else {
-                                if (!_executor.isShutdown() && !_executor.isTerminated()) {
+                                try {
                                     _executor.submit(new Runnable() {
                                         /**
                                          * {@inheritDoc}
@@ -1343,6 +1350,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                                             listener.serviceAdded(localEvent);
                                         }
                                     });
+                                } catch (RejectedExecutionException exc) {
+                                    logger.warn("Failed to submit runnable for serviceEvent in updateRecord (Add)", exc);
                                 }
                             }
                         }
@@ -1352,7 +1361,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                             if (listener.isSynchronous()) {
                                 listener.serviceRemoved(localEvent);
                             } else {
-                                if (!_executor.isShutdown() && !_executor.isTerminated()) {
+                                try {
                                     _executor.submit(new Runnable() {
                                         /**
                                          * {@inheritDoc}
@@ -1362,6 +1371,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                                             listener.serviceRemoved(localEvent);
                                         }
                                     });
+                                } catch (RejectedExecutionException exc) {
+                                    logger.warn("Failed to submit runnable for serviceEvent in updateRecord (Remove)", exc);
                                 }
                             }
                         }
@@ -1382,7 +1393,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
         removeListener(listener);
     }
-    
+
     void handleRecord(DNSRecord record, long now) {
         DNSRecord newRecord = record;
 
@@ -1406,11 +1417,11 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 for (DNSEntry entry : this.getCache().getDNSEntryList(newRecord.getKey())) {
                     if (    newRecord.getRecordType().equals(entry.getRecordType()) &&
                             newRecord.getRecordClass().equals(entry.getRecordClass()) &&
-                            isOlderThanOneSecond( (DNSRecord)entry, now )                            
+                            isOlderThanOneSecond( (DNSRecord)entry, now )
                     ) {
                         logger.trace("setWillExpireSoon() on: {}", entry);
                         // this set ttl to 1 second,
-                        ((DNSRecord) entry).setWillExpireSoon(now);  
+                        ((DNSRecord) entry).setWillExpireSoon(now);
                     }
                 }
             }
@@ -1482,12 +1493,12 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         }
 
     }
-    
+
     /**
-     *  
-     * @param dnsRecord 
+     *
+     * @param dnsRecord
      * @param timeToCompare a given times for comparison
-     * @return true if dnsRecord create time is older than 1 second, relative to the given time; false otherwise 
+     * @return true if dnsRecord create time is older than 1 second, relative to the given time; false otherwise
      */
     private boolean isOlderThanOneSecond(DNSRecord dnsRecord, long timeToCompare) {
         return (dnsRecord.getCreated() < (timeToCompare - DNSConstants.FLUSH_RECORD_OLDER_THAN_1_SECOND*1000));
@@ -1982,11 +1993,11 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             logger.debug("Canceling the state timer");
             this.cancelStateTimer();
 
-            // Stop the executor
-            _executor.shutdown();
-
             // close socket
             this.closeMulticastSocket();
+
+            // Stop the executor
+            _executor.shutdown();
 
             // remove the shutdown hook
             if (_shutdown != null) {
