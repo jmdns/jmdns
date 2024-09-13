@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -37,23 +38,19 @@ public class ByteWrangler {
     /**
      * Representation of empty text.
      * The first byte denotes the length of the following character bytes (in this case zero.)
-     *
+     * <p>
      * FIXME: Should this be exported as a method since it could change externally???
      */
     public final static byte[] EMPTY_TXT = new byte[] { 0 };
+    
 
     /**
-     * Name for charset used to convert Strings to/from wire bytes: {@value #CHARSET_NAME}.
+     * Charset used to convert Strings to/from wire bytes: UTF-8
      */
-    public final static String CHARSET_NAME = "UTF-8";
+    private final static Charset CHARSET_UTF_8 = StandardCharsets.UTF_8;
 
     /**
-     * Charset used to convert Strings to/from wire bytes: {@value #CHARSET_NAME}.
-     */
-    private final static Charset CHARSET_UTF_8 = Charset.forName(CHARSET_NAME);
-
-    /**
-     * Write a String as {@value #CHARSET_NAME} encoded bytes to a stream.
+     * Write a String as UTF-8 encoded bytes to a stream.
      */
     public static void writeUTF(final OutputStream out, final String str) throws IOException {
         final byte[] utf8Bytes = str.getBytes(CHARSET_UTF_8);
@@ -61,20 +58,20 @@ public class ByteWrangler {
     }
 
     /**
-     * Read data bytes as {@value #CHARSET_NAME} to String.
+     * Read data bytes as UTF-8 to String.
      */
-    public static String readUTF(final byte data[]) {
+    public static String readUTF(final byte[] data) {
         return readUTF(data, 0, data.length);
     }
 
     /**
-     * Read data bytes as {@value #CHARSET_NAME} to String.
+     * Read data bytes as UTF-8 to String.
      */
-    public static String readUTF(final byte data[], final int off, final int len) {
+    public static String readUTF(final byte[] data, final int off, final int len) {
         return new String(data, off, len, CHARSET_UTF_8);
     }
 
-    public static void readProperties(final Map<String, byte[]> properties, final byte[] textBytes) throws Exception {
+    public static void readProperties(final Map<String, byte[]> properties, final byte[] textBytes) {
         if (textBytes != null) {
             int off = 0;
             while (off < textBytes.length) {
@@ -104,7 +101,7 @@ public class ByteWrangler {
                 if (i == len) {
                     properties.put(name, NO_VALUE);
                 } else {
-                    final byte value[] = new byte[len - ++i];
+                    final byte[] value = new byte[len - ++i];
                     System.arraycopy(textBytes, off + i, value, 0, len - i);
                     properties.put(name, value);
                 }
@@ -139,9 +136,8 @@ public class ByteWrangler {
                     } else {
                         throw new IllegalArgumentException("Invalid property value: " + val);
                     }
-                    byte data[] = out2.toByteArray();
-                    if (data.length > MAX_VALUE_LENGTH) {
-                        logger.warn("Cannot have individual values larger that 255 chars. Offending value: {}", key + (val == null ? "" : "=" + val));
+                    byte[] data = out2.toByteArray();
+                    if (isValueTooLarge(data, key + (val == null ? "" : "=" + val))) {
                         return EMPTY_TXT;
                     }
                     out.write((byte) data.length);
@@ -160,9 +156,8 @@ public class ByteWrangler {
         final ByteArrayOutputStream out = new ByteArrayOutputStream(MAX_DATA_LENGTH);
         final ByteArrayOutputStream out2 = new ByteArrayOutputStream(100);
         writeUTF(out2, text);
-        final byte data[] = out2.toByteArray();
-        if (data.length > MAX_VALUE_LENGTH) {
-            logger.warn("Cannot have individual values larger that 255 chars. Offending value: {}", text);
+        final byte[] data = out2.toByteArray();
+        if (isValueTooLarge(data, text)) {
             return EMPTY_TXT;
         }
         out.write((byte) data.length);
@@ -171,6 +166,14 @@ public class ByteWrangler {
         final byte[] encodedText = out.toByteArray();
 
         return (encodedText.length > 0 ? encodedText : EMPTY_TXT);
+    }
+
+    private static boolean isValueTooLarge(final byte[] data, final String text) {
+        if (data.length > MAX_VALUE_LENGTH) {
+            logger.warn("Cannot have individual values larger that 255 chars. Offending value: {}", text);
+            return true;
+        }
+        return false;
     }
 
 }
