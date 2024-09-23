@@ -14,7 +14,7 @@ public class ByteWranglerTest {
 
     @Test
     public void testEmptyString() throws IOException {
-        final String emtpyString = new String();
+        final String emtpyString = "";
 
         // contains only one byte
         // - byte[0] contains the length => zero
@@ -41,20 +41,24 @@ public class ByteWranglerTest {
         assertEquals("Resulting byte array length", length+1, text.length);
     }
 
-    @Test(expected=IOException.class)
+    @Test
     public void testTooLongString() throws IOException {
 
         final String randomString = randomAsciiString(256);
 
         final byte[] text = ByteWrangler.encodeText(randomString);
+
+        assertEquals("Byte array should be empty because its too long", ByteWrangler.EMPTY_TXT, text);
     }
 
 
-    @Test(expected=IOException.class)
+    @Test
     public void testTooLongNonAsciiString() throws IOException {
         final String randomString = maxSizeRandomString(256);
 
         final byte[] text = ByteWrangler.encodeText(randomString);
+
+        assertEquals("Byte array should be empty because its too long", ByteWrangler.EMPTY_TXT, text);
     }
 
     @Test
@@ -77,7 +81,7 @@ public class ByteWranglerTest {
     }
 
     @Test
-    public void testReadingUTF() throws IOException {
+    public void testReadingUTF() {
         final int length = 255;
 
         final String str = maxSizeRandomString(length);
