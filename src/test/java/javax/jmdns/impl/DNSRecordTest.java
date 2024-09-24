@@ -13,26 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package javax.jmdns.test;
+package javax.jmdns.impl;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.easymock.PowerMock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
+import org.mockito.Mockito;
 
 import javax.jmdns.ServiceInfo;
-import javax.jmdns.impl.DNSIncoming;
-import javax.jmdns.impl.DNSRecord;
 import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSRecordType;
 
-import static org.easymock.EasyMock.expect;
+import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({DNSIncoming.class, DNSIncoming.MessageInputStream.class})
+import java.lang.reflect.Field;
+
 public class DNSRecordTest {
 
     private static final int TTL_IN_SECONDS = 60 * 60; // ONE HOUR
@@ -43,9 +38,13 @@ public class DNSRecordTest {
     private static final long PERCENT_STALE_94 = ONE_HOUR_IN_MILLIS * 94 / 100;
     private static final long PERCENT_STALE_99 = ONE_HOUR_IN_MILLIS * 99 / 100;
 
+    @Before
+    public void setUp() {
+        Mockito.reset();
+    }
+
     @Test
     public void testStaleDNSRecord() {
-
         DNSRecord record = new DNSRecord.Service("test", DNSRecordClass.CLASS_IN, true, TTL_IN_SECONDS, 0, 0, 0, "test");
         long now = System.currentTimeMillis();
 
@@ -73,37 +72,37 @@ public class DNSRecordTest {
         record.incrementRefreshPercentage();
         Assert.assertFalse("99% should not be stale", record.isStaleAndShouldBeRefreshed(now + PERCENT_STALE_99));
         Assert.assertTrue("100% should be stale", record.isStaleAndShouldBeRefreshed(now + ONE_HOUR_IN_MILLIS));
-
     }
 
     @Test
     public void testIPv4MappedIPv6Addresses() throws Exception {
+        // Mock DNSIncoming.MessageInputStream
+        DNSIncoming.MessageInputStream stream = mock(DNSIncoming.MessageInputStream.class);
+        when(stream.readName()).thenReturn("test");
+        when(stream.readUnsignedShort()).thenReturn(DNSRecordType.TYPE_AAAA.indexValue());
+        when(stream.readUnsignedShort()).thenReturn(DNSRecordClass.CLASS_IN.indexValue());
+        when(stream.readInt()).thenReturn(3600);
+        when(stream.readUnsignedShort()).thenReturn(16);
+        when(stream.readBytes(16)).thenReturn(new byte[]
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (byte) 0xff, (byte) 0xff, 127, 0, 0, 1});
 
-        DNSIncoming.MessageInputStream stream = PowerMock.createNiceMock(DNSIncoming.MessageInputStream.class);
-        expect(stream.readName()).andReturn("test");
-        expect(stream.readUnsignedShort()).andReturn(DNSRecordType.TYPE_AAAA.indexValue());
-        expect(stream.readUnsignedShort()).andReturn(DNSRecordClass.CLASS_IN.indexValue());
-        expect(stream.readInt()).andReturn(3600);
-        expect(stream.readUnsignedShort()).andReturn(16);
-        expect(stream.readBytes(16)).andReturn(new byte[]
-                        { 0, 0, 0, 0,
-                          0, 0, 0, 0,
-                          0, 0, (byte) 0xff, (byte) 0xff,
-                        127, 0, 0, 1});
+        // Mock DNSIncoming and set the stream internally
+        DNSIncoming dnsIncoming = mock(DNSIncoming.class);
+        setInternalState(dnsIncoming, "_messageInputStream", stream);
 
-        DNSIncoming dnsIncoming = Whitebox.newInstance(DNSIncoming.class);
-        Whitebox.setInternalState(dnsIncoming, "_messageInputStream", stream);
-        PowerMock.replayAll();
-
-        DNSRecord record = Whitebox.invokeMethod(dnsIncoming, "readAnswer");
+        // Invoke the method
+        DNSRecord record = doCallRealMethod().when(dnsIncoming).readAnswer();
         Assert.assertNull(record);
-        PowerMock.verifyAll();
+    }
 
+    public void setInternalState(Object targetObject, String fieldName, Object value) throws Exception {
+        Field field = targetObject.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);  // Make the field accessible
+        field.set(targetObject, value);  // Set the new value
     }
 
     @Test
     public void testServiceInfoFromDNSRecord() {
-
         DNSRecord record = new DNSRecord.Service("test._http._tcp.local.", DNSRecordClass.CLASS_IN, true, TTL_IN_SECONDS, 0, 0, 0, "test_server");
 
         ServiceInfo serviceInfo = record.getServiceInfo(true);
@@ -117,7 +116,8 @@ public class DNSRecordTest {
 
     @Test
     public void testDNSRecordKey() {
-        DNSRecord record1 = new DNSRecord.Service("android_123.local.", DNSRecordClass.CLASS_IN, true, TTL_IN_SECONDS, 0, 0, 0, "test_server");
+        // test starting with underscore seen on some Android devices
+        DNSRecord record1 = new DNSRecord.Service("_android_123.local.", DNSRecordClass.CLASS_IN, true, TTL_IN_SECONDS, 0, 0, 0, "test_server");
         Assert.assertEquals("_android_123.local.", record1.getKey());
 
         DNSRecord record2 = new DNSRecord.Service("test._http._tcp.local.", DNSRecordClass.CLASS_IN, true, TTL_IN_SECONDS, 0, 0, 0, "test_server");

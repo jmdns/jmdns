@@ -306,7 +306,7 @@ public final class DNSIncoming extends DNSMessage {
         return DNSQuestion.newQuestion(domain, recordType, recordClass, unique);
     }
 
-    private DNSRecord readAnswer() {
+    DNSRecord readAnswer() {
         String domain = _messageInputStream.readName();
         int recordTypeIndex = _messageInputStream.readUnsignedShort();
         int recordClassIndex = _messageInputStream.readUnsignedShort();
