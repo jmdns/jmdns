@@ -16,7 +16,7 @@ public interface NameRegister {
     /**
      *
      */
-    public enum NameType {
+    enum NameType {
         /**
          * This name represents a host name
          */
@@ -27,26 +27,26 @@ public interface NameRegister {
         SERVICE,
     }
 
-    public static abstract class BaseRegister implements NameRegister {
+    abstract class BaseRegister implements NameRegister {
 
         protected String incrementNameWithDash(String name) {
             final StringBuilder givenName = new StringBuilder(name.length() + 5);
-            int hostNameCount = 0;
+            int hostNameCount;
             int plocal = name.indexOf(".local.");
             int punder = name.lastIndexOf('-');
             if (punder < 0) {
                 // This is the first increment
                 hostNameCount = 1;
-                givenName.append(name.substring(0, plocal));
+                givenName.append(name, 0, plocal);
             } else {
                 try {
                     int value = Integer.parseInt(name.substring(punder + 1, plocal));
                     hostNameCount = value + 1;
-                    givenName.append(name.substring(0, punder));
+                    givenName.append(name, 0, punder);
                 } catch (Exception e) {
                     // If we got an exception this means that we have a name with a "-"
                     hostNameCount = 1;
-                    givenName.append(name.substring(0, plocal));
+                    givenName.append(name, 0, plocal);
                 }
             }
             givenName.append('-');
@@ -61,7 +61,7 @@ public interface NameRegister {
             final int r = name.lastIndexOf(')');
             if ((l >= 0) && (l < r)) {
                 try {
-                    givenName.append(name.substring(0, l));
+                    givenName.append(name, 0, l);
                     givenName.append('(');
                     givenName.append(Integer.parseInt(name.substring(l + 1, r)) + 1);
                     givenName.append(')');
@@ -79,15 +79,15 @@ public interface NameRegister {
 
     }
 
-    public static class UniqueNamePerInterface extends BaseRegister {
+    class UniqueNamePerInterface extends BaseRegister {
 
         private final ConcurrentMap<InetAddress, String>      _hostNames;
         private final ConcurrentMap<InetAddress, Set<String>> _serviceNames;
 
         public UniqueNamePerInterface() {
             super();
-            _hostNames = new ConcurrentHashMap<InetAddress, String>();
-            _serviceNames = new ConcurrentHashMap<InetAddress, Set<String>>();
+            _hostNames = new ConcurrentHashMap<>();
+            _serviceNames = new ConcurrentHashMap<>();
         }
 
         /*
@@ -98,7 +98,6 @@ public interface NameRegister {
         public void register(InetAddress networkInterface, String name, NameType type) {
             switch (type) {
                 case HOST:
-                    break;
                 case SERVICE:
                     break;
                 default:
@@ -144,7 +143,7 @@ public interface NameRegister {
 
     }
 
-    public static class UniqueNameAcrossInterface extends BaseRegister {
+    class UniqueNameAcrossInterface extends BaseRegister {
 
         /*
          * (non-Javadoc)
@@ -154,7 +153,6 @@ public interface NameRegister {
         public void register(InetAddress networkInterface, String name, NameType type) {
             switch (type) {
                 case HOST:
-                    break;
                 case SERVICE:
                     break;
                 default:
@@ -198,7 +196,7 @@ public interface NameRegister {
 
     }
 
-    public static class Factory {
+    class Factory {
 
         private static volatile NameRegister _register;
 
@@ -243,7 +241,7 @@ public interface NameRegister {
      * @param type
      *            name type to register
      */
-    public abstract void register(InetAddress networkInterface, String name, NameType type);
+    void register(InetAddress networkInterface, String name, NameType type);
 
     /**
      * Checks a name that is defended by this group of mDNS.
@@ -256,7 +254,7 @@ public interface NameRegister {
      *            name type to check
      * @return <code>true</code> if the name is not in conflict, <code>flase</code> otherwise.
      */
-    public abstract boolean checkName(InetAddress networkInterface, String name, NameType type);
+    boolean checkName(InetAddress networkInterface, String name, NameType type);
 
     /**
      * Increments a name that is defended by this group of mDNS after it has been found in conflict.
@@ -269,6 +267,6 @@ public interface NameRegister {
      *            name type to increments
      * @return new name
      */
-    public abstract String incrementName(InetAddress networkInterface, String name, NameType type);
+    String incrementName(InetAddress networkInterface, String name, NameType type);
 
 }

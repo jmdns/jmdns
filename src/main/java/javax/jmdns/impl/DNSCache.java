@@ -7,7 +7,6 @@ package javax.jmdns.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,7 +47,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
 
-    private static Logger       logger              = LoggerFactory.getLogger(DNSCache.class);
+    private static final Logger       logger              = LoggerFactory.getLogger(DNSCache.class);
 
     private static final long   serialVersionUID    = 3024739453186759259L;
     
@@ -115,7 +114,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
     }
 
     /**
-     * Iterate only over items with matching name. Returns an list of DNSEntry or null. To retrieve all entries, one must iterate over this linked list.
+     * Iterate only over items with matching name. Returns a list of DNSEntry or null. To retrieve all entries, one must iterate over this linked list.
      *
      * @param name
      * @return list of DNSEntries
@@ -194,12 +193,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
             result = new ArrayList<>(entryList);
         }
         // remove records that do not match
-        for (Iterator<DNSEntry> it = result.iterator(); it.hasNext();) {
-            DNSEntry testDNSEntry = it.next();
-            if (!testDNSEntry.matchRecordType(type) || (!testDNSEntry.matchRecordClass(recordClass))) {
-                it.remove();
-            }
-        }
+        result.removeIf(testDNSEntry -> !testDNSEntry.matchRecordType(type) || (!testDNSEntry.matchRecordClass(recordClass)));
         return result;
     }
 
@@ -254,7 +248,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
      *
      * @param newDNSEntry
      * @param existingDNSEntry
-     * @return <code>true</code> if the entry has been replace, <code>false</code> otherwise.
+     * @return <code>true</code> if the entry has been replaced, <code>false</code> otherwise.
      */
     public boolean replaceDNSEntry(DNSEntry newDNSEntry, DNSEntry existingDNSEntry) {
         if (newDNSEntry == null || existingDNSEntry == null || !newDNSEntry.getKey().equals(existingDNSEntry.getKey()))
@@ -315,7 +309,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
             return;
         }
 
-        logger.trace("Cached DNSEntries: {}", toString());
+        logger.trace("Cached DNSEntries: {}", this);
     }
 
 }

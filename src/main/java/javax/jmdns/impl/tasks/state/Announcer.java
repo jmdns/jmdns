@@ -16,7 +16,7 @@ import javax.jmdns.impl.constants.DNSRecordClass;
 import javax.jmdns.impl.constants.DNSState;
 
 /**
- * The Announcer sends an accumulated query of all announces, and advances the state of all serviceInfos, for which it has sent an announce. The Announcer also sends announcements and advances the state of JmDNS itself.
+ * The Announcer sends an accumulated query of all announces, and advances the state of all serviceInfos, for which it has sent an announcement. The Announcer also sends announcements and advances the state of JmDNS itself.
  * <p/>
  * When the announcer has run two times, it finishes.
  */
@@ -85,10 +85,10 @@ public class Announcer extends DNSStateTask {
 
     /*
      * (non-Javadoc)
-     * @see javax.jmdns.impl.tasks.state.DNSStateTask#createOugoing()
+     * @see javax.jmdns.impl.tasks.state.DNSStateTask#createOutgoing()
      */
     @Override
-    protected DNSOutgoing createOugoing() {
+    protected DNSOutgoing createOutgoing() {
         return new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA);
     }
 

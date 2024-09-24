@@ -17,7 +17,7 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @author Pierre Frisch
  */
 public abstract class DNSResolverTask extends DNSTask {
-    private static Logger logger = LoggerFactory.getLogger(DNSResolverTask.class);
+    private static final Logger logger = LoggerFactory.getLogger(DNSResolverTask.class);
 
     /**
      * Counts the number of queries being sent.
@@ -85,7 +85,7 @@ public abstract class DNSResolverTask extends DNSTask {
 
     /**
      * Overridden by subclasses to add questions to the message.<br/>
-     * <b>Note:</b> Because of message size limitation the returned message may be different than the message parameter.
+     * <b>Note:</b> Because of message size limitation the returned message may be different from the message parameter.
      * 
      * @param out
      *            outgoing message
@@ -96,7 +96,7 @@ public abstract class DNSResolverTask extends DNSTask {
 
     /**
      * Overridden by subclasses to add questions to the message.<br/>
-     * <b>Note:</b> Because of message size limitation the returned message may be different than the message parameter.
+     * <b>Note:</b> Because of message size limitation the returned message may be different from the message parameter.
      * 
      * @param out
      *            outgoing message

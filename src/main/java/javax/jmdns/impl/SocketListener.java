@@ -17,15 +17,9 @@ import org.slf4j.LoggerFactory;
  */
 class SocketListener extends Thread {
     static Logger logger = LoggerFactory.getLogger(SocketListener.class);
-
-    /**
-     *
-     */
+    
     private final JmDNSImpl _jmDNSImpl;
 
-    /**
-     * @param jmDNSImpl
-     */
     SocketListener(JmDNSImpl jmDNSImpl) {
         super("SocketListener(" + (jmDNSImpl != null ? jmDNSImpl.getName() : "") + ")");
         this.setDaemon(true);
@@ -39,7 +33,7 @@ class SocketListener extends Thread {
                 // in order to allow other threads to get some cpu time
                 Thread.sleep(_jmDNSImpl._threadSleepDurationMs);
             } catch (InterruptedException e) {
-                logger.warn(this.getName() + ".run() interrupted ", e);
+                logger.warn("{}.run() interrupted ", this.getName(), e);
                 Thread.currentThread().interrupt();
             }
         }
@@ -48,7 +42,7 @@ class SocketListener extends Thread {
     @Override
     public void run() {
         try {
-            byte buf[] = new byte[DNSConstants.MAX_MSG_ABSOLUTE];
+            byte[] buf = new byte[DNSConstants.MAX_MSG_ABSOLUTE];
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
 
             while (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled()) {
@@ -69,7 +63,7 @@ class SocketListener extends Thread {
                             logger.trace("{}.run() JmDNS in:{}", this.getName(), msg.print(true));
                         }
                         if (msg.isQuery()) {
-                            // When we have a QUERY, unique means that QU is true and we should respond to the sender directly
+                            // When we have a QUERY, unique means that QU is true, and we should respond to the sender directly
                             if (msg.getQuestions().stream().anyMatch(DNSEntry::isUnique)) {
                                 this._jmDNSImpl.handleQuery(msg, packet.getAddress(), packet.getPort());
                             } else if (packet.getPort() != DNSConstants.MDNS_PORT) {
@@ -86,12 +80,12 @@ class SocketListener extends Thread {
                         }
                     }
                 } catch (IOException e) {
-                    logger.warn(this.getName() + ".run() exception ", e);
+                    logger.warn("{}.run() exception ", this.getName(), e);
                 }
             }
         } catch (IOException e) {
             if (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled() && !this._jmDNSImpl.isClosing() && !this._jmDNSImpl.isClosed()) {
-                logger.warn(this.getName() + ".run() exception ", e);
+                logger.warn("{}.run() exception ", this.getName(), e);
                 this._jmDNSImpl.recover();
             }
         }

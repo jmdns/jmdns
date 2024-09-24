@@ -50,7 +50,7 @@ public enum DNSResultCode {
      */
     NXRRSet("RR Set that should exist does not", 8),
     /**
-     * Server Not Authoritative for zone [RFC2136]]
+     * Server Not Authoritative for zone [RFC2136]
      */
     NotAuth("Server Not Authoritative for zone", 9),
     /**

@@ -59,15 +59,13 @@ public class NetworkTopologyEventImpl extends NetworkTopologyEvent implements Cl
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append('[').append(this.getClass().getSimpleName()).append('@').append(System.identityHashCode(this))
-            .append("\n\tinetAddress: '")
-            .append(this.getInetAddress())
-            .append("']");
-//            .append("' source: ")
+        //            .append("' source: ")
 //            .append("\n\t" + source + "")
 //            .append("\n]");
-        return sb.toString();
+        return '[' + this.getClass().getSimpleName() + '@' + System.identityHashCode(this) +
+                "\n\tinetAddress: '" +
+                this.getInetAddress() +
+                "']";
     }
 
     /*

@@ -98,10 +98,10 @@ public class Prober extends DNSStateTask {
 
     /*
      * (non-Javadoc)
-     * @see javax.jmdns.impl.tasks.state.DNSStateTask#createOugoing()
+     * @see javax.jmdns.impl.tasks.state.DNSStateTask#createOutgoing()
      */
     @Override
-    protected DNSOutgoing createOugoing() {
+    protected DNSOutgoing createOutgoing() {
         return new DNSOutgoing(DNSConstants.FLAGS_QR_QUERY);
     }
 

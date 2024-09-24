@@ -10,11 +10,8 @@ import javax.jmdns.ServiceInfo;
 
 /**
  * ServiceEvent.
- * 
- * @author Werner Randelshofer, Rick Blair
- */
-/**
  *
+ * @author Werner Randelshofer, Rick Blair
  */
 public class ServiceEventImpl extends ServiceEvent {
     /**
@@ -31,7 +28,7 @@ public class ServiceEventImpl extends ServiceEvent {
      */
     private final String      _name;
     /**
-     * The service info record, or null if the service could be be resolved. This is also null, if the event was fired to a service type listener.
+     * The service info record, or null if the service could be resolved. This is also null, if the event was fired to a service type listener.
      */
     private final ServiceInfo _info;
 
@@ -45,7 +42,7 @@ public class ServiceEventImpl extends ServiceEvent {
      * @param name
      *            the instance name of the service.
      * @param info
-     *            the service info record, or null if the service could be be resolved.
+     *            the service info record, or null if the service could be resolved.
      */
     public ServiceEventImpl(JmDNSImpl jmDNS, String type, String name, ServiceInfo info) {
         super(jmDNS);
@@ -87,17 +84,12 @@ public class ServiceEventImpl extends ServiceEvent {
      */
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append('[')
-            .append(this.getClass().getSimpleName()).append('@').append(System.identityHashCode(this))
-            .append("\n\tname: '").append(this.getName())
-            .append("' type: '").append(this.getType())
-            .append("' info: '").append(this.getInfo())
-            .append("']");
-//            .append("' source: ")
-//            .append("\n\t" + source + "")
-//            .append("\n]");
-        return sb.toString();
+        return '[' +
+                this.getClass().getSimpleName() + '@' + System.identityHashCode(this) +
+                "\n\tname: '" + this.getName() +
+                "' type: '" + this.getType() +
+                "' info: '" + this.getInfo() +
+                "']";
     }
 
     /*

@@ -53,13 +53,13 @@ public final class DNSOutgoing extends DNSMessage {
             }
         }
 
-        public void writeBytes(byte data[]) {
+        public void writeBytes(byte[] data) {
             if (data != null) {
                 writeBytes(data, 0, data.length);
             }
         }
 
-        void writeBytes(byte data[], int off, int len) {
+        void writeBytes(byte[] data, int off, int len) {
             for (int i = 0; i < len; i++) {
                 writeByte(data[off + i]);
             }
@@ -129,12 +129,12 @@ public final class DNSOutgoing extends DNSMessage {
                 if (useCompression && USE_DOMAIN_NAME_COMPRESSION) {
                     Integer offset = _out._names.get(aName);
                     if (offset != null) {
-                        int val = offset.intValue();
+                        int val = offset;
                         writeByte((val >> 8) | 0xC0);
                         writeByte(val & 0xFF);
                         return;
                     }
-                    _out._names.put(aName, Integer.valueOf(this.size() + _offset));
+                    _out._names.put(aName, this.size() + _offset);
                     writeUTF(label, 0, label.length());
                 } else {
                     writeUTF(label, 0, label.length());
@@ -192,7 +192,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     Map<String, Integer> _names;
 
-    private int _maxUDPPayload;
+    private final int _maxUDPPayload;
 
     private final MessageOutputStream _questionsBytes;
 
@@ -235,7 +235,7 @@ public final class DNSOutgoing extends DNSMessage {
      */
     public DNSOutgoing(int flags, boolean multicast, int senderUDPPayload) {
         super(flags, 0, multicast);
-        _names = new HashMap<String, Integer>();
+        _names = new HashMap<>();
         _maxUDPPayload = (senderUDPPayload > 0 ? senderUDPPayload : DNSConstants.MAX_MSG_TYPICAL);
         _questionsBytes = new MessageOutputStream(senderUDPPayload, this);
         _answersBytes = new MessageOutputStream(senderUDPPayload, this);
@@ -347,7 +347,7 @@ public final class DNSOutgoing extends DNSMessage {
     }
 
     /**
-     * Add an additional answer to the record. Omit if there is no room.
+     * Adds an answer to the record. Omit if there is no room.
      *
      * @param in
      * @param rec
@@ -367,7 +367,7 @@ public final class DNSOutgoing extends DNSMessage {
     }
 
     /**
-     * Builds the final message buffer to be send and returns it.
+     * Builds the final message buffer to be sent and returns it.
      *
      * @return bytes to send.
      */

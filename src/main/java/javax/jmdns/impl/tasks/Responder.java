@@ -23,7 +23,7 @@ import javax.jmdns.impl.constants.DNSConstants;
  * The Responder sends a single answer for the specified service infos and for the host name.
  */
 public class Responder extends DNSTask {
-    static Logger             logger = LoggerFactory.getLogger(Responder.class);
+    private static final Logger             logger = LoggerFactory.getLogger(Responder.class);
 
     /**
      *
@@ -64,7 +64,7 @@ public class Responder extends DNSTask {
      */
     @Override
     public String toString() {
-        return super.toString() + " incomming: " + _in;
+        return super.toString() + " incoming: " + _in;
     }
 
     /*
@@ -104,8 +104,8 @@ public class Responder extends DNSTask {
         this.getDns().respondToQuery(_in);
 
         // We use these sets to prevent duplicate records
-        Set<DNSQuestion> questions = new HashSet<DNSQuestion>();
-        Set<DNSRecord> answers = new HashSet<DNSRecord>();
+        Set<DNSQuestion> questions = new HashSet<>();
+        Set<DNSRecord> answers = new HashSet<>();
 
         if (this.getDns().isAnnounced()) {
             try {

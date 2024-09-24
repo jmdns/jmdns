@@ -11,7 +11,7 @@ package javax.jmdns.impl;
  * DNSListener. Listener for record updates.
  * 
  * @author Werner Randelshofer, Rick Blair
- * @version 1.0 May 22, 2004 Created.
+ * @version 1.0 May 22, 2004, Created.
  */
 interface DNSListener {
     /**
