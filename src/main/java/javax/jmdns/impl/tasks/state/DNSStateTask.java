@@ -105,7 +105,7 @@ public abstract class DNSStateTask extends DNSTask {
                 this.cancel();
                 return;
             }
-            List<DNSStatefulObject> stateObjects = new ArrayList<DNSStatefulObject>();
+            List<DNSStatefulObject> stateObjects = new ArrayList<>();
             // send probes for JmDNS itself
             synchronized (this.getDns()) {
                 if (this.getDns().isAssociatedWithTask(this, this.getTaskState())) {

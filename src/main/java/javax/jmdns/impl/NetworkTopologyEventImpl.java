@@ -3,6 +3,7 @@
  */
 package javax.jmdns.impl;
 
+import java.io.Serial;
 import java.net.InetAddress;
 
 import javax.jmdns.JmDNS;
@@ -17,6 +18,7 @@ public class NetworkTopologyEventImpl extends NetworkTopologyEvent implements Cl
     /**
      *
      */
+    @Serial
     private static final long serialVersionUID = 1445606146153550463L;
 
     private final InetAddress _inetAddress;
@@ -59,15 +61,10 @@ public class NetworkTopologyEventImpl extends NetworkTopologyEvent implements Cl
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append('[').append(this.getClass().getSimpleName()).append('@').append(System.identityHashCode(this))
-            .append("\n\tinetAddress: '")
-            .append(this.getInetAddress())
-            .append("']");
-//            .append("' source: ")
-//            .append("\n\t" + source + "")
-//            .append("\n]");
-        return sb.toString();
+        return '[' + this.getClass().getSimpleName() + '@' + System.identityHashCode(this) +
+                "\n\tinetAddress: '" +
+                this.getInetAddress() +
+                "']";
     }
 
     /*

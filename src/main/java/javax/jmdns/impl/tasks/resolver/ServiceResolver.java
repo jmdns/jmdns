@@ -48,8 +48,6 @@ public class ServiceResolver extends DNSResolverTask {
         long now = System.currentTimeMillis();
         for (ServiceInfo info : this.getDns().getServices().values()) {
             newOut = this.addAnswer(newOut, new DNSRecord.Pointer(info.getType(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info.getQualifiedName()), now);
-            // newOut = this.addAnswer(newOut, new DNSRecord.Service(info.getQualifiedName(), DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE, DNSConstants.DNS_TTL, info.getPriority(), info.getWeight(), info.getPort(),
-            // this.getDns().getLocalHost().getName()), now);
         }
         return newOut;
     }

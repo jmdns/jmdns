@@ -41,7 +41,7 @@ public enum DNSRecordClass {
      */
     CLASS_ANY("any", 255);
 
-    private static Logger       logger       = LoggerFactory.getLogger(DNSRecordClass.class);
+    private static final Logger       logger       = LoggerFactory.getLogger(DNSRecordClass.class);
 
     /**
      * Multicast DNS uses the bottom 15 bits to identify the record class...<br/>
@@ -51,7 +51,7 @@ public enum DNSRecordClass {
 
     /**
      * For answers the top bit indicates that all other cached records are now invalid.<br/>
-     * For questions it indicates that we should send a unicast response.
+     * For questions, it indicates that we should send a unicast response.
      */
     public static final int     CLASS_UNIQUE = 0x8000;
 

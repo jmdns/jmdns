@@ -7,12 +7,8 @@ package javax.jmdns.impl;
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
+import java.io.Serial;
 
-/**
- * ServiceEvent.
- * 
- * @author Werner Randelshofer, Rick Blair
- */
 /**
  *
  */
@@ -20,6 +16,7 @@ public class ServiceEventImpl extends ServiceEvent {
     /**
      *
      */
+    @Serial
     private static final long serialVersionUID = 7107973622016897488L;
     // private static Logger logger = LoggerFactory.getLogger(ServiceEvent.class);
     /**
@@ -87,17 +84,15 @@ public class ServiceEventImpl extends ServiceEvent {
      */
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append('[')
-            .append(this.getClass().getSimpleName()).append('@').append(System.identityHashCode(this))
-            .append("\n\tname: '").append(this.getName())
-            .append("' type: '").append(this.getType())
-            .append("' info: '").append(this.getInfo())
-            .append("']");
-//            .append("' source: ")
+        //            .append("' source: ")
 //            .append("\n\t" + source + "")
 //            .append("\n]");
-        return sb.toString();
+        return '[' +
+                this.getClass().getSimpleName() + '@' + System.identityHashCode(this) +
+                "\n\tname: '" + this.getName() +
+                "' type: '" + this.getType() +
+                "' info: '" + this.getInfo() +
+                "']";
     }
 
     /*

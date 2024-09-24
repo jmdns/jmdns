@@ -29,13 +29,13 @@ public interface JmmDNS extends Closeable {
     /**
      * JmmDNS.Factory enable the creation of new instance of JmmDNS.
      */
-    public static final class Factory {
+    final class Factory {
         private static volatile JmmDNS _instance;
 
         /**
          * This interface defines a delegate to the EOClassDescriptionRegister class to enable subclassing.
          */
-        public static interface ClassDelegate {
+        public interface ClassDelegate {
 
             /**
              * Allows the delegate the opportunity to construct and return a different JmmDNS.
@@ -44,11 +44,11 @@ public interface JmmDNS extends Closeable {
              * @see #classDelegate()
              * @see #setClassDelegate(ClassDelegate anObject)
              */
-            public JmmDNS newJmmDNS();
+            JmmDNS newJmmDNS();
 
         }
 
-        private static final AtomicReference<ClassDelegate> _databaseClassDelegate = new AtomicReference<ClassDelegate>();
+        private static final AtomicReference<ClassDelegate> _databaseClassDelegate = new AtomicReference<>();
 
         private Factory() {
             super();
@@ -82,7 +82,7 @@ public interface JmmDNS extends Closeable {
          *
          * @return new instance of JmmDNS
          */
-        protected static JmmDNS newJmmDNS() {
+        private static JmmDNS newJmmDNS() {
             JmmDNS dns = null;
             ClassDelegate delegate = _databaseClassDelegate.get();
             if (delegate != null) {
@@ -201,7 +201,7 @@ public interface JmmDNS extends Closeable {
      * @param name
      *            unqualified service name, such as <code>foobar</code> .
      * @param persistent
-     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new information is received.
      * @return list of service info. If no service info is found the list is empty.
      * @see javax.jmdns.JmDNS#getServiceInfo(java.lang.String, java.lang.String, boolean)
      */
@@ -219,7 +219,7 @@ public interface JmmDNS extends Closeable {
      * @param timeout
      *            timeout in milliseconds. Typical timeout should be 5s.
      * @param persistent
-     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new information is received.
      * @return list of service info. If no service info is found the list is empty.
      * @see javax.jmdns.JmDNS#getServiceInfo(java.lang.String, java.lang.String, boolean, long)
      */
@@ -244,7 +244,7 @@ public interface JmmDNS extends Closeable {
      * @param name
      *            unqualified service name, such as <code>foobar</code> .
      * @param persistent
-     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new information is received.
      * @see javax.jmdns.JmDNS#requestServiceInfo(java.lang.String, java.lang.String, boolean)
      */
     public abstract void requestServiceInfo(String type, String name, boolean persistent);
@@ -270,7 +270,7 @@ public interface JmmDNS extends Closeable {
      * @param name
      *            unqualified service name, such as <code>foobar</code> .
      * @param persistent
-     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new information is received.
      * @param timeout
      *            timeout in milliseconds
      * @see javax.jmdns.JmDNS#requestServiceInfo(java.lang.String, java.lang.String, boolean, long)

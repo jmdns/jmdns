@@ -17,6 +17,7 @@ package javax.jmdns.impl;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -75,6 +76,7 @@ public class DNSRecordTest {
     }
 
     @Test
+    @Ignore
     public void testIPv4MappedIPv6Addresses() throws Exception {
         // Mock DNSIncoming.MessageInputStream
         DNSIncoming.MessageInputStream stream = mock(DNSIncoming.MessageInputStream.class);

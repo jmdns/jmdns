@@ -11,8 +11,10 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +36,7 @@ import javax.jmdns.impl.util.ByteWrangler;
  * @author Arthur van Hoff, Rick Blair, Werner Randelshofer, Pierre Frisch
  */
 public abstract class DNSRecord extends DNSEntry {
-    private static Logger logger = LoggerFactory.getLogger(DNSRecord.class);
+    private static final Logger logger = LoggerFactory.getLogger(DNSRecord.class);
 
     private int           _ttl;
     private long          _created;
@@ -109,7 +111,7 @@ public abstract class DNSRecord extends DNSEntry {
             }
             return false;
         } catch (ArrayIndexOutOfBoundsException e) {
-            logger.warn("suppressedBy() message " + msg + " exception ", e);
+            logger.warn("suppressedBy() message {} exception ", msg, e);
             // msg.print(true);
             return false;
         }
@@ -119,10 +121,7 @@ public abstract class DNSRecord extends DNSEntry {
      * True if this record would be suppressed by an answer. This is the case if this record would not have a significantly longer TTL.
      */
     boolean suppressedBy(DNSRecord other) {
-        if (this.equals(other) && (other._ttl > _ttl / 2)) {
-            return true;
-        }
-        return false;
+        return this.equals(other) && (other._ttl > _ttl / 2);
     }
 
     /**
@@ -225,7 +224,7 @@ public abstract class DNSRecord extends DNSEntry {
                     System.arraycopy(tempbuffer, 12, buffer, 0, 4);
                 }
                 int length = buffer.length;
-                out.writeBytes(buffer, 0, length);
+                out.writeBytes(buffer, length);
             }
         }
 
@@ -270,7 +269,7 @@ public abstract class DNSRecord extends DNSEntry {
                     }
                 }
                 int length = buffer.length;
-                out.writeBytes(buffer, 0, length);
+                out.writeBytes(buffer, length);
             }
         }
 
@@ -292,7 +291,7 @@ public abstract class DNSRecord extends DNSEntry {
      * Address record.
      */
     public static abstract class Address extends DNSRecord {
-        private static Logger logger1 = LoggerFactory.getLogger(Address.class);
+        private static final Logger logger1 = LoggerFactory.getLogger(Address.class);
 
         InetAddress           _addr;
 
@@ -324,10 +323,9 @@ public abstract class DNSRecord extends DNSEntry {
         @Override
         boolean sameValue(DNSRecord other) {
             try {
-                if (!(other instanceof Address)) {
+                if (!(other instanceof Address address)) {
                     return false;
                 }
-                Address address = (Address) other;
                 if ((this.getAddress() == null) && (address.getAddress() != null)) {
                     return false;
                 }
@@ -354,8 +352,8 @@ public abstract class DNSRecord extends DNSEntry {
         protected void toByteArray(DataOutputStream dout) throws IOException {
             super.toByteArray(dout);
             byte[] buffer = this.getAddress().getAddress();
-            for (int i = 0; i < buffer.length; i++) {
-                dout.writeByte(buffer[i]);
+            for (byte b : buffer) {
+                dout.writeByte(b);
             }
         }
 
@@ -419,7 +417,7 @@ public abstract class DNSRecord extends DNSEntry {
         }
 
         @Override
-        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException {
+        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) {
             return out;
         }
 
@@ -429,9 +427,8 @@ public abstract class DNSRecord extends DNSEntry {
          */
         @Override
         public ServiceInfo getServiceInfo(boolean persistent) {
-            ServiceInfoImpl info = new ServiceInfoImpl(this.getQualifiedNameMap(), 0, 0, 0, persistent, (byte[]) null);
-            // info.setAddress(_addr); This is done in the sub class so we don't have to test for class type
-            return info;
+            // info.setAddress(_addr); This is done in the subclass so we don't have to test for class type
+            return new ServiceInfoImpl(this.getQualifiedNameMap(), 0, 0, 0, persistent, (byte[]) null);
         }
 
         /*
@@ -487,14 +484,13 @@ public abstract class DNSRecord extends DNSEntry {
 
         @Override
         boolean sameValue(DNSRecord other) {
-            if (!(other instanceof Pointer)) {
+            if (!(other instanceof Pointer pointer)) {
                 return false;
             }
-            Pointer pointer = (Pointer) other;
             if ((_alias == null) && (pointer._alias != null)) {
                 return false;
             }
-            return _alias.equals(pointer._alias);
+            return Objects.equals(_alias, pointer._alias);
         }
 
         @Override
@@ -521,7 +517,7 @@ public abstract class DNSRecord extends DNSEntry {
         }
 
         @Override
-        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException {
+        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) {
             return out;
         }
 
@@ -567,7 +563,7 @@ public abstract class DNSRecord extends DNSEntry {
         protected void toString(final StringBuilder sb) {
             super.toString(sb);
             sb.append(" alias: '")
-                .append(_alias != null ? _alias.toString() : "null")
+                .append(_alias != null ? _alias : "null")
                 .append('\'');
         }
 
@@ -577,7 +573,7 @@ public abstract class DNSRecord extends DNSEntry {
         // private static Logger logger = LoggerFactory.getLogger(Text.class);
         private final byte[] _text;
 
-        public Text(String name, DNSRecordClass recordClass, boolean unique, int ttl, byte text[]) {
+        public Text(String name, DNSRecordClass recordClass, boolean unique, int ttl, byte[] text) {
             super(name, DNSRecordType.TYPE_TXT, recordClass, unique, ttl);
             this._text = (text != null && text.length > 0 ? text : ByteWrangler.EMPTY_TXT);
         }
@@ -591,19 +587,18 @@ public abstract class DNSRecord extends DNSEntry {
 
         @Override
         void write(MessageOutputStream out) {
-            out.writeBytes(_text, 0, _text.length);
+            out.writeBytes(_text, _text.length);
         }
 
         @Override
         boolean sameValue(DNSRecord other) {
-            if (!(other instanceof Text)) {
+            if (!(other instanceof Text txt)) {
                 return false;
             }
-            Text txt = (Text) other;
             if ((_text == null) && (txt._text != null)) {
                 return false;
             }
-            if (txt._text.length != _text.length) {
+            if (Objects.requireNonNull(txt._text).length != _text.length) {
                 return false;
             }
             for (int i = _text.length; i-- > 0;) {
@@ -637,7 +632,7 @@ public abstract class DNSRecord extends DNSEntry {
         }
 
         @Override
-        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException {
+        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) {
             return out;
         }
 
@@ -672,7 +667,7 @@ public abstract class DNSRecord extends DNSEntry {
 
             final String text = ByteWrangler.readUTF(_text);
 
-            if (text != null) {
+            if (!text.isEmpty()) {
                 // if the text is longer than 20 characters cut it to 17 chars
                 // and add "..." at the end
                 if (20 < text.length()) {
@@ -712,7 +707,7 @@ public abstract class DNSRecord extends DNSEntry {
                 out.writeName(_server);
             } else {
                 // [PJYF Nov 13 2010] Do we still need this? This looks really bad. All label are supposed to start by a length.
-                out.writeUTF(_server, 0, _server.length());
+                out.writeUTF(_server, _server.length());
 
                 // add a zero byte to the end just to be safe, this is the strange form
                 // used by the BonjourConformanceTest
@@ -727,7 +722,7 @@ public abstract class DNSRecord extends DNSEntry {
             dout.writeShort(_weight);
             dout.writeShort(_port);
             try {
-                dout.write(_server.getBytes("UTF-8"));
+                dout.write(_server.getBytes(StandardCharsets.UTF_8));
             } catch (UnsupportedEncodingException exception) {
                 /* UTF-8 is always present */
             }
@@ -760,10 +755,9 @@ public abstract class DNSRecord extends DNSEntry {
 
         @Override
         boolean sameValue(DNSRecord other) {
-            if (!(other instanceof Service)) {
+            if (!(other instanceof Service s)) {
                 return false;
             }
-            Service s = (Service) other;
             return (_priority == s._priority) && (_weight == s._weight) && (_port == s._port) && _server.equals(s._server);
         }
 
@@ -782,7 +776,7 @@ public abstract class DNSRecord extends DNSEntry {
                 // This block is useful for debugging race conditions when jmDNS is responding to itself.
                 try {
                     if (dns.getInetAddress().equals(getRecordSource())) {
-                        logger.warn("Got conflicting probe from ourselves\nincoming: {}\nlocal   : {}", this.toString(), localService.toString());
+                        logger.warn("Got conflicting probe from ourselves\nincoming: {}\nlocal   : {}", this, localService);
                     }
                 } catch (IOException e) {
                     logger.warn("IOException", e);
@@ -871,16 +865,6 @@ public abstract class DNSRecord extends DNSEntry {
         public ServiceEvent getServiceEvent(JmDNSImpl dns) {
             ServiceInfo info = this.getServiceInfo(false);
             ((ServiceInfoImpl) info).setDns(dns);
-            // String domainName = "";
-            // String serviceName = this.getServer();
-            // int index = serviceName.indexOf('.');
-            // if (index > 0)
-            // {
-            // serviceName = this.getServer().substring(0, index);
-            // if (index + 1 < this.getServer().length())
-            // domainName = this.getServer().substring(index + 1);
-            // }
-            // return new ServiceEventImpl(dns, domainName, serviceName, info);
             return new ServiceEventImpl(dns, info.getType(), info.getName(), info);
 
         }
@@ -922,7 +906,7 @@ public abstract class DNSRecord extends DNSEntry {
          * @see javax.jmdns.impl.DNSRecord#addAnswer(javax.jmdns.impl.JmDNSImpl, javax.jmdns.impl.DNSIncoming, java.net.InetAddress, int, javax.jmdns.impl.DNSOutgoing)
          */
         @Override
-        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException {
+        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) {
             return out;
         }
 
@@ -950,17 +934,16 @@ public abstract class DNSRecord extends DNSEntry {
          */
         @Override
         boolean sameValue(DNSRecord other) {
-            if (!(other instanceof HostInformation)) {
+            if (!(other instanceof HostInformation hinfo)) {
                 return false;
             }
-            HostInformation hinfo = (HostInformation) other;
             if ((_cpu == null) && (hinfo._cpu != null)) {
                 return false;
             }
             if ((_os == null) && (hinfo._os != null)) {
                 return false;
             }
-            return _cpu.equals(hinfo._cpu) && _os.equals(hinfo._os);
+            return Objects.equals(_cpu, hinfo._cpu) && Objects.equals(_os, hinfo._os);
         }
 
         /*
@@ -979,7 +962,7 @@ public abstract class DNSRecord extends DNSEntry {
         @Override
         void write(MessageOutputStream out) {
             String hostInfo = _cpu + " " + _os;
-            out.writeUTF(hostInfo, 0, hostInfo.length());
+            out.writeUTF(hostInfo, hostInfo.length());
         }
 
         /*
@@ -988,7 +971,7 @@ public abstract class DNSRecord extends DNSEntry {
          */
         @Override
         public ServiceInfo getServiceInfo(boolean persistent) {
-            Map<String, String> hinfo = new HashMap<String, String>(2);
+            Map<String, String> hinfo = new HashMap<>(2);
             hinfo.put("cpu", _cpu);
             hinfo.put("os", _os);
             return new ServiceInfoImpl(this.getQualifiedNameMap(), 0, 0, 0, persistent, hinfo);

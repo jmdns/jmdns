@@ -24,9 +24,6 @@ import javax.jmdns.impl.constants.DNSRecordType;
  */
 public class TypeResolver extends DNSResolverTask {
 
-    /**
-     * @param jmDNSImpl
-     */
     public TypeResolver(JmDNSImpl jmDNSImpl) {
         super(jmDNSImpl);
     }

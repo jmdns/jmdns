@@ -18,20 +18,9 @@ import javax.jmdns.impl.constants.DNSConstants;
  */
 public abstract class DNSMessage {
 
-    /**
-     *
-     */
     public static final boolean       MULTICAST = true;
 
-    /**
-     *
-     */
     public static final boolean       UNICAST   = false;
-
-    // protected DatagramPacket _packet;
-    // protected int _off;
-    // protected int _len;
-    // protected byte[] _data;
 
     private int                       _id;
 
@@ -57,28 +46,11 @@ public abstract class DNSMessage {
         _flags = flags;
         _id = id;
         _multicast = multicast;
-        _questions = Collections.synchronizedList(new LinkedList<DNSQuestion>());
-        _answers = Collections.synchronizedList(new LinkedList<DNSRecord>());
-        _authoritativeAnswers = Collections.synchronizedList(new LinkedList<DNSRecord>());
-        _additionals = Collections.synchronizedList(new LinkedList<DNSRecord>());
+        _questions = Collections.synchronizedList(new LinkedList<>());
+        _answers = Collections.synchronizedList(new LinkedList<>());
+        _authoritativeAnswers = Collections.synchronizedList(new LinkedList<>());
+        _additionals = Collections.synchronizedList(new LinkedList<>());
     }
-
-    // public DatagramPacket getPacket() {
-    // return _packet;
-    // }
-    //
-    // public int getOffset() {
-    // return _off;
-    // }
-    //
-    // public int getLength() {
-    // return _len;
-    // }
-    //
-    // public byte[] getData() {
-    // if ( _data == null ) _data = new byte[DNSConstants.MAX_MSG_TYPICAL];
-    // return _data;
-    // }
 
     /**
      * @return message id
@@ -132,7 +104,7 @@ public abstract class DNSMessage {
     }
 
     public List<DNSRecord> getAllAnswers() {
-        List<DNSRecord> aList = new ArrayList<DNSRecord>(_answers.size() + _authoritativeAnswers.size() + _additionals.size());
+        List<DNSRecord> aList = new ArrayList<>(_answers.size() + _authoritativeAnswers.size() + _additionals.size());
         aList.addAll(_answers);
         aList.addAll(_authoritativeAnswers);
         aList.addAll(_additionals);
@@ -307,13 +279,13 @@ public abstract class DNSMessage {
             }
             sb.append(Integer.toHexString(off));
             sb.append(':');
-            int index = 0;
+            int index;
             for (index = 0; index < n; index++) {
                 if ((index % 8) == 0) {
                     sb.append(' ');
                 }
                 sb.append(Integer.toHexString((data[off + index] & 0xF0) >> 4));
-                sb.append(Integer.toHexString((data[off + index] & 0x0F) >> 0));
+                sb.append(Integer.toHexString((data[off + index] & 0x0F)));
             }
             // for incomplete lines
             if (index < 32) {

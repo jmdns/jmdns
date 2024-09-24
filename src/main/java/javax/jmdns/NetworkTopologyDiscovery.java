@@ -53,13 +53,13 @@ public interface NetworkTopologyDiscovery {
     /**
      * NetworkTopologyDiscovery.Factory enable the creation of new instance of NetworkTopologyDiscovery.
      */
-    public static final class Factory {
+    final class Factory {
         private static volatile NetworkTopologyDiscovery _instance;
 
         /**
          * This interface defines a delegate to the NetworkTopologyDiscovery.Factory class to enable subclassing.
          */
-        public static interface ClassDelegate {
+        public interface ClassDelegate {
 
             /**
              * Allows the delegate the opportunity to construct and return a different NetworkTopologyDiscovery.
@@ -68,10 +68,10 @@ public interface NetworkTopologyDiscovery {
              * @see #classDelegate()
              * @see #setClassDelegate(ClassDelegate anObject)
              */
-            public NetworkTopologyDiscovery newNetworkTopologyDiscovery();
+            NetworkTopologyDiscovery newNetworkTopologyDiscovery();
         }
 
-        private static final AtomicReference<Factory.ClassDelegate> _databaseClassDelegate = new AtomicReference<Factory.ClassDelegate>();
+        private static final AtomicReference<Factory.ClassDelegate> _databaseClassDelegate = new AtomicReference<>();
 
         private Factory() {
             super();

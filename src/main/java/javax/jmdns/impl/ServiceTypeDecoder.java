@@ -28,8 +28,6 @@ class ServiceTypeDecoder {
     static Map<Fields, String> decodeQualifiedNameMapForType(String type) {
         int index;
 
-        String casePreservedType = type;
-
         String aType = type.toLowerCase();
         String application = aType;
         String protocol = "";
@@ -39,29 +37,29 @@ class ServiceTypeDecoder {
 
         if (aType.contains("in-addr.arpa") || aType.contains("ip6.arpa")) {
             index = (aType.contains("in-addr.arpa") ? aType.indexOf("in-addr.arpa") : aType.indexOf("ip6.arpa"));
-            name = ServiceInfoImpl.removeSeparators(casePreservedType.substring(0, index));
-            domain = casePreservedType.substring(index);
+            name = ServiceInfoImpl.removeSeparators(type.substring(0, index));
+            domain = type.substring(index);
             application = "";
         } else {
-            Matcher subType = SUBTYPE_PATTERN.matcher(casePreservedType);
+            Matcher subType = SUBTYPE_PATTERN.matcher(type);
             if (subType.matches()) {
-                name = originalCase(casePreservedType, subType, 2);
-                subtype = originalCase(casePreservedType, subType, 3);
-                application = originalCase(casePreservedType, subType, 4);
-                protocol = originalCase(casePreservedType, subType, 5);
-                domain = originalCase(casePreservedType, subType, 6);
+                name = originalCase(type, subType, 2);
+                subtype = originalCase(type, subType, 3);
+                application = originalCase(type, subType, 4);
+                protocol = originalCase(type, subType, 5);
+                domain = originalCase(type, subType, 6);
             } else {
-                Matcher normalMatcher = PATTERN.matcher(casePreservedType);
+                Matcher normalMatcher = PATTERN.matcher(type);
                 if (normalMatcher.matches()) {
-                    name = originalCase(casePreservedType, normalMatcher, 2);
-                    application = originalCase(casePreservedType, normalMatcher, 3);
-                    protocol = originalCase(casePreservedType, normalMatcher, 4);
-                    domain = originalCase(casePreservedType, normalMatcher, 5);
+                    name = originalCase(type, normalMatcher, 2);
+                    application = originalCase(type, normalMatcher, 3);
+                    protocol = originalCase(type, normalMatcher, 4);
+                    domain = originalCase(type, normalMatcher, 5);
                 } else {
-                    Matcher aTypeMatcher = TYPE_A_PATTERN.matcher(casePreservedType);
+                    Matcher aTypeMatcher = TYPE_A_PATTERN.matcher(type);
                     if (aTypeMatcher.matches()) {
-                        name = originalCase(casePreservedType, aTypeMatcher, 1);
-                        domain = originalCase(casePreservedType, aTypeMatcher, 2);
+                        name = originalCase(type, aTypeMatcher, 1);
+                        domain = originalCase(type, aTypeMatcher, 2);
                         application = "";
                     }
                 }

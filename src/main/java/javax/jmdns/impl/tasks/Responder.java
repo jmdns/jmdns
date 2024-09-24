@@ -104,8 +104,8 @@ public class Responder extends DNSTask {
         this.getDns().respondToQuery(_in);
 
         // We use these sets to prevent duplicate records
-        Set<DNSQuestion> questions = new HashSet<DNSQuestion>();
-        Set<DNSRecord> answers = new HashSet<DNSRecord>();
+        Set<DNSQuestion> questions = new HashSet<>();
+        Set<DNSRecord> answers = new HashSet<>();
 
         if (this.getDns().isAnnounced()) {
             try {

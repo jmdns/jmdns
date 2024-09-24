@@ -36,7 +36,7 @@ public class NetworkTopologyDiscoveryImpl implements NetworkTopologyDiscovery {
      */
     @Override
     public InetAddress[] getInetAddresses() {
-        Set<InetAddress> result = new HashSet<InetAddress>();
+        Set<InetAddress> result = new HashSet<>();
         try {
 
             for (Enumeration<NetworkInterface> nifs = NetworkInterface.getNetworkInterfaces(); nifs.hasMoreElements();) {
@@ -52,7 +52,7 @@ public class NetworkTopologyDiscoveryImpl implements NetworkTopologyDiscovery {
         } catch (SocketException se) {
             logger.warn("Error while fetching network interfaces addresses: ", se);
         }
-        return result.toArray(new InetAddress[result.size()]);
+        return result.toArray(new InetAddress[0]);
     }
 
     /*
@@ -88,11 +88,7 @@ public class NetworkTopologyDiscoveryImpl implements NetworkTopologyDiscovery {
                 return false;
             }
 
-            if (networkInterface.isLoopback()) {
-                return false;
-            }
-
-            return true;
+            return !networkInterface.isLoopback();
         } catch (Exception exception) {
             return false;
         }

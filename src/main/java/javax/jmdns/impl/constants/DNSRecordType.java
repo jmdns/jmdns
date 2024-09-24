@@ -249,7 +249,7 @@ public enum DNSRecordType {
      */
     TYPE_ANY("any", 255);
 
-    private static Logger logger = LoggerFactory.getLogger(DNSRecordType.class);
+    private static final Logger logger = LoggerFactory.getLogger(DNSRecordType.class);
 
     private final String  _externalName;
 

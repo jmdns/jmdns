@@ -11,7 +11,6 @@ import javax.jmdns.impl.constants.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +20,7 @@ import java.util.Map;
  * @author Arthur van Hoff, Werner Randelshofer, Pierre Frisch, Daniel Bobbert
  */
 public final class DNSIncoming extends DNSMessage {
-    private static Logger logger                                = LoggerFactory.getLogger(DNSIncoming.class);
+    private static final Logger logger                                = LoggerFactory.getLogger(DNSIncoming.class);
 
     // This is a hack to handle a bug in the BonjourConformanceTest
     // It is sending out target strings that don't follow the "domain name" format.
@@ -41,7 +40,7 @@ public final class DNSIncoming extends DNSMessage {
          */
         public MessageInputStream(byte[] buffer, int offset, int length) {
             super(buffer, offset, length);
-            _names = new HashMap<Integer, String>();
+            _names = new HashMap<>();
         }
 
         public int readByte() {
@@ -61,7 +60,7 @@ public final class DNSIncoming extends DNSMessage {
         }
 
         public byte[] readBytes(int len) {
-            byte bytes[] = new byte[len];
+            byte[] bytes = new byte[len];
             this.read(bytes, 0, len);
             return bytes;
         }
@@ -109,7 +108,7 @@ public final class DNSIncoming extends DNSMessage {
         }
 
         public String readName() {
-            Map<Integer, Integer> names = new HashMap<Integer, Integer>();
+            Map<Integer, Integer> names = new HashMap<>();
             final StringBuilder sb = new StringBuilder();
             boolean finished = false;
             while (!finished) {
@@ -250,12 +249,10 @@ public final class DNSIncoming extends DNSMessage {
         } catch (Exception e) {
             logger.warn("Corrupted DNSIncoming message. Enable debug level logging to see the full DNSIncoming() message.", e);
             if (logger.isDebugEnabled()) {
-                logger.debug("DNSIncoming() dump " + this.print(true) + "\n exception", e);
+                logger.debug("DNSIncoming() dump {}\n exception", this.print(true), e);
             }
             // This is ugly but some JVM don't implement the cause on IOException
-            IOException ioe = new IOException("DNSIncoming corrupted message");
-            ioe.initCause(e);
-            throw ioe;
+            throw new IOException("DNSIncoming corrupted message", e);
         } finally {
             try {
                 _messageInputStream.close();
@@ -355,9 +352,9 @@ public final class DNSIncoming extends DNSMessage {
                 break;
             case TYPE_CNAME:
             case TYPE_PTR:
-                String service = "";
+                String service;
                 service = _messageInputStream.readName();
-                if (service.length() > 0) {
+                if (!service.isEmpty()) {
                     rec = new DNSRecord.Pointer(domain, recordClass, unique, ttl, service);
                 } else {
                     logger.warn("PTR record of class: {}, there was a problem reading the service name of the answer for domain: {}", recordClass, domain);
@@ -370,7 +367,7 @@ public final class DNSIncoming extends DNSMessage {
                 int priority = _messageInputStream.readUnsignedShort();
                 int weight = _messageInputStream.readUnsignedShort();
                 int port = _messageInputStream.readUnsignedShort();
-                String target = "";
+                String target;
                 // This is a hack to handle a bug in the BonjourConformanceTest
                 // It is sending out target strings that don't follow the "domain name" format.
                 if (USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET) {
@@ -396,8 +393,8 @@ public final class DNSIncoming extends DNSMessage {
                     _senderUDPPayload = recordClassIndex;
                     while (_messageInputStream.available() > 0) {
                         // Read RDData
-                        int optionCodeInt = 0;
-                        DNSOptionCode optionCode = null;
+                        int optionCodeInt;
+                        DNSOptionCode optionCode;
                         if (_messageInputStream.available() >= 2) {
                             optionCodeInt = _messageInputStream.readUnsignedShort();
                             optionCode = DNSOptionCode.resultCodeForFlags(optionCodeInt);
@@ -405,7 +402,7 @@ public final class DNSIncoming extends DNSMessage {
                             logger.warn("There was a problem reading the OPT record. Ignoring.");
                             break;
                         }
-                        int optionLength = 0;
+                        int optionLength;
                         if (_messageInputStream.available() >= 2) {
                             optionLength = _messageInputStream.readUnsignedShort();
                         } else {
@@ -448,6 +445,7 @@ public final class DNSIncoming extends DNSMessage {
                                         ownerPassword = new byte[] { optiondata[14], optiondata[15], optiondata[16], optiondata[17], optiondata[18], optiondata[19], optiondata[20], optiondata[21] };
                                     }
                                 } catch (Exception exception) {
+                                    assert optiondata != null;
                                     logger.warn("Malformed OPT answer. Option code: Owner data: {}", this._hexString(optiondata));
                                 }
                                 if (logger.isDebugEnabled()) {

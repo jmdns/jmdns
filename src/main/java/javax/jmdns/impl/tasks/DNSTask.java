@@ -80,18 +80,23 @@ public abstract class DNSTask extends TimerTask {
         try {
             newOut.addQuestion(rec);
         } catch (final IOException e) {
-            int flags = newOut.getFlags();
-            boolean multicast = newOut.isMulticast();
-            int maxUDPPayload = newOut.getMaxUDPPayload();
-            int id = newOut.getId();
-
-            newOut.setFlags(flags | DNSConstants.FLAGS_TC);
-            newOut.setId(id);
-            this._jmDNSImpl.send(newOut);
-
-            newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
+            newOut = getDnsOutgoing(newOut);
             newOut.addQuestion(rec);
         }
+        return newOut;
+    }
+
+    private DNSOutgoing getDnsOutgoing(DNSOutgoing newOut) throws IOException {
+        int flags = newOut.getFlags();
+        boolean multicast = newOut.isMulticast();
+        int maxUDPPayload = newOut.getMaxUDPPayload();
+        int id = newOut.getId();
+
+        newOut.setFlags(flags | DNSConstants.FLAGS_TC);
+        newOut.setId(id);
+        this._jmDNSImpl.send(newOut);
+
+        newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
         return newOut;
     }
 
@@ -112,16 +117,7 @@ public abstract class DNSTask extends TimerTask {
         try {
             newOut.addAnswer(in, rec);
         } catch (final IOException e) {
-            int flags = newOut.getFlags();
-            boolean multicast = newOut.isMulticast();
-            int maxUDPPayload = newOut.getMaxUDPPayload();
-            int id = newOut.getId();
-
-            newOut.setFlags(flags | DNSConstants.FLAGS_TC);
-            newOut.setId(id);
-            this._jmDNSImpl.send(newOut);
-
-            newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
+            newOut = getDnsOutgoing(newOut);
             newOut.addAnswer(in, rec);
         }
         return newOut;
@@ -143,16 +139,7 @@ public abstract class DNSTask extends TimerTask {
         try {
             newOut.addAnswer(rec, now);
         } catch (final IOException e) {
-            int flags = newOut.getFlags();
-            boolean multicast = newOut.isMulticast();
-            int maxUDPPayload = newOut.getMaxUDPPayload();
-            int id = newOut.getId();
-
-            newOut.setFlags(flags | DNSConstants.FLAGS_TC);
-            newOut.setId(id);
-            this._jmDNSImpl.send(newOut);
-
-            newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
+            newOut = getDnsOutgoing(newOut);
             newOut.addAnswer(rec, now);
         }
         return newOut;
@@ -173,23 +160,14 @@ public abstract class DNSTask extends TimerTask {
         try {
             newOut.addAuthorativeAnswer(rec);
         } catch (final IOException e) {
-            int flags = newOut.getFlags();
-            boolean multicast = newOut.isMulticast();
-            int maxUDPPayload = newOut.getMaxUDPPayload();
-            int id = newOut.getId();
-
-            newOut.setFlags(flags | DNSConstants.FLAGS_TC);
-            newOut.setId(id);
-            this._jmDNSImpl.send(newOut);
-
-            newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
+            newOut = getDnsOutgoing(newOut);
             newOut.addAuthorativeAnswer(rec);
         }
         return newOut;
     }
 
     /**
-     * Add an additional answer to the record. Omit if there is no room.
+     * Add an answer to the record. Omit if there is no room.
      * 
      * @param out
      *            outgoing message
@@ -205,16 +183,7 @@ public abstract class DNSTask extends TimerTask {
         try {
             newOut.addAdditionalAnswer(in, rec);
         } catch (final IOException e) {
-            int flags = newOut.getFlags();
-            boolean multicast = newOut.isMulticast();
-            int maxUDPPayload = newOut.getMaxUDPPayload();
-            int id = newOut.getId();
-
-            newOut.setFlags(flags | DNSConstants.FLAGS_TC);
-            newOut.setId(id);
-            this._jmDNSImpl.send(newOut);
-
-            newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
+            newOut = getDnsOutgoing(newOut);
             newOut.addAdditionalAnswer(in, rec);
         }
         return newOut;

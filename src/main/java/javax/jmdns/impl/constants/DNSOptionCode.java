@@ -15,11 +15,11 @@ public enum DNSOptionCode {
      */
     Unknown("Unknown", 65535),
     /**
-     * Long-Lived Queries Option [http://files.dns-sd.org/draft-sekar-dns-llq.txt]
+     * Long-Lived Queries Option [<a href="http://files.dns-sd.org/draft-sekar-dns-llq.txt">...</a>]
      */
     LLQ("LLQ", 1),
     /**
-     * Update Leases Option [http://files.dns-sd.org/draft-sekar-dns-ul.txt]
+     * Update Leases Option [<a href="http://files.dns-sd.org/draft-sekar-dns-ul.txt">...</a>]
      */
     UL("UL", 2),
     /**

@@ -26,7 +26,7 @@ import javax.jmdns.ServiceTypeListener;
 public class ListenerStatus<T extends EventListener> {
 
     public static class ServiceListenerStatus extends ListenerStatus<ServiceListener> {
-        private static Logger logger = LoggerFactory.getLogger(ServiceListenerStatus.class);
+        private static final Logger logger = LoggerFactory.getLogger(ServiceListenerStatus.class);
 
         private final ConcurrentMap<String, ServiceInfo> _addedServices;
 
@@ -38,7 +38,7 @@ public class ListenerStatus<T extends EventListener> {
          */
         public ServiceListenerStatus(ServiceListener listener, boolean synch) {
             super(listener, synch);
-            _addedServices = new ConcurrentHashMap<String, ServiceInfo>(32);
+            _addedServices = new ConcurrentHashMap<>(32);
         }
 
         /**
@@ -115,7 +115,7 @@ public class ListenerStatus<T extends EventListener> {
             }
         }
 
-        private static final boolean _sameInfo(ServiceInfo info, ServiceInfo lastInfo) {
+        private static boolean _sameInfo(ServiceInfo info, ServiceInfo lastInfo) {
             if (info == null) return false;
             if (lastInfo == null) return false;
             if (!info.equals(lastInfo)) return false;
@@ -126,9 +126,7 @@ public class ListenerStatus<T extends EventListener> {
                 if (text[i] != lastText[i]) return false;
             }
 
-            if (!info.hasSameAddresses(lastInfo)) return false;
-
-            return true;
+            return info.hasSameAddresses(lastInfo);
         }
 
         /*
@@ -145,7 +143,7 @@ public class ListenerStatus<T extends EventListener> {
             } else {
                 sb.append(" (");
                 for (final String service : _addedServices.keySet()) {
-                    sb.append(service + ", ");
+                    sb.append(service).append(", ");
                 }
                 sb.append(") ");
             }
@@ -156,7 +154,7 @@ public class ListenerStatus<T extends EventListener> {
     }
 
     public static class ServiceTypeListenerStatus extends ListenerStatus<ServiceTypeListener> {
-        private static Logger                       logger = LoggerFactory.getLogger(ServiceTypeListenerStatus.class);
+        private static final Logger                       logger = LoggerFactory.getLogger(ServiceTypeListenerStatus.class);
 
         private final ConcurrentMap<String, String> _addedTypes;
 
@@ -168,7 +166,7 @@ public class ListenerStatus<T extends EventListener> {
          */
         public ServiceTypeListenerStatus(ServiceTypeListener listener, boolean synch) {
             super(listener, synch);
-            _addedTypes = new ConcurrentHashMap<String, String>(32);
+            _addedTypes = new ConcurrentHashMap<>(32);
         }
 
         /**
@@ -217,7 +215,7 @@ public class ListenerStatus<T extends EventListener> {
             } else {
                 sb.append(" (");
                 for (final String type : _addedTypes.keySet()) {
-                    sb.append(type + ", ");
+                    sb.append(type).append(", ");
                 }
                 sb.append(") ");
             }

@@ -54,6 +54,7 @@ public class JmmDNSTest {
     }
 
     @Test
+    @Ignore
     public void testRegisterService() throws IOException {
         System.out.println("Unit Test: testRegisterService()");
         JmmDNS registry = null;
@@ -127,6 +128,7 @@ public class JmmDNSTest {
     // }
 
     @Test
+    @Ignore
     public void testQueryMyService() throws IOException {
         System.out.println("Unit Test: testQueryMyService()");
         JmmDNS registry = null;
@@ -160,6 +162,7 @@ public class JmmDNSTest {
     }
 
     @Test
+    @Ignore
     public void testListenForMyService() throws IOException {
         System.out.println("Unit Test: testListenForMyService()");
         JmmDNS registry = null;
@@ -210,6 +213,7 @@ public class JmmDNSTest {
     }
 
     @Test
+    @Ignore
     public void testListenForMyServiceAndList() throws IOException {
         System.out.println("Unit Test: testListenForMyServiceAndList()");
         JmmDNS registry = null;

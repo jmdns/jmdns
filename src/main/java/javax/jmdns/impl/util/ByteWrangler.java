@@ -11,13 +11,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class contains all the byte shifting 
- * 
+ * This class contains all the byte shifting
+ *
  * @author Victor Toni
  *
  */
 public class ByteWrangler {
-    private static Logger logger = LoggerFactory.getLogger(ByteWrangler.class);
+    private static final Logger logger = LoggerFactory.getLogger(ByteWrangler.class);
 
     /**
      * Maximum number of bytes a value can consist of.
@@ -42,7 +42,7 @@ public class ByteWrangler {
      * FIXME: Should this be exported as a method since it could change externally???
      */
     public final static byte[] EMPTY_TXT = new byte[] { 0 };
-    
+
 
     /**
      * Charset used to convert Strings to/from wire bytes: UTF-8
@@ -81,7 +81,7 @@ public class ByteWrangler {
                 // error case
                 if (
                         (len == 0) ||                       // no date
-                        (off + len > textBytes.length)      // length of data would exceed array bounds
+                                (off + len > textBytes.length)      // length of data would exceed array bounds
                 ) {
                     properties.clear();
                     break;
@@ -120,21 +120,23 @@ public class ByteWrangler {
                     Object val = entry.getValue();
                     final ByteArrayOutputStream out2 = new ByteArrayOutputStream(100);
                     writeUTF(out2, key);
-                    if (val == null) {
-                        // Skip
-                    } else if (val instanceof String) {
-                        out2.write('=');
-                        writeUTF(out2, (String) val);
-                    } else if (val instanceof byte[]) {
-                        byte[] bval = (byte[]) val;
-                        if (bval.length > 0) {
-                            out2.write('=');
-                            out2.write(bval, 0, bval.length);
-                        } else {
-                            val = null;
+                    switch (val) {
+                        case null -> {
+                            // Skip
                         }
-                    } else {
-                        throw new IllegalArgumentException("Invalid property value: " + val);
+                        case String s -> {
+                            out2.write('=');
+                            writeUTF(out2, s);
+                        }
+                        case byte[] byteValue -> {
+                            if (byteValue.length > 0) {
+                                out2.write('=');
+                                out2.write(byteValue, 0, byteValue.length);
+                            } else {
+                                val = null;
+                            }
+                        }
+                        default -> throw new IllegalArgumentException("Invalid property value: " + val);
                     }
                     byte[] data = out2.toByteArray();
                     if (isValueTooLarge(data, key + (val == null ? "" : "=" + val))) {

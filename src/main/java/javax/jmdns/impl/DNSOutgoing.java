@@ -53,15 +53,15 @@ public final class DNSOutgoing extends DNSMessage {
             }
         }
 
-        public void writeBytes(byte data[]) {
+        public void writeBytes(byte[] data) {
             if (data != null) {
-                writeBytes(data, 0, data.length);
+                writeBytes(data, data.length);
             }
         }
 
-        void writeBytes(byte data[], int off, int len) {
+        void writeBytes(byte[] data, int len) {
             for (int i = 0; i < len; i++) {
-                writeByte(data[off + i]);
+                writeByte(data[i]);
             }
         }
 
@@ -75,11 +75,11 @@ public final class DNSOutgoing extends DNSMessage {
             writeShort(value);
         }
 
-        void writeUTF(String str, int off, int len) {
+        void writeUTF(String str, int len) {
             // compute utf length
             int utflen = 0;
             for (int i = 0; i < len; i++) {
-                int ch = str.charAt(off + i);
+                int ch = str.charAt(i);
                 if ((ch >= 0x0001) && (ch <= 0x007F)) {
                     utflen += 1;
                 } else {
@@ -94,17 +94,17 @@ public final class DNSOutgoing extends DNSMessage {
             writeByte(utflen);
             // write utf data
             for (int i = 0; i < len; i++) {
-                int ch = str.charAt(off + i);
+                int ch = str.charAt(i);
                 if ((ch >= 0x0001) && (ch <= 0x007F)) {
                     writeByte(ch);
                 } else {
                     if (ch > 0x07FF) {
                         writeByte(0xE0 | ((ch >> 12) & 0x0F));
                         writeByte(0x80 | ((ch >> 6) & 0x3F));
-                        writeByte(0x80 | ((ch >> 0) & 0x3F));
+                        writeByte(0x80 | ((ch) & 0x3F));
                     } else {
                         writeByte(0xC0 | ((ch >> 6) & 0x1F));
-                        writeByte(0x80 | ((ch >> 0) & 0x3F));
+                        writeByte(0x80 | ((ch) & 0x3F));
                     }
                 }
             }
@@ -121,7 +121,7 @@ public final class DNSOutgoing extends DNSMessage {
                 if (n < 0) {
                     n = aName.length();
                 }
-                if (n <= 0) {
+                if (n == 0) {
                     writeByte(0);
                     return;
                 }
@@ -129,15 +129,15 @@ public final class DNSOutgoing extends DNSMessage {
                 if (useCompression && USE_DOMAIN_NAME_COMPRESSION) {
                     Integer offset = _out._names.get(aName);
                     if (offset != null) {
-                        int val = offset.intValue();
+                        int val = offset;
                         writeByte((val >> 8) | 0xC0);
                         writeByte(val & 0xFF);
                         return;
                     }
-                    _out._names.put(aName, Integer.valueOf(this.size() + _offset));
-                    writeUTF(label, 0, label.length());
+                    _out._names.put(aName, this.size() + _offset);
+                    writeUTF(label, label.length());
                 } else {
-                    writeUTF(label, 0, label.length());
+                    writeUTF(label, label.length());
                 }
                 aName = aName.substring(n);
                 if (aName.startsWith(".")) {
@@ -148,7 +148,7 @@ public final class DNSOutgoing extends DNSMessage {
 
         private static int indexOfSeparator(String aName) {
             int offset = 0;
-            int n = 0;
+            int n;
 
             while (true) {
                 n = aName.indexOf('.', offset);
@@ -192,7 +192,7 @@ public final class DNSOutgoing extends DNSMessage {
 
     Map<String, Integer> _names;
 
-    private int _maxUDPPayload;
+    private final int _maxUDPPayload;
 
     private final MessageOutputStream _questionsBytes;
 
@@ -235,7 +235,7 @@ public final class DNSOutgoing extends DNSMessage {
      */
     public DNSOutgoing(int flags, boolean multicast, int senderUDPPayload) {
         super(flags, 0, multicast);
-        _names = new HashMap<String, Integer>();
+        _names = new HashMap<>();
         _maxUDPPayload = (senderUDPPayload > 0 ? senderUDPPayload : DNSConstants.MAX_MSG_TYPICAL);
         _questionsBytes = new MessageOutputStream(senderUDPPayload, this);
         _answersBytes = new MessageOutputStream(senderUDPPayload, this);
@@ -397,7 +397,7 @@ public final class DNSOutgoing extends DNSMessage {
         byte[] result = message.toByteArray();
         try {
             message.close();
-        } catch (IOException exception) {}
+        } catch (IOException ignored) {}
         return result;
     }
 

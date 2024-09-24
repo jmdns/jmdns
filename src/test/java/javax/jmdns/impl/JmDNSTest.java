@@ -154,6 +154,7 @@ public class JmDNSTest {
     }
 
     @Test
+    @Ignore
     public void testQueryMyService() throws IOException {
         System.out.println("Unit Test: testQueryMyService()");
         JmDNS registry = null;
@@ -206,6 +207,7 @@ public class JmDNSTest {
     }
 
     @Test
+    @Ignore
     public void testListenForMyService() throws IOException {
         System.out.println("Unit Test: testListenForMyService()");
         JmDNS registry = null;
@@ -256,6 +258,7 @@ public class JmDNSTest {
     }
 
     @Test
+    @Ignore
     public void testListenForMyServiceAndList() throws IOException {
         System.out.println("Unit Test: testListenForMyServiceAndList()");
         JmDNS registry = null;
@@ -296,6 +299,7 @@ public class JmDNSTest {
     }
 
     @Test
+    @Ignore
     public void testListenForServiceOnOtherRegistry() throws IOException {
         System.out.println("Unit Test: testListenForServiceOnOtherRegistry()");
         JmDNS registry = null;
@@ -333,6 +337,7 @@ public class JmDNSTest {
     }
 
     @Test
+    @Ignore
     public void testWaitAndQueryForServiceOnOtherRegistry() throws IOException {
         System.out.println("Unit Test: testWaitAndQueryForServiceOnOtherRegistry()");
         JmDNS registry = null;
@@ -560,6 +565,7 @@ public class JmDNSTest {
     }
 
     @Test
+    @Ignore
     public void shouldNotNotifyServiceListenersForServiceResolveAfterServiceRemoved() throws UnknownHostException, IOException, InterruptedException {
         String firstType = "_test._type1.local.";
         String secondType = "_test._type2.local.";

@@ -24,7 +24,7 @@ public abstract class JmDNS implements Closeable {
     /**
      *
      */
-    public static interface Delegate {
+    public interface Delegate {
 
         /**
          * This method is called if JmDNS cannot recover from an I/O error.
@@ -34,7 +34,7 @@ public abstract class JmDNS implements Closeable {
          * @param infos
          *            service info registered with the DNS
          */
-        public void cannotRecoverFromIOError(JmDNS dns, Collection<ServiceInfo> infos);
+        void cannotRecoverFromIOError(JmDNS dns, Collection<ServiceInfo> infos);
 
     }
 
@@ -45,13 +45,10 @@ public abstract class JmDNS implements Closeable {
 
     static {
         try {
-            InputStream inputStream = JmDNS.class.getClassLoader().getResourceAsStream("version.properties");
-            try {
+            try (InputStream inputStream = JmDNS.class.getClassLoader().getResourceAsStream("version.properties")) {
                 Properties properties = new Properties();
                 properties.load(inputStream);
                 VERSION = properties.getProperty("jmdns.version");
-            } finally {
-                inputStream.close();
             }
         } catch (Exception ignored) {
             VERSION = "VERSION MISSING";
@@ -133,7 +130,7 @@ public abstract class JmDNS implements Closeable {
      * </ol>
      * If <code>name</code> parameter is null will use the hostname. The hostname is determined by the following algorithm:
      * <ol>
-     * <li>Get the hostname from the InetAdress obtained before.</li>
+     * <li>Get the hostname from the InetAddress obtained before.</li>
      * <li>If the hostname is a reverse lookup default to <code>JmDNS name</code> or <code>computer</code> if null.</li>
      * <li>If the name contains <code>'.'</code> replace them by <code>'-'</code></li>
      * <li>Add <code>.local.</code> at the end of the name.</li>
@@ -236,7 +233,7 @@ public abstract class JmDNS implements Closeable {
      * @param name
      *            unqualified service name, such as <code>foobar</code> .
      * @param persistent
-     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new information is received.
      * @return null if the service information cannot be obtained
      */
     public abstract ServiceInfo getServiceInfo(String type, String name, boolean persistent);
@@ -253,7 +250,7 @@ public abstract class JmDNS implements Closeable {
      * @param timeout
      *            timeout in milliseconds. Typical timeout should be 5s.
      * @param persistent
-     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new information is received.
      * @return null if the service information cannot be obtained
      */
     public abstract ServiceInfo getServiceInfo(String type, String name, boolean persistent, long timeout);
@@ -280,7 +277,7 @@ public abstract class JmDNS implements Closeable {
      * @param name
      *            unqualified service name, such as <code>foobar</code> .
      * @param persistent
-     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new information is received.
      */
     public abstract void requestServiceInfo(String type, String name, boolean persistent);
 
@@ -304,7 +301,7 @@ public abstract class JmDNS implements Closeable {
      * @param name
      *            unqualified service name, such as <code>foobar</code> .
      * @param persistent
-     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new information is received.
      * @param timeout
      *            timeout in milliseconds
      */
