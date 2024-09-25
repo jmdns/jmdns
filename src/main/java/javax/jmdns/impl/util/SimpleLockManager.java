@@ -1,7 +1,3 @@
-/*
- * Copyright Object Matrix 2017
- */
-
 package javax.jmdns.impl.util;
 
 import java.io.Closeable;
@@ -11,12 +7,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Basic lock manager which uses internal {@link Map} to maintain a list of current locks.
+ * Basic lock manager which uses internal {@link Map} to maintain a list of current {@link Locked} objects representing a exclusively locked resource.
  */
 public class SimpleLockManager {
 
     private final ConcurrentHashMap<String, Locked> _locks = new ConcurrentHashMap<>();
 
+    /**
+     * Acquires a {@link Locked} object for a resource with a given key.
+     * <p>
+     * This method blocks indefinitely
+     * 
+     * @param lockKey
+     *            key representing a locked object
+     * @return instance of {@link Locked}
+     */
     public Locked lock(String lockKey) {
         try {
             return tryLock(lockKey, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
@@ -27,7 +32,18 @@ public class SimpleLockManager {
             throw new RuntimeException(e);
         }
     }
-
+    
+    /**
+     * Attempts to acquire a {@link Locked} object for a resource with a given key within specified time.
+     * <p>
+     * 
+     * @param lockKey
+     *            key representing a locked object
+     * @throws LockFailedException
+     *             if failed to acquire a lock within specified time
+     * @return instance of {@link Locked}
+     */
+    @SuppressWarnings("resource")
     public Locked tryLock(String lockKey, long time, TimeUnit timeunit) throws InterruptedException, LockFailedException {
         Locked newLock = new LockedImpl(lockKey);
         long timeoutNanos = timeunit.toNanos(time);
@@ -59,11 +75,19 @@ public class SimpleLockManager {
         }
     }
     
-    public static abstract class Locked implements Closeable {
+    /**
+     * Represents a locked resource.
+     * <p>
+     * Client should obtain Locked in try-with-resource block to automatically call {@link Locked#close()
+     */
+    public abstract static class Locked implements Closeable {
         @Override
         public abstract void close();
     }
     
+    /**
+     * Indicates {@link Locked} could not be acquired e.g. due to timeout.
+     */
     public static class LockFailedException extends Exception {
 
         @Serial
