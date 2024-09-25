@@ -52,7 +52,7 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
 
     private static final long   serialVersionUID    = 3024739453186759259L;
     
-    private final SimpleLockManager _lm = new SimpleLockManager();
+    private final transient SimpleLockManager _lm = new SimpleLockManager();
 
     /**
      *
@@ -217,11 +217,10 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
             List<DNSEntry> entryList = this.get(key);
             if (entryList == null) {
                 entryList = new ArrayList<>(3);
-                entryList.add(dnsEntry);
-                this.put(key, entryList);
-            } else {
-                entryList.add(dnsEntry);                
             }
+            entryList.add(dnsEntry);
+            // re-add to the map to establish happens-before and aid visibility
+            this.put(key, entryList);
         }
         return true;
     }
@@ -242,8 +241,12 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
                 return false;
             boolean result = entryList.remove(dnsEntry);
             /* Remove from DNS cache when no records remain with this key */
-            if (entryList.isEmpty())
+            if (entryList.isEmpty()) {
                 this.remove(key);
+            } else {
+                // re-add to the map to establish happens-before and aid visibility
+                this.put(key, entryList);
+            }
             return result;
         }
     }
@@ -264,12 +267,12 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
             List<DNSEntry> entryList = this.get(key);
             if (entryList == null) {
                 entryList = new ArrayList<>(3);
-                entryList.add(newDNSEntry);
-                this.put(key, entryList);
             } else {
                 entryList.remove(existingDNSEntry);
-                entryList.add(newDNSEntry);
             }
+            entryList.add(newDNSEntry);
+            // re-add to the map to establish happens-before and aid visibility
+            this.put(key, entryList);
             return true;
         }
     }
