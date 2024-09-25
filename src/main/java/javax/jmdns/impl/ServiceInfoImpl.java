@@ -418,16 +418,40 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     @Override
     public String[] getHostAddresses() {
-        Inet4Address[] ip4Aaddresses = this.getInet4Addresses();
-        Inet6Address[] ip6Aaddresses = this.getInet6Addresses();
-        String[] names = new String[ip4Aaddresses.length + ip6Aaddresses.length];
-        for (int i = 0; i < ip4Aaddresses.length; i++) {
-            names[i] = ip4Aaddresses[i].getHostAddress();
+        Inet4Address[] ip4Addresses = this.getInet4Addresses();
+        Inet6Address[] ip6Addresses = this.getInet6Addresses();
+
+        // Default to empty arrays if null
+        if (ip4Addresses == null) {
+            ip4Addresses = new Inet4Address[0];
         }
-        for (int i = 0; i < ip6Aaddresses.length; i++) {
-            names[i + ip4Aaddresses.length] = "[" + ip6Aaddresses[i].getHostAddress() + "]";
+        if (ip6Addresses == null) {
+            ip6Addresses = new Inet6Address[0];
         }
-        return names;
+
+        // Use ArrayList to store valid addresses
+        List<String> addresses = new ArrayList<>();
+
+        // Add non-null IPv4 addresses
+        for (Inet4Address ip4 : ip4Addresses) {
+            if (ip4 != null) {
+                addresses.add(ip4.getHostAddress());
+            } else {
+                logger.info("IPv4 address is null");
+            }
+        }
+
+        // Add non-null IPv6 addresses (with brackets)
+        for (Inet6Address ip6 : ip6Addresses) {
+            if (ip6 != null) {
+                addresses.add("[" + ip6.getHostAddress() + "]");
+            } else {
+                logger.info("IPv6 address is null");
+            }
+        }
+
+        // Convert the ArrayList to an array and return
+        return addresses.toArray(new String[0]);
     }
 
     /**
