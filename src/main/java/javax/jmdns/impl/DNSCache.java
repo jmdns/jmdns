@@ -217,7 +217,6 @@ public class DNSCache extends ConcurrentHashMap<String, List<DNSEntry>> {
             List<DNSEntry> entryList = this.get(key);
             if (entryList == null) {
                 entryList = new ArrayList<>(3);
-                entryList.add(dnsEntry);
             }
             entryList.add(dnsEntry);
             // re-add to the map to establish happens-before and aid visibility
