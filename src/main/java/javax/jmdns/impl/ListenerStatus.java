@@ -275,7 +275,7 @@ public class ListenerStatus<T extends EventListener> {
      */
     @Override
     public boolean equals(Object obj) {
-        return (obj instanceof ListenerStatus) && this.getListener().equals(((ListenerStatus<?>) obj).getListener());
+        return (obj instanceof ListenerStatus<?> ls) && this.getListener().equals(ls.getListener());
     }
 
     /*

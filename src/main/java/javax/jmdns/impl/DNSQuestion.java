@@ -235,25 +235,16 @@ public class DNSQuestion extends DNSEntry {
      * @return new question
      */
     public static DNSQuestion newQuestion(String name, DNSRecordType type, DNSRecordClass recordClass, boolean unique) {
-        switch (type) {
-            case TYPE_A:
-                return new DNS4Address(name, type, recordClass, unique);
-            case TYPE_A6:
-            case TYPE_AAAA:
-                return new DNS6Address(name, type, recordClass, unique);
-            case TYPE_ANY:
-                return new AllRecords(name, type, recordClass, unique);
-            case TYPE_HINFO:
-                return new HostInformation(name, type, recordClass, unique);
-            case TYPE_PTR:
-                return new Pointer(name, type, recordClass, unique);
-            case TYPE_SRV:
-                return new Service(name, type, recordClass, unique);
-            case TYPE_TXT:
-                return new Text(name, type, recordClass, unique);
-            default:
-                return new DNSQuestion(name, type, recordClass, unique);
-        }
+        return switch (type) {
+            case TYPE_A -> new DNS4Address(name, type, recordClass, unique);
+            case TYPE_A6, TYPE_AAAA -> new DNS6Address(name, type, recordClass, unique);
+            case TYPE_ANY -> new AllRecords(name, type, recordClass, unique);
+            case TYPE_HINFO -> new HostInformation(name, type, recordClass, unique);
+            case TYPE_PTR -> new Pointer(name, type, recordClass, unique);
+            case TYPE_SRV -> new Service(name, type, recordClass, unique);
+            case TYPE_TXT -> new Text(name, type, recordClass, unique);
+            default -> new DNSQuestion(name, type, recordClass, unique);
+        };
     }
 
     /**

@@ -1,6 +1,7 @@
 package javax.jmdns.impl.util;
 
 import java.io.Closeable;
+import java.io.Serial;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +44,6 @@ public class SimpleLockManager {
      *             if failed to acquire a lock within specified time
      * @return instance of {@link Locked}
      */
-    @SuppressWarnings("resource")
     public Locked tryLock(String lockKey, long time, TimeUnit timeunit) throws InterruptedException, LockFailedException {
         Locked newLock = new LockedImpl(lockKey);
         long timeoutNanos = timeunit.toNanos(time);
@@ -90,6 +90,7 @@ public class SimpleLockManager {
      */
     public static class LockFailedException extends Exception {
 
+        @Serial
         private static final long serialVersionUID = 1L;
 
     }

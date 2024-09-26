@@ -120,21 +120,23 @@ public class ByteWrangler {
                     Object val = entry.getValue();
                     final ByteArrayOutputStream out2 = new ByteArrayOutputStream(100);
                     writeUTF(out2, key);
-                    if (val == null) {
-                        // Skip
-                    } else if (val instanceof String) {
-                        out2.write('=');
-                        writeUTF(out2, (String) val);
-                    } else if (val instanceof byte[]) {
-                        byte[] bval = (byte[]) val;
-                        if (bval.length > 0) {
-                            out2.write('=');
-                            out2.write(bval, 0, bval.length);
-                        } else {
-                            val = null;
+                    switch (val) {
+                        case null -> {
+                            // Skip
                         }
-                    } else {
-                        throw new IllegalArgumentException("Invalid property value: " + val);
+                        case String string -> {
+                            out2.write('=');
+                            writeUTF(out2, string);
+                        }
+                        case byte[] bval -> {
+                            if (bval.length > 0) {
+                                out2.write('=');
+                                out2.write(bval, 0, bval.length);
+                            } else {
+                                val = null;
+                            }
+                        }
+                        default -> throw new IllegalArgumentException("Invalid property value: " + val);
                     }
                     byte[] data = out2.toByteArray();
                     if (isValueTooLarge(data, key + (val == null ? "" : "=" + val))) {

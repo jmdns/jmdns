@@ -88,32 +88,17 @@ public enum DNSState {
      * @return next state
      */
     public final DNSState advance() {
-        switch (this) {
-            case PROBING_1:
-                return PROBING_2;
-            case PROBING_2:
-                return PROBING_3;
-            case PROBING_3:
-                return ANNOUNCING_1;
-            case ANNOUNCING_1:
-                return ANNOUNCING_2;
-            case ANNOUNCING_2:
-            case ANNOUNCED:
-                return ANNOUNCED;
-            case CANCELING_1:
-                return CANCELING_2;
-            case CANCELING_2:
-                return CANCELING_3;
-            case CANCELING_3:
-            case CANCELED:
-                return CANCELED;
-            case CLOSING:
-            case CLOSED:
-                return CLOSED;
-            default:
-                // This is just to keep the compiler happy as we have covered all cases before.
-                return this;
-        }
+        return switch (this) {
+            case PROBING_1 -> PROBING_2;
+            case PROBING_2 -> PROBING_3;
+            case PROBING_3 -> ANNOUNCING_1;
+            case ANNOUNCING_1 -> ANNOUNCING_2;
+            case ANNOUNCING_2, ANNOUNCED -> ANNOUNCED;
+            case CANCELING_1 -> CANCELING_2;
+            case CANCELING_2 -> CANCELING_3;
+            case CANCELING_3, CANCELED -> CANCELED;
+            case CLOSING, CLOSED -> CLOSED;
+        };
     }
 
     /**
@@ -122,28 +107,13 @@ public enum DNSState {
      * @return reverted state
      */
     public final DNSState revert() {
-        switch (this) {
-            case PROBING_1:
-            case PROBING_2:
-            case PROBING_3:
-            case ANNOUNCING_1:
-            case ANNOUNCING_2:
-            case ANNOUNCED:
-                return PROBING_1;
-            case CANCELING_1:
-            case CANCELING_2:
-            case CANCELING_3:
-                return CANCELING_1;
-            case CANCELED:
-                return CANCELED;
-            case CLOSING:
-                return CLOSING;
-            case CLOSED:
-                return CLOSED;
-            default:
-                // This is just to keep the compiler happy as we have covered all cases before.
-                return this;
-        }
+        return switch (this) {
+            case PROBING_1, PROBING_2, PROBING_3, ANNOUNCING_1, ANNOUNCING_2, ANNOUNCED -> PROBING_1;
+            case CANCELING_1, CANCELING_2, CANCELING_3 -> CANCELING_1;
+            case CANCELED -> CANCELED;
+            case CLOSING -> CLOSING;
+            case CLOSED -> CLOSED;
+        };
     }
 
     /**

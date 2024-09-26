@@ -3,6 +3,7 @@
  */
 package javax.jmdns.impl;
 
+import java.io.Serial;
 import java.net.InetAddress;
 
 import javax.jmdns.JmDNS;
@@ -17,6 +18,7 @@ public class NetworkTopologyEventImpl extends NetworkTopologyEvent implements Cl
     /**
      *
      */
+    @Serial
     private static final long serialVersionUID = 1445606146153550463L;
 
     private final InetAddress _inetAddress;

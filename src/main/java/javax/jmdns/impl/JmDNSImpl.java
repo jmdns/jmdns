@@ -5,6 +5,7 @@
 package javax.jmdns.impl;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.net.DatagramPacket;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -49,7 +50,6 @@ import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSState;
 import javax.jmdns.impl.tasks.DNSTask;
 import javax.jmdns.impl.tasks.RecordReaper;
-import javax.jmdns.impl.util.NamedThreadFactory;
 
 // REMIND: multiple IP addresses
 
@@ -124,6 +124,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
         private static class SubTypeEntry implements Entry<String, String>, java.io.Serializable, Cloneable {
 
+            @Serial
             private static final long serialVersionUID = 9188503522395855322L;
 
             private final String _key;
@@ -321,7 +322,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      */
     private long _lastThrottleIncrement;
 
-    private final ExecutorService _executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("JmDNS"));
+    private final ExecutorService _executor = Executors.newVirtualThreadPerTaskExecutor();
 
     /**
      * The source for random values. This is used to introduce random delays in responses. This reduces the potential for collisions on the network.
@@ -765,8 +766,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         // Check if the answer is in the cache.
         ServiceInfoImpl info = new ServiceInfoImpl(type, name, subtype, 0, 0, 0, persistent, (byte[]) null);
         DNSEntry pointerEntry = this.getCache().getDNSEntry(new DNSRecord.Pointer(type, DNSRecordClass.CLASS_ANY, false, 0, info.getQualifiedName()));
-        if (pointerEntry instanceof DNSRecord) {
-            ServiceInfoImpl cachedInfo = (ServiceInfoImpl) ((DNSRecord) pointerEntry).getServiceInfo(persistent);
+        if (pointerEntry instanceof DNSRecord pointerRecord) {
+            ServiceInfoImpl cachedInfo = (ServiceInfoImpl) pointerRecord.getServiceInfo(persistent);
             if (cachedInfo != null) {
                 // To get a complete info record we need to retrieve the service, address and the text bytes.
 
@@ -774,8 +775,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 byte[] srvBytes = null;
                 String server = "";
                 DNSEntry serviceEntry = this.getCache().getDNSEntry(info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_ANY);
-                if (serviceEntry instanceof DNSRecord) {
-                    ServiceInfo cachedServiceEntryInfo = ((DNSRecord) serviceEntry).getServiceInfo(persistent);
+                if (serviceEntry instanceof DNSRecord serviceRecord) {
+                    ServiceInfo cachedServiceEntryInfo = serviceRecord.getServiceInfo(persistent);
                     if (cachedServiceEntryInfo != null) {
                         cachedInfo = new ServiceInfoImpl(map, cachedServiceEntryInfo.getPort(), cachedServiceEntryInfo.getWeight(), cachedServiceEntryInfo.getPriority(), persistent, (byte[]) null);
                         srvBytes = cachedServiceEntryInfo.getTextBytes();
@@ -783,8 +784,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                     }
                 }
                 for (DNSEntry addressEntry : this.getCache().getDNSEntryList(server, DNSRecordType.TYPE_A, DNSRecordClass.CLASS_ANY)) {
-                    if (addressEntry instanceof DNSRecord) {
-                        ServiceInfo cachedAddressInfo = ((DNSRecord) addressEntry).getServiceInfo(persistent);
+                    if (addressEntry instanceof DNSRecord addressRecord) {
+                        ServiceInfo cachedAddressInfo = addressRecord.getServiceInfo(persistent);
                         if (cachedAddressInfo != null) {
                             for (Inet4Address address : cachedAddressInfo.getInet4Addresses()) {
                                 cachedInfo.addAddress(address);
@@ -794,8 +795,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                     }
                 }
                 for (DNSEntry addressEntry : this.getCache().getDNSEntryList(server, DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_ANY)) {
-                    if (addressEntry instanceof DNSRecord) {
-                        ServiceInfo cachedAddressInfo = ((DNSRecord) addressEntry).getServiceInfo(persistent);
+                    if (addressEntry instanceof DNSRecord addressRecord) {
+                        ServiceInfo cachedAddressInfo = addressRecord.getServiceInfo(persistent);
                         if (cachedAddressInfo != null) {
                             for (Inet6Address address : cachedAddressInfo.getInet6Addresses()) {
                                 cachedInfo.addAddress(address);
@@ -805,8 +806,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                     }
                 }
                 DNSEntry textEntry = this.getCache().getDNSEntry(cachedInfo.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_ANY);
-                if (textEntry instanceof DNSRecord) {
-                    ServiceInfo cachedTextInfo = ((DNSRecord) textEntry).getServiceInfo(persistent);
+                if (textEntry instanceof DNSRecord textRecord) {
+                    ServiceInfo cachedTextInfo = textRecord.getServiceInfo(persistent);
                     if (cachedTextInfo != null) {
                         cachedInfo._setText(cachedTextInfo.getTextBytes());
                     }
@@ -1289,7 +1290,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             final List<ServiceListenerStatus> serviceListenerList;
             if (list != null) {
                 synchronized (list) {
-                    serviceListenerList = new ArrayList<ServiceListenerStatus>(list);
+                    serviceListenerList = new ArrayList<>(list);
                 }
             } else {
                 serviceListenerList = Collections.emptyList();
@@ -1355,10 +1356,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
     private void removeObsoleteDnsListener(ServiceEvent event) {
         ServiceInfo serviceInfo = event.getInfo();
-        if (!(serviceInfo instanceof DNSListener)) {
+        if (!(serviceInfo instanceof DNSListener listener)) {
             return;
         }
-        DNSListener listener = (DNSListener) serviceInfo;
 
         removeListener(listener);
     }
@@ -1505,7 +1505,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     /**
      * In case the a record is received before the srv record the ip address would not be set.
      * <p>
-     * Wireshark record: see also file a_record_before_srv.pcapng and {@link ServiceInfoImplTest#test_ip_address_is_set()}
+     * Wireshark record: see also file a_record_before_srv.pcapng and ServiceInfoImplTest.test_ip_address_is_set()
      * <p>
      * Multicast Domain Name System (response)
      * Transaction ID: 0x0000

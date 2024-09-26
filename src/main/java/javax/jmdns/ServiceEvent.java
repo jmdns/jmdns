@@ -4,6 +4,7 @@
 
 package javax.jmdns;
 
+import java.io.Serial;
 import java.util.EventObject;
 
 /**
@@ -14,6 +15,7 @@ public abstract class ServiceEvent extends EventObject implements Cloneable {
     /**
      *
      */
+    @Serial
     private static final long serialVersionUID = -8558445644541006271L;
 
     /**

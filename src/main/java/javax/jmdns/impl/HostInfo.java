@@ -5,6 +5,7 @@
 package javax.jmdns.impl;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.net.DatagramPacket;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -44,6 +45,7 @@ public class HostInfo implements DNSStatefulObject {
 
     private final static class HostInfoState extends DNSStatefulObject.DefaultImplementation {
 
+        @Serial
         private static final long serialVersionUID = -8191476803620402088L;
 
         /**
@@ -204,15 +206,11 @@ public class HostInfo implements DNSStatefulObject {
     }
 
     DNSRecord.Address getDNSAddressRecord(DNSRecordType type, boolean unique, int ttl) {
-        switch (type) {
-            case TYPE_A:
-                return this.getDNS4AddressRecord(unique, ttl);
-            case TYPE_A6:
-            case TYPE_AAAA:
-                return this.getDNS6AddressRecord(unique, ttl);
-            default:
-        }
-        return null;
+        return switch (type) {
+            case TYPE_A -> this.getDNS4AddressRecord(unique, ttl);
+            case TYPE_A6, TYPE_AAAA -> this.getDNS6AddressRecord(unique, ttl);
+            default -> null;
+        };
     }
 
     private DNSRecord.Address getDNS4AddressRecord(boolean unique, int ttl) {
@@ -230,15 +228,11 @@ public class HostInfo implements DNSStatefulObject {
     }
 
     DNSRecord.Pointer getDNSReverseAddressRecord(DNSRecordType type, boolean unique, int ttl) {
-        switch (type) {
-            case TYPE_A:
-                return this.getDNS4ReverseAddressRecord(unique, ttl);
-            case TYPE_A6:
-            case TYPE_AAAA:
-                return this.getDNS6ReverseAddressRecord(unique, ttl);
-            default:
-        }
-        return null;
+        return switch (type) {
+            case TYPE_A -> this.getDNS4ReverseAddressRecord(unique, ttl);
+            case TYPE_A6, TYPE_AAAA -> this.getDNS6ReverseAddressRecord(unique, ttl);
+            default -> null;
+        };
     }
 
     private DNSRecord.Pointer getDNS4ReverseAddressRecord(boolean unique, int ttl) {

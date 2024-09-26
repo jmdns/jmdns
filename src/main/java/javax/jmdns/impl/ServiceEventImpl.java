@@ -4,6 +4,8 @@
 
 package javax.jmdns.impl;
 
+import java.io.Serial;
+
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
@@ -17,6 +19,7 @@ public class ServiceEventImpl extends ServiceEvent {
     /**
      *
      */
+    @Serial
     private static final long serialVersionUID = 7107973622016897488L;
     // private static Logger logger = LoggerFactory.getLogger(ServiceEvent.class);
     /**

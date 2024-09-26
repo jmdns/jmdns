@@ -5,6 +5,7 @@
 package javax.jmdns.impl;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -76,6 +77,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
 
     private final static class ServiceInfoState extends DNSStatefulObject.DefaultImplementation {
 
+        @Serial
         private static final long     serialVersionUID = 1104131034952196820L;
 
         private final ServiceInfoImpl _info;
@@ -747,14 +749,12 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     public void updateRecord(final DNSCache dnsCache, final long now, final DNSEntry dnsEntry) {
 
         // some logging for debugging purposes
-        if ( !(dnsEntry instanceof DNSRecord) ) {
+        if ( !(dnsEntry instanceof DNSRecord record) ) {
             logger.trace("DNSEntry is not of type 'DNSRecord' but of type {}",
                     null == dnsEntry ? "null" : dnsEntry.getClass().getSimpleName()
             );
             return;
         }
-
-        final DNSRecord record = (DNSRecord) dnsEntry;
 
         // flag for changes
         boolean serviceChanged;
@@ -867,8 +867,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
             case TYPE_A: // IPv4
                 if (record.getName().equalsIgnoreCase(this.getServer())) {
                     final DNSRecord.Address address = (DNSRecord.Address) record;
-                    if (address.getAddress() instanceof Inet4Address) {
-                        final Inet4Address inet4Address = (Inet4Address) address.getAddress();
+                    if (address.getAddress() instanceof Inet4Address inet4Address) {
                         if(_ipv4Addresses.add(inet4Address)) {
                             serviceUpdated = true;
                         }
@@ -878,8 +877,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
             case TYPE_AAAA: // IPv6
                 if (record.getName().equalsIgnoreCase(this.getServer())) {
                     final DNSRecord.Address address = (DNSRecord.Address) record;
-                    if (address.getAddress() instanceof Inet6Address) {
-                        final Inet6Address inet6Address = (Inet6Address) address.getAddress();
+                    if (address.getAddress() instanceof Inet6Address inet6Address) {
                         if(_ipv6Addresses.add(inet6Address)) {
                             serviceUpdated = true;
                         }
@@ -1096,7 +1094,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     @Override
     public boolean equals(Object obj) {
-        return (obj instanceof ServiceInfoImpl) && getQualifiedName().equals(((ServiceInfoImpl) obj).getQualifiedName());
+        return (obj instanceof ServiceInfoImpl sii) && getQualifiedName().equals(sii.getQualifiedName());
     }
 
     /**
@@ -1312,8 +1310,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
     @Override
     public boolean hasSameAddresses(ServiceInfo other) {
         if (other == null) return false;
-        if (other instanceof ServiceInfoImpl) {
-            ServiceInfoImpl otherImpl = (ServiceInfoImpl) other;
+        if (other instanceof ServiceInfoImpl otherImpl) {
             return _ipv4Addresses.size() == otherImpl._ipv4Addresses.size() && _ipv6Addresses.size() == otherImpl._ipv6Addresses.size() &&
                     _ipv4Addresses.equals(otherImpl._ipv4Addresses) && _ipv6Addresses.equals(otherImpl._ipv6Addresses);
 

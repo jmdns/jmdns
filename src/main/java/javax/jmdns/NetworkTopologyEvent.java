@@ -3,6 +3,7 @@
  */
 package javax.jmdns;
 
+import java.io.Serial;
 import java.net.InetAddress;
 import java.util.EventObject;
 
@@ -14,6 +15,7 @@ public abstract class NetworkTopologyEvent extends EventObject {
     /**
      *
      */
+    @Serial
     private static final long serialVersionUID = -8630033521752540987L;
 
     /**

@@ -2,6 +2,7 @@
 package javax.jmdns.impl;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -106,6 +107,7 @@ public interface DNSStatefulObject {
     class DefaultImplementation extends ReentrantLock implements DNSStatefulObject {
         private static final Logger                    logger           = LoggerFactory.getLogger(DefaultImplementation.class);
 
+        @Serial
         private static final long                serialVersionUID = -3264781576883412227L;
 
         private volatile JmDNSImpl               _dns;

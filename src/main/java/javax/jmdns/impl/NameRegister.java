@@ -101,7 +101,6 @@ public interface NameRegister {
                 case SERVICE:
                     break;
                 default:
-                    // this is trash to keep the compiler happy
             }
         }
 
@@ -111,17 +110,16 @@ public interface NameRegister {
          */
         @Override
         public boolean checkName(InetAddress networkInterface, String name, NameType type) {
-            switch (type) {
-                case HOST:
+            return switch (type) {
+                case HOST -> {
                     String hostname = _hostNames.get(networkInterface);
-                    return hostname != null && hostname.equals(name);
-                case SERVICE:
+                    yield hostname != null && hostname.equals(name);
+                }
+                case SERVICE -> {
                     Set<String> names = _serviceNames.get(networkInterface);
-                    return names != null && names.contains(name);
-                default:
-                    // this is trash to keep the compiler happy
-                    return false;
-            }
+                    yield names != null && names.contains(name);
+                }
+            };
         }
 
         /*
@@ -130,15 +128,10 @@ public interface NameRegister {
          */
         @Override
         public String incrementName(InetAddress networkInterface, String name, NameType type) {
-            switch (type) {
-                case HOST:
-                    return this.incrementNameWithDash(name);
-                case SERVICE:
-                    return this.incrementNameWithParentesis(name);
-                default:
-                    // this is trash to keep the compiler happy
-                    return name;
-            }
+            return switch (type) {
+                case HOST -> this.incrementNameWithDash(name);
+                case SERVICE -> this.incrementNameWithParentesis(name);
+            };
         }
 
     }
@@ -151,13 +144,7 @@ public interface NameRegister {
          */
         @Override
         public void register(InetAddress networkInterface, String name, NameType type) {
-            switch (type) {
-                case HOST:
-                case SERVICE:
-                    break;
-                default:
-                    // this is trash to keep the compiler happy
-            }
+            // do nothing
         }
 
         /*
@@ -166,15 +153,7 @@ public interface NameRegister {
          */
         @Override
         public boolean checkName(InetAddress networkInterface, String name, NameType type) {
-            switch (type) {
-                case HOST:
-                    return false;
-                case SERVICE:
-                    return false;
-                default:
-                    // this is trash to keep the compiler happy
-                    return false;
-            }
+            return false;
         }
 
         /*
@@ -183,15 +162,10 @@ public interface NameRegister {
          */
         @Override
         public String incrementName(InetAddress networkInterface, String name, NameType type) {
-            switch (type) {
-                case HOST:
-                    return this.incrementNameWithDash(name);
-                case SERVICE:
-                    return this.incrementNameWithParentesis(name);
-                default:
-                    // this is trash to keep the compiler happy
-                    return name;
-            }
+            return switch (type) {
+                case HOST -> this.incrementNameWithDash(name);
+                case SERVICE -> this.incrementNameWithParentesis(name);
+            };
         }
 
     }

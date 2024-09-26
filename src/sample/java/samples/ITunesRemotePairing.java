@@ -116,7 +116,7 @@ public class ITunesRemotePairing implements Runnable, ServiceListener {
                     System.out.println("Device guid: " + toHex(code));
                     System.arraycopy(code, 0, PAIRING_RAW, 16, 8);
 
-                    byte[] header = String.format("HTTP/1.1 200 OK\r\nContent-Length: %d\r\n\r\n", new Integer(PAIRING_RAW.length)).getBytes();
+                    byte[] header = String.format("HTTP/1.1 200 OK\r\nContent-Length: %d\r\n\r\n", Integer.valueOf(PAIRING_RAW.length)).getBytes();
                     byte[] reply = new byte[header.length + PAIRING_RAW.length];
 
                     System.arraycopy(header, 0, reply, 0, header.length);

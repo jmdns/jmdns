@@ -66,7 +66,7 @@ public abstract class DNSRecord extends DNSEntry {
      */
     @Override
     public boolean equals(Object other) {
-        return (other instanceof DNSRecord) && super.equals(other) && sameValue((DNSRecord) other);
+        return (other instanceof DNSRecord dnsr) && super.equals(other) && sameValue(dnsr);
     }
 
     /**
@@ -329,10 +329,9 @@ public abstract class DNSRecord extends DNSEntry {
         @Override
         boolean sameValue(DNSRecord other) {
             try {
-                if (!(other instanceof Address)) {
+                if (!(other instanceof Address address)) {
                     return false;
                 }
-                Address address = (Address) other;
                 if ((this.getAddress() == null) && (address.getAddress() != null)) {
                     return false;
                 }
@@ -481,7 +480,7 @@ public abstract class DNSRecord extends DNSEntry {
          */
         @Override
         public boolean isSameEntry(DNSEntry entry) {
-            return super.isSameEntry(entry) && (entry instanceof Pointer) && this.sameValue((Pointer) entry);
+            return super.isSameEntry(entry) && (entry instanceof Pointer p) && this.sameValue(p);
         }
 
         @Override
@@ -491,10 +490,9 @@ public abstract class DNSRecord extends DNSEntry {
 
         @Override
         boolean sameValue(DNSRecord other) {
-            if (!(other instanceof Pointer)) {
+            if (!(other instanceof Pointer pointer)) {
                 return false;
             }
-            Pointer pointer = (Pointer) other;
             if ((_alias == null) && (pointer._alias != null)) {
                 return false;
             }
@@ -601,11 +599,9 @@ public abstract class DNSRecord extends DNSEntry {
         @Override
         boolean sameValue(DNSRecord other) {
             // Check if other is not null and is of the correct type
-            if (!(other instanceof Text)) {
+            if (!(other instanceof Text txt)) {
                 return false;
             }
-
-            Text txt = (Text) other;
 
             // Use Objects.equals to handle null-safe comparison for both arrays
             if (!Arrays.equals(_text, txt._text)) {
@@ -768,10 +764,9 @@ public abstract class DNSRecord extends DNSEntry {
 
         @Override
         boolean sameValue(DNSRecord other) {
-            if (!(other instanceof Service)) {
+            if (!(other instanceof Service s)) {
                 return false;
             }
-            Service s = (Service) other;
             return (_priority == s._priority) && (_weight == s._weight) && (_port == s._port) && _server.equals(s._server);
         }
 
@@ -948,10 +943,9 @@ public abstract class DNSRecord extends DNSEntry {
          */
         @Override
         boolean sameValue(DNSRecord other) {
-            if (!(other instanceof HostInformation)) {
+            if (!(other instanceof HostInformation hostInformation)) {
                 return false;
             }
-            HostInformation hostInformation = (HostInformation) other;
 
             // Use Objects.equals for null-safe comparisons
             return Objects.equals(_cpu, hostInformation._cpu) && Objects.equals(_os, hostInformation._os);
