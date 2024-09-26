@@ -121,7 +121,7 @@ public abstract class DNSEntry {
     }
 
     /**
-     * Check if the requested record tyep match the current record type
+     * Check if the requested record type match the current record type
      *
      * @param recordType
      * @return <code>true</code> if the two entries have compatible type, <code>false</code> otherwise

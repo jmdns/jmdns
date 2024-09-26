@@ -240,7 +240,7 @@ public abstract class ServiceInfo implements Cloneable {
      * @param priority
      *            priority of the service
      * @param persistent
-     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new information is received.
      * @param text
      *            string describing the service
      * @return new service info
@@ -265,7 +265,7 @@ public abstract class ServiceInfo implements Cloneable {
      * @param priority
      *            priority of the service
      * @param persistent
-     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new information is received.
      * @param text
      *            string describing the service
      * @return new service info
@@ -288,7 +288,7 @@ public abstract class ServiceInfo implements Cloneable {
      * @param priority
      *            priority of the service
      * @param persistent
-     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new information is received.
      * @param props
      *            properties describing the service
      * @return new service info
@@ -313,7 +313,7 @@ public abstract class ServiceInfo implements Cloneable {
      * @param priority
      *            priority of the service
      * @param persistent
-     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new information is received.
      * @param props
      *            properties describing the service
      * @return new service info
@@ -336,7 +336,7 @@ public abstract class ServiceInfo implements Cloneable {
      * @param priority
      *            priority of the service
      * @param persistent
-     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new information is received.
      * @param text
      *            bytes describing the service
      * @return new service info
@@ -361,7 +361,7 @@ public abstract class ServiceInfo implements Cloneable {
      * @param priority
      *            priority of the service
      * @param persistent
-     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new information is received.
      * @param text
      *            bytes describing the service
      * @return new service info
@@ -382,7 +382,7 @@ public abstract class ServiceInfo implements Cloneable {
      * @param priority
      *            priority of the service
      * @param persistent
-     *            if <code>true</code> ServiceListener.resolveService will be called whenever new new information is received.
+     *            if <code>true</code> ServiceListener.resolveService will be called whenever new information is received.
      * @param props
      *            properties describing the service
      * @return new service info
@@ -463,7 +463,7 @@ public abstract class ServiceInfo implements Cloneable {
     /**
      * Returns the host IP addresses string in textual presentation.
      * 
-     * @return list of host raw IP address in a string format.
+     * @return String[] of host raw IP address in a string format.
      */
     public abstract String[] getHostAddresses();
 
@@ -478,7 +478,7 @@ public abstract class ServiceInfo implements Cloneable {
     public abstract InetAddress getAddress();
 
     /**
-     * Get the InetAddress of the service. This will return the IPv4 if it exist, otherwise it return the IPv6 if set.<br/>
+     * Get the InetAddress of the service. This will return the IPv4 if it exists, otherwise it returns the IPv6 if set.<br/>
      * <b>Note:</b> This return null if the service IP address cannot be resolved.
      * 
      * @return Internet address
@@ -516,7 +516,7 @@ public abstract class ServiceInfo implements Cloneable {
      * In a multi-homed environment service info can be associated with more than one address.
      * </p>
      * 
-     * @return list of InetAddress objects
+     * @return InetAddress[] of InetAddress objects
      */
     public abstract InetAddress[] getInetAddresses();
 
@@ -526,7 +526,7 @@ public abstract class ServiceInfo implements Cloneable {
      * In a multi-homed environment service info can be associated with more than one address.
      * </p>
      * 
-     * @return list of InetAddress objects
+     * @return Inet4Address[] of InetAddress objects
      */
     public abstract Inet4Address[] getInet4Addresses();
 
@@ -536,7 +536,7 @@ public abstract class ServiceInfo implements Cloneable {
      * In a multi-homed environment service info can be associated with more than one address.
      * </p>
      * 
-     * @return list of InetAddress objects
+     * @return Inet6Address[] of InetAddress objects
      */
     public abstract Inet6Address[] getInet6Addresses();
 
@@ -582,7 +582,7 @@ public abstract class ServiceInfo implements Cloneable {
     public abstract String getTextString();
 
     /**
-     * Get the URL for this service. An http URL is created by combining the address, port, and path properties.
+     * Get the URL for this service. A http URL is created by combining the address, port, and path properties.
      * 
      * @return service URL
      * @deprecated since 3.2.3
@@ -592,14 +592,14 @@ public abstract class ServiceInfo implements Cloneable {
     public abstract String getURL();
 
     /**
-     * Get the list of URL for this service. An http URL is created by combining the address, port, and path properties.
+     * Get the list of URL for this service. A http URL is created by combining the address, port, and path properties.
      * 
-     * @return list of service URL
+     * @return String[] of service URL
      */
     public abstract String[] getURLs();
 
     /**
-     * Get the URL for this service. An URL is created by combining the protocol, address, port, and path properties.
+     * Get the URL for this service. A URL is created by combining the protocol, address, port, and path properties.
      * 
      * @param protocol
      *            requested protocol
@@ -611,11 +611,11 @@ public abstract class ServiceInfo implements Cloneable {
     public abstract String getURL(String protocol);
 
     /**
-     * Get the list of URL for this service. An URL is created by combining the protocol, address, port, and path properties.
+     * Get the list of URL for this service. A URL is created by combining the protocol, address, port, and path properties.
      * 
      * @param protocol
      *            requested protocol
-     * @return list of service URL
+     * @return String[] of service URL
      */
     public abstract String[] getURLs(String protocol);
 
@@ -652,27 +652,27 @@ public abstract class ServiceInfo implements Cloneable {
     public abstract String getNiceTextString();
 
     /**
-     * Set the text for the service. Setting the text will fore a re-announce of the service.
+     * Set the text for the service. Setting the text will force a re-announce of the service.
      * 
      * @param text
      *            the raw byte representation of the text field.
      * @exception IllegalStateException
-     *                if attempting to set the text for a non persistent service info.
+     *                if attempting to set the text for a non-persistent service info.
      */
     public abstract void setText(final byte[] text) throws IllegalStateException;
 
     /**
-     * Set the text for the service. Setting the text will fore a re-announce of the service.
+     * Set the text for the service. Setting the text will force a re-announce of the service.
      * 
      * @param props
      *            a key=value map that will be encoded into raw bytes.
      * @exception IllegalStateException
-     *                if attempting to set the text for a non persistent service info.
+     *                if attempting to set the text for a non-persistent service info.
      */
     public abstract void setText(final Map<String, ?> props) throws IllegalStateException;
 
     /**
-     * Returns <code>true</code> if ServiceListener.resolveService will be called whenever new new information is received.
+     * Returns <code>true</code> if ServiceListener.resolveService will be called whenever new information is received.
      * 
      * @return the persistent
      */
@@ -700,9 +700,9 @@ public abstract class ServiceInfo implements Cloneable {
     public abstract String getApplication();
 
     /**
-     * Returns the sub type of the service info suitable for printing.
+     * Returns the subtype of the service info suitable for printing.
      * 
-     * @return service sub type
+     * @return service subtype
      */
     public abstract String getSubtype();
 

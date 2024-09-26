@@ -15,11 +15,11 @@ public enum DNSOptionCode {
      */
     Unknown("Unknown", 65535),
     /**
-     * Long-Lived Queries Option [http://files.dns-sd.org/draft-sekar-dns-llq.txt]
+     * Long-Lived Queries Option [<a href="http://files.dns-sd.org/draft-sekar-dns-llq.txt">...</a>]
      */
     LLQ("LLQ", 1),
     /**
-     * Update Leases Option [http://files.dns-sd.org/draft-sekar-dns-ul.txt]
+     * Update Leases Option [<a href="http://files.dns-sd.org/draft-sekar-dns-ul.txt">...</a>]
      */
     UL("UL", 2),
     /**
@@ -59,13 +59,12 @@ public enum DNSOptionCode {
     }
 
     /**
-     * @param optioncode
+     * @param optioncode the option code
      * @return label
      */
     public static DNSOptionCode resultCodeForFlags(int optioncode) {
-        int maskedIndex = optioncode;
         for (DNSOptionCode aCode : DNSOptionCode.values()) {
-            if (aCode._index == maskedIndex) return aCode;
+            if (aCode._index == optioncode) return aCode;
         }
         return Unknown;
     }

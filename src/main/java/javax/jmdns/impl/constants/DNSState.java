@@ -70,7 +70,7 @@ public enum DNSState {
 
     private final StateClass _state;
 
-    private DNSState(String name, StateClass state) {
+    DNSState(String name, StateClass state) {
         _name = name;
         _state = state;
     }
@@ -98,7 +98,6 @@ public enum DNSState {
             case ANNOUNCING_1:
                 return ANNOUNCING_2;
             case ANNOUNCING_2:
-                return ANNOUNCED;
             case ANNOUNCED:
                 return ANNOUNCED;
             case CANCELING_1:
@@ -106,11 +105,9 @@ public enum DNSState {
             case CANCELING_2:
                 return CANCELING_3;
             case CANCELING_3:
-                return CANCELED;
             case CANCELED:
                 return CANCELED;
             case CLOSING:
-                return CLOSED;
             case CLOSED:
                 return CLOSED;
             default:

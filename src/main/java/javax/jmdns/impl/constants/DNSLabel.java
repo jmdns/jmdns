@@ -60,7 +60,7 @@ public enum DNSLabel {
     }
 
     /**
-     * @param index
+     * @param index index of the label
      * @return label
      */
     public static DNSLabel labelForByte(int index) {
@@ -72,7 +72,7 @@ public enum DNSLabel {
     }
 
     /**
-     * @param index
+     * @param index index of the label
      * @return masked value
      */
     public static int labelValue(int index) {

@@ -67,7 +67,7 @@ public enum DNSOperationCode {
     }
 
     /**
-     * @param flags
+     * @param flags the flags to check
      * @return label
      */
     public static DNSOperationCode operationCodeForFlags(int flags) {

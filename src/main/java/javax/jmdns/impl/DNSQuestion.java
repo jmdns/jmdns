@@ -22,7 +22,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
  * @author Arthur van Hoff, Pierre Frisch
  */
 public class DNSQuestion extends DNSEntry {
-    private static Logger logger = LoggerFactory.getLogger(DNSQuestion.class);
+    private static final Logger logger = LoggerFactory.getLogger(DNSQuestion.class);
 
     /**
      * Address question.
@@ -101,7 +101,7 @@ public class DNSQuestion extends DNSEntry {
                 }
             } else if (this.isReverseLookup()) {
                 String ipValue = this.getQualifiedNameMap().get(Fields.Instance);
-                if ((ipValue != null) && (ipValue.length() > 0)) {
+                if ((ipValue != null) && (!ipValue.isEmpty())) {
                     InetAddress address = jmDNSImpl.getLocalHost().getInetAddress();
                     String hostIPAddress = (address != null ? address.getHostAddress() : "");
                     if (ipValue.equalsIgnoreCase(hostIPAddress)) {
@@ -185,7 +185,7 @@ public class DNSQuestion extends DNSEntry {
 
         @Override
         public boolean isSameType(DNSEntry entry) {
-            // We match all non null entry
+            // We match all non-null entry
             return (entry != null);
         }
 
@@ -239,7 +239,6 @@ public class DNSQuestion extends DNSEntry {
             case TYPE_A:
                 return new DNS4Address(name, type, recordClass, unique);
             case TYPE_A6:
-                return new DNS6Address(name, type, recordClass, unique);
             case TYPE_AAAA:
                 return new DNS6Address(name, type, recordClass, unique);
             case TYPE_ANY:
@@ -273,7 +272,7 @@ public class DNSQuestion extends DNSEntry {
      *            List of previous answer to append.
      */
     public void addAnswers(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers) {
-        // By default we do nothing
+        // By default, we do nothing
     }
 
     protected void addAnswersForServiceInfo(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers, ServiceInfoImpl info) {

@@ -99,13 +99,13 @@ public abstract class DNSStateTask extends DNSTask {
 
     @Override
     public void run() {
-        DNSOutgoing out = this.createOugoing();
+        DNSOutgoing out = this.createOutgoing();
         try {
             if (!this.checkRunCondition()) {
                 this.cancel();
                 return;
             }
-            List<DNSStatefulObject> stateObjects = new ArrayList<DNSStatefulObject>();
+            List<DNSStatefulObject> stateObjects = new ArrayList<>();
             // send probes for JmDNS itself
             synchronized (this.getDns()) {
                 if (this.getDns().isAssociatedWithTask(this, this.getTaskState())) {
@@ -154,7 +154,7 @@ public abstract class DNSStateTask extends DNSTask {
 
     protected abstract DNSOutgoing buildOutgoingForInfo(ServiceInfoImpl info, DNSOutgoing out) throws IOException;
 
-    protected abstract DNSOutgoing createOugoing();
+    protected abstract DNSOutgoing createOutgoing();
 
     protected void advanceObjectsState(List<DNSStatefulObject> list) {
         if (list != null) {
