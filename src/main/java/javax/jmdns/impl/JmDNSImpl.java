@@ -59,6 +59,8 @@ import javax.jmdns.impl.util.NamedThreadFactory;
  * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis, Kai Kreuzer, Victor Toni
  */
 public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarter {
+    private static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
+
     private static final Logger logger = LoggerFactory.getLogger(JmDNSImpl.class);
 
     public enum Operation {
@@ -447,6 +449,14 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         }
     }
 
+    private InetSocketAddress getMulticastBindAddress(HostInfo hostInfo) {
+        if (IS_WINDOWS) {
+            return new InetSocketAddress(hostInfo.getInetAddress(), DNSConstants.MDNS_PORT);
+        } else {
+            return new InetSocketAddress(DNSConstants.MDNS_PORT);
+        }
+    }
+
     private void openMulticastSocket(HostInfo hostInfo) throws IOException {
         if (_group == null) {
             if (hostInfo.getInetAddress() instanceof Inet6Address) {
@@ -458,7 +468,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         if (_socket != null) {
             this.closeMulticastSocket();
         }
-        _socket = new MulticastSocket(DNSConstants.MDNS_PORT);
+        _socket = new MulticastSocket(getMulticastBindAddress(hostInfo));
         if ((hostInfo != null) && (hostInfo.getInterface() != null)) {
             final SocketAddress multicastAddr = new InetSocketAddress(_group, DNSConstants.MDNS_PORT);
             _socket.setNetworkInterface(hostInfo.getInterface());
