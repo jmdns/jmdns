@@ -332,10 +332,7 @@ public abstract class DNSRecord extends DNSEntry {
                     return false;
                 }
                 Address address = (Address) other;
-                if ((this.getAddress() == null) && (address.getAddress() != null)) {
-                    return false;
-                }
-                return this.getAddress().equals(address.getAddress());
+                return Objects.equals(this.getAddress(), address.getAddress());
             } catch (Exception e) {
                 logger1.info("Failed to compare addresses of DNSRecords", e);
                 return false;
