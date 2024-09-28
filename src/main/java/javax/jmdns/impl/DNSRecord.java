@@ -571,7 +571,7 @@ public abstract class DNSRecord extends DNSEntry {
         protected void toString(final StringBuilder sb) {
             super.toString(sb);
             sb.append(" alias: '")
-                .append(_alias != null ? _alias : "null")
+                .append(_alias)
                 .append('\'');
         }
 
