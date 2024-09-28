@@ -1,7 +1,17 @@
-![build status](https://travis-ci.org/jmdns/jmdns.svg)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.jmdns/jmdns/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.jmdns/jmdns)
-[![Javadocs](http://www.javadoc.io/badge/org.jmdns/jmdns.svg)](http://www.javadoc.io/doc/org.jmdns/jmdns)
+<div align="center">
+<img src="https://github.com/jmdns/jmdns/blob/main/src/site/resources/images/logos/jmdns.png" height="100" >
 
+# JmDNS
+</div>
+<br>
+
+[![Version](https://img.shields.io/maven-central/v/org.jmdns/jmdns?logo=apache-maven&style=flat-square)](https://search.maven.org/artifact/org.jmdns/jmdns)
+[![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg?style=flat-square)](https://opensource.org/licenses/Apache-2.0)
+[![Build](https://github.com/jmdns/jmdns/actions/workflows/maven.yml/badge.svg)](https://github.com/jmdns/jmdns/blob/main/.github/workflows/maven.yml)
+
+This Java implementation of multicast DNS enables both service discovery and registration, and is fully compatible with Apple's Bonjour.
+
+# Attribution
 This library is licensed under the Apache License Version 2.0.
 Please see the file [NOTICE.txt](NOTICE.txt).  
 
@@ -14,10 +24,9 @@ rickblair@mac.com
 Kai Kreuzer
 kai@openhab.org
 
-# JmDNS
+# Usage
 
-This is an implementation of multi-cast DNS in Java. It
-supports service discovery and service registration. It is fully
+This is an implementation of multi-cast DNS in Java. It supports service discovery and service registration. It is fully
 interoperable with Apple's Bonjour. 
 
 ## Sample Code for Service Registration
