@@ -1,122 +1,0 @@
-
-Bonjour Conformance Test Outline, Version 1.2.8
-Apple, Inc.
-
-Use of the included Apple software is subject to the Software License Agreement ("License") that accompanies it.  Please read the License carefully before using this software.  
-
-Please see included README for instructions on running the Bonjour Conformance Test and a list of known bugs, or run the test with "-h" for help.
-
-Detailed specifications for multicast DNS and link-local address allocation can be found in the following drafts:
-http://files.zeroconf.org/draft-ietf-zeroconf-ipv4-linklocal.txt
-http://files.multicastdns.org/draft-cheshire-dnsext-multicastdns.txt
-http://files.dns-sd.org/draft-cheshire-dnsext-dns-sd.txt
-
-
-
-Phase I: Link-Local Address Allocation
---------------------------------------
-
-At all times during this phase, the test listens to ensure that the device does not prematurely begin its multicast-DNS probing when it has not yet acquired an IP address (i.e. upon startup, after hot-plugging, and after subsequent conflicts.)
-
-
-I.1 Initial Probing
-The device is powered on.  The test tool verifies that the device sends an ARP probe for its chosen address.
-
-I.2 Probe Denials and Conflicts
-
-The test tool denies the device's initial probe by sending an ARP reply for the device's chosen address.  The tool verifies that the device picks a new address and probes again.
-Next, the test tool sends a conflicting probe for this new address, simulating two devices probing for the same address.  The test tool verifies that the device also treats this as a conflict and picks a new address and probes again.
-
-The test tool continues to deny every probe (alternately using ARP replies and conflicting probes) and verifies that after the tenth try, the device correctly limits its rate to no more than one try per second.  The official spec says "once per minute", but for Bonjour conformance testing purposes, we're willing to be more lenient.  However, if the interval between probes (after the first ten) is ever less than one second, that is a failure.  Similarly, if the device waits more than two minutes between probe attempts, that's a failure.  The reason for this is that if there is a pathological network failure of some kind that makes every probe fail (say some rogue device that answers every probe), then after the network problem is fixed, we want devices to recover and start working again fairly promptly.  We do NOT want the user to have to go and manually reboot every device on the network to get it working again.
-
-
-
-I.4 Probing Completion and AnnouncementsThe test tool now allows the device to complete its probing. Devices conforming to the IPv4 Link-Local draft 7 spec must send four probes followed by two announcements, while devices conforming to draft 8 and later must send three probes followed by two announcements.  It is a failure if the time gap between consecutive probes is more than two seconds.
-The test tool now allows the device to complete its probing. Devices conforming to the IPv4 Link-Local draft 7 spec must send four probes followed by two announcements, while devices conforming to draft 8 and later must send three probes followed by two announcements.  It is a failure if the time gap between consecutive probes is more than two seconds.
-I.4 Probing Completion and AnnouncementsThe test tool now allows the device to complete its probing. Devices conforming to the IPv4 Link-Local draft 7 spec must send four probes followed by two announcements, while devices conforming to draft 8 and later must send three probes followed by two announcements.  It is a failure if the time gap between consecutive probes is more than two seconds.
-
-I.5 Subsequent ConflictThe test tool will wait ten seconds, and then issue two ARP replies, six seconds apart, for the address the device is using.  The test tool verifies that the device then picks a new address and probes/announces again.  If the device does not wait for the second ARP reply before choosing a new address, instead probing immediately after the first conflict, a warning is generated.
-
-
-I.6 Cable Change Handling ("hot-plugging")The operator disconnects and reconnects the device's network cable.  The test tool verifies that the device repeats its address probing to verify that its address is still unique.  The test tool denies the first probe and verifies that the device picks a new address and probes/announces again.  It is a warning if the device does not use its original address as its first probing candidate.
-
-Phase II: Multicast DNS 
------------------------
-
-In all subtests, the case of characters in names sent by the test in probe denials/conflicts and queries may be modified (the device must match mDNS names case-insensitively).  The test only accepts packets originating from the final IP address acquired by the device in the link-local address test.  It is a failure if the Cache Flush bit is not set in announcements of a non-shared (SRV or address) record, or if the Cache Flush bit is set in proposed answers of probes.  It is a warning if the Cache Flush bit is not set in a non-shared record of a query response.
-
-II.1  Initial ProbingThe test tool verifies that the device sends properly formatted Multicast DNS probes for the host name it plans to use, and for the service name(s) it plans to advertise.  Note that queries without proposed answers in the Authority section of the mDNS message will not be recognized as probes by the test.
-
-II.2 Probe Denials and Conflicts
-
-The test tool responds to the probe for the device's chosen host name, denying the probe.  The tool verifies that the device picks a new host name and probes again.
-Next, the test tool sends its own probe for this new host name, simulating two devices probing for the same name.  The tie-breaker information in the probe is constructed so that the device loses.  The test tool verifies that the device then picks a new host name and probes again.  
-
-Note that probe tie-breaker rules were reversed with the release of Mac OS X v10.2.5.  It is a warning if the device uses the old tiebreaker rules (device must be run with '-M o' option to use old rules).
-II.3 Rate LimitingThe test tool continues to deny every probe (alternately using mDNS replies and conflicting mDNS probes.)  Denials are sent both with and without the cache-flush bit set;  the device must pick a new name for both types of denials.  After the fifteenth try, the device must correctly limit its probing rate to no more than one try per second.  The official spec says "once per minute", but for Bonjour conformance testing purposes, we're willing to be a little more lenient.  However, it is a failure if the interval between probes (after the first fifteen) is ever less than one second.
-
-II.4 Winning Simultaneous ProbeThe test tool now allows the device to complete its probing. The test tool sends its own probe for the same host name, but this time with the tie-breaker information in the probe constructed so that the device wins.  The test tool verifies that the device correctly evaluates the tie-breaker information and concludes that it has won.  The test tool verifies that the device sends three probes followed by at least one announcement.  It is a failure if the time gap between any two consecutive probes is less than 150ms.  It is a failure if the Cache Flush bit is set in announcements for PTR records.
-
-
-II.5 SRV Probing/Announcements
-
-Subtests 11.1 - 11.4 are concurrently performed for SRV record probes and announcements.  
-
-II.6 Subsequent ConflictThe test tool waits for ten seconds, and then issues an mDNS response conflicting with the host name the device is using.  When the device re-issues its probe for that host name, the test tool again sends its conflicting response, and verifies that the device picks a new host name and probes/announces again.  It is a warning if the device selects a new host name without first probing for its original name.
-
-II.6 Subsequent ConflictThe test tool waits for ten seconds, and then issues an mDNS response conflicting with the host name the device is using.  When the device re-issues its probe for that host name, the test tool again sends its conflicting response, and verifies that the device picks a new host name and probes/announces again.  It is a warning if the device selects a new host name without first probing for its original name.
-II.6 Subsequent ConflictThe test tool waits for ten seconds, and then issues an mDNS response conflicting with the host name the device is using.  When the device re-issues its probe for that host name, the test tool again sends its conflicting response, and verifies that the device picks a new host name and probes/announces again.  It is a warning if the device selects a new host name without first probing for its original name.
-
-This procedure is repeated for a service name (SRV record) the device is using.  (Ommitted if SRV probing/announcements are dissabled by the operator.)
-
-II.7 Simple Response VerificationThe test tool issues a series of simple queries for non-shared records (SRV, TXT, A) and records how quickly the device answers.  The time is logged and displayed.  More than 10ms is a warning, while more than 750ms is a failure.      
-
-A portion of the queries are issued with the wildcard query type (T_ANY, 255) - it is a failure if the device does not correctly respond to these queries.  It is a warning if the reply does not include an address record in the Additional Records section of the reply to an SRV query.
-
-II.8 Shared Reply TimingThe test tool issues a query for a shared (service PTR) record, and records how quickly the device answers.  This test is repeated 10 times.  The response times must form a uniform random distribution in the range 20ms - 125ms. Any results in the range 10ms - 20ms, or 125ms - 750ms are warnings.  Any results less than 10ms or more than 750ms are failures.  
-
-For purposes of determining a uniform random distribution, only the answers that fall into the correct time range (20ms - 125ms) are considered.  It is a warning if less than 5% or more than 45% of these answers fall in any one quadrant of the range.  (Ideally, 25% of the answers should fall in each 21ms quadrant of the range 20ms - 125ms.)  If all 100 replies lie within one tenth of the correct range, this is a failure.  (To accommodate low-cost devices with low clock precision, warning-generating replies outside of the 20ms - 125ms range automatically prevent random distribution failures).  
-
-A portion of the queries are issued with the wildcard query type (T_ANY, 255) - it is a failure if the device does not correctly respond to these queries.  It is a warning if the answers do not contain SRV and TXT records in the answer section.  II.9 Duplicate SuppressionThe test tool issues a query for a service PTR record, but includes the device's response record in the duplicate suppression section.  The test tool repeats the question using progressively shorter TTLs, until the TTL is less than half the real TTL.  If the device answers before this point, it is a failure.  If the device does not answer after the TTL is half the real TTL, it is a failure.  Periodic announcements do not affect the test results.
-
-II.10 Distributed Duplicate SuppressionThe test tool issues a query for a service PTR record, with the TC (truncated) bit set, and then immediately issues a subsequent query containing the device's response record in the duplicate suppression section.  As before, the test tool repeats the question using progressively shorter TTLs, until the TTL is less than half the real TTL.  If the device answers before this point, it is a failure.  If the device does not answer after the TTL is half the real TTL, it is a failure.  Periodic announcements do not affect the test results.
-
-II.11 - II.14 Multiple QuestionsTests II.7 to II.9 are repeated using a query containing multiple questions, and the test tool verifies that the device still sends the correct replies at the correct times. 
-
-II.15 Reply AggregationThe test tool issues two "Shared Reply" queries rapidly, back-to-back, both of which should elicit (different) answers from the device.  The device should respond using a single response packet containing both answers.  If the device does otherwise, this is a failure.
-
-
-II.16 Manual Name ChangeThe operator manually changes the name of a service the device is advertising to the name specified by the test tool, using whatever mechanism is provided for this purpose (e.g. web-based configuration page, dedicated software configuration tool, SNMP command, etc.)  The test tool verifies that the device transmits a PTR record with TTL=0 to delete its old name, and correctly probes for and announces its new name (with the same criteria as in the Winning Simultaneous Probe test.)  A warning is generated if after two tries, the service name is changed to a new name, but not to the exact name specified by the test tool.
-
-II.17 Cable Change Handling ("hot-plugging")The operator disconnects and reconnects the device's network cable.  The test tool verifies that the device repeats its probing to verify that its names are still unique.  The test tool will repeat tests II.1 to II.6 and verify that the device still performs correctly.
-
-
-Phase III: Mixed Network interoperability
------------------------------------------
-Devices with link-local addresses must be able to communicate with devices with routable addresses on the same link, and vice versa.  They must also be resistant to attacks by following IP TTL rules, must be able to communicate with legacy unicast software, and must not put undue congestion on the network.  In the following subtests, the test tool verifies the functionality of the device under various network configurations by querying for SRV, TXT, PTR, and address records.  The SRV response is examined to verify that the response's target hostname is correct, and that a TCP connection can be established to the port specified (for TCP services only).
-
-III.1 Link-Local to Routable Communication
-
-After the device self-assigns a link-local address, the test machine is manually set to a routable address (17.2.3.4).  The device must still work properly.
-
-
-III.2 Routable to Link-Local Communication
-
-The device is manually set to a routable addresses (17.1.1.1), and the test-machine is manually assigned a link-local addresses (169.254/16).  As above, everything should still work correctly.
-
-
-III.3 Unicast Query Response  
-
-The device must successfully interoperate with non-multicast DNS aware legacy unicast software.  The test tool queries the device using unicast (sending to the multicast DNS group address, but from a port other than 5353.)  The device must correctly answer the query via unicast.  It is a failure if the Cache Flush bit is set in unicast responses.
-
-
-III.4 Chattiness Test  
-
-The test tool now goes silent, passively monitoring the device's gratuitous announcements.  The device may send out up to ten announcements, provided that the interval between announcements doubles with each announcement sent, and that the interval between the first two is at least one second.  However, the device must not send regular periodic announcements as a matter of course. The test tool provides a 1024 second period for the permitted announcements.  After this period, a four-hour timer is started.  If, after four hours, no announcements are received, the test ends and the device passes.  If an announcement is received, the timer is reset.  This procedure repeats until four hours have passed without an announcement.  If, after twenty-four hours, such a four hour period has not occurred, the device fails.
-
-For this test, be sure that no Bonjour applications that may issue mDNS queries (such as Safari) are running on the test machine.
-
-
-III.5 mDNS IP TTL Check
-
-During parts III.1 through III.4, all mDNS packets sent by the device are monitored by the test.  It is a warning if the device sends any multicast DNS packets with an IP TTL less than 255 (excluding legacy queries with a source port other than 5353.)  Note that the TTL here refers to the packet's IP TTL, NOT the DNS resource record's TTL.
