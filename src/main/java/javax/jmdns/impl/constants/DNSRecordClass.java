@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
  */
 public enum DNSRecordClass {
     /**
-     *
+     * Unknown record class
      */
     CLASS_UNKNOWN("?", 0),
     /**
@@ -41,37 +41,31 @@ public enum DNSRecordClass {
      */
     CLASS_ANY("any", 255);
 
-    private static final Logger       logger       = LoggerFactory.getLogger(DNSRecordClass.class);
+    private static final Logger logger = LoggerFactory.getLogger(DNSRecordClass.class);
 
     /**
      * Multicast DNS uses the bottom 15 bits to identify the record class...<br/>
      * Except for pseudo records like OPT.
      */
-    public static final int     CLASS_MASK   = 0x7FFF;
+    public static final int CLASS_MASK = 0x7FFF;
 
     /**
      * For answers the top bit indicates that all other cached records are now invalid.<br/>
      * For questions, it indicates that we should send a unicast response.
      */
-    public static final int     CLASS_UNIQUE = 0x8000;
+    public static final int CLASS_UNIQUE = 0x8000;
 
-    /**
-     *
-     */
-    public static final boolean UNIQUE       = true;
+    public static final boolean UNIQUE = true;
 
-    /**
-     *
-     */
-    public static final boolean NOT_UNIQUE   = false;
+    public static final boolean NOT_UNIQUE = false;
 
-    private final String        _externalName;
+    private final String externalName;
 
-    private final int           _index;
+    private final int indexValue;
 
     DNSRecordClass(String name, int index) {
-        _externalName = name;
-        _index = index;
+        externalName = name;
+        indexValue = index;
     }
 
     /**
@@ -80,16 +74,16 @@ public enum DNSRecordClass {
      * @return String
      */
     public String externalName() {
-        return _externalName;
+        return externalName;
     }
 
     /**
      * Return the numeric value of this type
-     * 
+     *
      * @return String
      */
     public int indexValue() {
-        return _index;
+        return indexValue;
     }
 
     /**
@@ -108,9 +102,9 @@ public enum DNSRecordClass {
      */
     public static DNSRecordClass classForName(String name) {
         if (name != null) {
-            String aName = name.toLowerCase();
-            for (DNSRecordClass aClass : DNSRecordClass.values()) {
-                if (aClass._externalName.equals(aName)) return aClass;
+            String lowerCaseName = name.toLowerCase();
+            for (DNSRecordClass recordClass : DNSRecordClass.values()) {
+                if (recordClass.externalName.equals(lowerCaseName)) return recordClass;
             }
         }
         logger.warn("Could not find record class for name: {}", name);
@@ -123,8 +117,8 @@ public enum DNSRecordClass {
      */
     public static DNSRecordClass classForIndex(int index) {
         int maskedIndex = index & CLASS_MASK;
-        for (DNSRecordClass aClass : DNSRecordClass.values()) {
-            if (aClass._index == maskedIndex) return aClass;
+        for (DNSRecordClass recordClass : DNSRecordClass.values()) {
+            if (recordClass.indexValue == maskedIndex) return recordClass;
         }
         logger.debug("Could not find record class for index: {}", index);
         return CLASS_UNKNOWN;
