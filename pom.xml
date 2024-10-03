@@ -9,19 +9,19 @@
 
 	<description>JmDNS is a Java implementation of multi-cast DNS and can be used for service registration and discovery in local area networks. JmDNS is fully compatible with Apple's Bonjour.
 The project was originally started in December 2002 by Arthur van Hoff at Strangeberry.</description>
-	<url>http://jmdns.org</url>
+	<url>https://jmdns.org</url>
 	<inceptionYear>2002</inceptionYear>
 
 	<organization>
 		<name>JmDNS</name>
-		<url>http://jmdns.org/</url>
+		<url>https://jmdns.org/</url>
 	</organization>
 	<developers>
 		<developer>
 			<name>Kai Kreuzer</name>
 			<email>kai@openhab.org</email>
 			<organization>JmDNS</organization>
-			<organizationUrl>http://www.jmdns.org</organizationUrl>
+			<organizationUrl>https://www.jmdns.org</organizationUrl>
 		</developer>
 	</developers>
 	<scm>
@@ -44,7 +44,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		<license>
 			<name>Apache License, Version 2.0</name>
 			<distribution>repo</distribution>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
 		</license>
 	</licenses>
 
