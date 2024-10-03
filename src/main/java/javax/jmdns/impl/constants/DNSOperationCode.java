@@ -37,24 +37,24 @@ public enum DNSOperationCode {
     /**
      * DNS RCode types are encoded on the last 4 bits
      */
-    static final int     OpCode_MASK = 0x7800;
+    static final int OpCode_MASK = 0x7800;
 
-    private final String _externalName;
+    private final String externalName;
 
-    private final int    _index;
+    private final int indexValue;
 
     DNSOperationCode(String name, int index) {
-        _externalName = name;
-        _index = index;
+        externalName = name;
+        indexValue = index;
     }
 
     /**
      * Return the string representation of this type
-     * 
+     *
      * @return String
      */
     public String externalName() {
-        return _externalName;
+        return externalName;
     }
 
     /**
@@ -63,7 +63,7 @@ public enum DNSOperationCode {
      * @return String
      */
     public int indexValue() {
-        return _index;
+        return indexValue;
     }
 
     /**
@@ -72,8 +72,8 @@ public enum DNSOperationCode {
      */
     public static DNSOperationCode operationCodeForFlags(int flags) {
         int maskedIndex = (flags & OpCode_MASK) >> 11;
-        for (DNSOperationCode aCode : DNSOperationCode.values()) {
-            if (aCode._index == maskedIndex) return aCode;
+        for (DNSOperationCode operationCode : DNSOperationCode.values()) {
+            if (operationCode.indexValue == maskedIndex) return operationCode;
         }
         return Unassigned;
     }
