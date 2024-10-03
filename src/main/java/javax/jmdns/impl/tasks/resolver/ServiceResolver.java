@@ -22,11 +22,11 @@ import javax.jmdns.impl.constants.DNSRecordType;
  */
 public class ServiceResolver extends DNSResolverTask {
 
-    private final String _type;
+    private final String type;
 
     public ServiceResolver(JmDNSImpl jmDNSImpl, String type) {
         super(jmDNSImpl);
-        this._type = type;
+        this.type = type;
     }
 
     /*
@@ -59,8 +59,7 @@ public class ServiceResolver extends DNSResolverTask {
     @Override
     protected DNSOutgoing addQuestions(DNSOutgoing out) throws IOException {
         DNSOutgoing newOut = out;
-        newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(_type, DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-        // newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(_type, DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+        newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(type, DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
         return newOut;
     }
 

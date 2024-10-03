@@ -22,13 +22,13 @@ import javax.jmdns.impl.constants.DNSRecordType;
  */
 public class ServiceInfoResolver extends DNSResolverTask {
 
-    private final ServiceInfoImpl _info;
+    private final ServiceInfoImpl serviceInfo;
 
     public ServiceInfoResolver(JmDNSImpl jmDNSImpl, ServiceInfoImpl info) {
         super(jmDNSImpl);
-        this._info = info;
-        info.setDns(this.getDns());
-        this.getDns().addListener(info, DNSQuestion.newQuestion(info.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+        serviceInfo = info;
+        serviceInfo.setDns(getDns());
+        getDns().addListener(info, DNSQuestion.newQuestion(serviceInfo.getQualifiedName(), DNSRecordType.TYPE_ANY, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
     }
 
     /*
@@ -48,8 +48,8 @@ public class ServiceInfoResolver extends DNSResolverTask {
     public boolean cancel() {
         // We should not forget to remove the listener
         boolean result = super.cancel();
-        if (!_info.isPersistent()) {
-            this.getDns().removeListener(_info);
+        if (!serviceInfo.isPersistent()) {
+            this.getDns().removeListener(serviceInfo);
         }
         return result;
     }
@@ -61,15 +61,15 @@ public class ServiceInfoResolver extends DNSResolverTask {
     @Override
     protected DNSOutgoing addAnswers(DNSOutgoing out) throws IOException {
         DNSOutgoing newOut = out;
-        if (!_info.hasData()) {
+        if (!serviceInfo.hasData()) {
             long now = System.currentTimeMillis();
-            newOut = this.addAnswer(newOut, (DNSRecord) this.getDns().getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN), now);
-            newOut = this.addAnswer(newOut, (DNSRecord) this.getDns().getCache().getDNSEntry(_info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN), now);
-            if (!_info.getServer().isEmpty()) {
-                for (DNSEntry addressEntry : this.getDns().getCache().getDNSEntryList(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN)) {
+            newOut = this.addAnswer(newOut, (DNSRecord) this.getDns().getCache().getDNSEntry(serviceInfo.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN), now);
+            newOut = this.addAnswer(newOut, (DNSRecord) this.getDns().getCache().getDNSEntry(serviceInfo.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN), now);
+            if (!serviceInfo.getServer().isEmpty()) {
+                for (DNSEntry addressEntry : this.getDns().getCache().getDNSEntryList(serviceInfo.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN)) {
                     newOut = this.addAnswer(newOut, (DNSRecord) addressEntry, now);
                 }
-                for (DNSEntry addressEntry : this.getDns().getCache().getDNSEntryList(_info.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN)) {
+                for (DNSEntry addressEntry : this.getDns().getCache().getDNSEntryList(serviceInfo.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN)) {
                     newOut = this.addAnswer(newOut, (DNSRecord) addressEntry, now);
                 }
             }
@@ -84,12 +84,12 @@ public class ServiceInfoResolver extends DNSResolverTask {
     @Override
     protected DNSOutgoing addQuestions(DNSOutgoing out) throws IOException {
         DNSOutgoing newOut = out;
-        if (!_info.hasData()) {
-            newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-            newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(_info.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-            if (!_info.getServer().isEmpty()) {
-                newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(_info.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-                newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(_info.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+        if (!serviceInfo.hasData()) {
+            newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(serviceInfo.getQualifiedName(), DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+            newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(serviceInfo.getQualifiedName(), DNSRecordType.TYPE_TXT, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+            if (!serviceInfo.getServer().isEmpty()) {
+                newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(serviceInfo.getServer(), DNSRecordType.TYPE_A, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+                newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(serviceInfo.getServer(), DNSRecordType.TYPE_AAAA, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
             }
         }
         return newOut;
@@ -101,7 +101,7 @@ public class ServiceInfoResolver extends DNSResolverTask {
      */
     @Override
     protected String description() {
-        return "querying service info: " + (_info != null ? _info.getQualifiedName() : "null");
+        return "querying service info: " + (serviceInfo != null ? serviceInfo.getQualifiedName() : "null");
     }
 
 }

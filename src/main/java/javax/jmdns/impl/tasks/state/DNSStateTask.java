@@ -4,6 +4,7 @@ package javax.jmdns.impl.tasks.state;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,61 +18,61 @@ import javax.jmdns.impl.constants.DNSState;
 import javax.jmdns.impl.tasks.DNSTask;
 
 /**
- * This is the root class for all state tasks. These tasks work with objects that implements the {@link javax.jmdns.impl.DNSStatefulObject} interface and therefore participate in the state machine.
- * 
+ * This is the root class for all state tasks. These tasks work with objects that implements the
+ * {@link javax.jmdns.impl.DNSStatefulObject} interface and therefore participate in the state machine.
+ *
  * @author Pierre Frisch
  */
 public abstract class DNSStateTask extends DNSTask {
-    static Logger      logger     = LoggerFactory.getLogger(DNSStateTask.class);
+    private static final Logger logger = LoggerFactory.getLogger(DNSStateTask.class);
 
     /**
      * By setting a 0 ttl we effectively expire the record.
      */
-    private final int  _ttl;
+    private final int ttl;
 
-    private static int _defaultTTL = DNSConstants.DNS_TTL;
+    private static int defaultTTL = DNSConstants.DNS_TTL;
 
     /**
      * The state of the task.
      */
-    private DNSState   _taskState  = null;
+    private DNSState taskState = null;
 
     public abstract String getTaskDescription();
 
     public static int defaultTTL() {
-        return _defaultTTL;
+        return defaultTTL;
     }
 
     /**
      * For testing only do not use in production.
-     * 
+     *
      * @param value
      */
     public static void setDefaultTTL(int value) {
-        _defaultTTL = value;
+        defaultTTL = value;
     }
 
     /**
      * @param jmDNSImpl
      * @param ttl
      */
-    public DNSStateTask(JmDNSImpl jmDNSImpl, int ttl) {
+    DNSStateTask(JmDNSImpl jmDNSImpl, int ttl) {
         super(jmDNSImpl);
-        _ttl = ttl;
+        this.ttl = ttl;
     }
 
     /**
      * @return the ttl
      */
     public int getTTL() {
-        return _ttl;
+        return ttl;
     }
 
     /**
      * Associate the DNS host and the service infos with this task if not already associated and in the same state.
-     * 
-     * @param state
-     *            target state
+     *
+     * @param state target state
      */
     protected void associate(DNSState state) {
         synchronized (this.getDns()) {
@@ -120,7 +121,7 @@ public abstract class DNSStateTask extends DNSTask {
 
                 synchronized (info) {
                     if (info.isAssociatedWithTask(this, this.getTaskState())) {
-                        logger.debug("{}.run() JmDNS {} {}",this.getName(), this.getTaskDescription(), info.getQualifiedName());
+                        logger.debug("{}.run() JmDNS {} {}", this.getName(), this.getTaskDescription(), info.getQualifiedName());
                         stateObjects.add(info);
                         out = this.buildOutgoingForInfo(info, out);
                     }
@@ -174,15 +175,14 @@ public abstract class DNSStateTask extends DNSTask {
      * @return the taskState
      */
     protected DNSState getTaskState() {
-        return this._taskState;
+        return this.taskState;
     }
 
     /**
-     * @param taskState
-     *            the taskState to set
+     * @param taskState the taskState to set
      */
     protected void setTaskState(DNSState taskState) {
-        this._taskState = taskState;
+        this.taskState = taskState;
     }
 
 }
