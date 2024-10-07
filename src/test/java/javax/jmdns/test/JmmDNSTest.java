@@ -2,9 +2,10 @@ package javax.jmdns.test;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -12,6 +13,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.jmdns.JmmDNS;
+import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.test.util.ReflectionUtils;
@@ -132,81 +134,62 @@ class JmmDNSTest {
         }
     }
 
-//    @Test
-//    void testListenForMyService() throws IOException {
-//        JmmDNS registry = null;
-//        try {
-//            Capture<ServiceEvent> capServiceAddedEvent = EasyMock.newCapture();
-//            Capture<ServiceEvent> capServiceResolvedEvent = EasyMock.newCapture();
-//            // Add an expectation that the listener interface will be called once capture the object so I can verify it separately.
-//            serviceListenerMock.serviceAdded(capture(capServiceAddedEvent));
-//            serviceListenerMock.serviceResolved(capture(capServiceResolvedEvent));
-//            EasyMock.replay(serviceListenerMock);
-//            // EasyMock.makeThreadSafe(serviceListenerMock, false);
-//
-//            registry = JmmDNS.Factory.getInstance();
-//
-//            registry.addServiceListener(service.getType(), serviceListenerMock);
-//
-//            registry.registerService(service);
-//
-//            // We get the service added event when we register the service. However the service has not been resolved at this point.
-//            // The info associated with the event only has the minimum information i.e. name and type.
-//            assertTrue(capServiceAddedEvent.hasCaptured(), "We did not get the service added event.");
-//            ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
-//            assertEquals(service.getName(), info.getName(), "We did not get the right name for the added service:");
-//            assertEquals(service.getType(), info.getType(), "We did not get the right type for the added service:");
-//            assertEquals(service.getQualifiedName(), info.getQualifiedName(), "We did not get the right fully qualified name for the added service:");
-//
-//            registry.requestServiceInfo(service.getType(), service.getName());
-//
-//            assertTrue(capServiceResolvedEvent.hasCaptured(), "We did not get the service resolved event.");
-//            verify(serviceListenerMock);
-//            ServiceInfo resolvedInfo = capServiceResolvedEvent.getValue().getInfo();
-//            assertEquals(service, resolvedInfo, "Did not get the expected service info: ");
-//        } finally {
-//            if (registry != null) registry.close();
-//        }
-//    }
-//
-//    @Test
-//    void testListenForMyServiceAndList() throws IOException {
-//        JmmDNS registry = null;
-//        try {
-//            Capture<ServiceEvent> capServiceAddedEvent = EasyMock.newCapture();
-//            Capture<ServiceEvent> capServiceResolvedEvent = EasyMock.newCapture();
-//            // Expect the listener to be called once and capture the result
-//            serviceListenerMock.serviceAdded(capture(capServiceAddedEvent));
-//            serviceListenerMock.serviceResolved(capture(capServiceResolvedEvent));
-//            replay(serviceListenerMock);
-//
-//            registry = JmmDNS.Factory.getInstance();
-//            registry.addServiceListener(service.getType(), serviceListenerMock);
-//            registry.registerService(service);
-//
-//            // We get the service added event when we register the service. However the service has not been resolved at this point.
-//            // The info associated with the event only has the minimum information i.e. name and type.
-//            assertTrue(capServiceAddedEvent.hasCaptured(), "We did not get the service added event.");
-//
-//            ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
-//            assertEquals(service.getName(), info.getName(), "We did not get the right name for the resolved service:");
-//            assertEquals(service.getType(), info.getType(), "We did not get the right type for the resolved service:");
-//
-//            // This will force the resolution of the service which in turn will get the listener called with a service resolved event.
-//            // The info associated with a service resolved event has all the information available.
-//            // Which in turn populates the ServiceInfo opbjects returned by JmmDNS.list.
-//            ServiceInfo[] services = registry.list(info.getType());
-//            assertTrue(services.length > 0, "We did not get the expected number of services: ");
-//            assertEquals(service, services[0], "The service returned was not the one expected");
-//
-//            assertTrue(capServiceResolvedEvent.hasCaptured(), "We did not get the service resolved event.");
-//            verify(serviceListenerMock);
-//            ServiceInfo resolvedInfo = capServiceResolvedEvent.getValue().getInfo();
-//            assertEquals(service, resolvedInfo, "Did not get the expected service info: ");
-//        } finally {
-//            if (registry != null) registry.close();
-//        }
-//    }
+    @Test
+    void testListenForMyService() throws IOException, InterruptedException {
+        ArgumentCaptor<ServiceEvent> capServiceAddedEvent = ArgumentCaptor.forClass(ServiceEvent.class);
+        ArgumentCaptor<ServiceEvent> capServiceResolvedEvent = ArgumentCaptor.forClass(ServiceEvent.class);
+
+        try (JmmDNS registry = JmmDNS.Factory.getInstance()) {
+            registry.addServiceListener(service.getType(), serviceListenerMock);
+
+            registry.registerService(service);
+            Thread.sleep(6000);
+
+            // We get the service added event when we register the service. However, the service has not been resolved at this point.
+            // The info associated with the event only has the minimum information i.e. name and type.
+            verify(serviceListenerMock, atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
+
+            ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
+            assertEquals(service.getName(), info.getName(), "We did not get the right name for the added service:");
+            assertEquals(service.getType(), info.getType(), "We did not get the right type for the added service:");
+            assertEquals(service.getQualifiedName(), info.getQualifiedName(), "We did not get the right fully qualified name for the added service:");
+
+            registry.requestServiceInfo(service.getType(), service.getName());
+
+            verify(serviceListenerMock, atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
+            assertFalse(capServiceResolvedEvent.getAllValues().isEmpty(), "We did not get the service resolved event.");
+
+            assertTrue(capServiceResolvedEvent.getAllValues().stream().anyMatch(e -> service.equals(e.getInfo())), "Did not get the expected service info: ");
+        }
+    }
+
+    @Test
+    void testListenForMyServiceAndList() throws IOException, InterruptedException {
+        ArgumentCaptor<ServiceEvent> capServiceAddedEvent = ArgumentCaptor.forClass(ServiceEvent.class);
+        ArgumentCaptor<ServiceEvent> capServiceResolvedEvent = ArgumentCaptor.forClass(ServiceEvent.class);
+        try (JmmDNS registry = JmmDNS.Factory.getInstance()) {
+            registry.addServiceListener(service.getType(), serviceListenerMock);
+            registry.registerService(service);
+            Thread.sleep(6000);
+            // We get the service added event when we register the service. However, the service has not been resolved at this point.
+            // The info associated with the event only has the minimum information i.e. name and type.
+            verify(serviceListenerMock, atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
+            ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
+            assertEquals(service.getName(), info.getName(), "We did not get the right name for the resolved service:");
+            assertEquals(service.getType(), info.getType(), "We did not get the right type for the resolved service:");
+
+            // This will force the resolution of the service which in turn will get the listener called with a service resolved event.
+            // The info associated with a service resolved event has all the information available.
+            // Which in turn populates the ServiceInfo objects returned by JmmDNS.list.
+            ServiceInfo[] services = registry.list(info.getType());
+            assertTrue(services.length > 0, "We did not get the expected number of services: ");
+            assertEquals(service, services[0], "The service returned was not the one expected");
+
+            verify(serviceListenerMock, atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
+            assertFalse(capServiceResolvedEvent.getAllValues().isEmpty(), "We did not get the service resolved event.");
+            assertTrue(capServiceResolvedEvent.getAllValues().stream().anyMatch(e -> service.equals(e.getInfo())), "Did not get the expected service info: ");
+        }
+    }
 
     // @Test
     // public void testListMyServiceWithToLowerCase() throws IOException, InterruptedException {

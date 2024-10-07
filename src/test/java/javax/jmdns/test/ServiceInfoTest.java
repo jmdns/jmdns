@@ -1,6 +1,3 @@
-/**
- *
- */
 package javax.jmdns.test;
 
 import org.junit.jupiter.api.Test;

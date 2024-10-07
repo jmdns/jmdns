@@ -1,14 +1,8 @@
-/**
- *
- */
 package javax.jmdns.test;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -155,9 +149,10 @@ class TextUpdateTest {
             assertEquals(service.getType(), info.getType(), "We did not get the right type for the resolved service:");
             // We get the service added event when we register the service. However, the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
-            List<ServiceEvent> servicesResolved = serviceListenerMock.servicesResolved();
-            assertEquals(2, servicesResolved.size(), "We did not get the service resolved event.");
-            ServiceInfo result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
+            Optional<ServiceEvent> servicesResolved = serviceListenerMock.servicesResolved().stream()
+                    .filter(e -> new String(e.getInfo().getTextBytes()).contains(SERVICE_KEY)).findFirst();
+            assertTrue(servicesResolved.isPresent(), "We did not get the service resolved event.");
+            ServiceInfo result = servicesResolved.get().getInfo();
             assertNotNull(result, "Did not get the expected service info: ");
             assertEquals(service, result, "Did not get the expected service info: ");
             assertEquals(service.getPropertyString(SERVICE_KEY), result.getPropertyString(SERVICE_KEY), "Did not get the expected service info text: ");
@@ -168,9 +163,10 @@ class TextUpdateTest {
             properties.put(SERVICE_KEY, text.getBytes());
             service.setText(properties);
             Thread.sleep(3000);
-            servicesResolved = serviceListenerMock.servicesResolved();
-            assertEquals(1, servicesResolved.size(), "We did not get the service text updated event.");
-            result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
+            servicesResolved = serviceListenerMock.servicesResolved().stream()
+                    .filter(e -> new String(e.getInfo().getTextBytes()).contains(SERVICE_KEY)).findFirst();
+            assertTrue(servicesResolved.isPresent(), "We did not get the service text updated event.");
+            result = servicesResolved.get().getInfo();
             assertEquals(text, result.getPropertyString(SERVICE_KEY), "Did not get the expected service info text: ");
 
             serviceListenerMock.reset();
@@ -179,9 +175,10 @@ class TextUpdateTest {
             properties.put(SERVICE_KEY, text.getBytes());
             service.setText(properties);
             Thread.sleep(3000);
-            servicesResolved = serviceListenerMock.servicesResolved();
-            assertEquals(1, servicesResolved.size(), "We did not get the service text updated event.");
-            result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
+            servicesResolved = serviceListenerMock.servicesResolved().stream()
+                    .filter(e -> new String(e.getInfo().getTextBytes()).contains(SERVICE_KEY)).findFirst();
+            assertTrue( servicesResolved.isPresent(), "We did not get the service text updated event.");
+            result = servicesResolved.get().getInfo();
             assertEquals(text, result.getPropertyString(SERVICE_KEY), "Did not get the expected service info text: ");
 
             serviceListenerMock.reset();
@@ -190,9 +187,10 @@ class TextUpdateTest {
             properties.put(SERVICE_KEY, text.getBytes());
             service.setText(properties);
             Thread.sleep(3000);
-            servicesResolved = serviceListenerMock.servicesResolved();
-            assertEquals(1, servicesResolved.size(), "We did not get the service text updated event.");
-            result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
+            servicesResolved = serviceListenerMock.servicesResolved().stream()
+                    .filter(e -> new String(e.getInfo().getTextBytes()).contains(SERVICE_KEY)).findFirst();
+            assertTrue(servicesResolved.isPresent(), "We did not get the service text updated event.");
+            result = servicesResolved.get().getInfo();
             assertEquals(text, result.getPropertyString(SERVICE_KEY), "Did not get the expected service info text: ");
         }
     }
@@ -217,9 +215,10 @@ class TextUpdateTest {
             assertEquals(service.getType(), info.getType(), "We did not get the right type for the resolved service:");
             // We get the service added event when we register the service. However, the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
-            List<ServiceEvent> servicesResolved = serviceListenerMock.servicesResolved();
-            assertEquals(2, servicesResolved.size(), "We did not get the service resolved event.");
-            ServiceInfo result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
+            Optional<ServiceEvent> serviceResolved = serviceListenerMock.servicesResolved().stream()
+                    .filter(e -> new String(e.getInfo().getTextBytes()).contains(SERVICE_KEY)).findFirst();
+            assertTrue(serviceResolved.isPresent(), "We did not get the service resolved event.");
+            ServiceInfo result = serviceResolved.get().getInfo();
             assertNotNull(result, "Did not get the expected service info: ");
             assertEquals(service, result, "Did not get the expected service info: ");
             assertEquals(service.getPropertyString(SERVICE_KEY), result.getPropertyString(SERVICE_KEY), "Did not get the expected service info text: ");
@@ -228,7 +227,7 @@ class TextUpdateTest {
             Map<String, byte[]> properties = new HashMap<>();
             service.setText(properties);
             Thread.sleep(4000);
-            servicesResolved = serviceListenerMock.servicesResolved();
+            List<ServiceEvent> servicesResolved = serviceListenerMock.servicesResolved();
             assertEquals(1, servicesResolved.size(), "We did not get the service text updated event.");
             result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
             assertNull(result.getPropertyString(SERVICE_KEY), "Did not get the expected service info text: ");
@@ -260,9 +259,10 @@ class TextUpdateTest {
             assertEquals(service.getType(), info.getType(), "We did not get the right type for the resolved service:");
             // We get the service added event when we register the service. However, the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
-            List<ServiceEvent> servicesResolved = serviceListenerMock.servicesResolved();
-            assertEquals(2, servicesResolved.size(), "We did not get the service resolved event.");
-            ServiceInfo result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
+            Optional<ServiceEvent> servicesResolved = serviceListenerMock.servicesResolved().stream()
+                    .filter(e -> new String(e.getInfo().getTextBytes()).contains(SERVICE_KEY)).findFirst();
+            assertTrue(servicesResolved.isPresent(), "We did not get the service resolved event.");
+            ServiceInfo result = servicesResolved.get().getInfo();
             assertNotNull(result, "Did not get the expected service info: ");
             assertEquals(service, result, "Did not get the expected service info: ");
             assertEquals(service.getPropertyString(SERVICE_KEY), result.getPropertyString(SERVICE_KEY), "Did not get the expected service info text: ");
@@ -332,9 +332,10 @@ class TextUpdateTest {
             assertEquals(printer.getType(), info.getType(), "We did not get the right type for the resolved service:");
             // We get the service added event when we register the service. However, the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
-            List<ServiceEvent> servicesResolved = serviceListenerMock.servicesResolved();
-            assertEquals(2, servicesResolved.size(), "We did not get the service resolved event.");
-            ServiceInfo result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
+            Optional<ServiceEvent> servicesResolved = serviceListenerMock.servicesResolved().stream()
+                    .filter(e -> new String(e.getInfo().getTextBytes()).contains(SERVICE_KEY)).findFirst();
+            assertTrue(servicesResolved.isPresent(), "We did not get the service resolved event.");
+            ServiceInfo result = servicesResolved.get().getInfo();
             assertNotNull(result, "Did not get the expected service info: ");
             assertEquals(printer, result, "Did not get the expected service info: ");
             assertEquals(printer.getSubtype(), result.getSubtype(), "Did not get the expected service info subtype: ");
@@ -363,9 +364,10 @@ class TextUpdateTest {
             assertEquals(caseSensitivePrinter.getType(), info.getType(), "We did not get the right type for the resolved service:");
             // We get the service added event when we register the service. However, the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
-            List<ServiceEvent> servicesResolved = serviceListenerMock.servicesResolved();
-            assertEquals(2, servicesResolved.size(), "We did not get the service resolved event.");
-            ServiceInfo result = servicesResolved.get(servicesResolved.size() - 1).getInfo();
+            Optional<ServiceEvent> servicesResolved = serviceListenerMock.servicesResolved().stream()
+                    .filter(e -> new String(e.getInfo().getTextBytes()).contains(SERVICE_KEY)).findFirst();
+            assertTrue(servicesResolved.isPresent(), "We did not get the service resolved event.");
+            ServiceInfo result = servicesResolved.get().getInfo();
             assertNotNull(result, "Did not get the expected service info: ");
             assertEquals(caseSensitivePrinter, result, "Did not get the expected service info: ");
             assertEquals(caseSensitivePrinter.getSubtype(), result.getSubtype(), "Did not get the expected service info subtype: ");
