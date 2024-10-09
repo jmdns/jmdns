@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.Hashtable;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -724,7 +724,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
 
     synchronized Map<String, byte[]> getProperties() {
         if ((_props == null) && (this.getTextBytes() != null)) {
-            final Map<String, byte[]> properties = new Hashtable<>();
+            final Map<String, byte[]> properties = new LinkedHashMap<>();
             try {
                 ByteWrangler.readProperties(properties, this.getTextBytes());
             } catch (final Exception exception) {
