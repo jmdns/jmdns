@@ -11,14 +11,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.strangeberry.jmdns.tools;
+package javax.jmdns.tools;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Toolkit;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.Collections;
 import java.util.Enumeration;
 
 import javax.jmdns.JmmDNS;
@@ -38,7 +42,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.AbstractTableModel;
 
 /**
  * User Interface for browsing JmDNS services.
@@ -46,34 +49,33 @@ import javax.swing.table.AbstractTableModel;
  * @author Arthur van Hoff, Werner Randelshofer
  */
 public class Browser extends JFrame implements ServiceListener, ServiceTypeListener, ListSelectionListener {
-    /**
-     *
-     */
+
     private static final long serialVersionUID = 5750114542524415107L;
-    JmmDNS                    jmmdns;
-    // Vector headers;
-    String                    type;
-    DefaultListModel          types;
-    JList                     typeList;
-    DefaultListModel          services;
-    JList                     serviceList;
-    JTextArea                 info;
+    static JmmDNS jmmdns;
+    static Browser instance;
+
+    private final DefaultListModel<String> services;
+    private final DefaultListModel<String> types;
+    private final JList<String> serviceList;
+    private final JList<String> typeList;
+    private final JTextArea info;
+    private String type;
 
     /**
-     * @param mmDNS
-     * @throws IOException
+     * Constructs a new MdnsBrowser instance.
+     * Initializes the GUI components and sets up the browser window.
      */
-    Browser(JmmDNS mmDNS) throws IOException {
+    Browser() {
         super("JmDNS Browser");
-        this.jmmdns = mmDNS;
+        instance = this;
 
         Color bg = new Color(230, 230, 230);
         EmptyBorder border = new EmptyBorder(5, 5, 5, 5);
         Container content = getContentPane();
         content.setLayout(new GridLayout(1, 3));
 
-        types = new DefaultListModel();
-        typeList = new JList(types);
+        types = new DefaultListModel<>();
+        typeList = new JList<>(types);
         typeList.setBorder(border);
         typeList.setBackground(bg);
         typeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -85,8 +87,8 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
         typePanel.add("Center", new JScrollPane(typeList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
         content.add(typePanel);
 
-        services = new DefaultListModel();
-        serviceList = new JList(services);
+        services = new DefaultListModel<>();
+        serviceList = new JList<>(services);
         serviceList.setBorder(border);
         serviceList.setBackground(bg);
         serviceList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -103,157 +105,155 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
         info.setBackground(bg);
         info.setEditable(false);
         info.setLineWrap(true);
+        info.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12)); // Set fixed-width font
 
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BorderLayout());
         infoPanel.add("North", new JLabel("Details"));
         infoPanel.add("Center", new JScrollPane(info, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
         content.add(infoPanel);
-
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocation(100, 100);
-        setSize(600, 400);
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int width = screenSize.width / 2;
+        int height = screenSize.height / 2;
+        setSize(width, height);
+        setLocationRelativeTo(null);
 
-        this.jmmdns.addServiceTypeListener(this);
-
-        // register some well known types
-        // String list[] = new String[] { "_http._tcp.local.", "_ftp._tcp.local.", "_tftp._tcp.local.", "_ssh._tcp.local.", "_smb._tcp.local.", "_printer._tcp.local.", "_airport._tcp.local.", "_afpovertcp._tcp.local.", "_ichat._tcp.local.",
-        // "_eppc._tcp.local.", "_presence._tcp.local.", "_rfb._tcp.local.", "_daap._tcp.local.", "_touchcs._tcp.local." };
-        String[] list = new String[] {};
-
-        for (int i = 0; i < list.length; i++) {
-            this.jmmdns.registerServiceType(list[i]);
-        }
+        Thread jmdnsLoaderThread = new Thread(new JmDnsLoader());
+        jmdnsLoaderThread.start();
 
         this.setVisible(true);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see javax.jmdns.ServiceListener#serviceAdded(javax.jmdns.ServiceEvent)
+    /**
+     * Main program entry point.
+     *
+     * @param argv Command line arguments (not used)
+     */
+    public static void main(String[] argv) {
+        new Browser();
+    }
+
+    /**
+     * Called when a service is added.
+     *
+     * @param event The ServiceEvent containing information about the added service
      */
     @Override
     public void serviceAdded(ServiceEvent event) {
         final String name = event.getName();
-
-        System.out.println("ADD: " + name);
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                insertSorted(services, name);
-            }
-        });
+        log("Service added: " + name);
+        SwingUtilities.invokeLater(() -> insertSorted(services, name));
     }
 
-    /*
-     * (non-Javadoc)
-     * @see javax.jmdns.ServiceListener#serviceRemoved(javax.jmdns.ServiceEvent)
+    /**
+     * Called when a service is removed.
+     *
+     * @param event The ServiceEvent containing information about the removed service
      */
     @Override
     public void serviceRemoved(ServiceEvent event) {
         final String name = event.getName();
-
-        System.out.println("REMOVE: " + name);
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                services.removeElement(name);
-            }
-        });
+        log("Service removed: " + name);
+        SwingUtilities.invokeLater(() -> services.removeElement(name));
     }
 
+    /**
+     * Called when a service is resolved.
+     *
+     * @param event The ServiceEvent containing information about the resolved service
+     */
     @Override
     public void serviceResolved(ServiceEvent event) {
         final String name = event.getName();
+        log("Service resolved: " + name);
 
-        System.out.println("RESOLVED: " + name);
         if (name.equals(serviceList.getSelectedValue())) {
-            ServiceInfo[] serviceInfos = this.jmmdns.getServiceInfos(type, name);
-            this.dislayInfo(serviceInfos);
-            // this.dislayInfo(new ServiceInfo[] { event.getInfo() });
+            ServiceInfo[] serviceInfos = jmmdns.getServiceInfos(type, name);
+            this.displayInfo(serviceInfos);
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * @see javax.jmdns.ServiceTypeListener#serviceTypeAdded(javax.jmdns.ServiceEvent)
+    /**
+     * Called when a service type is added.
+     *
+     * @param event The ServiceEvent containing information about the added service type
      */
     @Override
     public void serviceTypeAdded(ServiceEvent event) {
         final String aType = event.getType();
-
-        System.out.println("TYPE: " + aType);
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                insertSorted(types, aType);
-            }
-        });
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see javax.jmdns.ServiceTypeListener#subTypeForServiceTypeAdded(javax.jmdns.ServiceEvent)
-     */
-    @Override
-    public void subTypeForServiceTypeAdded(ServiceEvent event) {
-        System.out.println("SUBTYPE: " + event.getType());
-    }
-
-    void insertSorted(DefaultListModel model, String value) {
-        for (int i = 0, n = model.getSize(); i < n; i++) {
-            int result = value.compareToIgnoreCase((String) model.elementAt(i));
-            if (result == 0) {
-                return;
-            }
-            if (result < 0) {
-                model.insertElementAt(value, i);
-                return;
-            }
-        }
-        model.addElement(value);
+        log("Service type added: " + aType);
+        SwingUtilities.invokeLater(() -> insertSorted(types, aType));
     }
 
     /**
-     * List selection changed.
+     * Called when a subtype for a service type is added.
      *
-     * @param e
+     * @param event The ServiceEvent containing information about the added subtype
+     */
+    @Override
+    public void subTypeForServiceTypeAdded(ServiceEvent event) {
+        log("Subtype for service type added: " + event.getType());
+    }
+
+    /**
+     * Inserts a value into a DefaultListModel in a sorted manner.
+     *
+     * @param model The DefaultListModel to insert into
+     * @param value The value to insert
+     */
+    void insertSorted(DefaultListModel<String> model, String value) {
+        int index = Collections.binarySearch(
+                Collections.list(model.elements()),
+                value,
+                String::compareToIgnoreCase
+        );
+        if (index < 0) {
+            model.add(-index - 1, value);
+        }
+    }
+
+    /**
+     * Handles list selection changes.
+     *
+     * @param e The ListSelectionEvent
      */
     @Override
     public void valueChanged(ListSelectionEvent e) {
         if (!e.getValueIsAdjusting()) {
             if (e.getSource() == typeList) {
-                type = (String) typeList.getSelectedValue();
-                System.out.println("VALUE CHANGED: type: " + type);
-                this.jmmdns.removeServiceListener(type, this);
+                type = typeList.getSelectedValue();
+                log("VALUE CHANGED: type: " + type);
+                jmmdns.removeServiceListener(type, this);
                 services.setSize(0);
                 info.setText("");
                 if (type != null) {
-                    this.jmmdns.addServiceListener(type, this);
+                    jmmdns.addServiceListener(type, this);
                 }
             } else if (e.getSource() == serviceList) {
-                String name = (String) serviceList.getSelectedValue();
-                System.out.println("VALUE CHANGED: type: " + type + " service: " + name);
+                String name = serviceList.getSelectedValue();
+                log("VALUE CHANGED: type: " + type + " service: " + name);
                 if (name == null) {
                     info.setText("");
                 } else {
-                    ServiceInfo[] serviceInfos = this.jmmdns.getServiceInfos(type, name);
-                    // This is actually redundant. getServiceInfo will force the resolution of the service and call serviceResolved
-                    this.dislayInfo(serviceInfos);
+                    ServiceInfo[] serviceInfos = jmmdns.getServiceInfos(type, name);
+                    this.displayInfo(serviceInfos);
                 }
             }
         }
     }
 
-    private void dislayInfo(ServiceInfo[] serviceInfos) {
+    /**
+     * Displays information about the selected service(s).
+     *
+     * @param serviceInfos Array of ServiceInfo objects to display
+     */
+    private void displayInfo(ServiceInfo[] serviceInfos) {
         if (serviceInfos.length == 0) {
-            System.out.println("INFO: null");
             info.setText("service not found\n");
         } else {
             final StringBuilder sb = new StringBuilder(2048);
-            System.out.println("INFO: " + serviceInfos.length);
             for (ServiceInfo service : serviceInfos) {
-                System.out.println("INFO: " + service);
                 sb.append(service.getName());
                 sb.append('.');
                 sb.append(service.getTypeWithSubtype());
@@ -268,7 +268,7 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
                     sb.append(service.getPort());
                     sb.append('\n');
                 }
-                for (Enumeration<String> names = service.getPropertyNames(); names.hasMoreElements();) {
+                for (Enumeration<String> names = service.getPropertyNames(); names.hasMoreElements(); ) {
                     String prop = names.nextElement();
                     sb.append(prop);
                     sb.append('=');
@@ -282,57 +282,43 @@ public class Browser extends JFrame implements ServiceListener, ServiceTypeListe
     }
 
     /**
-     * Table data.
+     * Returns a string representation of this MdnsBrowser.
+     *
+     * @return The string "JmDNS Browser"
      */
-    class ServiceTableModel extends AbstractTableModel {
-        /**
-         *
-         */
-        private static final long serialVersionUID = 5607994569609827570L;
-
-        @Override
-        public String getColumnName(int column) {
-            switch (column) {
-                case 0:
-                    return "service";
-                case 1:
-                    return "address";
-                case 2:
-                    return "port";
-                case 3:
-                    return "text";
-            }
-            return null;
-        }
-
-        @Override
-        public int getColumnCount() {
-            return 1;
-        }
-
-        @Override
-        public int getRowCount() {
-            return services.size();
-        }
-
-        @Override
-        public Object getValueAt(int row, int col) {
-            return services.elementAt(row);
-        }
-    }
-
     @Override
     public String toString() {
-        return "RVBROWSER";
+        return "JmDNS Browser";
     }
 
     /**
-     * Main program.
+     * Logs a message to the console.
      *
-     * @param argv
-     * @throws IOException
+     * @param message The message to be logged
      */
-    public static void main(String argv[]) throws IOException {
-        new Browser(JmmDNS.Factory.getInstance());
+    private void log(String message) {
+        //System.out.println(message);
+    }
+
+    /**
+     * Initializes the browser by adding a ServiceTypeListener.
+     */
+    private void initialiseBrowser() {
+        try {
+            jmmdns.addServiceTypeListener(instance);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Inner class to load JmDNS in a separate thread.
+     */
+    class JmDnsLoader implements Runnable {
+        @Override
+        public void run() {
+            jmmdns = JmmDNS.Factory.getInstance();
+            SwingUtilities.invokeLater(Browser.this::initialiseBrowser);
+        }
     }
 }
