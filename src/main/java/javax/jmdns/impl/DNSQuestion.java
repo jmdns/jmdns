@@ -34,6 +34,28 @@ public class DNSQuestion extends DNSEntry {
     private static final Logger logger = LoggerFactory.getLogger(DNSQuestion.class);
 
     /**
+     * Checks if the local host name matches the name of this instance, ignoring case.
+     * If there is a match, adds the DNS records for the local host to the provided set of answers.
+     *
+     * @param jmDNSImpl The {@link JmDNSImpl} instance representing the local DNS service.
+     * @param answers   The set of {@link DNSRecord} to which the local host's DNS records should be added if a match is found.
+     * @return {@code true} if the local host name matches this instance's name (case-insensitive); {@code false} otherwise.
+     */
+    boolean processHostMatch(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers) {
+        HostInfo hostInfo = jmDNSImpl.getLocalHost();
+        String localHostName = hostInfo.getName();
+
+        // Use equalsIgnoreCase directly without lowercasing.
+        if (!localHostName.equalsIgnoreCase(this.getName())) {
+            return false;
+        }
+
+        // If the names match, add all the answers and return true.
+        answers.addAll(hostInfo.answers(this.getRecordClass(), this.isUnique(), DNSConstants.DNS_TTL));
+        return true;
+    }
+
+    /**
      * Address question.
      */
     private static class DNS4Address extends DNSQuestion {
@@ -43,6 +65,7 @@ public class DNSQuestion extends DNSEntry {
 
         @Override
         public void addAnswers(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers) {
+            if (this.processHostMatch(jmDNSImpl, answers)) return;
             DNSRecord answer = jmDNSImpl.getLocalHost().getDNSAddressRecord(this.getRecordType(), DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL);
             if (answer != null) {
                 answers.add(answer);
@@ -67,6 +90,7 @@ public class DNSQuestion extends DNSEntry {
 
         @Override
         public void addAnswers(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers) {
+            if (this.processHostMatch(jmDNSImpl, answers)) return;
             DNSRecord answer = jmDNSImpl.getLocalHost().getDNSAddressRecord(this.getRecordType(), DNSRecordClass.UNIQUE, DNSConstants.DNS_TTL);
             if (answer != null) {
                 answers.add(answer);
@@ -123,7 +147,8 @@ public class DNSQuestion extends DNSEntry {
                     }
                 }
             } else if (this.isDomainDiscoveryQuery()) {
-                // FIXME [PJYF Nov 16 2010] We do not currently support domain discovery
+                // TODO: We do not currently support domain discovery
+                logger.warn("Domain Discovery Query not implemented yet");
             }
         }
 
@@ -139,20 +164,16 @@ public class DNSQuestion extends DNSEntry {
 
         @Override
         public void addAnswers(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers) {
-            String loname = this.getName().toLowerCase();
-            if (jmDNSImpl.getLocalHost().getName().equalsIgnoreCase(loname)) {
-                // type = DNSConstants.TYPE_A;
-                answers.addAll(jmDNSImpl.getLocalHost().answers(this.getRecordClass(), this.isUnique(), DNSConstants.DNS_TTL));
-                return;
-            }
+            if (this.processHostMatch(jmDNSImpl, answers)) return;
+            String lowerCaseName = this.getName().toLowerCase();
             // Service type request
-            if (jmDNSImpl.getServiceTypes().containsKey(loname)) {
+            if (jmDNSImpl.getServiceTypes().containsKey(lowerCaseName)) {
                 DNSQuestion question = new Pointer(this.getName(), DNSRecordType.TYPE_PTR, this.getRecordClass(), this.isUnique());
                 question.addAnswers(jmDNSImpl, answers);
                 return;
             }
 
-            this.addAnswersForServiceInfo(jmDNSImpl, answers, (ServiceInfoImpl) jmDNSImpl.getServices().get(loname));
+            this.addAnswersForServiceInfo(jmDNSImpl, answers, (ServiceInfoImpl) jmDNSImpl.getServices().get(lowerCaseName));
         }
 
         @Override
@@ -200,14 +221,10 @@ public class DNSQuestion extends DNSEntry {
 
         @Override
         public void addAnswers(JmDNSImpl jmDNSImpl, Set<DNSRecord> answers) {
-            String loname = this.getName().toLowerCase();
-            if (jmDNSImpl.getLocalHost().getName().equalsIgnoreCase(loname)) {
-                // type = DNSConstants.TYPE_A;
-                answers.addAll(jmDNSImpl.getLocalHost().answers(this.getRecordClass(), this.isUnique(), DNSConstants.DNS_TTL));
-                return;
-            }
+            if (this.processHostMatch(jmDNSImpl, answers)) return;
+            String lowerCaseName = this.getName().toLowerCase();
             // Service type request
-            if (jmDNSImpl.getServiceTypes().containsKey(loname)) {
+            if (jmDNSImpl.getServiceTypes().containsKey(lowerCaseName)) {
                 DNSQuestion question = new Pointer(this.getName(), DNSRecordType.TYPE_PTR, this.getRecordClass(), this.isUnique());
                 question.addAnswers(jmDNSImpl, answers);
                 return;
