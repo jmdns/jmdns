@@ -11,14 +11,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package util;
+package javax.jmdns.test.util;
 
 import java.nio.charset.Charset;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class StringUtil {
     
@@ -42,7 +43,7 @@ public class StringUtil {
         UNICODE_CHARACTERS = sb.toString();
     }
 
-    public static final Charset UTF_8 = Charset.forName("UTF-8");
+    public static final Charset UTF_8 = StandardCharsets.UTF_8;
 
     public static String randomAsciiString(final int length) {
         final StringBuilder sb = new StringBuilder();
@@ -130,7 +131,7 @@ public class StringUtil {
             bytes = str.getBytes(UTF_8);
         }
 
-        // since we we might have removed a Unicode character 
+        // since we might have removed a Unicode character
         // we might now be some bytes of in the wrong direction
         while(bytes.length < length) {
             str = str + 'X';
@@ -152,7 +153,7 @@ public class StringUtil {
         final String str = maxSizeRandomString(length);
 
         final byte[] bytes = str.getBytes(UTF_8);
-        assertEquals("Create bytes array", length, bytes.length);
+        assertEquals(length, bytes.length, "Create bytes array");
 
         final byte[] result = new byte[bytes.length + 1];
         result[0] = (byte) (bytes.length & 0xFF);
