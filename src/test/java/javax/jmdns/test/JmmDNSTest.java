@@ -13,72 +13,56 @@
  */
 package javax.jmdns.test;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.jmdns.JmmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
-import javax.jmdns.ServiceTypeListener;
+import javax.jmdns.test.util.ReflectionUtils;
 
-import org.easymock.Capture;
-import org.easymock.EasyMock;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+class JmmDNSTest {
+    private ServiceListener serviceListenerMock;
+    private ServiceInfo service;
+    private static final String SERVICE_KEY = "srvname"; // Max 9 chars
 
-public class JmmDNSTest {
-
-    @SuppressWarnings("unused")
-    private ServiceTypeListener typeListenerMock;
-    private ServiceListener     serviceListenerMock;
-    private ServiceInfo         service;
-
-    private final static String serviceKey = "srvname"; // Max 9 chars
-
-    @Before
+    @BeforeEach
     public void setup() {
         String text = "Test hypothetical web server";
-        Map<String, byte[]> properties = new HashMap<String, byte[]>();
-        properties.put(serviceKey, text.getBytes());
+        Map<String, byte[]> properties = new HashMap<>();
+        properties.put(SERVICE_KEY, text.getBytes());
         service = ServiceInfo.create("_html._tcp.local.", "apache-someuniqueid", 80, 0, 0, true, properties);
-        typeListenerMock = createMock(ServiceTypeListener.class);
-        serviceListenerMock = createNiceMock("ServiceListener", ServiceListener.class);
+        serviceListenerMock = mock(ServiceListener.class);
     }
 
     @Test
-    public void testCreate() throws IOException {
-        System.out.println("Unit Test: testCreate()");
+    void testCreate() throws IOException, NoSuchFieldException, IllegalAccessException {
         JmmDNS registry = JmmDNS.Factory.getInstance();
+        assertNotNull(registry);
         registry.close();
+        AtomicBoolean closed = (AtomicBoolean) ReflectionUtils.getInternalState(registry, "_closed");
+        assertTrue(closed.get());
     }
 
     @Test
-    public void testCreateINet() throws IOException {
-        System.out.println("Unit Test: testCreateINet()");
-        JmmDNS registry = JmmDNS.Factory.getInstance();
-        // assertEquals("We did not register on the local host inet:", InetAddress.getLocalHost(), registry.getInterface());
-        registry.close();
-    }
-
-    @Test
-    public void testRegisterService() throws IOException {
-        System.out.println("Unit Test: testRegisterService()");
-        JmmDNS registry = null;
-        try {
-            registry = JmmDNS.Factory.getInstance();
+    void testRegisterService() throws IOException, InterruptedException {
+        try (JmmDNS registry = JmmDNS.Factory.getInstance()) {
             registry.registerService(service);
+            Thread.sleep(6000);
 
             ServiceInfo[] services = registry.list(service.getType());
-            assertTrue("We should see the service we just registered: ", services.length > 0);
+            assertTrue(services.length > 0, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
-        } finally {
-            if (registry != null) registry.close();
         }
     }
 
@@ -140,125 +124,83 @@ public class JmmDNSTest {
     // }
 
     @Test
-    public void testQueryMyService() throws IOException {
-        System.out.println("Unit Test: testQueryMyService()");
-        JmmDNS registry = null;
-        try {
-            registry = JmmDNS.Factory.getInstance();
+    void testQueryMyService() throws IOException, InterruptedException {
+        try (JmmDNS registry = JmmDNS.Factory.getInstance()) {
             registry.registerService(service);
+            Thread.sleep(6000);
 
             ServiceInfo[] queriedService = registry.getServiceInfos(service.getType(), service.getName());
-            assertTrue("We expect to see the service we just registered", queriedService.length > 0);
+            assertTrue(queriedService.length > 0, "We expect to see the service we just registered");
             assertEquals(service, queriedService[0]);
-        } finally {
-            if (registry != null) registry.close();
         }
     }
 
     @Test
-    @Ignore
-    public void testListMyService() throws IOException {
-        System.out.println("Unit Test: testListMyService()");
-        JmmDNS registry = null;
-        try {
-            registry = JmmDNS.Factory.getInstance();
+    void testListMyService() throws IOException, InterruptedException {
+        try (JmmDNS registry = JmmDNS.Factory.getInstance()) {
             registry.registerService(service);
+            Thread.sleep(6000);
 
             ServiceInfo[] services = registry.list(service.getType());
-            assertTrue("We should see the service we just registered: ", services.length > 0);
+            assertTrue(services.length > 0, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
-        } finally {
-            if (registry != null) registry.close();
         }
     }
 
     @Test
-    public void testListenForMyService() throws IOException {
-        System.out.println("Unit Test: testListenForMyService()");
-        JmmDNS registry = null;
-        try {
-            Capture<ServiceEvent> capServiceAddedEvent = EasyMock.newCapture();
-            Capture<ServiceEvent> capServiceResolvedEvent = EasyMock.newCapture();
-            // Add an expectation that the listener interface will be called once capture the object so I can verify it separately.
-            serviceListenerMock.serviceAdded(capture(capServiceAddedEvent));
-            serviceListenerMock.serviceResolved(capture(capServiceResolvedEvent));
-            EasyMock.replay(serviceListenerMock);
-            // EasyMock.makeThreadSafe(serviceListenerMock, false);
+    void testListenForMyService() throws IOException, InterruptedException {
+        ArgumentCaptor<ServiceEvent> capServiceAddedEvent = ArgumentCaptor.forClass(ServiceEvent.class);
+        ArgumentCaptor<ServiceEvent> capServiceResolvedEvent = ArgumentCaptor.forClass(ServiceEvent.class);
 
-            registry = JmmDNS.Factory.getInstance();
-
+        try (JmmDNS registry = JmmDNS.Factory.getInstance()) {
             registry.addServiceListener(service.getType(), serviceListenerMock);
 
             registry.registerService(service);
+            Thread.sleep(6000);
 
-            // We get the service added event when we register the service. However the service has not been resolved at this point.
+            // We get the service added event when we register the service. However, the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
-            assertTrue("We did not get the service added event.", capServiceAddedEvent.hasCaptured());
-            ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
-            assertEquals("We did not get the right name for the added service:", service.getName(), info.getName());
-            assertEquals("We did not get the right type for the added service:", service.getType(), info.getType());
-            assertEquals("We did not get the right fully qualified name for the added service:", service.getQualifiedName(), info.getQualifiedName());
+            verify(serviceListenerMock, atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
 
-            // assertEquals("We should not get the server for the added service:", "", info.getServer());
-            // assertEquals("We should not get the address for the added service:", null, info.getAddress());
-            // assertEquals("We should not get the HostAddress for the added service:", "", info.getHostAddress());
-            // assertEquals("We should not get the InetAddress for the added service:", null, info.getInetAddress());
-            // assertEquals("We should not get the NiceTextString for the added service:", "", info.getNiceTextString());
-            // assertEquals("We should not get the Priority for the added service:", 0, info.getPriority());
-            // assertFalse("We should not get the PropertyNames for the added service:", info.getPropertyNames().hasMoreElements());
-            // assertEquals("We should not get the TextBytes for the added service:", 0, info.getTextBytes().length);
-            // assertEquals("We should not get the TextString for the added service:", null, info.getTextString());
-            // assertEquals("We should not get the Weight for the added service:", 0, info.getWeight());
-            // assertNotSame("We should not get the URL for the added service:", "", info.getURL());
+            ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
+            assertEquals(service.getName(), info.getName(), "We did not get the right name for the added service:");
+            assertEquals(service.getType(), info.getType(), "We did not get the right type for the added service:");
+            assertEquals(service.getQualifiedName(), info.getQualifiedName(), "We did not get the right fully qualified name for the added service:");
 
             registry.requestServiceInfo(service.getType(), service.getName());
 
-            assertTrue("We did not get the service resolved event.", capServiceResolvedEvent.hasCaptured());
-            verify(serviceListenerMock);
-            ServiceInfo resolvedInfo = capServiceResolvedEvent.getValue().getInfo();
-            assertEquals("Did not get the expected service info: ", service, resolvedInfo);
-        } finally {
-            if (registry != null) registry.close();
+            verify(serviceListenerMock, atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
+            assertFalse(capServiceResolvedEvent.getAllValues().isEmpty(), "We did not get the service resolved event.");
+
+            assertTrue(capServiceResolvedEvent.getAllValues().stream().anyMatch(e -> service.equals(e.getInfo())), "Did not get the expected service info: ");
         }
     }
 
     @Test
-    public void testListenForMyServiceAndList() throws IOException {
-        System.out.println("Unit Test: testListenForMyServiceAndList()");
-        JmmDNS registry = null;
-        try {
-            Capture<ServiceEvent> capServiceAddedEvent = EasyMock.newCapture();
-            Capture<ServiceEvent> capServiceResolvedEvent = EasyMock.newCapture();
-            // Expect the listener to be called once and capture the result
-            serviceListenerMock.serviceAdded(capture(capServiceAddedEvent));
-            serviceListenerMock.serviceResolved(capture(capServiceResolvedEvent));
-            replay(serviceListenerMock);
-
-            registry = JmmDNS.Factory.getInstance();
+    void testListenForMyServiceAndList() throws IOException, InterruptedException {
+        ArgumentCaptor<ServiceEvent> capServiceAddedEvent = ArgumentCaptor.forClass(ServiceEvent.class);
+        ArgumentCaptor<ServiceEvent> capServiceResolvedEvent = ArgumentCaptor.forClass(ServiceEvent.class);
+        try (JmmDNS registry = JmmDNS.Factory.getInstance()) {
             registry.addServiceListener(service.getType(), serviceListenerMock);
             registry.registerService(service);
-
-            // We get the service added event when we register the service. However the service has not been resolved at this point.
+            Thread.sleep(6000);
+            // We get the service added event when we register the service. However, the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
-            assertTrue("We did not get the service added event.", capServiceAddedEvent.hasCaptured());
-
+            verify(serviceListenerMock, atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
             ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
-            assertEquals("We did not get the right name for the resolved service:", service.getName(), info.getName());
-            assertEquals("We did not get the right type for the resolved service:", service.getType(), info.getType());
+            assertEquals(service.getName(), info.getName(), "We did not get the right name for the resolved service:");
+            assertEquals(service.getType(), info.getType(), "We did not get the right type for the resolved service:");
 
             // This will force the resolution of the service which in turn will get the listener called with a service resolved event.
             // The info associated with a service resolved event has all the information available.
-            // Which in turn populates the ServiceInfo opbjects returned by JmmDNS.list.
+            // Which in turn populates the ServiceInfo objects returned by JmmDNS.list.
             ServiceInfo[] services = registry.list(info.getType());
-            assertTrue("We did not get the expected number of services: ", services.length > 0);
-            assertEquals("The service returned was not the one expected", service, services[0]);
+            assertTrue(services.length > 0, "We did not get the expected number of services: ");
+            assertEquals(service, services[0], "The service returned was not the one expected");
 
-            assertTrue("We did not get the service resolved event.", capServiceResolvedEvent.hasCaptured());
-            verify(serviceListenerMock);
-            ServiceInfo resolvedInfo = capServiceResolvedEvent.getValue().getInfo();
-            assertEquals("Did not get the expected service info: ", service, resolvedInfo);
-        } finally {
-            if (registry != null) registry.close();
+            verify(serviceListenerMock, atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
+            assertFalse(capServiceResolvedEvent.getAllValues().isEmpty(), "We did not get the service resolved event.");
+            assertTrue(capServiceResolvedEvent.getAllValues().stream().anyMatch(e -> service.equals(e.getInfo())), "Did not get the expected service info: ");
         }
     }
 

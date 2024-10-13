@@ -11,18 +11,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package javax.jmdns.impl;
+package javax.jmdns.test;
 
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceListener;
 
 public class EventStoringServiceListener implements ServiceListener {
 
-    private EventContainer addedEvents    = new EventContainer();
-    private EventContainer removedEvents  = new EventContainer();
-    private EventContainer resolvedEvents = new EventContainer();
+    private final EventContainer addedEvents = new EventContainer();
+    private final EventContainer removedEvents = new EventContainer();
+    private final EventContainer resolvedEvents = new EventContainer();
 
-    private final String   serviceType;
+    private final String serviceType;
 
     public EventStoringServiceListener(String serviceType) {
         this.serviceType = serviceType;

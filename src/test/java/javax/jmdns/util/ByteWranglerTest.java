@@ -11,22 +11,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package javax.jmdns.util.test;
+package javax.jmdns.util;
 
 import java.io.IOException;
 
-import static org.junit.Assert.*;
-
 import javax.jmdns.impl.util.ByteWrangler;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static util.StringUtil.*;
+import static javax.jmdns.test.util.StringUtil.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ByteWranglerTest {
+class ByteWranglerTest {
 
     @Test
-    public void testEmptyString() throws IOException {
+    void testEmptyString() throws IOException {
         final String emtpyString = "";
 
         // contains only one byte
@@ -34,14 +34,13 @@ public class ByteWranglerTest {
         // - otherwise no data
         final byte[] text = ByteWrangler.encodeText(emtpyString);
 
-        assertEquals("Resulting byte array length", 1, text.length);
-        assertEquals("Resulting byte array", 0, text[0]);
-
-        assertArrayEquals("Resulting byte array", ByteWrangler.EMPTY_TXT, text);
+        assertEquals(1, text.length ,"Resulting byte array length");
+        assertEquals(0, text[0], "Resulting byte array");
+        assertArrayEquals(ByteWrangler.EMPTY_TXT, text, "Resulting byte array");
     }
 
     @Test
-    public void testJustLongString() throws IOException {
+    void testJustLongString() throws IOException {
         final int length = 255;
 
         final String randomString = randomAsciiString(length);
@@ -51,31 +50,30 @@ public class ByteWranglerTest {
         // - byte[1-length] contains data
         final byte[] text = ByteWrangler.encodeText(randomString);
 
-        assertEquals("Resulting byte array length", length+1, text.length);
+        assertEquals(length + 1, text.length, "Resulting byte array length");
     }
 
     @Test
-    public void testTooLongString() throws IOException {
+    void testTooLongString() throws IOException {
 
         final String randomString = randomAsciiString(256);
 
         final byte[] text = ByteWrangler.encodeText(randomString);
 
-        assertEquals("Byte array should be empty because its too long", ByteWrangler.EMPTY_TXT, text);
+        assertEquals(ByteWrangler.EMPTY_TXT, text, "Byte array should be empty because its too long");
     }
 
-
     @Test
-    public void testTooLongNonAsciiString() throws IOException {
+    void testTooLongNonAsciiString() throws IOException {
         final String randomString = maxSizeRandomString(256);
 
         final byte[] text = ByteWrangler.encodeText(randomString);
 
-        assertEquals("Byte array should be empty because its too long", ByteWrangler.EMPTY_TXT, text);
+        assertEquals(ByteWrangler.EMPTY_TXT, text, "Byte array should be empty because its too long");
     }
 
     @Test
-    public void testJustLongNonAsciiString() throws IOException {
+    void testJustLongNonAsciiString() throws IOException {
         final int length = 255;
 
         final String str = maxSizeRandomString(length);
@@ -86,15 +84,15 @@ public class ByteWranglerTest {
         // - byte[1-length] contains data
         final byte[] text = ByteWrangler.encodeText(str);
 
-        assertEquals("Resulting byte array length", bytes.length+1, text.length);
+        assertEquals(bytes.length + 1, text.length, "Resulting byte array length");
 
-        for (int i = 0; i < bytes.length; i++ ) {
-            assertEquals("Resulting byte array", bytes[i], text[i+1]);
+        for (int i = 0; i < bytes.length; i++) {
+            assertEquals(bytes[i], text[i + 1], "Resulting byte array");
         }
     }
 
     @Test
-    public void testReadingUTF() {
+    void testReadingUTF() {
         final int length = 255;
 
         final String str = maxSizeRandomString(length);
@@ -103,8 +101,8 @@ public class ByteWranglerTest {
         // no read the String back using the ByteWrangler method
         final String readStr = ByteWrangler.readUTF(bytes, 0, bytes.length);
 
-        assertEquals("Resulting String length", str.length(), readStr.length());
-        assertEquals("Resulting String", str, readStr);
+        assertEquals(str.length(), readStr.length(), "Resulting String length");
+        assertEquals(str, readStr, "Resulting String");
     }
 
 }
