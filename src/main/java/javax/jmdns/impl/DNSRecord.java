@@ -305,7 +305,7 @@ public abstract class DNSRecord extends DNSEntry {
      * Address record.
      */
     public static abstract class Address extends DNSRecord {
-        private static final Logger logger1 = LoggerFactory.getLogger(Address.class);
+        private final Logger  logger1 = LoggerFactory.getLogger(Address.class);
 
         InetAddress           _addr;
 

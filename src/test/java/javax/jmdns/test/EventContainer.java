@@ -23,7 +23,7 @@ import javax.jmdns.ServiceEvent;
 
 public class EventContainer {
 
-    private static final Logger logger = LoggerFactory.getLogger(EventContainer.class);
+    private final Logger logger = LoggerFactory.getLogger(EventContainer.class);
 
     private final Map<String, ServiceEvent> events = new LinkedHashMap<>();
 
