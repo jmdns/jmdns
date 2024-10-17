@@ -51,8 +51,6 @@ public enum DNSRecordClass {
      */
     CLASS_ANY("any", 255);
 
-    private static final Logger logger = LoggerFactory.getLogger(DNSRecordClass.class);
-
     /**
      * Multicast DNS uses the bottom 15 bits to identify the record class...<br/>
      * Except for pseudo records like OPT.
@@ -117,7 +115,10 @@ public enum DNSRecordClass {
                 if (recordClass.externalName.equals(lowerCaseName)) return recordClass;
             }
         }
+
+        final Logger logger = LoggerFactory.getLogger(DNSRecordClass.class);
         logger.warn("Could not find record class for name: {}", name);
+
         return CLASS_UNKNOWN;
     }
 
@@ -130,7 +131,10 @@ public enum DNSRecordClass {
         for (DNSRecordClass recordClass : DNSRecordClass.values()) {
             if (recordClass.indexValue == maskedIndex) return recordClass;
         }
+
+        final Logger logger = LoggerFactory.getLogger(DNSRecordClass.class);
         logger.debug("Could not find record class for index: {}", index);
+
         return CLASS_UNKNOWN;
     }
 

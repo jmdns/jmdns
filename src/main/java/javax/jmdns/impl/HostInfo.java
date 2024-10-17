@@ -39,8 +39,6 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @author Pierre Frisch, Werner Randelshofer
  */
 public class HostInfo implements DNSStatefulObject {
-    private static final Logger       logger = LoggerFactory.getLogger(HostInfo.class);
-
     protected String            _name;
 
     protected InetAddress       _address;
@@ -75,6 +73,8 @@ public class HostInfo implements DNSStatefulObject {
      * @return new HostInfo
      */
     public static HostInfo newHostInfo(InetAddress address, JmDNSImpl dns, String jmdnsName) {
+        final Logger logger = LoggerFactory.getLogger(HostInfo.class);
+
         HostInfo localhost;
         String aName = (jmdnsName != null ? jmdnsName : "");
         InetAddress addr = address;
@@ -122,7 +122,16 @@ public class HostInfo implements DNSStatefulObject {
         }
         aName = aName.replaceAll("[:%.]", "-");
         aName += ".local.";
-        localhost = new HostInfo(addr, aName, dns);
+
+        NetworkInterface networkInterface = null;
+        if (addr != null) {
+            try {
+                networkInterface = NetworkInterface.getByInetAddress(addr);
+            } catch (Exception exception) {
+                logger.warn("LocalHostInfo() exception ", exception);
+            }
+        }
+        localhost = new HostInfo(addr, aName, dns, networkInterface);
         return localhost;
     }
 
@@ -134,18 +143,12 @@ public class HostInfo implements DNSStatefulObject {
         }
     }
 
-    private HostInfo(final InetAddress address, final String name, final JmDNSImpl dns) {
+    private HostInfo(final InetAddress address, final String name, final JmDNSImpl dns, NetworkInterface networkInterface) {
         super();
         this._state = new HostInfoState(dns);
         this._address = address;
         this._name = name;
-        if (address != null) {
-            try {
-                _interfaze = NetworkInterface.getByInetAddress(address);
-            } catch (Exception exception) {
-                logger.warn("LocalHostInfo() exception ", exception);
-            }
-        }
+        this._interfaze = networkInterface;
     }
 
     public String getName() {

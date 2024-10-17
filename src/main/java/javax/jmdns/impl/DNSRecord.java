@@ -46,7 +46,7 @@ import javax.jmdns.impl.util.ByteWrangler;
  * @author Arthur van Hoff, Rick Blair, Werner Randelshofer, Pierre Frisch
  */
 public abstract class DNSRecord extends DNSEntry {
-    private static final Logger logger = LoggerFactory.getLogger(DNSRecord.class);
+    protected final Logger logger = LoggerFactory.getLogger(DNSRecord.class);
 
     private int           _ttl;
     private long          _created;
