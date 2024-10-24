@@ -36,7 +36,7 @@ import javax.jmdns.ServiceTypeListener;
 public class ListenerStatus<T extends EventListener> {
 
     public static class ServiceListenerStatus extends ListenerStatus<ServiceListener> {
-        private static final Logger logger = LoggerFactory.getLogger(ServiceListenerStatus.class);
+        private final Logger logger = LoggerFactory.getLogger(ServiceListenerStatus.class);
 
         private final ConcurrentMap<String, ServiceInfo> _addedServices;
 
@@ -164,7 +164,7 @@ public class ListenerStatus<T extends EventListener> {
     }
 
     public static class ServiceTypeListenerStatus extends ListenerStatus<ServiceTypeListener> {
-        private static final Logger                       logger = LoggerFactory.getLogger(ServiceTypeListenerStatus.class);
+        private final Logger                       logger = LoggerFactory.getLogger(ServiceTypeListenerStatus.class);
 
         private final ConcurrentMap<String, String> _addedTypes;
 

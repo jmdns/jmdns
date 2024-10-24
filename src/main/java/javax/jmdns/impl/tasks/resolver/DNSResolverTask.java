@@ -30,7 +30,7 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @author Pierre Frisch
  */
 public abstract class DNSResolverTask extends DNSTask {
-    private static final Logger logger = LoggerFactory.getLogger(DNSResolverTask.class);
+    private final Logger logger = LoggerFactory.getLogger(DNSResolverTask.class);
 
     /**
      * Counts the number of queries being sent.

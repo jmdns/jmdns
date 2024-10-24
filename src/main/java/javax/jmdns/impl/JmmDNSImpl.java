@@ -57,7 +57,7 @@ import javax.jmdns.impl.util.ExecutorServiceFactory;
  * @author C&eacute;drik Lime, Pierre Frisch
  */
 public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoImpl.Delegate {
-    private static final Logger                                      logger = LoggerFactory.getLogger(JmmDNSImpl.class);
+    private final Logger                                       logger = LoggerFactory.getLogger(JmmDNSImpl.class);
 
     private final Set<NetworkTopologyListener>                 _networkListeners;
 
@@ -758,6 +758,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
                 }
                 _knownAddresses = current;
             } catch (Exception e) {
+                final Logger logger = LoggerFactory.getLogger(JmmDNSImpl.class);
                 logger.warn("Unexpected unhandled exception: ", e);
             }
         }
