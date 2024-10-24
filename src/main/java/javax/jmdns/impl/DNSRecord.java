@@ -476,7 +476,6 @@ public abstract class DNSRecord extends DNSEntry {
      * Pointer record.
      */
     public static class Pointer extends DNSRecord {
-        // private static Logger logger = LoggerFactory.getLogger(Pointer.class);
         private final String _alias;
 
         public Pointer(String name, DNSRecordClass recordClass, boolean unique, int ttl, String alias) {
@@ -587,7 +586,6 @@ public abstract class DNSRecord extends DNSEntry {
     }
 
     public static class Text extends DNSRecord {
-        // private static Logger logger = LoggerFactory.getLogger(Text.class);
         private final byte[] _text;
 
         public Text(String name, DNSRecordClass recordClass, boolean unique, int ttl, byte[] text) {

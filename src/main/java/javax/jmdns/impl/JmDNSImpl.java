@@ -2127,7 +2127,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      * @see #list
      */
     private static class ServiceCollector implements ServiceListener {
-        // private static Logger logger = LoggerFactory.getLogger(ServiceCollector.class);
 
         /**
          * A set of collected service instance names.
