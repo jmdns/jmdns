@@ -259,8 +259,6 @@ public enum DNSRecordType {
      */
     TYPE_ANY("any", 255);
 
-    private static final Logger logger = LoggerFactory.getLogger(DNSRecordType.class);
-
     private final String externalName;
 
     private final int indexValue;
@@ -299,7 +297,10 @@ public enum DNSRecordType {
                 if (recordType.externalName.equals(lowerCaseName)) return recordType;
             }
         }
+
+        final Logger logger = LoggerFactory.getLogger(DNSRecordType.class);
         logger.warn("Could not find record type for name: {}", name);
+
         return TYPE_IGNORE;
     }
 
@@ -311,7 +312,10 @@ public enum DNSRecordType {
         for (DNSRecordType recordType : DNSRecordType.values()) {
             if (recordType.indexValue == index) return recordType;
         }
+
+        final Logger logger = LoggerFactory.getLogger(DNSRecordType.class);
         logger.debug("Could not find record type for index: {}", index);
+
         return TYPE_IGNORE;
     }
 

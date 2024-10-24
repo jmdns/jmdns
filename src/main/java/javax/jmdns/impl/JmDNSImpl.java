@@ -68,7 +68,7 @@ import javax.jmdns.impl.util.NamedThreadFactory;
  * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis, Kai Kreuzer, Victor Toni
  */
 public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarter {
-    private static final Logger logger = LoggerFactory.getLogger(JmDNSImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(JmDNSImpl.class);
 
     public enum Operation {
         Remove, Update, Add, RegisterServiceType, Noop
@@ -2127,7 +2127,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      * @see #list
      */
     private static class ServiceCollector implements ServiceListener {
-        // private static Logger logger = LoggerFactory.getLogger(ServiceCollector.class);
 
         /**
          * A set of collected service instance names.

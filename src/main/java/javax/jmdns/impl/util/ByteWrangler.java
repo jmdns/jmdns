@@ -30,8 +30,6 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class ByteWrangler {
-    private static final Logger logger = LoggerFactory.getLogger(ByteWrangler.class);
-
     /**
      * Maximum number of bytes a value can consist of.
      */
@@ -183,7 +181,9 @@ public class ByteWrangler {
 
     private static boolean isValueTooLarge(final byte[] data, final String text) {
         if (data.length > MAX_VALUE_LENGTH) {
+            final Logger logger = LoggerFactory.getLogger(ByteWrangler.class);
             logger.warn("Cannot have individual values larger that 255 chars. Offending value: {}", text);
+
             return true;
         }
         return false;

@@ -29,17 +29,18 @@ import java.util.Map;
  * @author Arthur van Hoff, Werner Randelshofer, Pierre Frisch, Daniel Bobbert
  */
 public final class DNSIncoming extends DNSMessage {
-    private static final Logger logger                                = LoggerFactory.getLogger(DNSIncoming.class);
+    private final Logger logger = LoggerFactory.getLogger(DNSIncoming.class);
 
     // This is a hack to handle a bug in the BonjourConformanceTest
     // It is sending out target strings that don't follow the "domain name" format.
     public static boolean USE_DOMAIN_NAME_FORMAT_FOR_SRV_TARGET = true;
 
     public static class MessageInputStream extends ByteArrayInputStream {
+        private final Logger logger;
         final Map<Integer, String> _names;
 
-        public MessageInputStream(byte[] buffer, int length) {
-            this(buffer, 0, length);
+        public MessageInputStream(byte[] buffer, int length, final Logger logger) {
+            this(buffer, 0, length, logger);
         }
 
         /**
@@ -47,8 +48,9 @@ public final class DNSIncoming extends DNSMessage {
          * @param offset
          * @param length
          */
-        public MessageInputStream(byte[] buffer, int offset, int length) {
+        public MessageInputStream(byte[] buffer, int offset, int length, final Logger logger) {
             super(buffer, offset, length);
+            this.logger = logger;
             _names = new HashMap<>();
         }
 
@@ -185,7 +187,7 @@ public final class DNSIncoming extends DNSMessage {
     public DNSIncoming(DatagramPacket packet) throws IOException {
         super(0, 0, packet.getPort() == DNSConstants.MDNS_PORT);
         this._packet = packet;
-        this._messageInputStream = new MessageInputStream(packet.getData(), packet.getLength());
+        this._messageInputStream = new MessageInputStream(packet.getData(), packet.getLength(), this.logger);
         this._receivedTime = System.currentTimeMillis();
         this._senderUDPPayload = DNSConstants.MAX_MSG_TYPICAL;
 
@@ -276,7 +278,7 @@ public final class DNSIncoming extends DNSMessage {
     private DNSIncoming(int flags, int id, boolean multicast, DatagramPacket packet, long receivedTime) {
         super(flags, id, multicast);
         this._packet = packet;
-        this._messageInputStream = new MessageInputStream(packet.getData(), packet.getLength());
+        this._messageInputStream = new MessageInputStream(packet.getData(), packet.getLength(), logger);
         this._receivedTime = receivedTime;
     }
 
