@@ -52,7 +52,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
 		<jvm.version>8</jvm.version>
-		<mockito.version>5.2.0</mockito.version>
+		<mockito.version>4.11.0</mockito.version>
 	</properties>
 
 	<dependencies>
