@@ -11,7 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package javax.jmdns.impl;
+package javax.jmdns.test;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -20,7 +23,9 @@ import javax.jmdns.ServiceEvent;
 
 public class EventContainer {
 
-    private final Map<String, ServiceEvent> events = new LinkedHashMap<String, ServiceEvent>();
+    private static final Logger logger = LoggerFactory.getLogger(EventContainer.class);
+
+    private final Map<String, ServiceEvent> events = new LinkedHashMap<>();
 
     private boolean eventReceived;
 
@@ -58,7 +63,7 @@ public class EventContainer {
                     eventReceived = events.containsKey(serviceType);
                     eventVerificationCount++;
                 } catch (InterruptedException exception) {
-                    exception.printStackTrace();
+                    logger.error("InterruptedException during waiting", exception);
                 }
             }
         }
