@@ -39,7 +39,7 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @author Pierre Frisch, Werner Randelshofer
  */
 public class HostInfo implements DNSStatefulObject {
-    private static final Logger       logger = LoggerFactory.getLogger(HostInfo.class);
+    private final Logger       logger = LoggerFactory.getLogger(HostInfo.class);
 
     protected String            _name;
 

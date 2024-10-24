@@ -36,7 +36,7 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @author Pierre Frisch
  */
 public abstract class DNSStateTask extends DNSTask {
-    private static final Logger logger = LoggerFactory.getLogger(DNSStateTask.class);
+    private final Logger logger = LoggerFactory.getLogger(DNSStateTask.class);
 
     /**
      * By setting a 0 ttl we effectively expire the record.

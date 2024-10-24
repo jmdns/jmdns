@@ -31,7 +31,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
  * @author Arthur van Hoff, Pierre Frisch
  */
 public class DNSQuestion extends DNSEntry {
-    private static final Logger logger = LoggerFactory.getLogger(DNSQuestion.class);
+    private final Logger logger = LoggerFactory.getLogger(DNSQuestion.class);
 
     /**
      * Checks if the local host name matches the name of this instance, ignoring case.

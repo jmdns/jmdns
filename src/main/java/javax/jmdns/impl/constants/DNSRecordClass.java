@@ -51,7 +51,7 @@ public enum DNSRecordClass {
      */
     CLASS_ANY("any", 255);
 
-    private static final Logger logger = LoggerFactory.getLogger(DNSRecordClass.class);
+    private final Logger logger = LoggerFactory.getLogger(DNSRecordClass.class);
 
     /**
      * Multicast DNS uses the bottom 15 bits to identify the record class...<br/>

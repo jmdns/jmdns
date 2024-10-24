@@ -33,7 +33,7 @@ import javax.jmdns.impl.constants.DNSConstants;
  * The Responder sends a single answer for the specified service infos and for the host name.
  */
 public class Responder extends DNSTask {
-    private static final Logger logger = LoggerFactory.getLogger(Responder.class);
+    private final Logger logger = LoggerFactory.getLogger(Responder.class);
     private final DNSIncoming dnsIncoming;
     private final InetAddress inetAddress;
     private final int port;

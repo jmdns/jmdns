@@ -52,7 +52,7 @@ import javax.jmdns.impl.util.ByteWrangler;
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer, Victor Toni
  */
 public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStatefulObject {
-    private static final Logger           logger = LoggerFactory.getLogger(ServiceInfoImpl.class);
+    private final Logger           logger = LoggerFactory.getLogger(ServiceInfoImpl.class);
 
     private String                  _domain;
     private String                  _protocol;

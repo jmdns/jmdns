@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class ByteWrangler {
-    private static final Logger logger = LoggerFactory.getLogger(ByteWrangler.class);
+    private final Logger logger = LoggerFactory.getLogger(ByteWrangler.class);
 
     /**
      * Maximum number of bytes a value can consist of.

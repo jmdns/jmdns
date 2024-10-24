@@ -58,7 +58,7 @@ import javax.jmdns.impl.util.NamedThreadFactory;
  * @author C&eacute;drik Lime, Pierre Frisch
  */
 public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoImpl.Delegate {
-    private static final Logger                                      logger = LoggerFactory.getLogger(JmmDNSImpl.class);
+    private final Logger                                      logger = LoggerFactory.getLogger(JmmDNSImpl.class);
 
     private final Set<NetworkTopologyListener>                 _networkListeners;
 

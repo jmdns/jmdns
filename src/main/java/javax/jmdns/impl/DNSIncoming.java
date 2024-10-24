@@ -29,7 +29,7 @@ import java.util.Map;
  * @author Arthur van Hoff, Werner Randelshofer, Pierre Frisch, Daniel Bobbert
  */
 public final class DNSIncoming extends DNSMessage {
-    private static final Logger logger                                = LoggerFactory.getLogger(DNSIncoming.class);
+    private final Logger logger                                = LoggerFactory.getLogger(DNSIncoming.class);
 
     // This is a hack to handle a bug in the BonjourConformanceTest
     // It is sending out target strings that don't follow the "domain name" format.

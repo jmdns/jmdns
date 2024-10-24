@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class TestNameLogger implements BeforeTestExecutionCallback, AfterTestExecutionCallback {
-    private static final Logger logger = LoggerFactory.getLogger(TestNameLogger.class);
+    private final Logger logger = LoggerFactory.getLogger(TestNameLogger.class);
 
     @Override
     public void beforeTestExecution(ExtensionContext extensionContext) {
