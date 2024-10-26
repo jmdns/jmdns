@@ -11,11 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package javax.jmdns.test;
+package javax.jmdns.impl;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
