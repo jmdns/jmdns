@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.jmdns</groupId>
 	<artifactId>jmdns</artifactId>
-	<version>3.6.0-SNAPSHOT</version>
+	<version>3.6.1-SNAPSHOT</version>
 	<name>JmDNS</name>
 	<packaging>jar</packaging>
 
@@ -268,7 +268,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.4</version>
+						<version>3.2.7</version>
 						<executions>
 							<execution>
 								<id>sign-artifacts</id>
