@@ -1,5 +1,15 @@
-/**
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package javax.jmdns.impl.constants;
 
@@ -249,15 +259,13 @@ public enum DNSRecordType {
      */
     TYPE_ANY("any", 255);
 
-    private static final Logger logger = LoggerFactory.getLogger(DNSRecordType.class);
+    private final String externalName;
 
-    private final String  _externalName;
-
-    private final int     _index;
+    private final int indexValue;
 
     DNSRecordType(String name, int index) {
-        _externalName = name;
-        _index = index;
+        externalName = name;
+        indexValue = index;
     }
 
     /**
@@ -266,7 +274,7 @@ public enum DNSRecordType {
      * @return String
      */
     public String externalName() {
-        return _externalName;
+        return externalName;
     }
 
     /**
@@ -275,7 +283,7 @@ public enum DNSRecordType {
      * @return String
      */
     public int indexValue() {
-        return _index;
+        return indexValue;
     }
 
     /**
@@ -284,12 +292,15 @@ public enum DNSRecordType {
      */
     public static DNSRecordType typeForName(String name) {
         if (name != null) {
-            String aName = name.toLowerCase();
-            for (DNSRecordType aType : DNSRecordType.values()) {
-                if (aType._externalName.equals(aName)) return aType;
+            String lowerCaseName = name.toLowerCase();
+            for (DNSRecordType recordType : DNSRecordType.values()) {
+                if (recordType.externalName.equals(lowerCaseName)) return recordType;
             }
         }
+
+        final Logger logger = LoggerFactory.getLogger(DNSRecordType.class);
         logger.warn("Could not find record type for name: {}", name);
+
         return TYPE_IGNORE;
     }
 
@@ -298,10 +309,13 @@ public enum DNSRecordType {
      * @return type for name
      */
     public static DNSRecordType typeForIndex(int index) {
-        for (DNSRecordType aType : DNSRecordType.values()) {
-            if (aType._index == index) return aType;
+        for (DNSRecordType recordType : DNSRecordType.values()) {
+            if (recordType.indexValue == index) return recordType;
         }
+
+        final Logger logger = LoggerFactory.getLogger(DNSRecordType.class);
         logger.debug("Could not find record type for index: {}", index);
+
         return TYPE_IGNORE;
     }
 

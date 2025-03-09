@@ -1,7 +1,16 @@
-// Copyright 2003-2005 Arthur van Hoff, Rick Blair
-// Licensed under Apache License version 2.0
-// Original license LGPL
-
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package javax.jmdns.impl;
 
 import java.io.DataOutputStream;
@@ -37,7 +46,7 @@ import javax.jmdns.impl.util.ByteWrangler;
  * @author Arthur van Hoff, Rick Blair, Werner Randelshofer, Pierre Frisch
  */
 public abstract class DNSRecord extends DNSEntry {
-    private static final Logger logger = LoggerFactory.getLogger(DNSRecord.class);
+    protected final Logger logger = LoggerFactory.getLogger(DNSRecord.class);
 
     private int           _ttl;
     private long          _created;
@@ -213,20 +222,19 @@ public abstract class DNSRecord extends DNSEntry {
 
         @Override
         void write(MessageOutputStream out) {
-            if (_addr != null) {
-                byte[] buffer = _addr.getAddress();
-                // If we have a type A records we should answer with a IPv4 address
-                if (_addr instanceof Inet4Address) {
-                    // All is good
-                } else {
-                    // Get the last four bytes
-                    byte[] tempbuffer = buffer;
-                    buffer = new byte[4];
-                    System.arraycopy(tempbuffer, 12, buffer, 0, 4);
-                }
-                int length = buffer.length;
-                out.writeBytes(buffer, 0, length);
+            if (_addr == null) {
+                return;
             }
+
+            byte[] buffer = _addr.getAddress();
+
+            // Check if the address is IPv6 (Inet6Address) and extract the last 4 bytes for IPv4 compatibility
+            if (_addr instanceof Inet6Address) {
+                buffer = new byte[4];
+                System.arraycopy(_addr.getAddress(), 12, buffer, 0, 4);
+            }
+
+            out.writeBytes(buffer, 0, buffer.length);
         }
 
         /*
@@ -297,7 +305,7 @@ public abstract class DNSRecord extends DNSEntry {
      * Address record.
      */
     public static abstract class Address extends DNSRecord {
-        private static final Logger logger1 = LoggerFactory.getLogger(Address.class);
+        private final Logger  logger1 = LoggerFactory.getLogger(Address.class);
 
         InetAddress           _addr;
 
@@ -333,10 +341,7 @@ public abstract class DNSRecord extends DNSEntry {
                     return false;
                 }
                 Address address = (Address) other;
-                if ((this.getAddress() == null) && (address.getAddress() != null)) {
-                    return false;
-                }
-                return this.getAddress().equals(address.getAddress());
+                return Objects.equals(this.getAddress(), address.getAddress());
             } catch (Exception e) {
                 logger1.info("Failed to compare addresses of DNSRecords", e);
                 return false;
@@ -358,6 +363,10 @@ public abstract class DNSRecord extends DNSEntry {
         @Override
         protected void toByteArray(DataOutputStream dout) throws IOException {
             super.toByteArray(dout);
+            if (this.getAddress() == null) {
+                return;
+            }
+
             byte[] buffer = this.getAddress().getAddress();
             for (byte b : buffer) {
                 dout.writeByte(b);
@@ -467,7 +476,6 @@ public abstract class DNSRecord extends DNSEntry {
      * Pointer record.
      */
     public static class Pointer extends DNSRecord {
-        // private static Logger logger = LoggerFactory.getLogger(Pointer.class);
         private final String _alias;
 
         public Pointer(String name, DNSRecordClass recordClass, boolean unique, int ttl, String alias) {
@@ -525,7 +533,7 @@ public abstract class DNSRecord extends DNSEntry {
         }
 
         @Override
-        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) throws IOException {
+        DNSOutgoing addAnswer(JmDNSImpl dns, DNSIncoming in, InetAddress addr, int port, DNSOutgoing out) {
             return out;
         }
 
@@ -571,14 +579,13 @@ public abstract class DNSRecord extends DNSEntry {
         protected void toString(final StringBuilder sb) {
             super.toString(sb);
             sb.append(" alias: '")
-                .append(_alias != null ? _alias : "null")
+                .append(_alias)
                 .append('\'');
         }
 
     }
 
     public static class Text extends DNSRecord {
-        // private static Logger logger = LoggerFactory.getLogger(Text.class);
         private final byte[] _text;
 
         public Text(String name, DNSRecordClass recordClass, boolean unique, int ttl, byte[] text) {

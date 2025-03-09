@@ -1,5 +1,15 @@
-/**
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package javax.jmdns.impl.constants;
 
@@ -88,19 +98,19 @@ public enum DNSResultCode {
     /**
      * DNS Result Code types are encoded on the last 4 bits
      */
-    final static int     RCode_MASK         = 0x0F;
+    static final int RCode_MASK = 0x0F;
     /**
      * DNS Extended Result Code types are encoded on the first 8 bits
      */
-    final static int     ExtendedRCode_MASK = 0xFF;
+    static final int ExtendedRCode_MASK = 0xFF;
 
-    private final String _externalName;
+    private final String externalName;
 
-    private final int    _index;
+    private final int indexValue;
 
     DNSResultCode(String name, int index) {
-        _externalName = name;
-        _index = index;
+        externalName = name;
+        indexValue = index;
     }
 
     /**
@@ -109,7 +119,7 @@ public enum DNSResultCode {
      * @return String
      */
     public String externalName() {
-        return _externalName;
+        return externalName;
     }
 
     /**
@@ -118,7 +128,7 @@ public enum DNSResultCode {
      * @return String
      */
     public int indexValue() {
-        return _index;
+        return indexValue;
     }
 
     /**
@@ -127,16 +137,16 @@ public enum DNSResultCode {
      */
     public static DNSResultCode resultCodeForFlags(int flags) {
         int maskedIndex = flags & RCode_MASK;
-        for (DNSResultCode aCode : DNSResultCode.values()) {
-            if (aCode._index == maskedIndex) return aCode;
+        for (DNSResultCode resultCode : DNSResultCode.values()) {
+            if (resultCode.indexValue == maskedIndex) return resultCode;
         }
         return Unknown;
     }
 
     public static DNSResultCode resultCodeForFlags(int flags, int extendedRCode) {
         int maskedIndex = ((extendedRCode >> 28) & ExtendedRCode_MASK) | (flags & RCode_MASK);
-        for (DNSResultCode aCode : DNSResultCode.values()) {
-            if (aCode._index == maskedIndex) return aCode;
+        for (DNSResultCode resultCode : DNSResultCode.values()) {
+            if (resultCode.indexValue == maskedIndex) return resultCode;
         }
         return Unknown;
     }

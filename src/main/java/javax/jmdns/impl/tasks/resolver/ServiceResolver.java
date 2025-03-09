@@ -1,7 +1,16 @@
-// Copyright 2003-2005 Arthur van Hoff, Rick Blair
-// Licensed under Apache License version 2.0
-// Original license LGPL
-
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package javax.jmdns.impl.tasks.resolver;
 
 import java.io.IOException;
@@ -22,11 +31,11 @@ import javax.jmdns.impl.constants.DNSRecordType;
  */
 public class ServiceResolver extends DNSResolverTask {
 
-    private final String _type;
+    private final String type;
 
     public ServiceResolver(JmDNSImpl jmDNSImpl, String type) {
         super(jmDNSImpl);
-        this._type = type;
+        this.type = type;
     }
 
     /*
@@ -59,8 +68,7 @@ public class ServiceResolver extends DNSResolverTask {
     @Override
     protected DNSOutgoing addQuestions(DNSOutgoing out) throws IOException {
         DNSOutgoing newOut = out;
-        newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(_type, DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
-        // newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(_type, DNSRecordType.TYPE_SRV, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
+        newOut = this.addQuestion(newOut, DNSQuestion.newQuestion(type, DNSRecordType.TYPE_PTR, DNSRecordClass.CLASS_IN, DNSRecordClass.NOT_UNIQUE));
         return newOut;
     }
 

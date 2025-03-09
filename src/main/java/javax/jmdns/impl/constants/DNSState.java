@@ -1,7 +1,16 @@
-// Copyright 2003-2005 Arthur van Hoff, Rick Blair
-// Licensed under Apache License version 2.0
-// Original license LGPL
-
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package javax.jmdns.impl.constants;
 
 /**
@@ -10,74 +19,35 @@ package javax.jmdns.impl.constants;
  * @author Werner Randelshofer, Rick Blair, Pierre Frisch
  */
 public enum DNSState {
-
-    /**
-     *
-     */
     PROBING_1("probing 1", StateClass.probing),
-    /**
-    *
-    */
     PROBING_2("probing 2", StateClass.probing),
-    /**
-    *
-    */
     PROBING_3("probing 3", StateClass.probing),
-    /**
-    *
-    */
     ANNOUNCING_1("announcing 1", StateClass.announcing),
-    /**
-    *
-    */
     ANNOUNCING_2("announcing 2", StateClass.announcing),
-    /**
-    *
-    */
     ANNOUNCED("announced", StateClass.announced),
-    /**
-    *
-    */
     CANCELING_1("canceling 1", StateClass.canceling),
-    /**
-    *
-    */
     CANCELING_2("canceling 2", StateClass.canceling),
-    /**
-    *
-    */
     CANCELING_3("canceling 3", StateClass.canceling),
-    /**
-    *
-    */
     CANCELED("canceled", StateClass.canceled),
-    /**
-     *
-     */
     CLOSING("closing", StateClass.closing),
-    /**
-     *
-     */
     CLOSED("closed", StateClass.closed);
 
     private enum StateClass {
         probing, announcing, announced, canceling, canceled, closing, closed
     }
 
-    // private static Logger logger = LoggerFactory.getLogger(DNSState.class);
+    private final String name;
 
-    private final String     _name;
-
-    private final StateClass _state;
+    private final StateClass state;
 
     DNSState(String name, StateClass state) {
-        _name = name;
-        _state = state;
+        this.name = name;
+        this.state = state;
     }
 
     @Override
     public final String toString() {
-        return _name;
+        return name;
     }
 
     /**
@@ -152,7 +122,7 @@ public enum DNSState {
      * @return <code>true</code> if probing state, <code>false</code> otherwise
      */
     public final boolean isProbing() {
-        return _state == StateClass.probing;
+        return state == StateClass.probing;
     }
 
     /**
@@ -161,7 +131,7 @@ public enum DNSState {
      * @return <code>true</code> if announcing state, <code>false</code> otherwise
      */
     public final boolean isAnnouncing() {
-        return _state == StateClass.announcing;
+        return state == StateClass.announcing;
     }
 
     /**
@@ -170,7 +140,7 @@ public enum DNSState {
      * @return <code>true</code> if announced state, <code>false</code> otherwise
      */
     public final boolean isAnnounced() {
-        return _state == StateClass.announced;
+        return state == StateClass.announced;
     }
 
     /**
@@ -179,7 +149,7 @@ public enum DNSState {
      * @return <code>true</code> if canceling state, <code>false</code> otherwise
      */
     public final boolean isCanceling() {
-        return _state == StateClass.canceling;
+        return state == StateClass.canceling;
     }
 
     /**
@@ -188,7 +158,7 @@ public enum DNSState {
      * @return <code>true</code> if canceled state, <code>false</code> otherwise
      */
     public final boolean isCanceled() {
-        return _state == StateClass.canceled;
+        return state == StateClass.canceled;
     }
 
     /**
@@ -197,7 +167,7 @@ public enum DNSState {
      * @return <code>true</code> if closing state, <code>false</code> otherwise
      */
     public final boolean isClosing() {
-        return _state == StateClass.closing;
+        return state == StateClass.closing;
     }
 
     /**
@@ -206,7 +176,7 @@ public enum DNSState {
      * @return <code>true</code> if closed state, <code>false</code> otherwise
      */
     public final boolean isClosed() {
-        return _state == StateClass.closed;
+        return state == StateClass.closed;
     }
 
 }

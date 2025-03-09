@@ -1,7 +1,16 @@
-// /Copyright 2003-2005 Arthur van Hoff, Rick Blair
-// Licensed under Apache License version 2.0
-// Original license LGPL
-
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package javax.jmdns.impl;
 
 import java.io.IOException;
@@ -59,9 +68,10 @@ import javax.jmdns.impl.util.NamedThreadFactory;
  * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis, Kai Kreuzer, Victor Toni
  */
 public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarter {
+
     private static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
 
-    private static final Logger logger = LoggerFactory.getLogger(JmDNSImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(JmDNSImpl.class);
 
     public enum Operation {
         Remove, Update, Add, RegisterServiceType, Noop
@@ -2128,7 +2138,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      * @see #list
      */
     private static class ServiceCollector implements ServiceListener {
-        // private static Logger logger = LoggerFactory.getLogger(ServiceCollector.class);
 
         /**
          * A set of collected service instance names.

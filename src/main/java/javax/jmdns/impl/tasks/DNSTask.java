@@ -1,4 +1,16 @@
-// Licensed under Apache License version 2.0
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package javax.jmdns.impl.tasks;
 
 import java.io.IOException;
@@ -14,38 +26,37 @@ import javax.jmdns.impl.constants.DNSConstants;
 
 /**
  * This is the root class for all task scheduled by the timer in JmDNS.
- * 
+ *
  * @author Pierre Frisch
  */
 public abstract class DNSTask extends TimerTask {
 
-    private final JmDNSImpl _jmDNSImpl;
-    
+    private final JmDNSImpl jmDNS;
+
     protected DNSTask(JmDNSImpl jmDNSImpl) {
         super();
-        this._jmDNSImpl = jmDNSImpl;
+        jmDNS = jmDNSImpl;
     }
 
     /**
      * Return the DNS associated with this task.
-     * 
+     *
      * @return associated DNS
      */
     public JmDNSImpl getDns() {
-        return _jmDNSImpl;
+        return jmDNS;
     }
 
     /**
      * Start this task.
-     * 
-     * @param timer
-     *            task timer.
+     *
+     * @param timer task timer.
      */
     public abstract void start(Timer timer);
 
     /**
      * Return this task name.
-     * 
+     *
      * @return task name
      */
     public abstract String getName();
@@ -61,13 +72,11 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Add a question to the message.
-     * 
-     * @param out
-     *            outgoing message
-     * @param rec
-     *            DNS question
+     *
+     * @param out outgoing message
+     * @param rec DNS question
      * @return outgoing message for the next question
-     * @exception IOException if any IO error occurs
+     * @throws IOException if any IO error occurs
      */
     public DNSOutgoing addQuestion(DNSOutgoing out, DNSQuestion rec) throws IOException {
         DNSOutgoing newOut = out;
@@ -88,7 +97,7 @@ public abstract class DNSTask extends TimerTask {
 
         newOut.setFlags(flags | DNSConstants.FLAGS_TC);
         newOut.setId(id);
-        this._jmDNSImpl.send(newOut);
+        jmDNS.send(newOut);
 
         newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
         return newOut;
@@ -96,15 +105,12 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Add an answer if it is not suppressed.
-     * 
-     * @param out
-     *            outgoing message
-     * @param in
-     *            incoming request
-     * @param rec
-     *            DNS record answer
+     *
+     * @param out outgoing message
+     * @param in  incoming request
+     * @param rec DNS record answer
      * @return outgoing message for the next answer
-     * @exception IOException if any IO error occurs
+     * @throws IOException if any IO error occurs
      */
     public DNSOutgoing addAnswer(DNSOutgoing out, DNSIncoming in, DNSRecord rec) throws IOException {
         DNSOutgoing newOut = out;
@@ -119,14 +125,12 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Add an answer to the message.
-     * 
-     * @param out
-     *            outgoing message
-     * @param rec
-     *            DNS record answer
+     *
+     * @param out outgoing message
+     * @param rec DNS record answer
      * @param now the current time
      * @return outgoing message for the next answer
-     * @exception IOException if any IO error occurs
+     * @throws IOException if any IO error occurs
      */
     public DNSOutgoing addAnswer(DNSOutgoing out, DNSRecord rec, long now) throws IOException {
         DNSOutgoing newOut = out;
@@ -141,13 +145,11 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Add an authoritative answer to the message.
-     * 
-     * @param out
-     *            outgoing message
-     * @param rec
-     *            DNS record answer
+     *
+     * @param out outgoing message
+     * @param rec DNS record answer
      * @return outgoing message for the next answer
-     * @exception IOException if any IO error occurs
+     * @throws IOException if any IO error occurs
      */
     public DNSOutgoing addAuthoritativeAnswer(DNSOutgoing out, DNSRecord rec) throws IOException {
         DNSOutgoing newOut = out;
@@ -162,15 +164,12 @@ public abstract class DNSTask extends TimerTask {
 
     /**
      * Adds an answer to the record. Omit if there is no room.
-     * 
-     * @param out
-     *            outgoing message
-     * @param in
-     *            incoming request
-     * @param rec
-     *            DNS record answer
+     *
+     * @param out outgoing message
+     * @param in  incoming request
+     * @param rec DNS record answer
      * @return outgoing message for the next answer
-     * @exception IOException if any IO error occurs
+     * @throws IOException if any IO error occurs
      */
     public DNSOutgoing addAdditionalAnswer(DNSOutgoing out, DNSIncoming in, DNSRecord rec) throws IOException {
         DNSOutgoing newOut = out;

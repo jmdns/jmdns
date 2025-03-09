@@ -1,15 +1,24 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package javax.jmdns.impl;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
-import java.net.NetworkInterface;
-import java.net.UnknownHostException;
+import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,76 +28,63 @@ import javax.jmdns.JmmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
-import javax.jmdns.ServiceTypeListener;
 import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.test.EventStoringServiceListener;
 
-import org.easymock.Capture;
-import org.easymock.EasyMock;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
-public class JmDNSTest {
+class JmDNSTest {
 
-    @SuppressWarnings("unused")
-    private ServiceTypeListener typeListenerMock;
-    private ServiceListener     serviceListenerMock;
-    private ServiceInfo         service;
+    private ServiceListener serviceListenerMock;
+    private ServiceInfo service;
+    private static final String SERVICE_KEY = "srvname"; // Max 9 chars
+    private static final int MPORT = 8053;
 
-    private final static String serviceKey = "srvname"; // Max 9 chars
-
-    @Before
+    @BeforeEach
     public void setup() {
         String text = "Test hypothetical web server";
-        Map<String, byte[]> properties = new HashMap<String, byte[]>();
-        properties.put(serviceKey, text.getBytes());
+        Map<String, byte[]> properties = new HashMap<>();
+        properties.put(SERVICE_KEY, text.getBytes());
         service = ServiceInfo.create("_html._tcp.local.", "apache-someuniqueid", 80, 0, 0, true, properties);
-        typeListenerMock = createMock(ServiceTypeListener.class);
-        serviceListenerMock = createNiceMock("ServiceListener", ServiceListener.class);
+        serviceListenerMock = mock(ServiceListener.class);
     }
 
     @Test
-    public void testCreate() throws IOException {
-        System.out.println("Unit Test: testCreate()");
-        JmDNS registry = JmDNS.create();
+    void testCreate() throws IOException {
+        JmDNSImpl registry = (JmDNSImpl) JmDNS.create();
+        assertNotNull(registry);
         registry.close();
+        assertTrue(registry.isCanceled()); // should it be canceled after close?
     }
 
     @Test
-    public void testCreateINet() throws IOException {
-        System.out.println("Unit Test: testCreateINet()");
-        JmDNS registry = JmDNS.create(InetAddress.getLocalHost());
-        // assertEquals("We did not register on the local host inet:", InetAddress.getLocalHost(), registry.getInterface());
-        registry.close();
-    }
-
-    @Test
-    public void testRegisterService() throws IOException {
-        System.out.println("Unit Test: testRegisterService()");
-        JmDNS registry = null;
-        try {
-            registry = JmDNS.create();
-            registry.registerService(service);
-
-            ServiceInfo[] services = registry.list(service.getType());
-            assertEquals("We should see the service we just registered: ", 1, services.length);
-            assertEquals(service, services[0]);
-        } finally {
-            if (registry != null) registry.close();
+    void testCreateINet() throws IOException {
+        InetAddress localhost = InetAddress.getLocalHost();
+        try (JmDNS registry = JmDNS.create(localhost)) {
+            assertEquals(localhost, registry.getInetAddress(), "We did not register on the inetAddress of the localhost");
         }
     }
 
     @Test
-    public void testUnregisterService() throws IOException, InterruptedException {
-        System.out.println("Unit Test: testUnregisterService()");
-        JmDNS registry = null;
-        try {
-            registry = JmDNS.create();
+    void testRegisterService() throws IOException {
+        try (JmDNS registry = JmDNS.create()) {
             registry.registerService(service);
 
             ServiceInfo[] services = registry.list(service.getType());
-            assertEquals("We should see the service we just registered: ", 1, services.length);
+            assertEquals(1, services.length, "We should see the service we just registered: ");
+            assertEquals(service, services[0]);
+        }
+    }
+
+    @Test
+    void testUnregisterService() throws IOException, InterruptedException {
+        try (JmDNS registry = JmDNS.create()) {
+            registry.registerService(service);
+
+            ServiceInfo[] services = registry.list(service.getType());
+            assertEquals(1, services.length, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
 
             // now unregister and make sure it's gone
@@ -99,39 +95,27 @@ public class JmDNSTest {
             Thread.sleep(1500);
 
             services = registry.list(service.getType());
-            assertTrue("We should not see the service we just unregistered: ", services == null || services.length == 0);
-        } finally {
-            if (registry != null) registry.close();
+            assertTrue(services == null || services.length == 0, "We should not see the service we just unregistered: ");
         }
     }
 
     @Test
-    public void testRegisterServiceTwice() throws IOException {
-        System.out.println("Unit Test: testRegisterService()");
-        JmDNS registry = null;
-        try {
-            registry = JmDNS.create();
+    void testRegisterServiceTwice() throws IOException {
+        try (JmDNS registry = JmDNS.create()) {
             registry.registerService(service);
-            // This should cause an exception
-            registry.registerService(service);
-            fail("Registering the same service info should fail.");
-        } catch (IllegalStateException exception) {
-            // Expected exception.
-        } finally {
-            if (registry != null) registry.close();
+            assertThrows(IllegalStateException.class,
+                    () -> registry.registerService(service),
+                    "Registering the same service info should fail.");
         }
     }
 
     @Test
-    public void testUnregisterAndReregisterService() throws IOException, InterruptedException {
-        System.out.println("Unit Test: testUnregisterAndReregisterService()");
-        JmDNS registry = null;
-        try {
-            registry = JmDNS.create();
+    void testUnregisterAndRegisterService() throws IOException, InterruptedException {
+        try (JmDNS registry = JmDNS.create()) {
             registry.registerService(service);
 
             ServiceInfo[] services = registry.list(service.getType());
-            assertEquals("We should see the service we just registered: ", 1, services.length);
+            assertEquals(1, services.length, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
 
             // now unregister and make sure it's gone
@@ -142,219 +126,149 @@ public class JmDNSTest {
             Thread.sleep(1500);
 
             services = registry.list(service.getType());
-            assertTrue("We should not see the service we just unregistered: ", services == null || services.length == 0);
+            assertTrue(services == null || services.length == 0, "We should not see the service we just unregistered: ");
 
             registry.registerService(service);
             Thread.sleep(5000);
             services = registry.list(service.getType());
-            assertTrue("We should see the service we just reregistered: ", services != null && services.length > 0);
-        } finally {
-            if (registry != null) registry.close();
+            assertTrue(services != null && services.length > 0, "We should see the service we just registered again: ");
         }
     }
 
     @Test
-    public void testQueryMyService() throws IOException {
-        System.out.println("Unit Test: testQueryMyService()");
-        JmDNS registry = null;
-        try {
-            registry = JmDNS.create();
+    void testQueryMyService() throws IOException, InterruptedException {
+        try (JmDNS registry = JmDNS.create()) {
             registry.registerService(service);
+            Thread.sleep(6000);
             ServiceInfo queriedService = registry.getServiceInfo(service.getType(), service.getName());
             assertEquals(service, queriedService);
-        } finally {
-            if (registry != null) registry.close();
         }
     }
 
     @Test
-    public void testListMyService() throws IOException {
-        System.out.println("Unit Test: testListMyService()");
-        JmDNS registry = null;
-        try {
-            registry = JmDNS.create();
+    void testListMyService() throws IOException {
+        try (JmDNS registry = JmDNS.create()) {
             registry.registerService(service);
             ServiceInfo[] services = registry.list(service.getType());
-            assertEquals("We should see the service we just registered: ", 1, services.length);
+            assertEquals(1, services.length, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
-        } finally {
-            if (registry != null) registry.close();
         }
     }
 
     @Test
-    public void testListMyServiceIPV6() throws IOException {
-        System.out.println("Unit Test: testListMyServiceIPV6()");
-        JmDNS registry = null;
-        try {
-            InetAddress address = InetAddress.getLocalHost();
-            NetworkInterface interfaze = NetworkInterface.getByInetAddress(address);
-            for (Enumeration<InetAddress> iaenum = interfaze.getInetAddresses(); iaenum.hasMoreElements();) {
-                InetAddress interfaceAddress = iaenum.nextElement();
-                if (interfaceAddress instanceof Inet6Address) {
-                    address = interfaceAddress;
-                }
+    void testListMyServiceIPV6() throws IOException {
+        InetAddress address = InetAddress.getLocalHost();
+        NetworkInterface networkInterface = NetworkInterface.getByInetAddress(address);
+        for (Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses(); inetAddresses.hasMoreElements(); ) {
+            InetAddress interfaceAddress = inetAddresses.nextElement();
+            if (interfaceAddress instanceof Inet6Address) {
+                address = interfaceAddress;
             }
-            registry = JmDNS.create(address);
+        }
+        try (JmDNS registry = JmDNS.create(address)) {
             registry.registerService(service);
             ServiceInfo[] services = registry.list(service.getType());
-            assertEquals("We should see the service we just registered: ", 1, services.length);
+            assertEquals(1, services.length, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
-        } finally {
-            if (registry != null) registry.close();
         }
     }
 
     @Test
-    public void testListenForMyService() throws IOException {
-        System.out.println("Unit Test: testListenForMyService()");
-        JmDNS registry = null;
-        try {
-            Capture<ServiceEvent> capServiceAddedEvent = EasyMock.newCapture();
-            Capture<ServiceEvent> capServiceResolvedEvent = EasyMock.newCapture();
-            // Add an expectation that the listener interface will be called once capture the object so I can verify it separately.
-            serviceListenerMock.serviceAdded(capture(capServiceAddedEvent));
-            serviceListenerMock.serviceResolved(capture(capServiceResolvedEvent));
-            EasyMock.replay(serviceListenerMock);
-            // EasyMock.makeThreadSafe(serviceListenerMock, false);
+    void testListenForMyService() throws IOException, InterruptedException {
+        ArgumentCaptor<ServiceEvent> capServiceAddedEvent = ArgumentCaptor.forClass(ServiceEvent.class);
+        ArgumentCaptor<ServiceEvent> capServiceResolvedEvent = ArgumentCaptor.forClass(ServiceEvent.class);
 
-            registry = JmDNS.create();
-
+        try (JmDNS registry = JmDNS.create()) {
             registry.addServiceListener(service.getType(), serviceListenerMock);
-
             registry.registerService(service);
+            Thread.sleep(6000);
 
-            // We get the service added event when we register the service. However the service has not been resolved at this point.
+            verify(serviceListenerMock, atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
+            verify(serviceListenerMock, atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
+            // We get the service added event when we register the service. However, the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
-            assertTrue("We did not get the service added event.", capServiceAddedEvent.hasCaptured());
+            assertFalse(capServiceAddedEvent.getAllValues().isEmpty(), "We did not get the service added event.");
             ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
-            assertEquals("We did not get the right name for the added service:", service.getName(), info.getName());
-            assertEquals("We did not get the right type for the added service:", service.getType(), info.getType());
-            assertEquals("We did not get the right fully qualified name for the added service:", service.getQualifiedName(), info.getQualifiedName());
-
-            // assertEquals("We should not get the server for the added service:", "", info.getServer());
-            // assertEquals("We should not get the address for the added service:", null, info.getAddress());
-            // assertEquals("We should not get the HostAddress for the added service:", "", info.getHostAddress());
-            // assertEquals("We should not get the InetAddress for the added service:", null, info.getInetAddress());
-            // assertEquals("We should not get the NiceTextString for the added service:", "", info.getNiceTextString());
-            // assertEquals("We should not get the Priority for the added service:", 0, info.getPriority());
-            // assertFalse("We should not get the PropertyNames for the added service:", info.getPropertyNames().hasMoreElements());
-            // assertEquals("We should not get the TextBytes for the added service:", 0, info.getTextBytes().length);
-            // assertEquals("We should not get the TextString for the added service:", null, info.getTextString());
-            // assertEquals("We should not get the Weight for the added service:", 0, info.getWeight());
-            // assertNotSame("We should not get the URL for the added service:", "", info.getURL());
+            assertEquals(service.getName(), info.getName(), "We did not get the right name for the added service:");
+            assertEquals(service.getType(), info.getType(), "We did not get the right type for the added service:");
+            assertEquals(service.getQualifiedName(), info.getQualifiedName(), "We did not get the right fully qualified name for the added service:");
 
             registry.requestServiceInfo(service.getType(), service.getName());
 
-            assertTrue("We did not get the service resolved event.", capServiceResolvedEvent.hasCaptured());
-            verify(serviceListenerMock);
+            assertFalse(capServiceResolvedEvent.getAllValues().isEmpty(), "We did not get the service resolved event.");
+
             ServiceInfo resolvedInfo = capServiceResolvedEvent.getValue().getInfo();
-            assertEquals("Did not get the expected service info: ", service, resolvedInfo);
-        } finally {
-            if (registry != null) registry.close();
+            assertEquals(service, resolvedInfo, "Did not get the expected service info: ");
         }
     }
 
     @Test
-    public void testListenForMyServiceAndList() throws IOException {
-        System.out.println("Unit Test: testListenForMyServiceAndList()");
-        JmDNS registry = null;
-        try {
-            Capture<ServiceEvent> capServiceAddedEvent = EasyMock.newCapture();
-            Capture<ServiceEvent> capServiceResolvedEvent = EasyMock.newCapture();
-            // Expect the listener to be called once and capture the result
-            serviceListenerMock.serviceAdded(capture(capServiceAddedEvent));
-            serviceListenerMock.serviceResolved(capture(capServiceResolvedEvent));
-            replay(serviceListenerMock);
+    void testListenForMyServiceAndList() throws IOException, InterruptedException {
+        ArgumentCaptor<ServiceEvent> capServiceAddedEvent = ArgumentCaptor.forClass(ServiceEvent.class);
+        ArgumentCaptor<ServiceEvent> capServiceResolvedEvent = ArgumentCaptor.forClass(ServiceEvent.class);
 
-            registry = JmDNS.create();
+        try (JmDNS registry = JmDNS.create()) {
             registry.addServiceListener(service.getType(), serviceListenerMock);
             registry.registerService(service);
+            Thread.sleep(6000);
 
-            // We get the service added event when we register the service. However the service has not been resolved at this point.
+            verify(serviceListenerMock, atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
+            verify(serviceListenerMock, atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
+            // We get the service added event when we register the service. However, the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
-            assertTrue("We did not get the service added event.", capServiceAddedEvent.hasCaptured());
-
             ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
-            assertEquals("We did not get the right name for the resolved service:", service.getName(), info.getName());
-            assertEquals("We did not get the right type for the resolved service:", service.getType(), info.getType());
+            assertEquals(service.getName(), info.getName(), "We did not get the right name for the resolved service:");
+            assertEquals(service.getType(), info.getType(), "We did not get the right type for the resolved service:");
 
             // This will force the resolution of the service which in turn will get the listener called with a service resolved event.
             // The info associated with a service resolved event has all the information available.
-            // Which in turn populates the ServiceInfo opbjects returned by JmDNS.list.
+            // Which in turn populates the ServiceInfo objects returned by JmDNS.list.
             ServiceInfo[] services = registry.list(info.getType());
-            assertEquals("We did not get the expected number of services: ", 1, services.length);
-            assertEquals("The service returned was not the one expected", service, services[0]);
+            assertEquals(1, services.length, "We did not get the expected number of services: ");
+            assertEquals(service, services[0], "The service returned was not the one expected");
 
-            assertTrue("We did not get the service resolved event.", capServiceResolvedEvent.hasCaptured());
-            verify(serviceListenerMock);
             ServiceInfo resolvedInfo = capServiceResolvedEvent.getValue().getInfo();
-            assertEquals("Did not get the expected service info: ", service, resolvedInfo);
-        } finally {
-            if (registry != null) registry.close();
+            assertEquals(service, resolvedInfo, "Did not get the expected service info: ");
         }
     }
 
     @Test
-    public void testListenForServiceOnOtherRegistry() throws IOException {
-        System.out.println("Unit Test: testListenForServiceOnOtherRegistry()");
-        JmDNS registry = null;
-        JmDNS newServiceRegistry = null;
-        try {
-            Capture<ServiceEvent> capServiceAddedEvent = EasyMock.newCapture();
-            Capture<ServiceEvent> capServiceResolvedEvent = EasyMock.newCapture();
-            // Expect the listener to be called once and capture the result
-            serviceListenerMock.serviceAdded(capture(capServiceAddedEvent));
-            serviceListenerMock.serviceResolved(capture(capServiceResolvedEvent));
-            replay(serviceListenerMock);
+    void testListenForServiceOnOtherRegistry() throws IOException, InterruptedException {
+        ArgumentCaptor<ServiceEvent> capServiceAddedEvent = ArgumentCaptor.forClass(ServiceEvent.class);
+        ArgumentCaptor<ServiceEvent> capServiceResolvedEvent = ArgumentCaptor.forClass(ServiceEvent.class);
 
-            registry = JmDNS.create();
+        try (JmDNS registry = JmDNS.create();
+             JmDNS newServiceRegistry = JmDNS.create()) {
             registry.addServiceListener(service.getType(), serviceListenerMock);
-            //
-            newServiceRegistry = JmDNS.create();
             newServiceRegistry.registerService(service);
+            Thread.sleep(6000);
 
-            // We get the service added event when we register the service. However the service has not been resolved at this point.
+            verify(serviceListenerMock, atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
+            verify(serviceListenerMock, atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
+            // We get the service added event when we register the service. However, the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
-            assertTrue("We did not get the service added event.", capServiceAddedEvent.hasCaptured());
             ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
-            assertEquals("We did not get the right name for the resolved service:", service.getName(), info.getName());
-            assertEquals("We did not get the right type for the resolved service:", service.getType(), info.getType());
-            // We get the service added event when we register the service. However the service has not been resolved at this point.
-            // The info associated with the event only has the minimum information i.e. name and type.
-            assertTrue("We did not get the service resolved event.", capServiceResolvedEvent.hasCaptured());
-            verify(serviceListenerMock);
+            assertEquals(service.getName(), info.getName(), "We did not get the right name for the resolved service:");
+            assertEquals(service.getType(), info.getType(), "We did not get the right type for the resolved service:");
             Object result = capServiceResolvedEvent.getValue().getInfo();
-            assertEquals("Did not get the expected service info: ", service, result);
-        } finally {
-            if (registry != null) registry.close();
-            if (newServiceRegistry != null) newServiceRegistry.close();
+            assertEquals(service, result, "Did not get the expected service info: ");
         }
     }
 
     @Test
-    public void testWaitAndQueryForServiceOnOtherRegistry() throws IOException {
-        System.out.println("Unit Test: testWaitAndQueryForServiceOnOtherRegistry()");
-        JmDNS registry = null;
-        JmDNS newServiceRegistry = null;
-        try {
-            newServiceRegistry = JmDNS.create();
-            registry = JmDNS.create();
-
+    void testWaitAndQueryForServiceOnOtherRegistry() throws Exception {
+        try (JmDNS newServiceRegistry = JmDNS.create(InetAddress.getLocalHost());
+             JmDNS registry = JmDNS.create(InetAddress.getLocalHost())) {
             registry.registerService(service);
-
+            Thread.sleep(6000);
             ServiceInfo fetchedService = newServiceRegistry.getServiceInfo(service.getType(), service.getName());
-
-            assertEquals("Did not get the expected service info: ", service, fetchedService);
-        } finally {
-            if (registry != null) registry.close();
-            if (newServiceRegistry != null) newServiceRegistry.close();
+            assertNotNull(fetchedService, "ServiceInfo is a null reference");
+            assertEquals(service, fetchedService, "Did not get the expected service info: ");
         }
     }
 
     @Test
-    public void testRegisterAndListServiceOnOtherRegistry() throws IOException, InterruptedException {
-        System.out.println("Unit Test: testRegisterAndListServiceOnOtherRegistry()");
+    void testRegisterAndListServiceOnOtherRegistry() throws IOException, InterruptedException {
         JmDNS registry = null;
         JmDNS newServiceRegistry = null;
         try {
@@ -364,20 +278,20 @@ public class JmDNSTest {
             newServiceRegistry = JmDNS.create("Listener");
             Thread.sleep(6000);
             ServiceInfo[] fetchedServices = newServiceRegistry.list(service.getType());
-            assertEquals("Did not get the expected services listed:", 1, fetchedServices.length);
-            assertEquals("Did not get the expected service type:", service.getType(), fetchedServices[0].getType());
-            assertEquals("Did not get the expected service name:", service.getName(), fetchedServices[0].getName());
-            assertEquals("Did not get the expected service fully qualified name:", service.getQualifiedName(), fetchedServices[0].getQualifiedName());
+            assertEquals(1, fetchedServices.length, "Did not get the expected services listed:");
+            assertEquals(service.getType(), fetchedServices[0].getType(), "Did not get the expected service type:");
+            assertEquals(service.getName(), fetchedServices[0].getName(), "Did not get the expected service name:");
+            assertEquals(service.getQualifiedName(), fetchedServices[0].getQualifiedName(), "Did not get the expected service fully qualified name:");
             newServiceRegistry.getServiceInfo(service.getType(), service.getName());
 
-            assertEquals("Did not get the expected service info: ", service, fetchedServices[0]);
+            assertEquals(service, fetchedServices[0], "Did not get the expected service info: ");
             registry.close();
             registry = null;
             // According to the spec the record disappears from the cache 1s after it has been unregistered
             // without sleeping for a while, the service would not be unregistered fully
             Thread.sleep(1500);
             fetchedServices = newServiceRegistry.list(service.getType());
-            assertEquals("The service was not cancelled after the close:", 0, fetchedServices.length);
+            assertEquals(0, fetchedServices.length, "The service was not cancelled after the close:");
         } finally {
             if (registry != null) registry.close();
             if (newServiceRegistry != null) newServiceRegistry.close();
@@ -385,11 +299,8 @@ public class JmDNSTest {
     }
 
     @Test
-    public void testAddServiceListenerTwice() throws IOException {
-        System.out.println("Unit Test: testAddServiceListenerTwice()");
-        JmDNSImpl registry = null;
-        try {
-            registry = (JmDNSImpl) JmDNS.create();
+    void testAddServiceListenerTwice() throws IOException {
+        try (JmDNSImpl registry = (JmDNSImpl) JmDNS.create()) {
             registry.addServiceListener("test", serviceListenerMock);
 
             // we will have 2 listeners, since the collector is implicitly added as well
@@ -397,17 +308,12 @@ public class JmDNSTest {
 
             registry.addServiceListener("test", serviceListenerMock);
             assertEquals(2, registry._serviceListeners.get("test").size());
-        } finally {
-            if (registry != null) registry.close();
         }
     }
 
     @Test
-    public void testRemoveServiceListener() throws IOException {
-        System.out.println("Unit Test: testRemoveServiceListener()");
-        JmDNSImpl registry = null;
-        try {
-            registry = (JmDNSImpl) JmDNS.create();
+    void testRemoveServiceListener() throws IOException {
+        try (JmDNSImpl registry = (JmDNSImpl) JmDNS.create()) {
             registry.addServiceListener("test", serviceListenerMock);
             // we will have 2 listeners, since the collector is implicitly added as well
             assertEquals(2, registry._serviceListeners.get("test").size());
@@ -415,25 +321,23 @@ public class JmDNSTest {
             registry.removeServiceListener("test", serviceListenerMock);
             // the collector is left in place
             assertEquals(1, registry._serviceListeners.get("test").size());
-        } finally {
-            if (registry != null) registry.close();
         }
     }
 
-    public static final class Receive extends Thread {
-        MulticastSocket _socket;
-        DatagramPacket  _in;
+    private static final class Receive extends Thread {
+        MulticastSocket multicastSocket;
+        DatagramPacket datagramPacket;
 
         public Receive(MulticastSocket socket, DatagramPacket in) {
             super("Test Receive Multicast");
-            _socket = socket;
-            _in = in;
+            multicastSocket = socket;
+            datagramPacket = in;
         }
 
         @Override
         public void run() {
             try {
-                _socket.receive(_in);
+                multicastSocket.receive(datagramPacket);
             } catch (IOException exception) {
                 // Ignore
             }
@@ -450,12 +354,8 @@ public class JmDNSTest {
 
     }
 
-    private final static int MPORT = 8053;
-
     @Test
-    @Ignore
-    public void testTwoMulticastPortsAtOnce() throws UnknownHostException, IOException {
-        System.out.println("Unit Test: testTwoMulticastPortsAtOnce()");
+    void testTwoMulticastPortsAtOnce() throws IOException {
         MulticastSocket firstSocket = null;
         MulticastSocket secondSocket = null;
         try {
@@ -468,35 +368,34 @@ public class JmDNSTest {
             firstSocket.joinGroup(someInet);
             secondSocket.joinGroup(someInet);
             //
-            DatagramPacket out = new DatagramPacket(firstMessage.getBytes("UTF-8"), firstMessage.length(), someInet, MPORT);
-            DatagramPacket inFirst = new DatagramPacket(firstMessage.getBytes("UTF-8"), firstMessage.length(), someInet, MPORT);
-            DatagramPacket inSecond = new DatagramPacket(firstMessage.getBytes("UTF-8"), firstMessage.length(), someInet, MPORT);
+            DatagramPacket out = new DatagramPacket(firstMessage.getBytes(StandardCharsets.UTF_8), firstMessage.length(), someInet, MPORT);
+            DatagramPacket inSecond = new DatagramPacket(firstMessage.getBytes(StandardCharsets.UTF_8), firstMessage.length(), someInet, MPORT);
             Receive receiveSecond = new Receive(secondSocket, inSecond);
             receiveSecond.start();
             Receive receiveFirst = new Receive(firstSocket, inSecond);
             receiveFirst.start();
             firstSocket.send(out);
             if (receiveSecond.waitForReceive()) {
-                Assert.fail("We did not receive the data in the second socket");
+                fail("We did not receive the data in the second socket");
             }
-            String fromFirst = new String(inSecond.getData(), "UTF-8");
-            assertEquals("Expected the second socket to recieve the same message the first socket sent", firstMessage, fromFirst);
+            String fromFirst = new String(inSecond.getData(), StandardCharsets.UTF_8);
+            assertEquals(firstMessage, fromFirst, "Expected the second socket to recieve the same message the first socket sent");
             // Make sure the first socket had read its own message
             if (receiveSecond.waitForReceive()) {
-                Assert.fail("We did not receive the data in the first socket");
+                fail("We did not receive the data in the first socket");
             }
             // Reverse the roles
-            out = new DatagramPacket(secondMessage.getBytes("UTF-8"), secondMessage.length(), someInet, MPORT);
-            inFirst = new DatagramPacket(secondMessage.getBytes("UTF-8"), secondMessage.length(), someInet, MPORT);
+            out = new DatagramPacket(secondMessage.getBytes(StandardCharsets.UTF_8), secondMessage.length(), someInet, MPORT);
+            DatagramPacket inFirst = new DatagramPacket(secondMessage.getBytes(StandardCharsets.UTF_8), secondMessage.length(), someInet, MPORT);
             receiveFirst = new Receive(firstSocket, inSecond);
             receiveFirst.start();
 
             secondSocket.send(out);
             if (receiveFirst.waitForReceive()) {
-                Assert.fail("We did not receive the data in the first socket");
+                fail("We did not receive the data in the first socket");
             }
-            String fromSecond = new String(inFirst.getData(), "UTF-8");
-            assertEquals("Expected the first socket to recieve the same message the second socket sent", secondMessage, fromSecond);
+            String fromSecond = new String(inFirst.getData(), StandardCharsets.UTF_8);
+            assertEquals(secondMessage, fromSecond, "Expected the first socket to recieve the same message the second socket sent");
         } finally {
             if (firstSocket != null) firstSocket.close();
             if (secondSocket != null) secondSocket.close();
@@ -504,20 +403,17 @@ public class JmDNSTest {
     }
 
     @Test
-    public void testListMyServiceWithToLowerCase() throws IOException, InterruptedException {
-        System.out.println("Unit Test: testListMyServiceWithToLowerCase()");
+    void testListMyServiceWithToLowerCase() throws IOException, InterruptedException {
         String text = "Test hypothetical web server";
-        Map<String, byte[]> properties = new HashMap<String, byte[]>();
-        properties.put(serviceKey, text.getBytes());
+        Map<String, byte[]> properties = new HashMap<>();
+        properties.put(SERVICE_KEY, text.getBytes());
         service = ServiceInfo.create("_HtmL._TcP.lOcAl.", "apache-someUniqueid", 80, 0, 0, true, properties);
-        JmDNS registry = null;
-        try {
-            registry = JmDNS.create();
+        try (JmDNS registry = JmDNS.create()) {
             registry.registerService(service);
 
             // with toLowerCase
             ServiceInfo[] services = registry.list(service.getType().toLowerCase());
-            assertEquals("We should see the service we just registered: ", 1, services.length);
+            assertEquals(1, services.length, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
             // now unregister and make sure it's gone
             registry.unregisterService(services[0]);
@@ -525,27 +421,22 @@ public class JmDNSTest {
             // without sleeping for a while, the service would not be unregistered fully
             Thread.sleep(1500);
             services = registry.list(service.getType().toLowerCase());
-            assertTrue("We should not see the service we just unregistered: ", services == null || services.length == 0);
-        } finally {
-            if (registry != null) registry.close();
+            assertTrue(services == null || services.length == 0, "We should not see the service we just unregistered: ");
         }
     }
 
     @Test
-    public void testListMyServiceWithoutLowerCase() throws IOException, InterruptedException {
-        System.out.println("Unit Test: testListMyServiceWithoutLowerCase()");
+    void testListMyServiceWithoutLowerCase() throws IOException, InterruptedException {
         String text = "Test hypothetical web server";
-        Map<String, byte[]> properties = new HashMap<String, byte[]>();
-        properties.put(serviceKey, text.getBytes());
+        Map<String, byte[]> properties = new HashMap<>();
+        properties.put(SERVICE_KEY, text.getBytes());
         service = ServiceInfo.create("_HtmL._TcP.lOcAl.", "apache-someUniqueid", 80, 0, 0, true, properties);
-        JmDNS registry = null;
-        try {
-            registry = JmDNS.create();
+        try (JmDNS registry = JmDNS.create()) {
             registry.registerService(service);
 
             // without toLowerCase
             ServiceInfo[] services = registry.list(service.getType());
-            assertEquals("We should see the service we just registered: ", 1, services.length);
+            assertEquals(1, services.length, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
             // now unregister and make sure it's gone
             registry.unregisterService(services[0]);
@@ -553,50 +444,49 @@ public class JmDNSTest {
             // without sleeping for a while, the service would not be unregistered fully
             Thread.sleep(1500);
             services = registry.list(service.getType());
-            assertTrue("We should not see the service we just unregistered: ", services == null || services.length == 0);
-        } finally {
-            if (registry != null) registry.close();
+            assertTrue(services == null || services.length == 0, "We should not see the service we just unregistered: ");
         }
     }
 
     @Test
-    public void shouldNotNotifyServiceListenersForServiceResolveAfterServiceRemoved() throws UnknownHostException, IOException, InterruptedException {
+    void shouldNotNotifyServiceListenersForServiceResolveAfterServiceRemoved() throws IOException, InterruptedException {
         String firstType = "_test._type1.local.";
-        String secondType = "_test._type2.local.";
 
-        JmmDNS jmmdns = JmmDNS.Factory.getInstance();
+        try (JmmDNS jmmdns = JmmDNS.Factory.getInstance()) {
+            Thread.sleep(5000);
 
-        EventStoringServiceListener firstListener = new EventStoringServiceListener(firstType);
-        jmmdns.addServiceListener(firstType, firstListener);
+            EventStoringServiceListener firstListener = new EventStoringServiceListener(firstType);
+            jmmdns.addServiceListener(firstType, firstListener);
 
-        InetAddress[] addresses = jmmdns.getInetAddresses();
-        JmDNS[] dns = new JmDNS[addresses.length];
-        Map<String, String> txtRecord = new HashMap<String, String>();
-        txtRecord.put("SOME KEY", "SOME VALUE");
+            InetAddress[] addresses = jmmdns.getInetAddresses();
+            JmDNS[] dns = new JmDNS[addresses.length];
+            Map<String, String> txtRecord = new HashMap<>();
+            txtRecord.put("SOME KEY", "SOME VALUE");
 
-        ServiceInfo info = ServiceInfo.create(firstType, "SOME TEST NAME", 4444, 0, 0, true, txtRecord);
+            ServiceInfo info = ServiceInfo.create(firstType, "SOME TEST NAME", 4444, 0, 0, true, txtRecord);
 
-        for (int i = 0; i < addresses.length; i++) {
-            dns[i] = JmDNS.create(addresses[i], null);
-            dns[i].registerService(info.clone());
+            for (int i = 0; i < addresses.length; i++) {
+                dns[i] = JmDNS.create(addresses[i], null);
+                dns[i].registerService(info.clone());
+            }
+
+
+            assertTrue(firstListener.isServiceAddedReceived());
+            assertTrue(firstListener.isServiceResolvedReceived());
+            assertFalse(firstListener.isServiceRemovedReceived());
+
+            Thread.sleep(30 * 1000);
+
+            firstListener.reset();
+
+            for (JmDNS dn : dns) {
+                dn.close();
+            }
+
+            assertFalse(firstListener.isServiceAddedReceived());
+            assertTrue(firstListener.isServiceRemovedReceived());
+            assertFalse(firstListener.isServiceResolvedReceived());
         }
-
-        assertTrue(firstListener.isServiceAddedReceived());
-        assertTrue(firstListener.isServiceResolvedReceived());
-        assertFalse(firstListener.isServiceRemovedReceived());
-
-        Thread.sleep(30 * 1000);
-
-        firstListener.reset();
-
-        for (int i = 0; i < dns.length; i++) {
-            dns[i].close();
-        }
-
-        assertFalse(firstListener.isServiceAddedReceived());
-        assertTrue(firstListener.isServiceRemovedReceived());
-
-        assertFalse(firstListener.isServiceResolvedReceived());
     }
 
 }

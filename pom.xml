@@ -3,25 +3,25 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.jmdns</groupId>
 	<artifactId>jmdns</artifactId>
-	<version>3.5.13-SNAPSHOT</version>
+	<version>3.6.1-SNAPSHOT</version>
 	<name>JmDNS</name>
 	<packaging>jar</packaging>
 
 	<description>JmDNS is a Java implementation of multi-cast DNS and can be used for service registration and discovery in local area networks. JmDNS is fully compatible with Apple's Bonjour.
 The project was originally started in December 2002 by Arthur van Hoff at Strangeberry.</description>
-	<url>http://jmdns.org</url>
+	<url>https://jmdns.org</url>
 	<inceptionYear>2002</inceptionYear>
 
 	<organization>
 		<name>JmDNS</name>
-		<url>http://jmdns.org/</url>
+		<url>https://jmdns.org/</url>
 	</organization>
 	<developers>
 		<developer>
 			<name>Kai Kreuzer</name>
 			<email>kai@openhab.org</email>
 			<organization>JmDNS</organization>
-			<organizationUrl>http://www.jmdns.org</organizationUrl>
+			<organizationUrl>https://www.jmdns.org</organizationUrl>
 		</developer>
 	</developers>
 	<scm>
@@ -44,14 +44,15 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		<license>
 			<name>Apache License, Version 2.0</name>
 			<distribution>repo</distribution>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
 		</license>
 	</licenses>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
-		<jvm.version>1.8</jvm.version>
+		<jvm.version>8</jvm.version>
+		<mockito.version>4.11.0</mockito.version>
 	</properties>
 
 	<dependencies>
@@ -61,21 +62,27 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 			<version>2.0.7</version>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.13.1</version>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>5.10.3</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.easymock</groupId>
-			<artifactId>easymock</artifactId>
-			<version>3.3.1</version>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>5.10.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.3.14</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-inline</artifactId>
-			<version>5.2.0</version>
+			<version>${mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -90,10 +97,11 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.3</version>
+				<version>3.13.0</version>
 				<configuration>
 					<source>${jvm.version}</source>
 					<target>${jvm.version}</target>
+					<release>${jvm.version}</release>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -116,10 +124,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.18.1</version>
-				<configuration>
-					<skipTests>true</skipTests>
-				</configuration>
+				<version>3.5.0</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -197,6 +202,25 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 			        </execution>
 			    </executions>
 			</plugin>
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>4.6</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>format</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<header>src/site/resources/license-header.txt</header>
+					<includes>
+						<include>**/*.java</include>
+					</includes>
+					<strictCheck>true</strictCheck>
+				</configuration>
+			</plugin>
 		</plugins>
 		<pluginManagement>
 			<plugins>
@@ -232,21 +256,6 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 
 	<profiles>
 		<profile>
-			<id>test</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-surefire-plugin</artifactId>
-						<version>2.18.1</version>
-						<configuration>
-							<skipTests>false</skipTests>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
 			<id>release-sign-artifacts</id>
 			<activation>
 				<property>
@@ -259,7 +268,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.4</version>
+						<version>3.2.7</version>
 						<executions>
 							<execution>
 								<id>sign-artifacts</id>

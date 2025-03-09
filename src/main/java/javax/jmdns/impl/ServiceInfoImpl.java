@@ -1,7 +1,16 @@
-// Copyright 2003-2005 Arthur van Hoff, Rick Blair
-// Licensed under Apache License version 2.0
-// Original license LGPL
-
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package javax.jmdns.impl;
 
 import java.io.IOException;
@@ -15,7 +24,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.Hashtable;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +52,7 @@ import javax.jmdns.impl.util.ByteWrangler;
  * @author Arthur van Hoff, Jeff Sonstein, Werner Randelshofer, Victor Toni
  */
 public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStatefulObject {
-    private static final Logger           logger = LoggerFactory.getLogger(ServiceInfoImpl.class);
+    private final Logger           logger = LoggerFactory.getLogger(ServiceInfoImpl.class);
 
     private String                  _domain;
     private String                  _protocol;
@@ -724,7 +733,7 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
 
     synchronized Map<String, byte[]> getProperties() {
         if ((_props == null) && (this.getTextBytes() != null)) {
-            final Map<String, byte[]> properties = new Hashtable<>();
+            final Map<String, byte[]> properties = new LinkedHashMap<>();
             try {
                 ByteWrangler.readProperties(properties, this.getTextBytes());
             } catch (final Exception exception) {

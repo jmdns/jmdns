@@ -1,5 +1,15 @@
-/**
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package javax.jmdns.impl.constants;
 
@@ -31,22 +41,22 @@ public enum DNSOptionCode {
      */
     Owner("Owner", 4);
 
-    private final String _externalName;
+    private final String externalName;
 
-    private final int    _index;
+    private final int indexValue;
 
     DNSOptionCode(String name, int index) {
-        _externalName = name;
-        _index = index;
+        externalName = name;
+        indexValue = index;
     }
 
     /**
      * Return the string representation of this type
-     * 
+     *
      * @return String
      */
     public String externalName() {
-        return _externalName;
+        return externalName;
     }
 
     /**
@@ -55,16 +65,16 @@ public enum DNSOptionCode {
      * @return String
      */
     public int indexValue() {
-        return _index;
+        return indexValue;
     }
 
     /**
-     * @param optioncode the option code
+     * @param code the option code
      * @return label
      */
-    public static DNSOptionCode resultCodeForFlags(int optioncode) {
-        for (DNSOptionCode aCode : DNSOptionCode.values()) {
-            if (aCode._index == optioncode) return aCode;
+    public static DNSOptionCode resultCodeForFlags(int code) {
+        for (DNSOptionCode optionCode : DNSOptionCode.values()) {
+            if (optionCode.indexValue == code) return optionCode;
         }
         return Unknown;
     }

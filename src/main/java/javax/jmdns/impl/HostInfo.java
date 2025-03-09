@@ -1,7 +1,16 @@
-// Copyright 2003-2005 Arthur van Hoff, Rick Blair
-// Licensed under Apache License version 2.0
-// Original license LGPL
-
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package javax.jmdns.impl;
 
 import java.io.IOException;
@@ -30,8 +39,6 @@ import javax.jmdns.impl.tasks.DNSTask;
  * @author Pierre Frisch, Werner Randelshofer
  */
 public class HostInfo implements DNSStatefulObject {
-    private static final Logger       logger = LoggerFactory.getLogger(HostInfo.class);
-
     protected String            _name;
 
     protected InetAddress       _address;
@@ -66,6 +73,8 @@ public class HostInfo implements DNSStatefulObject {
      * @return new HostInfo
      */
     public static HostInfo newHostInfo(InetAddress address, JmDNSImpl dns, String jmdnsName) {
+        final Logger logger = LoggerFactory.getLogger(HostInfo.class);
+
         HostInfo localhost;
         String aName = (jmdnsName != null ? jmdnsName : "");
         InetAddress addr = address;
@@ -91,7 +100,7 @@ public class HostInfo implements DNSStatefulObject {
             if (aName.isEmpty()) {
                 aName = addr.getHostName();
             }
-            if (aName.contains("in-addr.arpa") || (aName.equals(addr.getHostAddress()))) {
+            if (aName.contains("in-addr.arpa") || aName.equalsIgnoreCase(addr.getHostAddress()) || aName.equalsIgnoreCase(addr.getHostName())) {
                 aName = ((jmdnsName != null) && (!jmdnsName.isEmpty()) ? jmdnsName : addr.getHostAddress());
             }
         } catch (final IOException e) {
@@ -113,7 +122,16 @@ public class HostInfo implements DNSStatefulObject {
         }
         aName = aName.replaceAll("[:%.]", "-");
         aName += ".local.";
-        localhost = new HostInfo(addr, aName, dns);
+
+        NetworkInterface networkInterface = null;
+        if (addr != null) {
+            try {
+                networkInterface = NetworkInterface.getByInetAddress(addr);
+            } catch (Exception exception) {
+                logger.warn("LocalHostInfo() exception ", exception);
+            }
+        }
+        localhost = new HostInfo(addr, aName, dns, networkInterface);
         return localhost;
     }
 
@@ -125,18 +143,12 @@ public class HostInfo implements DNSStatefulObject {
         }
     }
 
-    private HostInfo(final InetAddress address, final String name, final JmDNSImpl dns) {
+    private HostInfo(final InetAddress address, final String name, final JmDNSImpl dns, NetworkInterface networkInterface) {
         super();
         this._state = new HostInfoState(dns);
         this._address = address;
         this._name = name;
-        if (address != null) {
-            try {
-                _interfaze = NetworkInterface.getByInetAddress(address);
-            } catch (Exception exception) {
-                logger.warn("LocalHostInfo() exception ", exception);
-            }
-        }
+        this._interfaze = networkInterface;
     }
 
     public String getName() {

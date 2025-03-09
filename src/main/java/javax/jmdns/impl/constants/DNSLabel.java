@@ -1,5 +1,15 @@
-/**
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package javax.jmdns.impl.constants;
 
@@ -29,16 +39,14 @@ public enum DNSLabel {
     /**
      * DNS label types are encoded on the first 2 bits
      */
-    static final int     LABEL_MASK     = 0xC0;
-    static final int     LABEL_NOT_MASK = 0x3F;
-
-    private final String _externalName;
-
-    private final int    _index;
+    static final int LABEL_MASK = 0xC0;
+    static final int LABEL_NOT_MASK = 0x3F;
+    private final String externalName;
+    private final int indexValue;
 
     DNSLabel(String name, int index) {
-        _externalName = name;
-        _index = index;
+        externalName = name;
+        indexValue = index;
     }
 
     /**
@@ -47,7 +55,7 @@ public enum DNSLabel {
      * @return String
      */
     public String externalName() {
-        return _externalName;
+        return externalName;
     }
 
     /**
@@ -56,7 +64,7 @@ public enum DNSLabel {
      * @return String
      */
     public int indexValue() {
-        return _index;
+        return indexValue;
     }
 
     /**
@@ -65,8 +73,8 @@ public enum DNSLabel {
      */
     public static DNSLabel labelForByte(int index) {
         int maskedIndex = index & LABEL_MASK;
-        for (DNSLabel aLabel : DNSLabel.values()) {
-            if (aLabel._index == maskedIndex) return aLabel;
+        for (DNSLabel label : DNSLabel.values()) {
+            if (label.indexValue == maskedIndex) return label;
         }
         return Unknown;
     }

@@ -1,3 +1,16 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package javax.jmdns.impl.util;
 
 import java.io.ByteArrayOutputStream;
@@ -17,8 +30,6 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class ByteWrangler {
-    private static final Logger logger = LoggerFactory.getLogger(ByteWrangler.class);
-
     /**
      * Maximum number of bytes a value can consist of.
      */
@@ -170,7 +181,9 @@ public class ByteWrangler {
 
     private static boolean isValueTooLarge(final byte[] data, final String text) {
         if (data.length > MAX_VALUE_LENGTH) {
+            final Logger logger = LoggerFactory.getLogger(ByteWrangler.class);
             logger.warn("Cannot have individual values larger that 255 chars. Offending value: {}", text);
+
             return true;
         }
         return false;
