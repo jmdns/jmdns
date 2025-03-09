@@ -148,7 +148,7 @@ public class DNSQuestion extends DNSEntry {
                 }
             } else if (this.isDomainDiscoveryQuery()) {
                 // TODO: We do not currently support domain discovery
-                logger.warn("Domain Discovery Query not implemented yet");
+                logger.debug("Domain Discovery Query not implemented yet");
             }
         }
 
