@@ -69,7 +69,7 @@ import javax.jmdns.impl.util.NamedThreadFactory;
  */
 public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarter {
 
-    private static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
+    private static final boolean IS_WINDOWS;
 
     private final Logger logger = LoggerFactory.getLogger(JmDNSImpl.class);
 
@@ -361,6 +361,15 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     private final ConcurrentMap<String, ServiceCollector> _serviceCollectors;
 
     private final String _name;
+
+    static {
+        final String osName = System.getProperty("os.name");
+        if (osName == null) {
+            IS_WINDOWS = false;
+        } else {
+            IS_WINDOWS = osName.startsWith("Windows");
+        }
+    }
 
     /**
      * Main method to display API information if run from java -jar
