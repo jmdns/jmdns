@@ -122,6 +122,9 @@ public interface JmmDNS extends Closeable {
          */
         public static void close() throws IOException {
             synchronized (Factory.class) {
+                if (_instance == null) {
+                    return;
+                }
                 _instance.close();
                 _instance = null;
             }
