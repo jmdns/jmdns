@@ -99,14 +99,20 @@ public abstract class DNSEntry {
     }
 
     /**
-     * Check if two entries have exactly the same name, type, and class.
+     * Check if two entries have exactly the same name, type, subType and class.
      *
      * @param entry
      * @return <code>true</code> if the two entries have are for the same record, <code>false</code> otherwise
      */
     public boolean isSameEntry(DNSEntry entry) {
-        return this.getKey().equals(entry.getKey()) && this.matchRecordType(entry.getRecordType()) && this.matchRecordClass(entry.getRecordClass());
+        boolean sameKey = this.getKey().equals(entry.getKey());
+        boolean sameRecordType = this.matchRecordType(entry.getRecordType());
+        boolean sameRecordClass = this.matchRecordClass(entry.getRecordClass());
+        boolean sameSubtype = this.sameSubtype(entry);
+
+        return sameKey && sameRecordType && sameRecordClass && sameSubtype;
     }
+
 
     /**
      * Check if two entries have the same subtype.
