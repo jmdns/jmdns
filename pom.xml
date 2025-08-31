@@ -30,10 +30,13 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		<url>https://github.com/jmdns/jmdns.git</url>
 	</scm>
 	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://ossrh-staging-api.central.sonatype.com/content/repositories/snapshots</url>
+		</snapshotRepository>
 		<repository>
-			<uniqueVersion>false</uniqueVersion>
-			<id>maven</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+			<id>ossrh</id>
+			<url>https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/</url>
 		</repository>
 	</distributionManagement>
 	<issueManagement>
@@ -107,7 +110,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>2.4</version>
+				<version>3.3.1</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -187,9 +190,12 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 			<plugin>
 			    <groupId>org.apache.maven.plugins</groupId>
 			    <artifactId>maven-javadoc-plugin</artifactId>
-			    <version>2.10.3</version>
+			    <version>3.8.0</version>
 			    <configuration>
 			        <outputDirectory>${project.build.directory}/javadoc</outputDirectory>
+			        <source>${jvm.version}</source>
+			        <failOnError>true</failOnError>
+			        <failOnWarnings>false</failOnWarnings>
 			    </configuration>
 			    <executions>
 			        <execution>
