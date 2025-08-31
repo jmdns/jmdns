@@ -3,6 +3,8 @@
 # and then bumps to the next snapshot version
 
 name: Release to Maven Central
+permissions:
+  contents: write
 
 on:
   workflow_dispatch:
