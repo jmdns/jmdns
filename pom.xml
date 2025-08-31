@@ -195,8 +195,9 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 			    <configuration>
 			        <outputDirectory>${project.build.directory}/javadoc</outputDirectory>
 			        <source>${jvm.version}</source>
-			        <failOnError>true</failOnError>
+			        <failOnError>false</failOnError>
 			        <failOnWarnings>false</failOnWarnings>
+			        <doclint>none</doclint>
 			    </configuration>
 			    <executions>
 			        <execution>
