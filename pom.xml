@@ -52,6 +52,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
 		<jvm.version>8</jvm.version>
+		<javase.version>1.8</javase.version>
 		<mockito.version>4.11.0</mockito.version>
 	</properties>
 
@@ -169,7 +170,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 						<Export-Package>javax.jmdns</Export-Package>
 						<Private-Package>javax.jmdns.impl,javax.jmdns.impl.*,com.strangeberry.*,samples</Private-Package>
 						<Import-Package>!javax.swing.*,org.slf4j</Import-Package>
-						<Bundle-RequiredExecutionEnvironment>JavaSE-${jvm.version}</Bundle-RequiredExecutionEnvironment>
+						<Bundle-RequiredExecutionEnvironment>JavaSE-${javase.version}</Bundle-RequiredExecutionEnvironment>
 						<Bundle-Vendor>jmdns.org</Bundle-Vendor>
 						<Bundle-ClassPath>.</Bundle-ClassPath>
 					</instructions>
