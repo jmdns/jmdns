@@ -17,6 +17,8 @@ import java.net.InetAddress;
 import java.util.EventObject;
 
 /**
+ * Represents an event that occurs when the network topology changes.
+ * 
  * @author C&eacute;drik Lime, Pierre Frisch
  */
 public abstract class NetworkTopologyEvent extends EventObject {

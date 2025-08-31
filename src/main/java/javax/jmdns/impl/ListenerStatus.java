@@ -16,14 +16,15 @@ package javax.jmdns.impl;
 import java.util.EventListener;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.ServiceTypeListener;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class track the status of listener.<br/>
@@ -262,7 +263,7 @@ public class ListenerStatus<T extends EventListener> {
     }
 
     /**
-     * Return <cod>true</code> if the listener must be called synchronously.
+     * Return <code>true</code> if the listener must be called synchronously.
      * 
      * @return the synch
      */
