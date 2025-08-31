@@ -1,0 +1,196 @@
+# This workflow handles the complete release process for jmdns
+# It converts snapshot to release version, deploys to Maven Central via OSSRH,
+# and then bumps to the next snapshot version
+
+name: Release to Maven Central
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Release version (e.g., 3.6.3)'
+        required: true
+        type: string
+      next_snapshot_version:
+        description: 'Next snapshot version (e.g., 3.6.4-SNAPSHOT)'
+        required: true
+        type: string
+
+jobs:
+  release:
+    name: Release to Maven Central
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+    
+    - name: Set up JDK 8
+      uses: actions/setup-java@v4
+      with:
+        java-version: 8
+        distribution: 'temurin'
+        cache: maven
+        server-id: ossrh
+        server-username: OSSRH_USERNAME
+        server-password: OSSRH_PASSWORD
+        gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+        gpg-passphrase: GPG_PASSPHRASE
+    
+    - name: Configure Git
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+    
+    - name: Update version to release version
+      run: |
+        mvn versions:set -DnewVersion=${{ github.event.inputs.release_version }}
+        mvn versions:commit
+    
+    - name: Verify release version
+      run: |
+        echo "Updated version to:"
+        mvn help:evaluate -Dexpression=project.version -q -DforceStdout
+    
+    - name: Build and test
+      run: mvn clean compile test
+    
+    - name: Deploy to Maven Central
+      env:
+        OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      run: |
+        mvn -DskipTests=true -DperformRelease=true clean deploy
+    
+    - name: Trigger Central Publisher Portal Upload
+      env:
+        OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+        CENTRAL_NAMESPACE: ${{ secrets.CENTRAL_NAMESPACE }}
+      run: |
+        echo "Triggering manual upload to Central Publisher Portal..."
+        
+        # Create base64 encoded credentials for Basic Auth
+        CREDENTIALS=$(echo -n "$OSSRH_USERNAME:$OSSRH_PASSWORD" | base64)
+        
+        # Make POST request to trigger upload
+        HTTP_STATUS=$(curl -s -o response.json -w "%{http_code}" \
+          -X POST \
+          -H "Authorization: Basic $CREDENTIALS" \
+          -H "Content-Type: application/json" \
+          "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/$CENTRAL_NAMESPACE")
+        
+        echo "HTTP Status: $HTTP_STATUS"
+        echo "Response:"
+        cat response.json
+        
+        if [ $HTTP_STATUS -eq 200 ] || [ $HTTP_STATUS -eq 201 ]; then
+          echo "✅ Successfully triggered upload to Central Publisher Portal"
+        else
+          echo "❌ Failed to trigger upload (HTTP $HTTP_STATUS)"
+          echo "Response details:"
+          cat response.json
+          exit 1
+        fi
+    
+    - name: Create and push release tag
+      run: |
+        git add pom.xml
+        git commit -m "Release version ${{ github.event.inputs.release_version }}"
+        git tag -a "v${{ github.event.inputs.release_version }}" -m "Release version ${{ github.event.inputs.release_version }}"
+        git push origin "v${{ github.event.inputs.release_version }}"
+    
+    - name: Update to next snapshot version
+      run: |
+        mvn versions:set -DnewVersion=${{ github.event.inputs.next_snapshot_version }}
+        mvn versions:commit
+    
+    - name: Verify snapshot version
+      run: |
+        echo "Updated version to:"
+        mvn help:evaluate -Dexpression=project.version -q -DforceStdout
+    
+    - name: Commit and push snapshot version
+      run: |
+        git add pom.xml
+        git commit -m "Prepare for next development iteration: ${{ github.event.inputs.next_snapshot_version }}"
+        git push origin
+    
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: "v${{ github.event.inputs.release_version }}"
+        release_name: "Release ${{ github.event.inputs.release_version }}"
+        body: |
+          Release ${{ github.event.inputs.release_version }}
+          
+          This release has been automatically deployed to Maven Central.
+          
+          **Artifacts:**
+          - `org.jmdns:jmdns:${{ github.event.inputs.release_version }}`
+          
+          **Maven Central:**
+          ```xml
+          <dependency>
+              <groupId>org.jmdns</groupId>
+              <artifactId>jmdns</artifactId>
+              <version>${{ github.event.inputs.release_version }}</version>
+          </dependency>
+          ```
+          
+          **Gradle:**
+          ```gradle
+          implementation 'org.jmdns:jmdns:${{ github.event.inputs.release_version }}'
+          ```
+        draft: false
+        prerelease: false
+
+  check-central-deployment:
+    name: Verify Maven Central Deployment
+    needs: release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Wait for Maven Central synchronization
+      run: |
+        echo "Waiting for artifacts to be synchronized to Maven Central..."
+        sleep 300  # Wait 5 minutes for initial propagation
+    
+    - name: Check Maven Central availability
+      run: |
+        RELEASE_VERSION="${{ github.event.inputs.release_version }}"
+        MAX_ATTEMPTS=12
+        ATTEMPT=1
+        
+        while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+          echo "Attempt $ATTEMPT of $MAX_ATTEMPTS: Checking Maven Central for version $RELEASE_VERSION..."
+          
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://repo1.maven.org/maven2/org/jmdns/jmdns/$RELEASE_VERSION/jmdns-$RELEASE_VERSION.pom")
+          
+          if [ $HTTP_STATUS -eq 200 ]; then
+            echo "✅ Artifact successfully found on Maven Central!"
+            echo "🔗 Maven Central URL: https://repo1.maven.org/maven2/org/jmdns/jmdns/$RELEASE_VERSION/"
+            echo "📦 Maven Central search: https://search.maven.org/artifact/org.jmdns/jmdns/$RELEASE_VERSION/jar"
+            break
+          else
+            echo "❌ Artifact not yet available (HTTP $HTTP_STATUS). Waiting..."
+            if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+              echo "⚠️  Maximum attempts reached. Deployment may still be in progress."
+              echo "🕐 It can take up to 2 hours for artifacts to appear on Maven Central."
+              echo "📋 Check manually at: https://search.maven.org/artifact/org.jmdns/jmdns/$RELEASE_VERSION/jar"
+            else
+              sleep 300  # Wait 5 minutes between attempts
+            fi
+          fi
+          
+          ATTEMPT=$((ATTEMPT + 1))
+        done
