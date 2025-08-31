@@ -164,6 +164,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 				<configuration>
 					<manifestLocation>${project.build.outputDirectory}/META-INF</manifestLocation>
 					<instructions>
+						<_noee>true</_noee>
 						<Bundle-SymbolicName>javax.jmdns</Bundle-SymbolicName>
 						<Export-Package>javax.jmdns</Export-Package>
 						<Private-Package>javax.jmdns.impl,javax.jmdns.impl.*,com.strangeberry.*,samples</Private-Package>
