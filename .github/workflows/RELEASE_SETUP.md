@@ -129,7 +129,9 @@ If a release fails:
    git push origin
    ```
 
-3. **OSSRH Staging Repository** (if artifacts were uploaded):
-   - Login to https://oss.sonatype.org/
-   - Go to "Staging Repositories"
-   - Find the repository and click "Drop"
+3. **Central Publisher Portal** (if artifacts were uploaded):
+   - Login to https://central.sonatype.com/
+   - Go to "Publishing" > "Deployments"
+   - Find the deployment for your namespace and release version
+   - If the deployment is still in progress, you may be able to cancel it
+   - For published releases, contact Sonatype support for assistance with removal
