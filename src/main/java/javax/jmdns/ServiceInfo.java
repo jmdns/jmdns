@@ -38,7 +38,6 @@ import javax.jmdns.impl.ServiceInfoImpl;
  * <li>&lt;Instance&gt;: This is the service name</li>
  * <li>&lt;sub&gt;: This is the subtype for the application protocol</li>
  * </ol>
- * </p>
  */
 public abstract class ServiceInfo implements Cloneable {
 

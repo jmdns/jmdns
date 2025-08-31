@@ -206,7 +206,7 @@ public abstract class JmDNS implements Closeable {
 
     /**
      * Get service information. If the information is not cached, the method will block until updated information is received.
-     * <p/>
+     * <p>
      * Usage note: Do not call this method from the AWT event dispatcher thread. You will make the user interface unresponsive.
      *
      * @param type
@@ -219,7 +219,7 @@ public abstract class JmDNS implements Closeable {
 
     /**
      * Get service information. If the information is not cached, the method will block for the given timeout until updated information is received.
-     * <p/>
+     * <p>
      * Usage note: If you call this method from the AWT event dispatcher thread, use a small timeout, or you will make the user interface unresponsive.
      *
      * @param type
@@ -234,7 +234,7 @@ public abstract class JmDNS implements Closeable {
 
     /**
      * Get service information. If the information is not cached, the method will block until updated information is received.
-     * <p/>
+     * <p>
      * Usage note: Do not call this method from the AWT event dispatcher thread. You will make the user interface unresponsive.
      *
      * @param type
@@ -249,7 +249,7 @@ public abstract class JmDNS implements Closeable {
 
     /**
      * Get service information. If the information is not cached, the method will block for the given timeout until updated information is received.
-     * <p/>
+     * <p>
      * Usage note: If you call this method from the AWT event dispatcher thread, use a small timeout, or you will make the user interface unresponsive.
      *
      * @param type
@@ -266,7 +266,7 @@ public abstract class JmDNS implements Closeable {
 
     /**
      * Request service information. The information about the service is requested and the ServiceListener.resolveService method is called as soon as it is available.
-     * <p/>
+     * <p>
      * Usage note: Do not call this method from the AWT event dispatcher thread. You will make the user interface unresponsive.
      *
      * @param type
@@ -278,7 +278,7 @@ public abstract class JmDNS implements Closeable {
 
     /**
      * Request service information. The information about the service is requested and the ServiceListener.resolveService method is called as soon as it is available.
-     * <p/>
+     * <p>
      * Usage note: Do not call this method from the AWT event dispatcher thread. You will make the user interface unresponsive.
      *
      * @param type
@@ -374,7 +374,6 @@ public abstract class JmDNS implements Closeable {
      * <pre>
      * Clients receiving a Multicast DNS Response with a TTL of zero SHOULD NOT immediately delete the record from the cache, but instead record a TTL of 1 and then delete the record one second later.
      * </pre>
-     * </p>
      *
      * @param info
      *            service info to remove

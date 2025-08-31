@@ -176,7 +176,7 @@ public interface JmmDNS extends Closeable {
 
     /**
      * Get service information. If the information is not cached, the method will block until updated information is received on all DNS.
-     * <p/>
+     * <p>
      * Usage note: Do not call this method from the AWT event dispatcher thread. You will make the user interface unresponsive.
      *
      * @param type
@@ -190,7 +190,7 @@ public interface JmmDNS extends Closeable {
 
     /**
      * Get service information. If the information is not cached, the method will block until updated information is received on all DNS.
-     * <p/>
+     * <p>
      * Usage note: If you call this method from the AWT event dispatcher thread, use a small timeout, or you will make the user interface unresponsive.
      *
      * @param type
@@ -206,7 +206,7 @@ public interface JmmDNS extends Closeable {
 
     /**
      * Get service information. If the information is not cached, the method will block until updated information is received on all DNS.
-     * <p/>
+     * <p>
      * Usage note: If you call this method from the AWT event dispatcher thread, use a small timeout, or you will make the user interface unresponsive.
      *
      * @param type
@@ -222,7 +222,7 @@ public interface JmmDNS extends Closeable {
 
     /**
      * Get service information. If the information is not cached, the method will block until updated information is received on all DNS.
-     * <p/>
+     * <p>
      * Usage note: If you call this method from the AWT event dispatcher thread, use a small timeout, or you will make the user interface unresponsive.
      *
      * @param type

@@ -26,8 +26,9 @@ import javax.jmdns.impl.constants.DNSRecordType;
 
 /**
  * The ServiceInfoResolver queries up to three times consecutively for a service info, and then removes itself from the timer.
- * <p/>
+ * <p>
  * The ServiceInfoResolver will run only if JmDNS is in state ANNOUNCED. REMIND: Prevent having multiple service resolvers for the same info in the timer queue.
+ * </p>
  */
 public class ServiceInfoResolver extends DNSResolverTask {
 

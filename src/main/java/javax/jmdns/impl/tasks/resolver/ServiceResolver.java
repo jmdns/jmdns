@@ -26,8 +26,9 @@ import javax.jmdns.impl.constants.DNSRecordType;
 
 /**
  * The ServiceResolver queries three times consecutively for services of a given type, and then removes itself from the timer.
- * <p/>
+ * <p>
  * The ServiceResolver will run only if JmDNS is in state ANNOUNCED. REMIND: Prevent having multiple service resolvers for the same type in the timer queue.
+ * </p>
  */
 public class ServiceResolver extends DNSResolverTask {
 

@@ -91,7 +91,8 @@ public class SimpleLockManager {
     /**
      * Represents a locked resource.
      * <p>
-     * Client should obtain Locked in try-with-resource block to automatically call {@link Locked#close()
+     * Client should obtain Locked in try-with-resource block to automatically call {@link Locked#close()}.
+     * </p>
      */
     public abstract static class Locked implements Closeable {
         @Override

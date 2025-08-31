@@ -20,6 +20,8 @@ import javax.jmdns.NetworkTopologyEvent;
 import javax.jmdns.NetworkTopologyListener;
 
 /**
+ * Implementation of NetworkTopologyEvent.
+ * 
  * @author C&eacute;drik Lime, Pierre Frisch
  */
 public class NetworkTopologyEventImpl extends NetworkTopologyEvent implements Cloneable {
