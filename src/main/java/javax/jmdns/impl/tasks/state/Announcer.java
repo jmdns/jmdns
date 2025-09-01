@@ -26,8 +26,9 @@ import javax.jmdns.impl.constants.DNSState;
 
 /**
  * The Announcer sends an accumulated query of all announces, and advances the state of all serviceInfos, for which it has sent an announcement. The Announcer also sends announcements and advances the state of JmDNS itself.
- * <p/>
+ * <p>
  * When the announcer has run two times, it finishes.
+ * </p>
  */
 public class Announcer extends DNSStateTask {
 

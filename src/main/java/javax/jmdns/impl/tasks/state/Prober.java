@@ -29,8 +29,9 @@ import javax.jmdns.impl.constants.DNSState;
 /**
  * The Prober sends three consecutive probes for all service infos that needs probing as well as for the host name. The state of each service info of the host name is advanced, when a probe has been sent for it. When the prober has run three times,
  * it launches an Announcer.
- * <p/>
+ * <p>
  * If a conflict during probes occurs, the affected service infos (and affected host name) are taken away from the prober. This eventually causes the prober to cancel itself.
+ * </p>
  */
 public class Prober extends DNSStateTask {
 

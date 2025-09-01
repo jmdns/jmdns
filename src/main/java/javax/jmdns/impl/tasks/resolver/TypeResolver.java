@@ -26,10 +26,12 @@ import javax.jmdns.impl.constants.DNSRecordType;
 
 /**
  * Helper class to resolve service types.
- * <p/>
+ * <p>
  * The TypeResolver queries three times consecutively for service types, and then removes itself from the timer.
- * <p/>
+ * </p>
+ * <p>
  * The TypeResolver will run only if JmDNS is in state ANNOUNCED.
+ * </p>
  */
 public class TypeResolver extends DNSResolverTask {
 

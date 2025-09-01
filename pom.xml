@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.jmdns</groupId>
 	<artifactId>jmdns</artifactId>
-	<version>3.6.1-SNAPSHOT</version>
+	<version>3.6.3-SNAPSHOT</version>
 	<name>JmDNS</name>
 	<packaging>jar</packaging>
 
@@ -30,10 +30,13 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		<url>https://github.com/jmdns/jmdns.git</url>
 	</scm>
 	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://ossrh-staging-api.central.sonatype.com/content/repositories/snapshots</url>
+		</snapshotRepository>
 		<repository>
-			<uniqueVersion>false</uniqueVersion>
-			<id>maven</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+			<id>ossrh</id>
+			<url>https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/</url>
 		</repository>
 	</distributionManagement>
 	<issueManagement>
@@ -53,6 +56,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
 		<maven.compiler.release>21</maven.compiler.release>
 		<mockito.version>5.14.2</mockito.version>
+		<jvm.version>8</jvm.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -127,7 +131,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>3.2.1</version>
+				<version>3.3.1</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -179,6 +183,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 				<configuration>
 					<manifestLocation>${project.build.outputDirectory}/META-INF</manifestLocation>
 					<instructions>
+						<_noee>true</_noee>
 						<Bundle-SymbolicName>javax.jmdns</Bundle-SymbolicName>
 						<Export-Package>javax.jmdns</Export-Package>
 						<Private-Package>javax.jmdns.impl,javax.jmdns.impl.*</Private-Package>
@@ -199,23 +204,27 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.10.0</version>
-				<configuration>
-					<outputDirectory>${project.build.directory}/javadoc</outputDirectory>
-					<classifier>javadoc</classifier>
-					<failOnError>false</failOnError>
-					<doclint>none</doclint>
-				</configuration>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-javadoc-plugin</artifactId>
+			    <version>3.10.0</version>
+			    <configuration>
+			        <outputDirectory>${project.build.directory}/javadoc</outputDirectory>
+			        <source>${jvm.version}</source>
+			        <failOnError>false</failOnError>
+			        <failOnWarnings>false</failOnWarnings>
+			        <doclint>none</doclint>
+			    </configuration>
+			    <executions>
+			        <execution>
+			            <id>attach-javadocs</id>
+           			 	<goals>
+		            	    <goal>jar</goal>
+        			    </goals>
+			            <configuration>
+            			    <additionalparam>${javadoc.opts}</additionalparam>
+			            </configuration>
+			        </execution>
+			    </executions>
 			</plugin>
 			<plugin>
 				<groupId>com.mycila</groupId>

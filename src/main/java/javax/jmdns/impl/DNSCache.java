@@ -31,9 +31,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A table of DNS entries. This is a map table which can handle multiple entries with the same name.
- * <p/>
+ * <p>
  * Storing multiple entries with the same name is implemented using a linked list. This is hidden from the user and can change in later implementation.
- * <p/>
+ * </p>
+ * <p>
  * Here's how to iterate over all entries:
  *
  * <pre>
@@ -42,7 +43,7 @@ import org.slf4j.LoggerFactory;
  *             ...do something with entry...
  *       }
  * </pre>
- * <p/>
+ * <p>
  * And here's how to iterate over all entries having a given name:
  *
  * <pre>
