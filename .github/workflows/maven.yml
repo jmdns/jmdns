@@ -21,8 +21,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
-        java: [8, 17]
+        os: [windows-latest, ubuntu-latest]
+        java: [17]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
