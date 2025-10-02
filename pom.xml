@@ -54,16 +54,15 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+		<mockito.version>5.14.2</mockito.version>
 		<jvm.version>8</jvm.version>
 		<javase.version>1.8</javase.version>
-		<mockito.version>4.11.0</mockito.version>
 	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>2.0.7</version>
+			<version>2.0.16</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -85,7 +84,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
-			<artifactId>mockito-inline</artifactId>
+			<artifactId>mockito-core</artifactId>
 			<version>${mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
@@ -102,11 +101,32 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.13.0</version>
-				<configuration>
-					<source>${jvm.version}</source>
-					<target>${jvm.version}</target>
-					<release>${jvm.version}</release>
-				</configuration>
+				<executions>
+					<execution>
+						<id>compile-java-8</id>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<source>1.8</source>
+							<target>1.8</target>
+						</configuration>
+					</execution>
+					<execution>
+						<id>compile-java-21</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<release>21</release>
+							<compileSourceRoots>
+								<compileSourceRoot>${project.basedir}/src/main/java21</compileSourceRoot>
+							</compileSourceRoots>
+							<multiReleaseOutput>true</multiReleaseOutput>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -123,6 +143,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 				</executions>
 				<configuration>
 					<attach>true</attach>
+					<classifier>sources</classifier>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -133,18 +154,11 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.6</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
+				<version>3.4.2</version>
 				<configuration>
 					<archive>
-						<addMavenDescriptor />
-						<compress />
+						<addMavenDescriptor/>
+						<compress/>
 						<forced>true</forced>
 						<index>true</index>
 						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
@@ -156,6 +170,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 						<manifestEntries>
 							<Implementation-Date>${maven.build.timestamp}</Implementation-Date>
 							<Automatic-Module-Name>javax.jmdns</Automatic-Module-Name>
+							<Multi-Release>true</Multi-Release>
 						</manifestEntries>
 					</archive>
 				</configuration>
@@ -163,7 +178,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
-				<version>2.5.4</version>
+				<version>5.1.9</version>
 				<extensions>true</extensions>
 				<configuration>
 					<manifestLocation>${project.build.outputDirectory}/META-INF</manifestLocation>
@@ -171,7 +186,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 						<_noee>true</_noee>
 						<Bundle-SymbolicName>javax.jmdns</Bundle-SymbolicName>
 						<Export-Package>javax.jmdns</Export-Package>
-						<Private-Package>javax.jmdns.impl,javax.jmdns.impl.*,com.strangeberry.*,samples</Private-Package>
+						<Private-Package>javax.jmdns.impl,javax.jmdns.impl.*</Private-Package>
 						<Import-Package>!javax.swing.*,org.slf4j</Import-Package>
 						<Bundle-RequiredExecutionEnvironment>JavaSE-${javase.version}</Bundle-RequiredExecutionEnvironment>
 						<Bundle-Vendor>jmdns.org</Bundle-Vendor>
@@ -191,7 +206,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 			<plugin>
 			    <groupId>org.apache.maven.plugins</groupId>
 			    <artifactId>maven-javadoc-plugin</artifactId>
-			    <version>3.8.0</version>
+			    <version>3.10.0</version>
 			    <configuration>
 			        <outputDirectory>${project.build.directory}/javadoc</outputDirectory>
 			        <source>${jvm.version}</source>
@@ -252,7 +267,7 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 										</goals>
 									</pluginExecutionFilter>
 									<action>
-										<ignore />
+										<ignore/>
 									</action>
 								</pluginExecution>
 							</pluginExecutions>
@@ -262,7 +277,6 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 			</plugins>
 		</pluginManagement>
 	</build>
-
 	<profiles>
 		<profile>
 			<id>release-sign-artifacts</id>
@@ -290,17 +304,6 @@ The project was originally started in December 2002 by Arthur van Hoff at Strang
 					</plugin>
 				</plugins>
 			</build>
-		</profile>
-		<!-- We need this profile in order to set '-Xdoclint:none' as a project property which will be used later by maven-javadoc-plugin as an 'additionalparam' to be passed to the javadoc.exe. -->
-		<!-- This option will be used only if the JDK version is 1.8 or higher. Earlier versions of javadoc.exe does not accept this option. -->
-		<profile>
-			<id>doclint-java8-disable</id>
-			<activation>
-				<jdk>[1.8,)</jdk>
-			</activation>
-			<properties>
-				<javadoc.opts>-Xdoclint:none</javadoc.opts>
-			</properties>
 		</profile>
 	</profiles>
 </project>
