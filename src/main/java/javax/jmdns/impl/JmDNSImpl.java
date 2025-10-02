@@ -890,7 +890,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      */
     @Override
     public void requestServiceInfo(String type, String name, long timeout) {
-        this.requestServiceInfo(type, name, false, DNSConstants.SERVICE_INFO_TIMEOUT);
+        this.requestServiceInfo(type, name, false, timeout);
     }
 
     /**
