@@ -86,14 +86,20 @@ public class ByteWrangler {
         if (textBytes != null) {
             int off = 0;
             while (off < textBytes.length) {
-                int len = textBytes[off++] & 0xFF;
+                // length of the next key value pair
+                final int len = textBytes[off++] & 0xFF;
+
+                // error case
                 if (off + len > textBytes.length) { // length of data would exceed array bounds
                     properties.clear();
                     break;
                 }
+
                 if (len == 0) { // skip zero length parts
                     continue;
                 }
+
+                // look for the '=' and get the property name
                 String[] parts = readUTF(textBytes, off, len).split("=");
                 if (parts.length < 2) {
                     properties.put(parts[0], NO_VALUE);
@@ -101,6 +107,7 @@ public class ByteWrangler {
                     parts[1] = parts[1].replaceFirst("\\u0000$", ""); // strip zero endings
                     properties.put(parts[0], parts[1].getBytes(CHARSET_UTF_8));
                 }
+
                 off += len;
             }
         }
