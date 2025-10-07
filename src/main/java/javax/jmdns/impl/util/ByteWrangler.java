@@ -100,7 +100,7 @@ public class ByteWrangler {
                 }
 
                 // look for the '=' and get the property name
-                String[] parts = readUTF(textBytes, off, len).split("=");
+                String[] parts = readUTF(textBytes, off, len).split("=", 2);
                 if (parts.length < 2) {
                     properties.put(parts[0], NO_VALUE);
                 } else {
