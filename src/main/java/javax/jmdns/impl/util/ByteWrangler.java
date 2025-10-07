@@ -99,9 +99,14 @@ public class ByteWrangler {
                     continue;
                 }
 
+                String utf = readUTF(textBytes, off, len);
+                if (utf == null || utf.isEmpty()) {
+                    continue;
+                }
+
                 // look for the '=' and get the property name
-                String[] parts = readUTF(textBytes, off, len).split("=", 2);
-                if (parts.length < 2) {
+                String[] parts = utf.split("=", 2);
+                if (parts.length < 2 || parts[1].isEmpty()) {
                     properties.put(parts[0], NO_VALUE);
                 } else {
                     parts[1] = parts[1].replaceFirst("\\u0000$", ""); // strip zero endings
