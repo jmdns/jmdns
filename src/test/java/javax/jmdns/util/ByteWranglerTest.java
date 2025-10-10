@@ -14,6 +14,8 @@
 package javax.jmdns.util;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.jmdns.impl.util.ByteWrangler;
 
@@ -105,4 +107,51 @@ class ByteWranglerTest {
         assertEquals(str, readStr, "Resulting String");
     }
 
+    @Test
+    void testIgnoreZeroLengthPropertyInMiddle() {
+        final byte[] textBytes = new byte[] { 7, 'a','b', 'c', '=', 'x','y','z', 0, 7, '1', '2', '3','=', '9','8','7'  };
+
+        final Map<String, byte[]> properties = new HashMap<>();
+        ByteWrangler.readProperties(properties, textBytes);
+        
+        assertEquals(2, properties.size());
+        assertEquals("xyz", ByteWrangler.readUTF(properties.get("abc")));
+        assertEquals("987", ByteWrangler.readUTF(properties.get("123")));
+    }
+
+    @Test
+    void testRemoveZeroByteTerminatorInMiddle() {
+        final byte[] textBytes = new byte[] { 8, 'a','b', 'c', '=', 'x','y','z', 0, 7, '1', '2', '3','=', '9','8','7'  };
+
+        final Map<String, byte[]> properties = new HashMap<>();
+        ByteWrangler.readProperties(properties, textBytes);
+        
+        assertEquals(2, properties.size());
+        assertEquals("xyz", ByteWrangler.readUTF(properties.get("abc")));
+        assertEquals("987", ByteWrangler.readUTF(properties.get("123")));
+    }
+
+    @Test
+    void testIgnoreZeroLengthPropertyAtEnd() {
+        final byte[] textBytes = new byte[] { 7, 'a','b', 'c', '=', 'x','y','z', 7, '1', '2', '3','=', '9','8','7', 0 };
+
+        final Map<String, byte[]> properties = new HashMap<>();
+        ByteWrangler.readProperties(properties, textBytes);
+        
+        assertEquals(2, properties.size());
+        assertEquals("xyz", ByteWrangler.readUTF(properties.get("abc")));
+        assertEquals("987", ByteWrangler.readUTF(properties.get("123")));
+    }
+
+    @Test
+    void testIgnoreZeroByteTerminatorAtEnd() {
+        final byte[] textBytes = new byte[] { 7, 'a','b', 'c', '=', 'x','y','z', 8, '1', '2', '3','=', '9','8','7', 0 };
+
+        final Map<String, byte[]> properties = new HashMap<>();
+        ByteWrangler.readProperties(properties, textBytes);
+        
+        assertEquals(2, properties.size());
+        assertEquals("xyz", ByteWrangler.readUTF(properties.get("abc")));
+        assertEquals("987", ByteWrangler.readUTF(properties.get("123")));
+    }
 }

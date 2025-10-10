@@ -90,32 +90,29 @@ public class ByteWrangler {
                 final int len = textBytes[off++] & 0xFF;
 
                 // error case
-                if (
-                        (len == 0) ||                       // no date
-                        (off + len > textBytes.length)      // length of data would exceed array bounds
-                ) {
+                if (off + len > textBytes.length) { // length of data would exceed array bounds
                     properties.clear();
                     break;
-                }
-                // look for the '='
-                int i = 0;
-                for (; (i < len) && (textBytes[off + i] != '='); i++) {
-                    /* Stub */
                 }
 
-                // get the property name
-                final String name = readUTF(textBytes, off, i);
-                if (name == null) {
-                    properties.clear();
-                    break;
+                if (len == 0) { // skip zero length parts
+                    continue;
                 }
-                if (i == len) {
-                    properties.put(name, NO_VALUE);
+
+                String utf = readUTF(textBytes, off, len);
+                if (utf == null || utf.isEmpty()) {
+                    continue;
+                }
+
+                // look for the '=' and get the property name
+                String[] parts = utf.split("=", 2);
+                if (parts.length < 2 || parts[1].isEmpty()) {
+                    properties.put(parts[0], NO_VALUE);
                 } else {
-                    final byte[] value = new byte[len - ++i];
-                    System.arraycopy(textBytes, off + i, value, 0, len - i);
-                    properties.put(name, value);
+                    parts[1] = parts[1].replaceFirst("\\u0000$", ""); // strip zero endings
+                    properties.put(parts[0], parts[1].getBytes(CHARSET_UTF_8));
                 }
+
                 off += len;
             }
         }
