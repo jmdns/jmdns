@@ -38,7 +38,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
@@ -58,7 +57,7 @@ import javax.jmdns.impl.constants.DNSRecordType;
 import javax.jmdns.impl.constants.DNSState;
 import javax.jmdns.impl.tasks.DNSTask;
 import javax.jmdns.impl.tasks.RecordReaper;
-import javax.jmdns.impl.util.NamedThreadFactory;
+import javax.jmdns.impl.util.ExecutorServiceFactory;
 
 // REMIND: multiple IP addresses
 
@@ -333,7 +332,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      */
     private long _lastThrottleIncrement;
 
-    private final ExecutorService _executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("JmDNS"));
+    private final ExecutorService _executor = ExecutorServiceFactory.newSingleThreadExecutor("JmDNS");
 
     /**
      * The source for random values. This is used to introduce random delays in responses. This reduces the potential for collisions on the network.
