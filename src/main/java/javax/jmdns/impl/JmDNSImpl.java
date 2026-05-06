@@ -381,7 +381,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         String version;
         try {
             final Properties pomProperties = new Properties();
-            pomProperties.load(JmDNSImpl.class.getResourceAsStream("/META-INF/maven/javax.jmdns/jmdns/pom.properties"));
+            pomProperties.load(JmDNSImpl.class.getResourceAsStream("/META-INF/maven/org.jmdns/jmdns/pom.properties"));
             version = pomProperties.getProperty("version");
         } catch (Exception e) {
             version = "RUNNING.IN.IDE.FULL";
