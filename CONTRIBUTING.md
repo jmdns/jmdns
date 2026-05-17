@@ -34,8 +34,7 @@ implementations (for example, virtual-thread executors) under
 consumers on JDK 8 still load the base classes.
 
 Unit tests are compiled for **Java 11+** (required by Mockito 5.x). To run the full
-test suite locally, use JDK 11 or newer. CI runs tests on JDK 11, 17, and 21, and
-on JDK 8 verifies the packaged JAR bytecode without running Surefire.
+test suite locally, use JDK 11 or newer. CI builds with JDK 21.
 
 ## Contribution guidelines
 
