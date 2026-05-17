@@ -18,12 +18,24 @@ will redirect you, if necessary.
 
 ## Build Environment
 
-The build is based on Maven, so you will need a JDK >=1.6 and Maven 3 installed.
+The build is based on Maven, so you will need **JDK 21 or newer** and Maven 3 installed.
 Then simply execute
 ```
 mvn clean install
 ```
 and find the resulting jar in the `target` folder.
+
+### Java 8 runtime, JDK 21 build
+
+The published JAR is a **multi-release** artifact: main sources compile to **Java 8**
+bytecode so JmDNS runs on JDK 8+, while `src/main/java21` supplies JDK 21–specific
+implementations (for example, virtual-thread executors) under
+`META-INF/versions/21/`. You must use **JDK 21+ to build** the project, even though
+consumers on JDK 8 still load the base classes.
+
+Unit tests are compiled for **Java 11+** (required by Mockito 5.x). To run the full
+test suite locally, use JDK 11 or newer. CI runs tests on JDK 11, 17, and 21, and
+on JDK 8 verifies the packaged JAR bytecode without running Surefire.
 
 ## Contribution guidelines
 
