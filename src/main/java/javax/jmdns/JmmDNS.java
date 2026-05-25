@@ -26,10 +26,12 @@ import javax.jmdns.impl.JmmDNSImpl;
  */
 public interface JmmDNS extends Closeable {
 
+
     /**
      * JmmDNS.Factory enable the creation of new instance of JmmDNS.
      */
     public static final class Factory {
+
         private static volatile JmmDNS _instance;
 
         /**
@@ -116,6 +118,7 @@ public interface JmmDNS extends Closeable {
                 _instance = null;
             }
         }
+
     }
 
     /**
@@ -420,5 +423,10 @@ public interface JmmDNS extends Closeable {
      * @return list of network change listeners
      */
     public abstract NetworkTopologyListener[] networkListeners();
+
+    public abstract void enableLTEsupport(ServiceInfo info, ServiceListener listener);
+
+    public abstract void disableLTEsupport();
+
 
 }

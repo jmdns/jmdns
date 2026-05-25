@@ -5,12 +5,7 @@
 package javax.jmdns.impl;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
-import java.net.SocketException;
+import java.net.*;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,6 +50,7 @@ import javax.jmdns.impl.util.NamedThreadFactory;
  * @author Arthur van Hoff, Rick Blair, Jeff Sonstein, Werner Randelshofer, Pierre Frisch, Scott Lewis, Kai Kreuzer
  */
 public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarter {
+
     private static Logger logger = LoggerFactory.getLogger(JmDNSImpl.class.getName());
 
     public enum Operation {
@@ -393,7 +389,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     public JmDNSImpl(InetAddress address, String name) throws IOException {
         super();
         if (logger.isDebugEnabled()) {
-            logger.debug("JmDNS instance created");
+            logger.debug("JmDNS instance created: " + name);
         }
         _cache = new DNSCache(100);
 
@@ -408,22 +404,13 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         _localHost = HostInfo.newHostInfo(address, this, name);
         _name = (name != null ? name : _localHost.getName());
 
-        // _cancelerTimer = new Timer("JmDNS.cancelerTimer");
-
-        // (ldeck 2.1.1) preventing shutdown blocking thread
-        // -------------------------------------------------
-        // _shutdown = new Thread(new Shutdown(), "JmDNS.Shutdown");
-        // Runtime.getRuntime().addShutdownHook(_shutdown);
-
-        // -------------------------------------------------
-
-        // Bind to multicast socket
         this.openMulticastSocket(this.getLocalHost());
         this.start(this.getServices().values());
-
         this.startReaper();
     }
 
+
+    //start a multicast socket receiver (SocketListener)
     private void start(Collection<? extends ServiceInfo> serviceInfos) {
         if (_incomingListener == null) {
             _incomingListener = new SocketListener(this);
@@ -450,15 +437,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         if (_socket != null) {
             this.closeMulticastSocket();
         }
-        // SocketAddress address = new InetSocketAddress((hostInfo != null ? hostInfo.getInetAddress() : null), DNSConstants.MDNS_PORT);
-        // System.out.println("Socket Address: " + address);
-        // try {
-        // _socket = new MulticastSocket(address);
-        // } catch (Exception exception) {
-        // logger.warn("openMulticastSocket() Open socket exception Address: " + address + ", ", exception);
-        // // The most likely cause is a duplicate address lets open without specifying the address
-        // _socket = new MulticastSocket(DNSConstants.MDNS_PORT);
-        // }
+
         _socket = new MulticastSocket(DNSConstants.MDNS_PORT);
         if ((hostInfo != null) && (hostInfo.getInterface() != null)) {
             try {
@@ -474,8 +453,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     }
 
     private void closeMulticastSocket() {
-        // jP: 20010-01-18. See below. We'll need this monitor...
-        // assert (Thread.holdsLock(this));
         if (logger.isDebugEnabled()) {
             logger.debug("closeMulticastSocket()");
         }
@@ -488,12 +465,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                     //
                 }
                 _socket.close();
-                // jP: 20010-01-18. It isn't safe to join() on the listener
-                // thread - it attempts to lock the IoLock object, and deadlock
-                // ensues. Per issue #2933183, changed this to wait on the JmDNS
-                // monitor, checking on each notify (or timeout) that the
-                // listener thread has stopped.
-                //
+
                 while (_incomingListener != null && _incomingListener.isAlive()) {
                     synchronized (this) {
                         try {
@@ -1254,10 +1226,11 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 listener.updateRecord(this.getCache(), now, rec);
             }
         }
-        if (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()))
-        // if (DNSRecordType.TYPE_PTR.equals(rec.getRecordType()) || DNSRecordType.TYPE_SRV.equals(rec.getRecordType()))
-        {
+        if (DNSRecordType.TYPE_PTR.equals(rec.getRecordType())) {
+
+
             ServiceEvent event = rec.getServiceEvent(this);
+
             if ((event.getInfo() == null) || !event.getInfo().hasData()) {
                 // We do not care about the subtype because the info is only used if complete and the subtype will then be included.
                 ServiceInfo info = this.getServiceInfoFromCache(event.getType(), event.getName(), "", false);
@@ -1318,6 +1291,90 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             }
         }
     }
+
+
+
+    private void handleLTERecord(DNSRecord record, long now) {
+        DNSRecord newRecord = record;
+
+        Operation cacheOperation = Operation.Noop;
+        final boolean expired = newRecord.isExpired(now);
+        if (logger.isDebugEnabled()) {
+            logger.debug(this.getName() + " handle response: " + newRecord);
+        }
+
+        // update the cache
+        if (!newRecord.isServicesDiscoveryMetaQuery() && !newRecord.isDomainDiscoveryQuery()) {
+            final boolean unique = newRecord.isUnique();
+            final DNSRecord cachedRecord = (DNSRecord) this.getCache().getDNSEntry(newRecord);
+            if (logger.isDebugEnabled()) {
+                logger.debug(this.getName() + " handle response cached record: " + cachedRecord);
+            }
+            if (unique) {
+                for (DNSEntry entry : this.getCache().getDNSEntryList(newRecord.getKey())) {
+                    if (newRecord.getRecordType().equals(entry.getRecordType()) && newRecord.getRecordClass().equals(entry.getRecordClass()) && (entry != cachedRecord)) {
+                        ((DNSRecord) entry).setWillExpireSoon(now);
+                    }
+                }
+            }
+            if (cachedRecord != null) {
+                if (expired) {
+                    // if the record has a 0 ttl that means we have a cancel record we need to delay the removal by 1s
+                    if (newRecord.getTTL() == 0) {
+                        cacheOperation = Operation.Noop;
+                        cachedRecord.setWillExpireSoon(now);
+                        // the actual record will be disposed of by the record reaper.
+                    } else {
+                        cacheOperation = Operation.Remove;
+                        this.getCache().removeDNSEntry(cachedRecord);
+                    }
+                } else {
+                    // If the record content has changed we need to inform our listeners.
+                    if (!newRecord.sameValue(cachedRecord) || (!newRecord.sameSubtype(cachedRecord) && (newRecord.getSubtype().length() > 0))) {
+                        if (newRecord.isSingleValued()) {
+                            cacheOperation = Operation.Update;
+                            this.getCache().replaceDNSEntry(newRecord, cachedRecord);
+                        } else {
+                            // Address record can have more than one value on multi-homed machines
+                            cacheOperation = Operation.Add;
+                            this.getCache().addDNSEntry(newRecord);
+                        }
+                    } else {
+                        cachedRecord.resetTTL(newRecord);
+                        newRecord = cachedRecord;
+                    }
+                }
+            } else {
+                if (!expired) {
+                    cacheOperation = Operation.Add;
+                    this.getCache().addDNSEntry(newRecord);
+                }
+            }
+        }
+
+        // Register new service types
+        if (newRecord.getRecordType() == DNSRecordType.TYPE_PTR) {
+            // handle DNSConstants.DNS_META_QUERY records
+            boolean typeAdded = false;
+            if (newRecord.isServicesDiscoveryMetaQuery()) {
+                // The service names are in the alias.
+                if (!expired) {
+                    typeAdded = this.registerServiceType(((DNSRecord.Pointer) newRecord).getAlias());
+                }
+                return;
+            }
+            typeAdded |= this.registerServiceType(newRecord.getName());
+            if (typeAdded && (cacheOperation == Operation.Noop)) {
+                cacheOperation = Operation.RegisterServiceType;
+            }
+        }
+
+        // notify the listeners
+        if (cacheOperation != Operation.Noop) {
+            this.updateRecord(now, newRecord, cacheOperation);
+        }
+    }
+
 
     void handleRecord(DNSRecord record, long now) {
         DNSRecord newRecord = record;
@@ -1433,7 +1490,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     /**
      * In case the a record is received before the srv record the ip address would not be set.
      * <p>
-     * Wireshark record: see also file a_record_before_srv.pcapng and {@link ServiceInfoImplTest#test_ip_address_is_set()}
+     * Wireshark record: see also file a_record_before_srv.pcapng and
      * <p>
      * Multicast Domain Name System (response)
      * Transaction ID: 0x0000
@@ -1472,6 +1529,51 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     }
 
 
+    public void handleLTEQuery(DNSIncoming in, InetAddress addr, int port) {
+
+        //log
+        if (logger.isDebugEnabled()) {
+            logger.debug(this.getName() + ".handleLTEquery: " + in);
+        }
+
+        // Track known answers
+        boolean conflictDetected = false;
+        final long expirationTime = System.currentTimeMillis() + DNSConstants.KNOWN_ANSWER_TTL;
+        for (DNSRecord answer : in.getAllAnswers()) {
+            conflictDetected |= answer.handleQuery(this, expirationTime);
+        }
+
+        this.ioLock();
+        try {
+
+            if (_plannedAnswer != null) {
+                _plannedAnswer.append(in);
+            } else {
+                DNSIncoming plannedAnswer = in.clone();
+                if (in.isTruncated()) {
+                    _plannedAnswer = plannedAnswer;
+                }
+
+                //dont send reply for query over LTE
+                //this.startResponder(plannedAnswer, addr, port);
+            }
+
+        } finally {
+            this.ioUnlock();
+        }
+
+        final long now = System.currentTimeMillis();
+        for (DNSRecord answer : in.getAnswers()) {
+            this.handleLTERecord(answer, now);
+        }
+
+        if (conflictDetected) {
+            this.startProber();
+        }
+    }
+
+
+
     /**
      * Handle an incoming query. See if we can answer any part of it given our service infos.
      *
@@ -1481,9 +1583,12 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      * @exception IOException
      */
     void handleQuery(DNSIncoming in, InetAddress addr, int port) throws IOException {
+
+        //log
         if (logger.isDebugEnabled()) {
             logger.debug(this.getName() + ".handle query: " + in);
         }
+
         // Track known answers
         boolean conflictDetected = false;
         final long expirationTime = System.currentTimeMillis() + DNSConstants.KNOWN_ANSWER_TTL;
@@ -1516,6 +1621,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         if (conflictDetected) {
             this.startProber();
         }
+
     }
 
     public void respondToQuery(DNSIncoming in) {
@@ -1565,6 +1671,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      * @exception IOException
      */
     public void send(DNSOutgoing out) throws IOException {
+
         if (!out.isEmpty()) {
             final InetAddress addr;
             final int port;
@@ -1595,6 +1702,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 ms.send(packet);
             }
         }
+
     }
 
     /*
@@ -1824,6 +1932,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
     }
 
+    //
     public void cleanCache() {
         long now = System.currentTimeMillis();
         Set<String> staleServiceTypesForRefresh = new HashSet<String>();
@@ -1895,7 +2004,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             }
 
             // earlier we did a DNSTaskStarter.Factory.getInstance().getStarter(this.getDns())
-            // now we must release the resources associated with the starter for this JmDNS instance
+            // now we must release the resources associated with the starter for this JmDNS instance.
             DNSTaskStarter.Factory.getInstance().disposeStarter(this.getDns());
 
             if (logger.isDebugEnabled()) {

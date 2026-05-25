@@ -109,7 +109,7 @@ public abstract class DNSStateTask extends DNSTask {
             // send probes for JmDNS itself
             synchronized (this.getDns()) {
                 if (this.getDns().isAssociatedWithTask(this, this.getTaskState())) {
-                    logger1.debug(this.getName() + ".run() JmDNS " + this.getTaskDescription() + " " + this.getDns().getName());
+                    logger1.debug(this.getName() + ".run() JmDNS itself: " + this.getTaskDescription() + " " + this.getDns().getName());
                     stateObjects.add(this.getDns());
                     out = this.buildOutgoingForDNS(out);
                 }
@@ -120,7 +120,7 @@ public abstract class DNSStateTask extends DNSTask {
 
                 synchronized (info) {
                     if (info.isAssociatedWithTask(this, this.getTaskState())) {
-                        logger1.debug(this.getName() + ".run() JmDNS " + this.getTaskDescription() + " " + info.getQualifiedName());
+                        logger1.debug(this.getName() + ".run() JmDNS services: " + this.getTaskDescription() + " " + info.getQualifiedName());
                         stateObjects.add(info);
                         out = this.buildOutgoingForInfo(info, out);
                     }

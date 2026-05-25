@@ -6,9 +6,7 @@ package javax.jmdns.impl;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import javax.jmdns.NetworkTopologyDiscovery;
 
@@ -36,13 +34,14 @@ public class NetworkTopologyDiscoveryImpl implements NetworkTopologyDiscovery {
      */
     @Override
     public InetAddress[] getInetAddresses() {
+        //String allIPs = "";
         Set<InetAddress> result = new HashSet<InetAddress>();
         try {
-
             for (Enumeration<NetworkInterface> nifs = NetworkInterface.getNetworkInterfaces(); nifs.hasMoreElements();) {
                 NetworkInterface nif = nifs.nextElement();
                 for (Enumeration<InetAddress> iaenum = nif.getInetAddresses(); iaenum.hasMoreElements();) {
                     InetAddress interfaceAddress = iaenum.nextElement();
+                    //allIPs += interfaceAddress.getHostAddress() + " ";
                     if (logger.isTraceEnabled()) {
                         logger.trace("Found NetworkInterface/InetAddress: " + nif + " -- " + interfaceAddress);
                     }
@@ -54,6 +53,8 @@ public class NetworkTopologyDiscoveryImpl implements NetworkTopologyDiscovery {
         } catch (SocketException se) {
             logger.warn("Error while fetching network interfaces addresses: " + se);
         }
+
+        //System.out.println("ALLIPS: " + allIPs);
         return result.toArray(new InetAddress[result.size()]);
     }
 
@@ -94,10 +95,22 @@ public class NetworkTopologyDiscoveryImpl implements NetworkTopologyDiscovery {
                 return false;
             }
 
+            //disregard LTE ip
+            if (networkInterface.getName().startsWith("rmnet") || networkInterface.getName().startsWith("pgwtun")) {
+                return false;
+            }
+
+            //disregard ipv6 address with semi-colon
+            if(interfaceAddress.getHostAddress().contains(":")){
+                return false;
+            }
+
             return true;
         } catch (Exception exception) {
             return false;
         }
     }
+
+
 
 }

@@ -36,31 +36,58 @@ class SocketListener extends Thread {
         try {
             byte buf[] = new byte[DNSConstants.MAX_MSG_ABSOLUTE];
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
+
+            //while _jmDNSImpl not cancelled
             while (!this._jmDNSImpl.isCanceling() && !this._jmDNSImpl.isCanceled()) {
+
+                //set packet length
                 packet.setLength(buf.length);
+
+                //receive from socket
                 this._jmDNSImpl.getSocket().receive(packet);
+
+                //check if _jmDNSImpl not cancelled
                 if (this._jmDNSImpl.isCanceling() || this._jmDNSImpl.isCanceled() || this._jmDNSImpl.isClosing() || this._jmDNSImpl.isClosed()) {
                     break;
                 }
+
                 try {
+
+                    //check if this packet is from any local interface then discard it.
                     if (this._jmDNSImpl.getLocalHost().shouldIgnorePacket(packet)) {
                         continue;
                     }
 
+                    //convert datagram packet into DNSIncoming
                     DNSIncoming msg = new DNSIncoming(packet);
+
+                    //is response code is valid == 0
                     if (msg.isValidResponseCode()) {
+
+                        //log
                         if (logger.isTraceEnabled()) {
                             logger.trace(this.getName() + ".run() JmDNS in:" + msg.print(true));
                         }
+
                         if (msg.isQuery()) {
+
+                            //this is a query message
                             if (packet.getPort() != DNSConstants.MDNS_PORT) {
+
+                                //query
                                 this._jmDNSImpl.handleQuery(msg, packet.getAddress(), packet.getPort());
                             }
+
+                            //query
                             this._jmDNSImpl.handleQuery(msg, this._jmDNSImpl.getGroup(), DNSConstants.MDNS_PORT);
+
                         } else {
+
+                            //this is a response message to previous query so take care of response
                             this._jmDNSImpl.handleResponse(msg);
                         }
                     } else {
+                        //log
                         if (logger.isDebugEnabled()) {
                             logger.debug(this.getName() + ".run() JmDNS in message with error code:" + msg.print(true));
                         }

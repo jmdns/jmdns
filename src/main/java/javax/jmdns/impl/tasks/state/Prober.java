@@ -69,7 +69,7 @@ public class Prober extends DNSStateTask {
 
         if (this.getDns().isAnnounced() && this.getDns().getThrottle() < DNSConstants.PROBE_THROTTLE_COUNT) {
             timer.schedule(this, JmDNSImpl.getRandom().nextInt(1 + DNSConstants.PROBE_WAIT_INTERVAL), DNSConstants.PROBE_WAIT_INTERVAL);
-        } else if (!this.getDns().isCanceling() && !this.getDns().isCanceled()) {
+        }else if (!this.getDns().isCanceling() && !this.getDns().isCanceled()) {
             timer.schedule(this, DNSConstants.PROBE_CONFLICT_INTERVAL, DNSConstants.PROBE_CONFLICT_INTERVAL);
         }
     }

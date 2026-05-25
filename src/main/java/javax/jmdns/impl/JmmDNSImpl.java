@@ -3,20 +3,9 @@
  */
 package javax.jmdns.impl;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -29,14 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jmdns.JmDNS;
-import javax.jmdns.JmmDNS;
-import javax.jmdns.NetworkTopologyDiscovery;
-import javax.jmdns.NetworkTopologyEvent;
-import javax.jmdns.NetworkTopologyListener;
-import javax.jmdns.ServiceInfo;
-import javax.jmdns.ServiceListener;
-import javax.jmdns.ServiceTypeListener;
+import javax.jmdns.*;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.impl.util.NamedThreadFactory;
 
@@ -46,7 +28,9 @@ import javax.jmdns.impl.util.NamedThreadFactory;
  * @author C&eacute;drik Lime, Pierre Frisch
  */
 public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoImpl.Delegate {
+
     private static Logger                                      logger = LoggerFactory.getLogger(JmmDNSImpl.class.getName());
+
 
     private final Set<NetworkTopologyListener>                 _networkListeners;
 
@@ -86,6 +70,17 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
     private final AtomicBoolean                                _closed;
 
     /**
+     * A semaphore to ensure LTE support is enabled only once.
+     */
+    private AtomicBoolean                                       lteSupportEnabled;
+
+    /**
+     * JmmDNSonLTE object
+     */
+    private JmmDNSonLTE                                         jmmDNSonLTE;
+
+
+    /**
      *
      */
     public JmmDNSImpl() {
@@ -99,9 +94,12 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
         _serviceListeners = new ConcurrentHashMap<String, List<ServiceListener>>();
         _typeListeners = Collections.synchronizedSet(new HashSet<ServiceTypeListener>());
         _serviceTypes = Collections.synchronizedSet(new HashSet<String>());
-        (new NetworkChecker(this, NetworkTopologyDiscovery.Factory.getInstance())).start(_timer);
+        NetworkTopologyDiscovery topology = NetworkTopologyDiscovery.Factory.getInstance();
+        (new NetworkChecker(this, topology)).start(_timer);
         _isClosing = new AtomicBoolean(false);
         _closed = new AtomicBoolean(false);
+        lteSupportEnabled = new AtomicBoolean(false);
+
     }
 
     /*
@@ -150,6 +148,15 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
             _serviceTypes.clear();
             _closed.set(true);
             JmmDNS.Factory.close();
+        }
+
+        //close jmmDNSonLTE
+        try {
+            if (this.lteSupportEnabled.get() && this.jmmDNSonLTE != null) {
+                this.jmmDNSonLTE.interrupt();
+            }
+        }catch (Exception e){
+            logger.debug("JmmDNSImpl.close() exception: ", e);
         }
     }
 
@@ -631,23 +638,29 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
                 synchronized (_knownMDNS) {
                     if (!_knownMDNS.containsKey(address)) {
                         final JmDNS dns = JmDNS.create(address);
+                        logger.info("inet_address_added: " + address.toString());
+
+                        //if there was no value previously
                         if (_knownMDNS.putIfAbsent(address, dns) == null) {
+
                             // We need to register the services and listeners with the new JmDNS
                             final Collection<String> types = _serviceTypes;
                             final Collection<ServiceInfo> infos = _services.values();
                             final Collection<ServiceTypeListener> typeListeners = _typeListeners;
                             final Map<String, List<ServiceListener>> serviceListeners = _serviceListeners;
+
                             _jmDNSExecutor.submit(new Runnable() {
                                 /**
                                  * {@inheritDoc}
                                  */
                                 @Override
                                 public void run() {
-                                    // Register Types
+
+                                    // Register all Types for this IP
                                     for (String type : types) {
                                         dns.registerServiceType(type);
                                     }
-                                    // Register services
+                                    // Register all services for this IP
                                     for (ServiceInfo info : infos) {
                                         try {
                                             dns.registerService(info.clone());
@@ -655,7 +668,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
                                             // logger.warn("Unexpected unhandled exception: " + exception);
                                         }
                                     }
-                                    // Add ServiceType Listeners
+                                    // Add all ServiceType Listeners for this IP
                                     for (ServiceTypeListener listener : typeListeners) {
                                         try {
                                             dns.addServiceTypeListener(listener);
@@ -663,7 +676,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
                                             // logger.warn("Unexpected unhandled exception: " + exception);
                                         }
                                     }
-                                    // Add Service Listeners
+                                    // Add all Service Listeners for this IP
                                     for (String type : serviceListeners.keySet()) {
                                         List<ServiceListener> listeners = serviceListeners.get(type);
                                         synchronized (listeners) {
@@ -674,6 +687,7 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
                                     }
                                 }
                             });
+
                             final NetworkTopologyEvent jmdnsEvent = new NetworkTopologyEventImpl(dns, address);
                             for (final NetworkTopologyListener listener : this.networkListeners()) {
                                 _listenerExecutor.submit(new Runnable() {
@@ -785,4 +799,580 @@ public class JmmDNSImpl implements JmmDNS, NetworkTopologyListener, ServiceInfoI
 
     }
 
+    /**
+     * Enables LTE support in JmmDNS.
+     * Calling this function more than once should have no effect.
+     * Once this function is called, it cannot be undone.
+     */
+    public void enableLTEsupport(ServiceInfo info, ServiceListener listener){
+        if(!this.lteSupportEnabled.get()) {
+            try {
+                this.jmmDNSonLTE = new JmmDNSonLTE(info, listener);
+                this.jmmDNSonLTE.start();
+                this.lteSupportEnabled.set(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void disableLTEsupport(){
+        if(this.lteSupportEnabled.get()){
+            this.jmmDNSonLTE.interrupt();
+            this.lteSupportEnabled.set(false);
+        }
+    }
+
+    /****************************************************************************************************/
+
+    /**
+     * This class enables mDNS on LTE using UDP uni-cast.
+     *
+     * @author Ken Adams from Friends
+     */
+    private class JmmDNSonLTE extends Thread{
+
+        /**
+         * Log
+         */
+        Logger logger = LoggerFactory.getLogger(JmmDNSonLTE.class.getName());
+
+        /**
+         * Semaphore to ensure interrupt() function executes only once.
+         */
+        private boolean canCloseEverything = true;
+
+        /**
+         * Semaphore to signal application level that a service is added
+         */
+        private boolean serviceAddedSignaled = false;
+
+        /**
+         * Semaphore to signal application level that a service is removed
+         */
+        private boolean serviceRemovedSignaled = false;
+
+        /**
+         * Semaphore to ensure run().while loop keeps running
+         */
+        private boolean isWhileLoopRunning;
+
+
+        /**
+         * Sleep interval for run().while loop
+         */
+        private int sleepInterval = 10 * 1000;
+
+        /**
+         * Amount of time we wait before declaring other devices are gone
+         */
+        private int serviceRemoveWaitInterval = 30 * 1000;
+
+
+        /**
+         * Datagram socket through which all UDP are sent
+         */
+        DatagramSocket socket;
+
+        /**
+         * Ran in a separate thread to receive UDP packets from other nodes
+         */
+        Receiver receiver;
+
+        /**
+         * ServiceListener object with callback functions implemented by application level
+         */
+        ServiceListener listener;
+
+        /**
+         * A dummy jmdns object
+         */
+        JmDNSImpl dummyJmDNSImpl;
+
+        /**
+         * ServiceInfo object
+         */
+        ServiceInfo info;
+
+        /**
+         * An unique sequence ID that represent this device
+         */
+        String UniqueSeqID;
+
+        /**
+         * A list of sequence IDs of other devices
+         */
+        Map<String, LTEPacket> allDiscoveredSeqIDs;
+
+        /**
+         * An array to contain this node's LTE IP, subnet mask etc.
+         */
+        String[] LTEipAndMask;
+
+
+        /**
+         * Public Constructor only to be instantiated once inside JmmDNSImpl class
+         * @param info
+         * @param listener
+         */
+        public JmmDNSonLTE(ServiceInfo info, ServiceListener listener){
+            this.isWhileLoopRunning = true;
+            this.info = info;
+            this.listener = listener;
+            this.UniqueSeqID = new String();
+            this.allDiscoveredSeqIDs = new ConcurrentHashMap<String, LTEPacket>();
+        }
+
+
+        @Override
+        public void run(){
+
+            ServiceEvent dummyEvent;
+            ServiceInfo inf;
+
+            //this loop runs perpetually
+            while(isWhileLoopRunning){
+
+                try {
+
+                    //check if this device has a LTE interface
+                    this.LTEipAndMask = getLTEipAndSubnet();
+
+                    //this node has an LTE interface
+                    if (this.LTEipAndMask != null) {
+
+                        //when LTE ip is available for the first time, create a dummy JmDNSImpl object and dummy event for once only
+                        if(this.dummyJmDNSImpl==null) {
+                            this.dummyJmDNSImpl = new JmDNSImpl(InetAddress.getByName("255.255.255.255"), "dummy_name");
+                        }
+
+                        //mark as false so that when this service will be removed, application level gets notified
+                        this.serviceRemovedSignaled = false;
+
+                        //check if a socket is active in this LTE IP
+                        if (this.socket != null && !this.socket.isClosed() && this.socket.getLocalAddress().getHostAddress().equals(this.LTEipAndMask[0])) {
+
+                            //send UDP uni-cast
+                            new Sender(this.socket, ServiceStatus.Status.SERVICE_ADDED, this.LTEipAndMask, this.info, this.UniqueSeqID).start();
+
+                            //signal the application later once about a new service been added
+                            if(!this.serviceAddedSignaled && this.dummyJmDNSImpl!=null) {
+
+                                //notify application level about newly added service
+                                dummyEvent = new ServiceEventImpl(dummyJmDNSImpl, this.info.getName(), this.info.getName(), this.info);
+                                this.listener.serviceAdded(dummyEvent);
+
+                                //mark as true so that application level is not signaled about same service multiple times
+                                this.serviceAddedSignaled = true;
+                            }
+
+                        } else {
+
+                            //Coming here means this.socket is invalid.
+                            //LTE interface may or may not exists.
+                            try {
+                                //close socket and receiver
+                                this.closeSocket();
+                                this.closeReceiver();
+
+                                //open new socket
+                                openNewSocket(this.LTEipAndMask[0], DNSConstants.MDNS_LTE_PORT);
+
+                                //generate and add a new sequence ID
+                                this.UniqueSeqID = UUID.randomUUID().toString().substring(0, 12);
+
+                                //initialize new Receiver object
+                                this.receiver = new Receiver(this.socket, this.listener, this.dummyJmDNSImpl);
+                                this.receiver.start();
+
+                                //mark as false to notify application level about new service when socket becomes valid
+                                this.serviceAddedSignaled = false;
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+
+                        }
+
+                    } else {
+
+                        //LTE interface vanished or unavailable.
+                        //Close the socket and receiver
+                        this.closeSocket();
+                        this.closeReceiver();
+
+                        //Service Removed coz lte interface vanished or does not exist
+                        //only call listener when not already done so and dummyJmDNSImpl is not null.
+                        if (!this.serviceRemovedSignaled && this.dummyJmDNSImpl!=null) {
+
+                            //notify application level about recently removed service
+                            dummyEvent = new ServiceEventImpl(dummyJmDNSImpl, this.info.getName(), this.info.getName(), this.info);
+                            this.listener.serviceRemoved(dummyEvent);
+
+                            //mark as true that we notify application level only once.
+                            this.serviceRemovedSignaled = true;
+                        }
+
+                    }
+
+
+                }catch (Exception e){
+                    e.printStackTrace();
+                    logger.error("Exception in JmmDNSonLTE.run().while() ", e);
+                }
+
+                //do discovered sequence IDs cleanup
+                synchronized (this.allDiscoveredSeqIDs) {
+                    try {
+                        for (Iterator<Map.Entry<String, LTEPacket>> it = this.allDiscoveredSeqIDs.entrySet().iterator(); it.hasNext(); ) {
+                            Map.Entry<String, LTEPacket> entry = it.next();
+
+                            if (System.currentTimeMillis() > entry.getValue().receiveTime + serviceRemoveWaitInterval) {
+
+                                // notify application level for service removed
+                                inf = ServiceInfo.create(entry.getValue().type, entry.getValue().name, 0, entry.getValue().text);
+                                dummyEvent = new ServiceEventImpl(dummyJmDNSImpl, inf.getName(), inf.getName(), inf);
+                                this.listener.serviceRemoved(dummyEvent);
+
+                                //remove the entry from the map
+                                it.remove();
+                            }
+                        }
+                    }catch (Exception e){
+                        //exception may happen due to concurrent modification of allDiscoveredSeqIDs map by two threads
+                    }
+                }
+
+                //sleep for interrupt
+                try {
+                    sleep(sleepInterval);
+                } catch (InterruptedException e) {
+                    //coming here means interrupt() has been called and everything is closing
+                    try { this.socket.close(); } catch (Exception ee) { }
+                    try { this.receiver.close(); } catch (Exception ee) { }
+                    this.isWhileLoopRunning = false;
+                }
+
+            }
+
+            //coming here means this thread is about to finish
+            this.closeSocket();
+            this.closeReceiver();
+        }
+
+
+        /**
+         * Closes JmmDNSonLTE, along with the Receiver.
+         * Semaphore @canCloseEverything ensures this function executes once.
+         * Note: In Android, must call this function from onStop().
+         */
+        @Override
+        public synchronized void interrupt(){
+            if(canCloseEverything) {
+
+                //mark as false so that code inside interrupt() executes only once.
+                canCloseEverything = false;
+
+                //send UDP packets to all to announce goodbye
+                if (this.socket != null && !this.socket.isClosed()) {
+
+                    //create a Sender with SERVICE_REMOVED tag
+                    Sender end = new Sender(this.socket, ServiceStatus.Status.SERVICE_REMOVED, this.LTEipAndMask, this.info, this.UniqueSeqID);
+
+                    //start sender thread
+                    end.start();
+
+                    //make the caller thread wait 5 seconds until sender thread is done.
+                    try {
+                        end.join(5*1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                //signal service removed through listener
+                //only notify if the dummyJmDNSImpl is not null
+                if(this.dummyJmDNSImpl!=null) {
+                    ServiceEvent dummyEvent = new ServiceEventImpl(dummyJmDNSImpl, this.info.getName(), this.info.getName(), this.info);
+                    this.listener.serviceRemoved(dummyEvent);
+                }
+
+                //ensure the while loop stops
+                this.isWhileLoopRunning = false;
+
+                //Note: DO NOT call super.interrupt() here or no goodbye messages will be announced.
+            }
+        }
+
+        /**
+         * Close the socket.
+         */
+        public void closeSocket(){
+            try{
+                this.socket.close();
+            }catch (Exception e){
+
+            }
+        }
+
+        /**
+         * Close the receiver.
+         */
+        public void closeReceiver(){
+            try{
+                this.receiver.close();
+            }catch (Exception e){
+
+            }
+        }
+
+        /**
+         * Opens a new socket in the given IP and port
+         */
+        private void openNewSocket(String ip, int port){
+            try {
+                this.socket = new DatagramSocket(port, InetAddress.getByName(ip));
+                this.socket.setReuseAddress(true);
+                logger.info("Created UDP socket for " + this.socket.getLocalAddress().getHostAddress() + ":" + this.socket.getLocalPort());
+            } catch (IOException e) {
+                logger.warn("Problem in opening DataGram socket for "+ ip + " : "+ port, e);
+            }
+
+        }
+
+        /**
+         * returns LTE IP and its subnet mask.
+         * returns an array of size two or null.
+         * @return String[]
+         */
+        public String[] getLTEipAndSubnet() {
+            try {
+                Enumeration<NetworkInterface> enumNI = NetworkInterface.getNetworkInterfaces();
+                while (enumNI.hasMoreElements()) {
+                    NetworkInterface ifc = enumNI.nextElement();
+                    if (ifc.isUp()) {
+                        Enumeration<InetAddress> enumAdds = ifc.getInetAddresses();
+                        while (enumAdds.hasMoreElements()) {
+                            InetAddress addr = enumAdds.nextElement();
+                            if (!(addr.isLoopbackAddress() || addr.isAnyLocalAddress() || addr.isLinkLocalAddress())){
+                                if (addr instanceof Inet4Address){
+                                    if(ifc.getName().startsWith("rmnet") || ifc.getName().startsWith("pgwtun")){
+                                        String[] LTEipAndMask = new String[2];
+                                        LTEipAndMask[0] = addr.toString().substring(1);
+                                        LTEipAndMask[1] = Short.toString(NetworkInterface.getByInetAddress(addr).getInterfaceAddresses().get(0).getNetworkPrefixLength());
+                                        return LTEipAndMask;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (SocketException e) {
+                logger.error("Problem in obtaining LTE IP and subnet for this device ", e);
+            }
+            return null;
+        }
+
+        //----------------------------------------------------------------------------------
+
+        /**
+         * Receives UDP packets from other nodes.
+         */
+        private class Receiver extends Thread{
+
+            JmDNSImpl dummyJmDNSImpl;
+            DatagramSocket socket;
+            boolean isRunning;
+            ServiceListener listener;
+
+
+
+            private Receiver(DatagramSocket socket, ServiceListener listener, JmDNSImpl dummyJmDNSImpl){
+                this.socket = socket;
+                this.isRunning = true;
+                this.listener = listener;
+                this.dummyJmDNSImpl = dummyJmDNSImpl;
+            }
+
+            @Override
+            public void run(){
+
+                this.isRunning = true;
+                byte buf[] = new byte[DNSConstants.MAX_MSG_ABSOLUTE];
+                DatagramPacket packet;
+                byte[] data;
+                LTEPacket ltePacket;
+                LTEPacket ltePacketTemp = new LTEPacket();
+
+                while(isRunning){
+                    try {
+
+                        //make a new empty packet
+                        packet = new DatagramPacket(buf, buf.length);
+
+                        //if socket not closed
+                        if(!this.socket.isClosed()) {
+
+                            //block to receive UDP packet
+                            socket.receive(packet);
+
+                            //get data bytes from packet
+                            data = packet.getData();
+
+                            //convert Datagram packet into LTEPacket object
+                            ltePacket = ltePacketTemp.BArrayToObject(data);
+                            ltePacket.receiveTime = System.currentTimeMillis();
+
+                            //if this is a new query message with unique seq ID
+                            if(!allDiscoveredSeqIDs.keySet().contains(ltePacket.UniqueSeqID)){
+
+                                if(ltePacket.status == ServiceStatus.Status.SERVICE_ADDED){
+
+                                    //add this service to allDiscoveredSeqIDs
+                                    allDiscoveredSeqIDs.put(ltePacket.UniqueSeqID, ltePacket);
+
+                                    //notify application level that a new service is added
+                                    if(this.dummyJmDNSImpl!=null) {
+
+                                        //Service Added
+                                        ServiceInfo inf = ServiceInfo.create(ltePacket.type, ltePacket.name, 0, ltePacket.text);
+                                        ServiceEvent dummyEvent = new ServiceEventImpl(dummyJmDNSImpl, inf.getName(), inf.getName(), inf);
+                                        this.listener.serviceAdded(dummyEvent);
+
+                                        //sleep to mimic that added service is being resolved
+                                        Thread.sleep(1000);
+
+                                        //Service Resolved
+                                        this.listener.serviceResolved(dummyEvent);
+                                    }
+
+                                }else if(ltePacket.status== ServiceStatus.Status.SERVICE_REMOVED){
+
+                                    //do nothing because this service was never added in allDiscoveredSeqIDs at the first place.
+                                }
+
+                            }else{
+
+                                if(ltePacket.status == ServiceStatus.Status.SERVICE_ADDED){
+
+                                    //update the latest discovery time for this sequence ID
+                                    allDiscoveredSeqIDs.put(ltePacket.UniqueSeqID, ltePacket);
+
+                                }else if(ltePacket.status== ServiceStatus.Status.SERVICE_REMOVED){
+
+                                    //Service Removed coz other node closed app etc.
+                                    if(this.dummyJmDNSImpl!=null) {
+
+                                        //notify application level for service removed
+                                        ServiceInfo inf = ServiceInfo.create(ltePacket.type, ltePacket.name, 0, ltePacket.text);
+                                        ServiceEvent dummyEvent = new ServiceEventImpl(dummyJmDNSImpl, inf.getName(), inf.getName(), inf);
+                                        this.listener.serviceRemoved(dummyEvent);
+                                    }
+
+                                    //remove all seq IDs of this packet from allDiscoveredSeqIDs list
+                                    allDiscoveredSeqIDs.remove(ltePacket.UniqueSeqID);
+                                }
+                            }
+
+                        }else{
+                            //socket is closed so break out of loop
+                            try{this.socket.close();}catch (Exception e){}
+                            this.isRunning = false;
+                            break;
+                        }
+
+                        //sleep for interrupt
+                        try { Thread.sleep(0); } catch (InterruptedException e) { e.printStackTrace(); }
+
+
+                    }catch (Exception e){
+                    }
+                }
+            }
+
+
+            public void close() {
+                try {
+                    this.isRunning = false;
+                    this.interrupt();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        //----------------------------------------------------------------------------------
+
+        /**
+         * Sends UDP packets to all class C IPs,
+         * and sends good-bye messages when JmmDNSonLTE is closed.
+         */
+        public class Sender extends Thread{
+
+            Logger logger = LoggerFactory.getLogger(Sender.class.getName());
+
+            DatagramSocket socket;
+            ServiceStatus.Status status;
+            String[] LTEipAndMask;
+            ServiceInfo info;
+            String UniqueSeqID;
+
+            public Sender(DatagramSocket socket, ServiceStatus.Status status, String[] LTEipAndMask, ServiceInfo info, String UniqueSeqID){
+                this.socket = socket;
+                this.status = status;
+                this.LTEipAndMask = LTEipAndMask;
+                this.info = info;
+                this.UniqueSeqID = UniqueSeqID;
+            }
+
+            @Override
+            public void run(){
+
+                try{
+
+                    //if this node has an LTE interface and class C IP
+                    if(this.LTEipAndMask!=null && Integer.parseInt(this.LTEipAndMask[1])>=24){
+
+                        //socket is still alive so send probe in it
+                        //create new probing packet
+                        LTEPacket ltePacket = new LTEPacket(this.info.getName(), this.info.getType(), new String(this.info.getTextBytes()), this.status, this.UniqueSeqID);
+
+                        //Convert object to ByteArray
+                        byte[] ltePacketArray = ltePacket.objectToBArray(ltePacket);
+
+                        //convert byteArray to DatagramPacket
+                        DatagramPacket packet = new DatagramPacket(ltePacketArray, 0, ltePacketArray.length);
+
+                        //send broadcast from ip range 2 to 254
+                        String destIPprefix = this.LTEipAndMask[0].substring(0, this.LTEipAndMask[0].lastIndexOf("."));
+
+                        for(int i=2; i<254; i++){
+
+                            //prepare destIP as String
+                            String destIP = destIPprefix + "." + i;
+
+                            if(!destIP.equals(LTEipAndMask[0])) {
+
+                                //convert destIP into destAddr
+                                InetAddress destAddr = InetAddress.getByName(destIP);
+
+                                //set destAddr and port into packet
+                                packet.setAddress(destAddr);
+                                packet.setPort(DNSConstants.MDNS_LTE_PORT);
+
+                                //send
+                                this.socket.send(packet);
+                            }
+                        }
+
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        //----------------------------------------------------------------------------------
+    }
 }
