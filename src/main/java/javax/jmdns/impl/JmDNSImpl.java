@@ -70,6 +70,7 @@ import javax.jmdns.impl.util.NamedThreadFactory;
 public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarter {
 
     private static final boolean IS_WINDOWS;
+    private static final int JAVA_VERSION;
 
     private final Logger logger = LoggerFactory.getLogger(JmDNSImpl.class);
 
@@ -369,6 +370,21 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         } else {
             IS_WINDOWS = osName.startsWith("Windows");
         }
+		JAVA_VERSION = getJavaVersion();
+    }
+
+    private static int getJavaVersion() {
+        String version = System.getProperty("java.specification.version");
+        if (version == null) {
+			return 17; // default to 17 if we can't determine the version (very rare)
+        }
+
+        if (version.startsWith("1.")) {
+            return Integer.parseInt(version.substring(2));
+        }
+
+        int dot = version.indexOf(".");
+        return Integer.parseInt(dot != -1 ? version.substring(0, dot) : version);
     }
 
     /**
@@ -469,7 +485,9 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     }
 
     private InetSocketAddress getMulticastBindAddress(HostInfo hostInfo) {
-        if (IS_WINDOWS) {
+        if (IS_WINDOWS && JAVA_VERSION >= 17) {
+			// JDK17+ removed TwoStacksPlainDatagramSocketImpl which causes a stack trace
+			// on Windows JDK < 17 so this constructor is required
             return new InetSocketAddress(hostInfo.getInetAddress(), DNSConstants.MDNS_PORT);
         } else {
             return new InetSocketAddress(DNSConstants.MDNS_PORT);
