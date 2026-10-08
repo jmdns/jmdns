@@ -14,6 +14,7 @@
 package javax.jmdns.impl.tasks;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -94,12 +95,15 @@ public abstract class DNSTask extends TimerTask {
         boolean multicast = newOut.isMulticast();
         int maxUDPPayload = newOut.getMaxUDPPayload();
         int id = newOut.getId();
+        InetSocketAddress destination = newOut.getDestination();
 
         newOut.setFlags(flags | DNSConstants.FLAGS_TC);
         newOut.setId(id);
         jmDNS.send(newOut);
 
         newOut = new DNSOutgoing(flags, multicast, maxUDPPayload);
+        newOut.setId(id);
+        newOut.setDestination(destination);
         return newOut;
     }
 

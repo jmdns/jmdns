@@ -528,7 +528,12 @@ public abstract class DNSRecord extends DNSEntry {
             return false;
         }
 
-        String getAlias() {
+        /**
+         * Returns the name to which this pointer refers.
+         *
+         * @return pointer alias
+         */
+        public String getAlias() {
             return _alias;
         }
 

@@ -13,9 +13,15 @@
  */
 package javax.jmdns.impl.tasks;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 
@@ -28,6 +34,7 @@ import javax.jmdns.impl.DNSQuestion;
 import javax.jmdns.impl.DNSRecord;
 import javax.jmdns.impl.JmDNSImpl;
 import javax.jmdns.impl.constants.DNSConstants;
+import javax.jmdns.impl.constants.DNSRecordType;
 
 /**
  * The Responder sends a single answer for the specified service infos and for the host name.
@@ -131,22 +138,7 @@ public class Responder extends DNSTask {
                 // respond if we have answers
                 if (!answers.isEmpty()) {
                     logger.debug("{}.run() JmDNS responding", this.getName());
-
-                    DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, !unicast, dnsIncoming.getSenderUDPPayload());
-                    out.setDestination(new InetSocketAddress(inetAddress, port));
-                    out.setId(dnsIncoming.getId());
-                    for (DNSQuestion question : questions) {
-                        if (question != null) {
-                            out = this.addQuestion(out, question);
-                        }
-                    }
-                    for (DNSRecord answer : answers) {
-                        if (answer != null) {
-                            out = this.addAnswer(out, dnsIncoming, answer);
-
-                        }
-                    }
-                    if (!out.isEmpty()) this.getDns().send(out);
+                    this.sendResponseGroups(questions, answers);
                 }
             } catch (Throwable e) {
                 logger.warn("{}.run() exception ", this.getName(), e);
@@ -154,4 +146,98 @@ public class Responder extends DNSTask {
             }
         }
     }
+
+    private void sendResponseGroups(Set<DNSQuestion> questions, Set<DNSRecord> answers) throws IOException {
+        List<Set<DNSRecord>> packetGroups = new ArrayList<>();
+        DNSOutgoing out = this.createOutgoing(questions, packetGroups);
+
+        for (Set<DNSRecord> responseGroup : createResponseGroups(answers)) {
+            packetGroups.add(responseGroup);
+            try {
+                out = this.createOutgoing(questions, packetGroups);
+            } catch (IOException exception) {
+                packetGroups.remove(packetGroups.size() - 1);
+                if (packetGroups.isEmpty()) {
+                    out = this.createOutgoing(questions, packetGroups);
+                    for (DNSRecord answer : responseGroup) {
+                        out = this.addAnswer(out, dnsIncoming, answer);
+                    }
+                    if (!out.isEmpty()) {
+                        this.getDns().send(out);
+                    }
+                    out = this.createOutgoing(questions, packetGroups);
+                    continue;
+                }
+
+                this.getDns().send(out);
+                packetGroups.clear();
+                packetGroups.add(responseGroup);
+                out = this.createOutgoing(questions, packetGroups);
+            }
+        }
+        if (!packetGroups.isEmpty() && !out.isEmpty()) {
+            this.getDns().send(out);
+        }
+    }
+
+    private DNSOutgoing createOutgoing(Set<DNSQuestion> questions, List<Set<DNSRecord>> responseGroups) throws IOException {
+        DNSOutgoing out = new DNSOutgoing(DNSConstants.FLAGS_QR_RESPONSE | DNSConstants.FLAGS_AA, !unicast, dnsIncoming.getSenderUDPPayload());
+        out.setDestination(new InetSocketAddress(inetAddress, port));
+        out.setId(dnsIncoming.getId());
+
+        for (DNSQuestion question : questions) {
+            if (question != null) {
+                out.addQuestion(question);
+            }
+        }
+
+        Set<DNSRecord> answers = new LinkedHashSet<>();
+        for (Set<DNSRecord> responseGroup : responseGroups) {
+            answers.addAll(responseGroup);
+        }
+        for (DNSRecord answer : answers) {
+            if (answer != null) {
+                out.addAnswer(dnsIncoming, answer);
+            }
+        }
+        return out;
+    }
+
+    static List<Set<DNSRecord>> createResponseGroups(Set<DNSRecord> answers) {
+        Map<String, Set<DNSRecord>> recordsByName = new HashMap<>();
+        Map<String, Set<DNSRecord>> pointersByAlias = new HashMap<>();
+        Set<DNSRecord> addressRecords = new LinkedHashSet<>();
+        for (DNSRecord answer : answers) {
+            recordsByName.computeIfAbsent(answer.getName(), name -> new LinkedHashSet<>()).add(answer);
+            if (isAddressRecord(answer)) {
+                addressRecords.add(answer);
+            }
+            if (answer instanceof DNSRecord.Pointer) {
+                String alias = ((DNSRecord.Pointer) answer).getAlias();
+                pointersByAlias.computeIfAbsent(alias, name -> new LinkedHashSet<>()).add(answer);
+            }
+        }
+        if (pointersByAlias.size() <= 1) {
+            List<Set<DNSRecord>> responseGroups = new ArrayList<>();
+            responseGroups.add(new LinkedHashSet<>(answers));
+            return responseGroups;
+        }
+
+        List<Set<DNSRecord>> responseGroups = new ArrayList<>();
+        for (Map.Entry<String, Set<DNSRecord>> entry : pointersByAlias.entrySet()) {
+            Set<DNSRecord> responseGroup = new LinkedHashSet<>(addressRecords);
+            responseGroup.addAll(entry.getValue());
+            Set<DNSRecord> serviceRecords = recordsByName.get(entry.getKey());
+            if (serviceRecords != null) {
+                responseGroup.addAll(serviceRecords);
+            }
+            responseGroups.add(responseGroup);
+        }
+        return responseGroups;
+    }
+
+    private static boolean isAddressRecord(DNSRecord record) {
+        return record.getRecordType() == DNSRecordType.TYPE_A || record.getRecordType() == DNSRecordType.TYPE_AAAA;
+    }
+
 }
