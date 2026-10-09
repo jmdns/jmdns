@@ -70,6 +70,7 @@ import javax.jmdns.impl.util.NamedThreadFactory;
 public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarter {
 
     private static final boolean IS_WINDOWS;
+    private static final boolean IS_LINUX;
     private static final int JAVA_VERSION;
 
     private final Logger logger = LoggerFactory.getLogger(JmDNSImpl.class);
@@ -86,6 +87,10 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      * This is our multicast socket.
      */
     private volatile MulticastSocket _socket;
+    /**
+     * Linux uses a wildcard-bound socket for multicast reception and a host-bound socket for sending.
+     */
+    private volatile MulticastSocket _sendSocket;
 
     /**
      * Holds instances of JmDNS.DNSListener. Must be a synchronized collection, because it is updated from concurrent threads.
@@ -365,11 +370,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
 
     static {
         final String osName = System.getProperty("os.name");
-        if (osName == null) {
-            IS_WINDOWS = false;
-        } else {
-            IS_WINDOWS = osName.startsWith("Windows");
-        }
+        IS_WINDOWS = osName != null && osName.startsWith("Windows");
+        IS_LINUX = osName != null && osName.startsWith("Linux");
 		JAVA_VERSION = getJavaVersion();
     }
 
@@ -485,9 +487,14 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     }
 
     private InetSocketAddress getMulticastBindAddress(HostInfo hostInfo) {
-        if (IS_WINDOWS && JAVA_VERSION >= 17) {
-			// JDK17+ removed TwoStacksPlainDatagramSocketImpl which causes a stack trace
-			// on Windows JDK < 17 so this constructor is required
+        if (IS_WINDOWS && JAVA_VERSION < 17) {
+            // JDK17+ removed TwoStacksPlainDatagramSocketImpl which causes a stack trace
+            // on Windows JDK < 17, so those versions keep the wildcard bind (#356).
+            return new InetSocketAddress(DNSConstants.MDNS_PORT);
+        } else if (hostInfo != null && hostInfo.getInetAddress() != null) {
+            // Binding the host address fixes the source address of outgoing multicast. A wildcard
+            // bind leaves that choice to the routing table, which a VPN can own, so packets go out
+            // the LAN interface carrying an off-link source and receivers drop them (#203).
             return new InetSocketAddress(hostInfo.getInetAddress(), DNSConstants.MDNS_PORT);
         } else {
             return new InetSocketAddress(DNSConstants.MDNS_PORT);
@@ -502,10 +509,24 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 _group = InetAddress.getByName(DNSConstants.MDNS_GROUP);
             }
         }
-        if (_socket != null) {
+        if (_socket != null || _sendSocket != null) {
             this.closeMulticastSocket();
         }
-        _socket = new MulticastSocket(getMulticastBindAddress(hostInfo));
+        if (IS_LINUX && hostInfo != null && hostInfo.getInetAddress() != null) {
+            _socket = new MulticastSocket(null);
+            _socket.setReuseAddress(true);
+            _socket.bind(new InetSocketAddress(DNSConstants.MDNS_PORT));
+
+            _sendSocket = new MulticastSocket(null);
+            _sendSocket.setReuseAddress(true);
+            _sendSocket.bind(new InetSocketAddress(hostInfo.getInetAddress(), DNSConstants.MDNS_PORT));
+            if (hostInfo.getInterface() != null) {
+                _sendSocket.setNetworkInterface(hostInfo.getInterface());
+            }
+            _sendSocket.setTimeToLive(255);
+        } else {
+            _socket = new MulticastSocket(getMulticastBindAddress(hostInfo));
+        }
         if ((hostInfo != null) && (hostInfo.getInterface() != null)) {
             final SocketAddress multicastAddr = new InetSocketAddress(_group, DNSConstants.MDNS_PORT);
             _socket.setNetworkInterface(hostInfo.getInterface());
@@ -559,6 +580,10 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                 logger.warn("closeMulticastSocket() Close socket exception ", exception);
             }
             _socket = null;
+        }
+        if (_sendSocket != null) {
+            _sendSocket.close();
+            _sendSocket = null;
         }
     }
 
@@ -1710,7 +1735,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
                     logger.debug("{}.send({}) - JmDNS can not parse what it sends!!!", getClass(), this.getName(), e);
                 }
             }
-            final MulticastSocket ms = _socket;
+            final MulticastSocket ms = _sendSocket != null ? _sendSocket : _socket;
             if (ms != null && !ms.isClosed()) {
                 ms.send(packet);
             }
