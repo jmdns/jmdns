@@ -15,6 +15,7 @@ package javax.jmdns.impl;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -68,6 +69,9 @@ class TextUpdateTest {
         @Override
         public void serviceResolved(ServiceEvent event) {
             serviceResolved.add(event.clone());
+            synchronized (this) {
+                notifyAll();
+            }
         }
 
         public List<ServiceEvent> servicesAdded() {
@@ -80,6 +84,29 @@ class TextUpdateTest {
 
         public List<ServiceEvent> servicesResolved() {
             return serviceResolved;
+        }
+
+        /**
+         * Waits until a resolved event matching the condition has been received.
+         *
+         * @param condition the event to wait for
+         * @param timeout the longest to wait, in milliseconds
+         * @return the first matching event, or empty if none arrived in time
+         * @throws InterruptedException if interrupted while waiting
+         */
+        public synchronized Optional<ServiceEvent> waitForServiceResolved(Predicate<ServiceEvent> condition, long timeout) throws InterruptedException {
+            long deadline = System.currentTimeMillis() + timeout;
+            while (true) {
+                Optional<ServiceEvent> event;
+                synchronized (serviceResolved) {
+                    event = serviceResolved.stream().filter(condition).findFirst();
+                }
+                long remaining = deadline - System.currentTimeMillis();
+                if (event.isPresent() || remaining <= 0) {
+                    return event;
+                }
+                wait(remaining);
+            }
         }
 
         public synchronized void reset() {
@@ -204,6 +231,28 @@ class TextUpdateTest {
             assertTrue(servicesResolved.isPresent(), "We did not get the service text updated event.");
             result = servicesResolved.get().getInfo();
             assertEquals(text, result.getPropertyString(SERVICE_KEY), "Did not get the expected service info text: ");
+        }
+    }
+
+    @Test
+    void testTextUpdateWhileProbing() throws IOException, InterruptedException {
+        // Issue #252: a text update before the service was announced left it unannounced for good
+
+        try (JmDNS registry = JmDNS.create("Listener");
+             JmDNS newServiceRegistry = JmDNS.create("Registry")) {
+
+            registry.addServiceListener(service.getType(), serviceListenerMock);
+
+            newServiceRegistry.registerService(service);
+            String text = "Test web server updated while probing";
+            Map<String, byte[]> properties = new HashMap<>();
+            properties.put(SERVICE_KEY, text.getBytes());
+            service.setText(properties);
+
+            assertTrue(((ServiceInfoImpl) service).waitForAnnounced(DNSConstants.SERVICE_INFO_TIMEOUT), "The service was never announced: " + service);
+            Optional<ServiceEvent> servicesResolved = serviceListenerMock.waitForServiceResolved(
+                    e -> text.equals(e.getInfo().getPropertyString(SERVICE_KEY)), DNSConstants.SERVICE_INFO_TIMEOUT);
+            assertTrue(servicesResolved.isPresent(), "We did not get the service with the updated text: " + serviceListenerMock);
         }
     }
 

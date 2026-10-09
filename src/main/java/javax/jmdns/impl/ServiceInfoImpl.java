@@ -1291,7 +1291,10 @@ public class ServiceInfoImpl extends ServiceInfo implements DNSListener, DNSStat
      */
     public void setNeedTextAnnouncing(boolean needTextAnnouncing) {
         this._needTextAnnouncing = needTextAnnouncing;
-        if (this._needTextAnnouncing) {
+        // Releasing the task makes ServiceInfoState announce the new text, but only if the service is already announced.
+        // While it is still probing or announcing, its task must keep it, or nothing ever advances it again (issue #252);
+        // the announcements still to come carry the new text anyway.
+        if (this._needTextAnnouncing && _state.isAnnounced()) {
             _state.setTask(null);
         }
     }
