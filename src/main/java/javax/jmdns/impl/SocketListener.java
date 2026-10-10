@@ -72,8 +72,9 @@ class SocketListener extends Thread {
                             logger.trace("{}.run() JmDNS in:{}", this.getName(), msg.print(true));
                         }
                         if (msg.isQuery()) {
-                            // When we have a QUERY, unique means that QU is true, and we should respond to the sender directly
-                            if (msg.getQuestions().stream().anyMatch(DNSEntry::isUnique)) {
+                            // RFC 6762 section 6.7: legacy queries from a non-mDNS port require a unicast response.
+                            // Questions with the QU bit set also request a response to the sender directly.
+                            if (packet.getPort() != DNSConstants.MDNS_PORT || msg.getQuestions().stream().anyMatch(DNSEntry::isUnique)) {
                                 this._jmDNSImpl.handleQuery(msg, packet.getAddress(), packet.getPort());
                             } else {
                                 this._jmDNSImpl.handleQuery(msg, this._jmDNSImpl.getGroup(), DNSConstants.MDNS_PORT);
