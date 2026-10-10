@@ -29,15 +29,17 @@ import static org.mockito.Mockito.*;
 
 /** Tests response routing through the socket listener using encoded DNS queries. */
 class SocketListenerTest {
+    private static final int LEGACY_QUERY_PORT =
+            DNSConstants.MDNS_PORT == 65535 ? 65534 : DNSConstants.MDNS_PORT + 1;
 
     @Test
     void legacyQueryWithoutQuBitUsesUnicast() throws Exception {
-        verifyQueryDestination(49152, false, false);
+        verifyQueryDestination(LEGACY_QUERY_PORT, false, false);
     }
 
     @Test
     void legacyQueryWithQuBitUsesUnicast() throws Exception {
-        verifyQueryDestination(49152, true, false);
+        verifyQueryDestination(LEGACY_QUERY_PORT, true, false);
     }
 
     @Test
