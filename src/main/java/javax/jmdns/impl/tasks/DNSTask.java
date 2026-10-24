@@ -97,7 +97,11 @@ public abstract class DNSTask extends TimerTask {
         int id = newOut.getId();
         InetSocketAddress destination = newOut.getDestination();
 
-        newOut.setFlags(flags | DNSConstants.FLAGS_TC);
+        // RFC 6762 section 18.5: the TC bit must be zero in multicast responses.
+        boolean multicastResponse = multicast && (flags & DNSConstants.FLAGS_QR_MASK) == DNSConstants.FLAGS_QR_RESPONSE;
+        if (!multicastResponse) {
+            newOut.setFlags(flags | DNSConstants.FLAGS_TC);
+        }
         newOut.setId(id);
         jmDNS.send(newOut);
 
