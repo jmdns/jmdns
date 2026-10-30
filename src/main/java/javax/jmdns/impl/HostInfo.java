@@ -195,6 +195,11 @@ public class HostInfo implements DNSStatefulObject {
         if (this.getInetAddress() != null) {
             InetAddress from = packet.getAddress();
             if (from != null) {
+                if ((this.getInetAddress() instanceof Inet4Address && from instanceof Inet6Address)
+                        || (this.getInetAddress() instanceof Inet6Address && from instanceof Inet4Address)) {
+                    // A dual-stack receive socket may deliver packets that the address-bound send socket cannot answer.
+                    return true;
+                }
                 if ((this.getInetAddress().isLinkLocalAddress() || this.getInetAddress().isMCLinkLocal()) && (!from.isLinkLocalAddress())) {
                     // A host sending Multicast DNS queries to a link-local destination
                     // address (including the 224.0.0.251 and FF02::FB link-local multicast
