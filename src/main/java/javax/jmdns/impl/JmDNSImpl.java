@@ -70,7 +70,6 @@ import javax.jmdns.impl.util.NamedThreadFactory;
 public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarter {
 
     private static final boolean IS_WINDOWS;
-    private static final boolean IS_LINUX;
     private static final int JAVA_VERSION;
 
     private final Logger logger = LoggerFactory.getLogger(JmDNSImpl.class);
@@ -88,7 +87,8 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
      */
     private volatile MulticastSocket _socket;
     /**
-     * Linux uses a wildcard-bound socket for multicast reception and a host-bound socket for sending.
+     * Outside Windows a socket bound to the host address never receives multicast, so a wildcard-bound socket
+     * receives and this host-bound socket sends.
      */
     private volatile MulticastSocket _sendSocket;
 
@@ -371,7 +371,6 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     static {
         final String osName = System.getProperty("os.name");
         IS_WINDOWS = osName != null && osName.startsWith("Windows");
-        IS_LINUX = osName != null && osName.startsWith("Linux");
 		JAVA_VERSION = getJavaVersion();
     }
 
@@ -512,7 +511,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
         if (_socket != null || _sendSocket != null) {
             this.closeMulticastSocket();
         }
-        if (IS_LINUX && hostInfo != null && hostInfo.getInetAddress() != null) {
+        if (!IS_WINDOWS && hostInfo != null && hostInfo.getInetAddress() != null) {
             _socket = new MulticastSocket(null);
             _socket.setReuseAddress(true);
             _socket.bind(new InetSocketAddress(DNSConstants.MDNS_PORT));

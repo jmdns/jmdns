@@ -33,6 +33,8 @@ import javax.jmdns.test.EventStoringServiceListener;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.mockito.ArgumentCaptor;
 
 class JmDNSTest {
@@ -64,6 +66,14 @@ class JmDNSTest {
         InetAddress localhost = InetAddress.getLocalHost();
         try (JmDNS registry = JmDNS.create(localhost)) {
             assertEquals(localhost, registry.getInetAddress(), "We did not register on the inetAddress of the localhost");
+        }
+    }
+
+    @Test
+    @DisabledOnOs(OS.WINDOWS)
+    void testCreateINetReceivesOnTheWildcardAddress() throws IOException {
+        try (JmDNSImpl registry = (JmDNSImpl) JmDNS.create(InetAddress.getLocalHost())) {
+            assertTrue(registry.getSocket().getLocalAddress().isAnyLocalAddress(), "A socket bound to the host address does not receive multicast outside Windows");
         }
     }
 
