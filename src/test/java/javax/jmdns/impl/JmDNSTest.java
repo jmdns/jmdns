@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.JmmDNS;
@@ -43,6 +44,59 @@ class JmDNSTest {
     private ServiceInfo service;
     private static final String SERVICE_KEY = "srvname"; // Max 9 chars
     private static final int MPORT = 8053;
+    private static final long TIMEOUT_MILLIS = 15000;
+    private static final long AWAIT_POLL_MILLIS = 1000;
+
+    /**
+     * @return the list of services of the given type once it is non-empty, waiting up to {@link #TIMEOUT_MILLIS} for
+     *         the registration to become visible.
+     */
+    private static ServiceInfo[] awaitServiceList(JmDNS registry, String type) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(TIMEOUT_MILLIS);
+        ServiceInfo[] services;
+        do {
+            services = registry.list(type, AWAIT_POLL_MILLIS);
+            if (services != null && services.length > 0) {
+                return services;
+            }
+            Thread.sleep(100);
+        } while (System.nanoTime() < deadline);
+        return services;
+    }
+
+    /**
+     * @return the list of services of the given type once it is empty, waiting up to {@link #TIMEOUT_MILLIS} for the
+     *         unregistration to become visible.
+     */
+    private static ServiceInfo[] awaitServiceListEmpty(JmDNS registry, String type) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(TIMEOUT_MILLIS);
+        ServiceInfo[] services;
+        do {
+            services = registry.list(type, AWAIT_POLL_MILLIS);
+            if (services == null || services.length == 0) {
+                return services;
+            }
+            Thread.sleep(100);
+        } while (System.nanoTime() < deadline);
+        return services;
+    }
+
+    /**
+     * @return the queried service once it is available, waiting up to {@link #TIMEOUT_MILLIS} for the query to yield a
+     *         result.
+     */
+    private static ServiceInfo awaitServiceInfo(JmDNS registry, String type, String name) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(TIMEOUT_MILLIS);
+        ServiceInfo info;
+        do {
+            info = registry.getServiceInfo(type, name, AWAIT_POLL_MILLIS);
+            if (info != null) {
+                return info;
+            }
+            Thread.sleep(100);
+        } while (System.nanoTime() < deadline);
+        return info;
+    }
 
     @BeforeEach
     public void setup() {
@@ -78,11 +132,11 @@ class JmDNSTest {
     }
 
     @Test
-    void testRegisterService() throws IOException {
+    void testRegisterService() throws IOException, InterruptedException {
         try (JmDNS registry = JmDNS.create()) {
             registry.registerService(service);
 
-            ServiceInfo[] services = registry.list(service.getType());
+            ServiceInfo[] services = awaitServiceList(registry, service.getType());
             assertEquals(1, services.length, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
         }
@@ -93,18 +147,14 @@ class JmDNSTest {
         try (JmDNS registry = JmDNS.create()) {
             registry.registerService(service);
 
-            ServiceInfo[] services = registry.list(service.getType());
+            ServiceInfo[] services = awaitServiceList(registry, service.getType());
             assertEquals(1, services.length, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
 
             // now unregister and make sure it's gone
             registry.unregisterService(services[0]);
 
-            // According to the spec the record disappears from the cache 1s after it has been unregistered
-            // without sleeping for a while, the service would not be unregistered fully
-            Thread.sleep(1500);
-
-            services = registry.list(service.getType());
+            services = awaitServiceListEmpty(registry, service.getType());
             assertTrue(services == null || services.length == 0, "We should not see the service we just unregistered: ");
         }
     }
@@ -124,23 +174,18 @@ class JmDNSTest {
         try (JmDNS registry = JmDNS.create()) {
             registry.registerService(service);
 
-            ServiceInfo[] services = registry.list(service.getType());
+            ServiceInfo[] services = awaitServiceList(registry, service.getType());
             assertEquals(1, services.length, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
 
             // now unregister and make sure it's gone
             registry.unregisterService(services[0]);
 
-            // According to the spec the record disappears from the cache 1s after it has been unregistered
-            // without sleeping for a while, the service would not be unregistered fully
-            Thread.sleep(1500);
-
-            services = registry.list(service.getType());
+            services = awaitServiceListEmpty(registry, service.getType());
             assertTrue(services == null || services.length == 0, "We should not see the service we just unregistered: ");
 
             registry.registerService(service);
-            Thread.sleep(5000);
-            services = registry.list(service.getType());
+            services = awaitServiceList(registry, service.getType());
             assertTrue(services != null && services.length > 0, "We should see the service we just registered again: ");
         }
     }
@@ -149,24 +194,23 @@ class JmDNSTest {
     void testQueryMyService() throws IOException, InterruptedException {
         try (JmDNS registry = JmDNS.create()) {
             registry.registerService(service);
-            Thread.sleep(6000);
-            ServiceInfo queriedService = registry.getServiceInfo(service.getType(), service.getName());
+            ServiceInfo queriedService = awaitServiceInfo(registry, service.getType(), service.getName());
             assertEquals(service, queriedService);
         }
     }
 
     @Test
-    void testListMyService() throws IOException {
+    void testListMyService() throws IOException, InterruptedException {
         try (JmDNS registry = JmDNS.create()) {
             registry.registerService(service);
-            ServiceInfo[] services = registry.list(service.getType());
+            ServiceInfo[] services = awaitServiceList(registry, service.getType());
             assertEquals(1, services.length, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
         }
     }
 
     @Test
-    void testListMyServiceIPV6() throws IOException {
+    void testListMyServiceIPV6() throws IOException, InterruptedException {
         InetAddress address = InetAddress.getLocalHost();
         NetworkInterface networkInterface = NetworkInterface.getByInetAddress(address);
         for (Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses(); inetAddresses.hasMoreElements(); ) {
@@ -177,7 +221,7 @@ class JmDNSTest {
         }
         try (JmDNS registry = JmDNS.create(address)) {
             registry.registerService(service);
-            ServiceInfo[] services = registry.list(service.getType());
+            ServiceInfo[] services = awaitServiceList(registry, service.getType());
             assertEquals(1, services.length, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
         }
@@ -191,10 +235,9 @@ class JmDNSTest {
         try (JmDNS registry = JmDNS.create()) {
             registry.addServiceListener(service.getType(), serviceListenerMock);
             registry.registerService(service);
-            Thread.sleep(6000);
 
-            verify(serviceListenerMock, atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
-            verify(serviceListenerMock, atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
+            verify(serviceListenerMock, timeout(TIMEOUT_MILLIS).atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
+            verify(serviceListenerMock, timeout(TIMEOUT_MILLIS).atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
             // We get the service added event when we register the service. However, the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
             assertFalse(capServiceAddedEvent.getAllValues().isEmpty(), "We did not get the service added event.");
@@ -220,10 +263,9 @@ class JmDNSTest {
         try (JmDNS registry = JmDNS.create()) {
             registry.addServiceListener(service.getType(), serviceListenerMock);
             registry.registerService(service);
-            Thread.sleep(6000);
 
-            verify(serviceListenerMock, atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
-            verify(serviceListenerMock, atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
+            verify(serviceListenerMock, timeout(TIMEOUT_MILLIS).atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
+            verify(serviceListenerMock, timeout(TIMEOUT_MILLIS).atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
             // We get the service added event when we register the service. However, the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
             ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
@@ -233,7 +275,7 @@ class JmDNSTest {
             // This will force the resolution of the service which in turn will get the listener called with a service resolved event.
             // The info associated with a service resolved event has all the information available.
             // Which in turn populates the ServiceInfo objects returned by JmDNS.list.
-            ServiceInfo[] services = registry.list(info.getType());
+            ServiceInfo[] services = awaitServiceList(registry, info.getType());
             assertEquals(1, services.length, "We did not get the expected number of services: ");
             assertEquals(service, services[0], "The service returned was not the one expected");
 
@@ -251,10 +293,9 @@ class JmDNSTest {
              JmDNS newServiceRegistry = JmDNS.create()) {
             registry.addServiceListener(service.getType(), serviceListenerMock);
             newServiceRegistry.registerService(service);
-            Thread.sleep(6000);
 
-            verify(serviceListenerMock, atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
-            verify(serviceListenerMock, atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
+            verify(serviceListenerMock, timeout(TIMEOUT_MILLIS).atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
+            verify(serviceListenerMock, timeout(TIMEOUT_MILLIS).atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
             // We get the service added event when we register the service. However, the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
             ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
@@ -270,8 +311,7 @@ class JmDNSTest {
         try (JmDNS newServiceRegistry = JmDNS.create(InetAddress.getLocalHost());
              JmDNS registry = JmDNS.create(InetAddress.getLocalHost())) {
             registry.registerService(service);
-            Thread.sleep(6000);
-            ServiceInfo fetchedService = newServiceRegistry.getServiceInfo(service.getType(), service.getName());
+            ServiceInfo fetchedService = awaitServiceInfo(newServiceRegistry, service.getType(), service.getName());
             assertNotNull(fetchedService, "ServiceInfo is a null reference");
             assertEquals(service, fetchedService, "Did not get the expected service info: ");
         }
@@ -286,8 +326,7 @@ class JmDNSTest {
             registry.registerService(service);
 
             newServiceRegistry = JmDNS.create("Listener");
-            Thread.sleep(6000);
-            ServiceInfo[] fetchedServices = newServiceRegistry.list(service.getType());
+            ServiceInfo[] fetchedServices = awaitServiceList(newServiceRegistry, service.getType());
             assertEquals(1, fetchedServices.length, "Did not get the expected services listed:");
             assertEquals(service.getType(), fetchedServices[0].getType(), "Did not get the expected service type:");
             assertEquals(service.getName(), fetchedServices[0].getName(), "Did not get the expected service name:");
@@ -297,10 +336,7 @@ class JmDNSTest {
             assertEquals(service, fetchedServices[0], "Did not get the expected service info: ");
             registry.close();
             registry = null;
-            // According to the spec the record disappears from the cache 1s after it has been unregistered
-            // without sleeping for a while, the service would not be unregistered fully
-            Thread.sleep(1500);
-            fetchedServices = newServiceRegistry.list(service.getType());
+            fetchedServices = awaitServiceListEmpty(newServiceRegistry, service.getType());
             assertEquals(0, fetchedServices.length, "The service was not cancelled after the close:");
         } finally {
             if (registry != null) registry.close();
@@ -422,15 +458,12 @@ class JmDNSTest {
             registry.registerService(service);
 
             // with toLowerCase
-            ServiceInfo[] services = registry.list(service.getType().toLowerCase());
+            ServiceInfo[] services = awaitServiceList(registry, service.getType().toLowerCase());
             assertEquals(1, services.length, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
             // now unregister and make sure it's gone
             registry.unregisterService(services[0]);
-            // According to the spec the record disappears from the cache 1s after it has been unregistered
-            // without sleeping for a while, the service would not be unregistered fully
-            Thread.sleep(1500);
-            services = registry.list(service.getType().toLowerCase());
+            services = awaitServiceListEmpty(registry, service.getType().toLowerCase());
             assertTrue(services == null || services.length == 0, "We should not see the service we just unregistered: ");
         }
     }
@@ -445,15 +478,12 @@ class JmDNSTest {
             registry.registerService(service);
 
             // without toLowerCase
-            ServiceInfo[] services = registry.list(service.getType());
+            ServiceInfo[] services = awaitServiceList(registry, service.getType());
             assertEquals(1, services.length, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
             // now unregister and make sure it's gone
             registry.unregisterService(services[0]);
-            // According to the spec the record disappears from the cache 1s after it has been unregistered
-            // without sleeping for a while, the service would not be unregistered fully
-            Thread.sleep(1500);
-            services = registry.list(service.getType());
+            services = awaitServiceListEmpty(registry, service.getType());
             assertTrue(services == null || services.length == 0, "We should not see the service we just unregistered: ");
         }
     }
@@ -463,12 +493,19 @@ class JmDNSTest {
         String firstType = "_test._type1.local.";
 
         try (JmmDNS jmmdns = JmmDNS.Factory.getInstance()) {
-            Thread.sleep(5000);
-
             EventStoringServiceListener firstListener = new EventStoringServiceListener(firstType);
             jmmdns.addServiceListener(firstType, firstListener);
 
-            InetAddress[] addresses = jmmdns.getInetAddresses();
+            InetAddress[] addresses = null;
+            long interfaceDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
+            while ((addresses == null || addresses.length == 0) && System.nanoTime() < interfaceDeadline) {
+                addresses = jmmdns.getInetAddresses();
+                if (addresses == null || addresses.length == 0) {
+                    Thread.sleep(100);
+                }
+            }
+            assertNotNull(addresses);
+            assertTrue(addresses.length > 0);
             JmDNS[] dns = new JmDNS[addresses.length];
             Map<String, String> txtRecord = new HashMap<>();
             txtRecord.put("SOME KEY", "SOME VALUE");
@@ -480,12 +517,16 @@ class JmDNSTest {
                 dns[i].registerService(info.clone());
             }
 
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
+            while (!(firstListener.isServiceAddedReceived() && firstListener.isServiceResolvedReceived()) && System.nanoTime() < deadline) {
+                Thread.sleep(100);
+            }
 
             assertTrue(firstListener.isServiceAddedReceived());
             assertTrue(firstListener.isServiceResolvedReceived());
             assertFalse(firstListener.isServiceRemovedReceived());
 
-            Thread.sleep(30 * 1000);
+            Thread.sleep(TimeUnit.SECONDS.toMillis(10));
 
             firstListener.reset();
 

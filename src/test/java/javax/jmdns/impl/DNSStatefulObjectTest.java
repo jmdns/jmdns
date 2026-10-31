@@ -17,6 +17,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.TimeUnit;
+
 import javax.jmdns.impl.DNSStatefulObject.DNSStatefulObjectSemaphore;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -69,10 +71,15 @@ class DNSStatefulObjectTest {
     void testWaitAndSignal() throws InterruptedException {
         WaitingThread thread = new WaitingThread(semaphore, Long.MAX_VALUE);
         thread.start();
-        Thread.sleep(1);
-        assertFalse(thread.hasFinished(), "The thread should be waiting.");
-        semaphore.signalEvent();
-        Thread.sleep(1);
+
+        // A signal that arrives before the thread has started waiting in waitForEvent() is lost.
+        // The thread may not have been scheduled yet, so we keep signaling until it reports that it
+        // has been woken up. This avoids the fixed sleeps that make the test flaky on loaded runners.
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (!thread.hasFinished() && System.nanoTime() < deadline) {
+            Thread.sleep(10);
+            semaphore.signalEvent();
+        }
         assertTrue(thread.hasFinished(), "The thread should have finished.");
     }
 

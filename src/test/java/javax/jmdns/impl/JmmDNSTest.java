@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.jmdns.JmmDNS;
@@ -35,6 +36,42 @@ class JmmDNSTest {
     private ServiceListener serviceListenerMock;
     private ServiceInfo service;
     private static final String SERVICE_KEY = "srvname"; // Max 9 chars
+    private static final long TIMEOUT_MILLIS = 15000;
+    private static final long AWAIT_POLL_MILLIS = 1000;
+
+    /**
+     * @return the list of services of the given type once it is non-empty, waiting up to {@link #TIMEOUT_MILLIS} for
+     *         the registration to become visible.
+     */
+    private static ServiceInfo[] awaitServiceList(JmmDNS registry, String type) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(TIMEOUT_MILLIS);
+        ServiceInfo[] services;
+        do {
+            services = registry.list(type, AWAIT_POLL_MILLIS);
+            if (services.length > 0) {
+                return services;
+            }
+            Thread.sleep(100);
+        } while (System.nanoTime() < deadline);
+        return services;
+    }
+
+    /**
+     * @return the queried services once they are non-empty, waiting up to {@link #TIMEOUT_MILLIS} for the query to
+     *         yield a result.
+     */
+    private static ServiceInfo[] awaitServiceInfos(JmmDNS registry, String type, String name) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(TIMEOUT_MILLIS);
+        ServiceInfo[] infos;
+        do {
+            infos = registry.getServiceInfos(type, name, AWAIT_POLL_MILLIS);
+            if (infos.length > 0) {
+                return infos;
+            }
+            Thread.sleep(100);
+        } while (System.nanoTime() < deadline);
+        return infos;
+    }
 
     @BeforeEach
     public void setup() {
@@ -58,9 +95,8 @@ class JmmDNSTest {
     void testRegisterService() throws IOException, InterruptedException {
         try (JmmDNS registry = JmmDNS.Factory.getInstance()) {
             registry.registerService(service);
-            Thread.sleep(6000);
 
-            ServiceInfo[] services = registry.list(service.getType());
+            ServiceInfo[] services = awaitServiceList(registry, service.getType());
             assertTrue(services.length > 0, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
         }
@@ -127,9 +163,8 @@ class JmmDNSTest {
     void testQueryMyService() throws IOException, InterruptedException {
         try (JmmDNS registry = JmmDNS.Factory.getInstance()) {
             registry.registerService(service);
-            Thread.sleep(6000);
 
-            ServiceInfo[] queriedService = registry.getServiceInfos(service.getType(), service.getName());
+            ServiceInfo[] queriedService = awaitServiceInfos(registry, service.getType(), service.getName());
             assertTrue(queriedService.length > 0, "We expect to see the service we just registered");
             assertEquals(service, queriedService[0]);
         }
@@ -139,9 +174,8 @@ class JmmDNSTest {
     void testListMyService() throws IOException, InterruptedException {
         try (JmmDNS registry = JmmDNS.Factory.getInstance()) {
             registry.registerService(service);
-            Thread.sleep(6000);
 
-            ServiceInfo[] services = registry.list(service.getType());
+            ServiceInfo[] services = awaitServiceList(registry, service.getType());
             assertTrue(services.length > 0, "We should see the service we just registered: ");
             assertEquals(service, services[0]);
         }
@@ -156,11 +190,10 @@ class JmmDNSTest {
             registry.addServiceListener(service.getType(), serviceListenerMock);
 
             registry.registerService(service);
-            Thread.sleep(6000);
 
             // We get the service added event when we register the service. However, the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
-            verify(serviceListenerMock, atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
+            verify(serviceListenerMock, timeout(TIMEOUT_MILLIS).atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
 
             ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
             assertEquals(service.getName(), info.getName(), "We did not get the right name for the added service:");
@@ -169,7 +202,7 @@ class JmmDNSTest {
 
             registry.requestServiceInfo(service.getType(), service.getName());
 
-            verify(serviceListenerMock, atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
+            verify(serviceListenerMock, timeout(TIMEOUT_MILLIS).atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
             assertFalse(capServiceResolvedEvent.getAllValues().isEmpty(), "We did not get the service resolved event.");
 
             assertTrue(capServiceResolvedEvent.getAllValues().stream().anyMatch(e -> service.equals(e.getInfo())), "Did not get the expected service info: ");
@@ -183,10 +216,9 @@ class JmmDNSTest {
         try (JmmDNS registry = JmmDNS.Factory.getInstance()) {
             registry.addServiceListener(service.getType(), serviceListenerMock);
             registry.registerService(service);
-            Thread.sleep(6000);
             // We get the service added event when we register the service. However, the service has not been resolved at this point.
             // The info associated with the event only has the minimum information i.e. name and type.
-            verify(serviceListenerMock, atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
+            verify(serviceListenerMock, timeout(TIMEOUT_MILLIS).atLeastOnce()).serviceAdded(capServiceAddedEvent.capture());
             ServiceInfo info = capServiceAddedEvent.getValue().getInfo();
             assertEquals(service.getName(), info.getName(), "We did not get the right name for the resolved service:");
             assertEquals(service.getType(), info.getType(), "We did not get the right type for the resolved service:");
@@ -194,11 +226,11 @@ class JmmDNSTest {
             // This will force the resolution of the service which in turn will get the listener called with a service resolved event.
             // The info associated with a service resolved event has all the information available.
             // Which in turn populates the ServiceInfo objects returned by JmmDNS.list.
-            ServiceInfo[] services = registry.list(info.getType());
+            ServiceInfo[] services = awaitServiceList(registry, info.getType());
             assertTrue(services.length > 0, "We did not get the expected number of services: ");
             assertEquals(service, services[0], "The service returned was not the one expected");
 
-            verify(serviceListenerMock, atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
+            verify(serviceListenerMock, timeout(TIMEOUT_MILLIS).atLeastOnce()).serviceResolved(capServiceResolvedEvent.capture());
             assertFalse(capServiceResolvedEvent.getAllValues().isEmpty(), "We did not get the service resolved event.");
             assertTrue(capServiceResolvedEvent.getAllValues().stream().anyMatch(e -> service.equals(e.getInfo())), "Did not get the expected service info: ");
         }
