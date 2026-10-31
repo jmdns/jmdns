@@ -37,6 +37,7 @@ class JmmDNSTest {
     private ServiceInfo service;
     private static final String SERVICE_KEY = "srvname"; // Max 9 chars
     private static final long TIMEOUT_MILLIS = 15000;
+    private static final long AWAIT_POLL_MILLIS = 1000;
 
     /**
      * @return the list of services of the given type once it is non-empty, waiting up to {@link #TIMEOUT_MILLIS} for
@@ -46,7 +47,7 @@ class JmmDNSTest {
         long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(TIMEOUT_MILLIS);
         ServiceInfo[] services;
         do {
-            services = registry.list(type);
+            services = registry.list(type, AWAIT_POLL_MILLIS);
             if (services.length > 0) {
                 return services;
             }
@@ -63,7 +64,7 @@ class JmmDNSTest {
         long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(TIMEOUT_MILLIS);
         ServiceInfo[] infos;
         do {
-            infos = registry.getServiceInfos(type, name);
+            infos = registry.getServiceInfos(type, name, AWAIT_POLL_MILLIS);
             if (infos.length > 0) {
                 return infos;
             }
