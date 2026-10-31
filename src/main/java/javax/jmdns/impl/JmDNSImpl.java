@@ -516,13 +516,16 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             _socket.setReuseAddress(true);
             _socket.bind(new InetSocketAddress(DNSConstants.MDNS_PORT));
 
-            _sendSocket = new MulticastSocket(null);
-            _sendSocket.setReuseAddress(true);
-            _sendSocket.bind(new InetSocketAddress(hostInfo.getInetAddress(), DNSConstants.MDNS_PORT));
-            if (hostInfo.getInterface() != null) {
-                _sendSocket.setNetworkInterface(hostInfo.getInterface());
+            // macOS refuses to send to the group from a socket bound to a loopback address.
+            if (!hostInfo.getInetAddress().isLoopbackAddress()) {
+                _sendSocket = new MulticastSocket(null);
+                _sendSocket.setReuseAddress(true);
+                _sendSocket.bind(new InetSocketAddress(hostInfo.getInetAddress(), DNSConstants.MDNS_PORT));
+                if (hostInfo.getInterface() != null) {
+                    _sendSocket.setNetworkInterface(hostInfo.getInterface());
+                }
+                _sendSocket.setTimeToLive(255);
             }
-            _sendSocket.setTimeToLive(255);
         } else {
             _socket = new MulticastSocket(getMulticastBindAddress(hostInfo));
         }

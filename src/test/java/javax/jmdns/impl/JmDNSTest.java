@@ -132,6 +132,13 @@ class JmDNSTest {
     }
 
     @Test
+    void testCreateOnLoopbackIsAnnounced() throws IOException {
+        try (JmDNSImpl registry = (JmDNSImpl) JmDNS.create(InetAddress.getLoopbackAddress())) {
+            assertTrue(registry.waitForAnnounced(DNSConstants.SERVICE_INFO_TIMEOUT), "A registry on the loopback address should get through probing and announcing");
+        }
+    }
+
+    @Test
     void testRegisterService() throws IOException, InterruptedException {
         try (JmDNS registry = JmDNS.create()) {
             registry.registerService(service);
