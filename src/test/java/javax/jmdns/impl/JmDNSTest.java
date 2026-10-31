@@ -493,12 +493,19 @@ class JmDNSTest {
         String firstType = "_test._type1.local.";
 
         try (JmmDNS jmmdns = JmmDNS.Factory.getInstance()) {
-            Thread.sleep(5000);
-
             EventStoringServiceListener firstListener = new EventStoringServiceListener(firstType);
             jmmdns.addServiceListener(firstType, firstListener);
 
-            InetAddress[] addresses = jmmdns.getInetAddresses();
+            InetAddress[] addresses = null;
+            long interfaceDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
+            while ((addresses == null || addresses.length == 0) && System.nanoTime() < interfaceDeadline) {
+                addresses = jmmdns.getInetAddresses();
+                if (addresses == null || addresses.length == 0) {
+                    Thread.sleep(100);
+                }
+            }
+            assertNotNull(addresses);
+            assertTrue(addresses.length > 0);
             JmDNS[] dns = new JmDNS[addresses.length];
             Map<String, String> txtRecord = new HashMap<>();
             txtRecord.put("SOME KEY", "SOME VALUE");
@@ -510,12 +517,16 @@ class JmDNSTest {
                 dns[i].registerService(info.clone());
             }
 
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
+            while (!(firstListener.isServiceAddedReceived() && firstListener.isServiceResolvedReceived()) && System.nanoTime() < deadline) {
+                Thread.sleep(100);
+            }
 
             assertTrue(firstListener.isServiceAddedReceived());
             assertTrue(firstListener.isServiceResolvedReceived());
             assertFalse(firstListener.isServiceRemovedReceived());
 
-            Thread.sleep(30 * 1000);
+            Thread.sleep(TimeUnit.SECONDS.toMillis(10));
 
             firstListener.reset();
 
