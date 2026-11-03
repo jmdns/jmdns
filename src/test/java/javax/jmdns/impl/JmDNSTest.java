@@ -14,6 +14,7 @@
 package javax.jmdns.impl;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
@@ -31,10 +32,12 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.impl.constants.DNSConstants;
 import javax.jmdns.test.EventStoringServiceListener;
+import javax.jmdns.test.util.ReflectionUtils;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.mockito.ArgumentCaptor;
 
@@ -128,6 +131,30 @@ class JmDNSTest {
     void testCreateINetReceivesOnTheWildcardAddress() throws IOException {
         try (JmDNSImpl registry = (JmDNSImpl) JmDNS.create(InetAddress.getLocalHost())) {
             assertTrue(registry.getSocket().getLocalAddress().isAnyLocalAddress(), "A socket bound to the host address does not receive multicast outside Windows");
+        }
+    }
+
+    @Test
+    void testCreateOnLoopbackIsAnnounced() throws IOException {
+        try (JmDNSImpl registry = (JmDNSImpl) JmDNS.create(InetAddress.getLoopbackAddress())) {
+            assertTrue(registry.waitForAnnounced(DNSConstants.SERVICE_INFO_TIMEOUT), "A registry on the loopback address should get through probing and announcing");
+        }
+    }
+
+    @Test
+    void testCreateOnLoopbackSendsFromTheWildcardSocket() throws Exception {
+        try (JmDNSImpl registry = (JmDNSImpl) JmDNS.create(InetAddress.getLoopbackAddress())) {
+            assertNull(ReflectionUtils.getInternalState(registry, "_sendSocket"), "macOS refuses to send to the group from a socket bound to a loopback address");
+        }
+    }
+
+    @Test
+    @EnabledOnOs(OS.LINUX)
+    void testCreateOnLoopbackWithoutAnInterfaceKeepsTheHostBoundSocket() throws Exception {
+        InetAddress noInterface = InetAddress.getByName("127.0.1.1");
+        assumeTrue(NetworkInterface.getByInetAddress(noInterface) == null);
+        try (JmDNSImpl registry = (JmDNSImpl) JmDNS.create(noInterface)) {
+            assertNotNull(ReflectionUtils.getInternalState(registry, "_sendSocket"), "The wildcard socket has no interface to send on here, so it would multicast this address onto the LAN");
         }
     }
 

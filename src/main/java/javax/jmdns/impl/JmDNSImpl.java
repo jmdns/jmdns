@@ -88,7 +88,7 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
     private volatile MulticastSocket _socket;
     /**
      * Outside Windows a socket bound to the host address never receives multicast, so a wildcard-bound socket
-     * receives and this host-bound socket sends.
+     * receives and this host-bound socket sends. Null where the wildcard-bound socket sends too.
      */
     private volatile MulticastSocket _sendSocket;
 
@@ -516,13 +516,18 @@ public class JmDNSImpl extends JmDNS implements DNSStatefulObject, DNSTaskStarte
             _socket.setReuseAddress(true);
             _socket.bind(new InetSocketAddress(DNSConstants.MDNS_PORT));
 
-            _sendSocket = new MulticastSocket(null);
-            _sendSocket.setReuseAddress(true);
-            _sendSocket.bind(new InetSocketAddress(hostInfo.getInetAddress(), DNSConstants.MDNS_PORT));
-            if (hostInfo.getInterface() != null) {
-                _sendSocket.setNetworkInterface(hostInfo.getInterface());
+            // macOS refuses to send to the group from a socket bound to a loopback address, and loopback traffic has
+            // no off-link source to protect. A loopback address on no interface still needs this socket: the wildcard
+            // one is not pinned to an interface then, so it would multicast the address onto the LAN.
+            if (!hostInfo.getInetAddress().isLoopbackAddress() || hostInfo.getInterface() == null) {
+                _sendSocket = new MulticastSocket(null);
+                _sendSocket.setReuseAddress(true);
+                _sendSocket.bind(new InetSocketAddress(hostInfo.getInetAddress(), DNSConstants.MDNS_PORT));
+                if (hostInfo.getInterface() != null) {
+                    _sendSocket.setNetworkInterface(hostInfo.getInterface());
+                }
+                _sendSocket.setTimeToLive(255);
             }
-            _sendSocket.setTimeToLive(255);
         } else {
             _socket = new MulticastSocket(getMulticastBindAddress(hostInfo));
         }
